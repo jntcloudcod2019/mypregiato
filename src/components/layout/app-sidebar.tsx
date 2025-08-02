@@ -44,14 +44,14 @@ export function AppSidebar() {
         {/* Logo */}
         <div className="p-4 border-b border-border flex items-center justify-between">
           {!collapsed ? (
-            <img 
-              src="/src/assets/pregiato-logo.png" 
-              alt="Pregiato Management" 
-              className="h-8 object-contain"
-            />
+            <div className="flex items-center">
+              <h1 className="font-lubalin text-xl font-bold text-primary tracking-wider">
+                MY PREGIATO
+              </h1>
+            </div>
           ) : (
             <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">P</span>
+              <span className="text-white font-bold text-sm">MP</span>
             </div>
           )}
           {!collapsed && <ThemeToggle />}
