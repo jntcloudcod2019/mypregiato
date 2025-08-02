@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { FileText, Home, Users, Settings, ChevronDown, Star } from "lucide-react"
 import { NavLink, useLocation } from "react-router-dom"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 import {
   Sidebar,
@@ -40,7 +41,7 @@ export function AppSidebar() {
     >
       <SidebarContent className="bg-card">
         {/* Logo */}
-        <div className="p-4 border-b border-border">
+        <div className="p-4 border-b border-border flex items-center justify-between">
           {!collapsed ? (
             <h2 className="font-bold text-xl bg-gradient-primary bg-clip-text text-transparent">
               Pregiato
@@ -50,6 +51,7 @@ export function AppSidebar() {
               <span className="text-white font-bold text-sm">P</span>
             </div>
           )}
+          {!collapsed && <ThemeToggle />}
         </div>
 
         <SidebarGroup className="mt-4">

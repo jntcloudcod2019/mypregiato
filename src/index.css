@@ -48,6 +48,7 @@
     /* Shadows - Elegant depth */
     --shadow-elegant: 0 10px 30px -10px hsl(var(--primary) / 0.3);
     --shadow-card: 0 4px 16px -4px hsl(240 10% 0% / 0.4);
+    --shadow-modern: 0 8px 25px -8px hsl(240 10% 3.9% / 0.3);
     
     /* Sidebar colors */
     --sidebar-background: 240 10% 3.9%;
@@ -71,5 +72,19 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+  
+  .shadow-elegant {
+    box-shadow: var(--shadow-elegant);
+  }
+  
+  .shadow-modern {
+    box-shadow: var(--shadow-modern);
   }
 }

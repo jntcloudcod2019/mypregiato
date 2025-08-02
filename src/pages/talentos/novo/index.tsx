@@ -69,6 +69,7 @@ const formSchema = z.object({
   neighborhood: z.string().min(1, "Bairro é obrigatório"),
   number: z.string().min(1, "Número é obrigatório"),
   complement: z.string().optional(),
+  availableForTravel: z.boolean().default(false),
   isActive: z.boolean().default(true),
 })
 
@@ -583,6 +584,30 @@ export default function NovoTalento() {
                   )}
                 />
               </div>
+
+              {/* Disponibilidade para viagem */}
+              <FormField
+                control={form.control}
+                name="availableForTravel"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>
+                        Disponível para viagem
+                      </FormLabel>
+                      <FormDescription>
+                        Marque se o talento está disponível para trabalhos que envolvam viagens
+                      </FormDescription>
+                    </div>
+                  </FormItem>
+                )}
+              />
 
               {/* Status */}
               <FormField

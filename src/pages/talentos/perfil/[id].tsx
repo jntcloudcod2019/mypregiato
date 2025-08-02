@@ -13,9 +13,10 @@ import { Switch } from "@/components/ui/switch"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { CheckCircle, Edit, Plus, Trash2, Upload, Calendar as CalendarIcon, ArrowLeft } from "lucide-react"
+import { CheckCircle, Edit, Plus, Trash2, Upload, Calendar as CalendarIcon, ArrowLeft, User, Mail, Phone, MapPin, CreditCard, Users, Plane, Camera, Home } from "lucide-react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
+import { CompositeTemplates } from "@/components/composite-templates"
 
 // Mock data - replace with Supabase queries
 const mockTalent = {
@@ -34,8 +35,12 @@ const mockTalent = {
   neighborhood: "Centro",
   number: "123",
   complement: "Apto 45",
+  availableForTravel: true,
   active: true,
+  profileImage: "/placeholder.svg",
   photos: [
+    "/placeholder.svg",
+    "/placeholder.svg",
     "/placeholder.svg",
     "/placeholder.svg",
     "/placeholder.svg"
@@ -85,7 +90,11 @@ export default function TalentProfile() {
     const fetchTalent = async () => {
       const { data, error } = await supabase
         .from('talents')
-        .select('*')
+        .select(`
+          *,
+          talent_photos(id, url, is_profile),
+          talent_dna(*)
+        `)
         .eq('id', id)
         .single()
       
@@ -102,9 +111,29 @@ export default function TalentProfile() {
   }, [id])
 
   const updateTalent = async (updatedData: any) => {
+    // API route: PUT /api/talents/:id
+    // Parameters to send: { full_name, cpf_cnpj, email, whatsapp, phone, birth_date, gender, cep, street, city, state, neighborhood, number, complement, available_for_travel, is_active, updated_at }
     const { error } = await supabase
       .from('talents')
-      .update(updatedData)
+      .update({
+        full_name: updatedData.name,
+        cpf_cnpj: updatedData.cpf,
+        email: updatedData.email,
+        whatsapp: updatedData.whatsapp,
+        phone: updatedData.phone,
+        birth_date: updatedData.birthDate,
+        gender: updatedData.gender,
+        cep: updatedData.cep,
+        street: updatedData.street,
+        city: updatedData.city,
+        state: updatedData.state,
+        neighborhood: updatedData.neighborhood,
+        number: updatedData.number,
+        complement: updatedData.complement,
+        available_for_travel: updatedData.availableForTravel,
+        is_active: updatedData.active,
+        updated_at: new Date().toISOString()
+      })
       .eq('id', id)
     
     if (error) {
@@ -116,12 +145,57 @@ export default function TalentProfile() {
   }
 
   const saveDNA = async (dnaData: any) => {
+    // API route: POST/PUT /api/talents/:id/dna
+    // Parameters to send: { talent_id, physical_characteristics, facial_characteristics, other_characteristics }
     const { error } = await supabase
       .from('talent_dna')
       .upsert({ talent_id: id, ...dnaData })
     
     if (error) {
       console.error('Error saving DNA:', error)
+      return false
+    }
+    
+    return true
+  }
+
+  const uploadPhoto = async (file: File) => {
+    // API route: POST /api/talents/:id/photos
+    // Parameters to send: FormData with file and metadata
+    const formData = new FormData()
+    formData.append('photo', file)
+    formData.append('talent_id', id)
+    
+    const { data, error } = await supabase.storage
+      .from('talent-photos')
+      .upload(`${id}/${Date.now()}-${file.name}`, file)
+    
+    if (error) {
+      console.error('Error uploading photo:', error)
+      return false
+    }
+    
+    // Save photo reference in database
+    const { error: dbError } = await supabase
+      .from('talent_photos')
+      .insert({
+        talent_id: id,
+        url: data.path,
+        is_profile: false
+      })
+    
+    return !dbError
+  }
+
+  const deletePhoto = async (photoId: string) => {
+    // API route: DELETE /api/talents/:id/photos/:photoId
+    const { error } = await supabase
+      .from('talent_photos')
+      .delete()
+      .eq('id', photoId)
+    
+    if (error) {
+      console.error('Error deleting photo:', error)
       return false
     }
     
@@ -146,6 +220,23 @@ export default function TalentProfile() {
       setShowAlert(true)
       setTimeout(() => setShowAlert(false), 3000)
     }, 500)
+  }
+
+  // Handle photo upload simulation
+  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files
+    if (files && files.length > 0) {
+      // Simulate photo upload
+      console.log('Uploading photos:', Array.from(files).map(f => f.name))
+      // In real implementation, call uploadPhoto for each file
+    }
+  }
+
+  // Handle photo deletion simulation  
+  const handlePhotoDelete = (photoIndex: number) => {
+    const updatedPhotos = talent.photos.filter((_, index) => index !== photoIndex)
+    setTalent({ ...talent, photos: updatedPhotos })
+    // In real implementation, call deletePhoto API
   }
 
   const formatCPF = (value: string) => {
@@ -175,7 +266,7 @@ export default function TalentProfile() {
       {/* Alert */}
       {showAlert && (
         <div className="animate-fade-in">
-          <Alert className="border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200">
+          <Alert className="border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200 shadow-elegant">
             <CheckCircle className="h-4 w-4" />
             <AlertDescription>
               Informações de {talent.name} atualizadas com sucesso.
@@ -195,7 +286,9 @@ export default function TalentProfile() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">Perfil do Talento</h1>
+            <h1 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+              Perfil do Talento
+            </h1>
             <p className="text-muted-foreground">
               Visualize e edite as informações do talento
             </p>
@@ -213,211 +306,272 @@ export default function TalentProfile() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Profile Info */}
         <div className="lg:col-span-1">
-          <Card>
+          <Card className="shadow-card">
             <CardHeader>
-              <CardTitle>Informações Básicas</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                Informações Básicas
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex justify-center mb-4">
-                <div className="w-32 h-32 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                  <span className="text-2xl font-bold text-primary">
-                    {talent.name.split(' ').map(n => n[0]).join('')}
-                  </span>
+            <CardContent className="space-y-6">
+              {/* Profile Image */}
+              <div className="flex flex-col items-center space-y-4">
+                <div className="relative">
+                  <div className="w-32 h-32 rounded-xl overflow-hidden border-4 border-primary/20 shadow-lg">
+                    <img
+                      src={talent.profileImage}
+                      alt={talent.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                    <Camera className="h-4 w-4 text-primary-foreground" />
+                  </div>
+                </div>
+                <div className="text-center">
+                  <h3 className="font-semibold text-lg">{talent.name}</h3>
+                  <Badge variant={talent.active ? "default" : "secondary"} className="mt-1">
+                    {talent.active ? "Ativo" : "Inativo"}
+                  </Badge>
                 </div>
               </div>
 
-              <div className="space-y-3">
-                <div>
-                  <Label>Nome Completo</Label>
-                  {isEditing ? (
-                    <Input
-                      value={editedTalent.name}
-                      onChange={(e) => setEditedTalent({...editedTalent, name: e.target.value})}
-                    />
-                  ) : (
-                    <p className="text-sm text-muted-foreground">{talent.name}</p>
-                  )}
-                </div>
-
-                <div>
-                  <Label>CPF</Label>
-                  {isEditing ? (
-                    <Input
-                      value={editedTalent.cpf}
-                      onChange={(e) => setEditedTalent({...editedTalent, cpf: formatCPF(e.target.value)})}
-                      maxLength={14}
-                    />
-                  ) : (
-                    <p className="text-sm text-muted-foreground">{talent.cpf}</p>
-                  )}
-                </div>
-
-                <div>
-                  <Label>Email</Label>
-                  {isEditing ? (
-                    <Input
-                      type="email"
-                      value={editedTalent.email}
-                      onChange={(e) => setEditedTalent({...editedTalent, email: e.target.value})}
-                    />
-                  ) : (
-                    <p className="text-sm text-muted-foreground">{talent.email}</p>
-                  )}
-                </div>
-
-                <div>
-                  <Label>WhatsApp</Label>
-                  {isEditing ? (
-                    <Input
-                      value={editedTalent.whatsapp}
-                      onChange={(e) => setEditedTalent({...editedTalent, whatsapp: formatPhone(e.target.value)})}
-                    />
-                  ) : (
-                    <p className="text-sm text-muted-foreground">{talent.whatsapp}</p>
-                  )}
-                </div>
-
-                <div>
-                  <Label>Telefone</Label>
-                  {isEditing ? (
-                    <Input
-                      value={editedTalent.phone}
-                      onChange={(e) => setEditedTalent({...editedTalent, phone: formatPhone(e.target.value)})}
-                    />
-                  ) : (
-                    <p className="text-sm text-muted-foreground">{talent.phone}</p>
-                  )}
-                </div>
-
-                <div>
-                  <Label>Data de Nascimento</Label>
-                  {isEditing ? (
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start text-left font-normal">
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {editedTalent.birthDate ? format(editedTalent.birthDate, "dd/MM/yyyy") : "Selecionar data"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={editedTalent.birthDate}
-                          onSelect={(date) => setEditedTalent({...editedTalent, birthDate: date || new Date()})}
-                          initialFocus
-                          className="pointer-events-auto"
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      {format(talent.birthDate, "dd/MM/yyyy")}
-                    </p>
-                  )}
-                </div>
-
-                <div>
-                  <Label>Gênero</Label>
-                  {isEditing ? (
-                    <Select
-                      value={editedTalent.gender}
-                      onValueChange={(value) => setEditedTalent({...editedTalent, gender: value})}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Masculino">Masculino</SelectItem>
-                        <SelectItem value="Feminino">Feminino</SelectItem>
-                        <SelectItem value="Não Binário">Não Binário</SelectItem>
-                        <SelectItem value="Outros">Outros</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">{talent.gender}</p>
-                  )}
-                </div>
-
-                <div>
-                  <Label>CEP</Label>
-                  {isEditing ? (
-                    <Input
-                      value={editedTalent.cep}
-                      onChange={(e) => setEditedTalent({...editedTalent, cep: formatCEP(e.target.value)})}
-                      maxLength={9}
-                    />
-                  ) : (
-                    <p className="text-sm text-muted-foreground">{talent.cep}</p>
-                  )}
-                </div>
-
-                <div>
-                  <Label>Endereço</Label>
-                  {isEditing ? (
-                    <div className="space-y-2">
+              {/* Basic Information Grid */}
+              <div className="grid grid-cols-1 gap-4">
+                <div className="flex items-center space-x-3 p-3 bg-muted/30 rounded-lg">
+                  <User className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex-1 min-w-0">
+                    <Label className="text-xs text-muted-foreground">Nome Completo</Label>
+                    {isEditing ? (
                       <Input
-                        placeholder="Rua"
-                        value={editedTalent.street}
-                        onChange={(e) => setEditedTalent({...editedTalent, street: e.target.value})}
+                        value={editedTalent.name}
+                        onChange={(e) => setEditedTalent({...editedTalent, name: e.target.value})}
+                        className="mt-1"
                       />
-                      <div className="grid grid-cols-2 gap-2">
+                    ) : (
+                      <p className="text-sm font-medium truncate">{talent.name}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-3 p-3 bg-muted/30 rounded-lg">
+                  <CreditCard className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex-1 min-w-0">
+                    <Label className="text-xs text-muted-foreground">CPF</Label>
+                    {isEditing ? (
+                      <Input
+                        value={editedTalent.cpf}
+                        onChange={(e) => setEditedTalent({...editedTalent, cpf: formatCPF(e.target.value)})}
+                        maxLength={14}
+                        className="mt-1"
+                      />
+                    ) : (
+                      <p className="text-sm font-medium">{talent.cpf}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-3 p-3 bg-muted/30 rounded-lg">
+                  <Mail className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex-1 min-w-0">
+                    <Label className="text-xs text-muted-foreground">Email</Label>
+                    {isEditing ? (
+                      <Input
+                        type="email"
+                        value={editedTalent.email}
+                        onChange={(e) => setEditedTalent({...editedTalent, email: e.target.value})}
+                        className="mt-1"
+                      />
+                    ) : (
+                      <p className="text-sm font-medium truncate">{talent.email}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex items-center space-x-2 p-3 bg-muted/30 rounded-lg">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <div className="flex-1 min-w-0">
+                      <Label className="text-xs text-muted-foreground">WhatsApp</Label>
+                      {isEditing ? (
                         <Input
-                          placeholder="Cidade"
-                          value={editedTalent.city}
-                          onChange={(e) => setEditedTalent({...editedTalent, city: e.target.value})}
+                          value={editedTalent.whatsapp}
+                          onChange={(e) => setEditedTalent({...editedTalent, whatsapp: formatPhone(e.target.value)})}
+                          className="mt-1"
                         />
+                      ) : (
+                        <p className="text-sm font-medium">{talent.whatsapp}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-2 p-3 bg-muted/30 rounded-lg">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <div className="flex-1 min-w-0">
+                      <Label className="text-xs text-muted-foreground">Telefone</Label>
+                      {isEditing ? (
                         <Input
-                          placeholder="UF"
-                          value={editedTalent.state}
-                          onChange={(e) => setEditedTalent({...editedTalent, state: e.target.value})}
-                          maxLength={2}
+                          value={editedTalent.phone}
+                          onChange={(e) => setEditedTalent({...editedTalent, phone: formatPhone(e.target.value)})}
+                          className="mt-1"
+                        />
+                      ) : (
+                        <p className="text-sm font-medium">{talent.phone}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex items-center space-x-2 p-3 bg-muted/30 rounded-lg">
+                    <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                    <div className="flex-1 min-w-0">
+                      <Label className="text-xs text-muted-foreground">Nascimento</Label>
+                      {isEditing ? (
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" className="w-full justify-start text-left font-normal mt-1 h-8">
+                              {editedTalent.birthDate ? format(editedTalent.birthDate, "dd/MM/yyyy") : "Selecionar"}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={editedTalent.birthDate}
+                              onSelect={(date) => setEditedTalent({...editedTalent, birthDate: date || new Date()})}
+                              initialFocus
+                              className="pointer-events-auto"
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      ) : (
+                        <p className="text-sm font-medium">
+                          {format(talent.birthDate, "dd/MM/yyyy")}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-2 p-3 bg-muted/30 rounded-lg">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <div className="flex-1 min-w-0">
+                      <Label className="text-xs text-muted-foreground">Gênero</Label>
+                      {isEditing ? (
+                        <Select
+                          value={editedTalent.gender}
+                          onValueChange={(value) => setEditedTalent({...editedTalent, gender: value})}
+                        >
+                          <SelectTrigger className="mt-1 h-8">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Masculino">Masculino</SelectItem>
+                            <SelectItem value="Feminino">Feminino</SelectItem>
+                            <SelectItem value="Não Binário">Não Binário</SelectItem>
+                            <SelectItem value="Outros">Outros</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <p className="text-sm font-medium">{talent.gender}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-3 p-3 bg-muted/30 rounded-lg">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex-1 min-w-0">
+                    <Label className="text-xs text-muted-foreground">CEP</Label>
+                    {isEditing ? (
+                      <Input
+                        value={editedTalent.cep}
+                        onChange={(e) => setEditedTalent({...editedTalent, cep: formatCEP(e.target.value)})}
+                        maxLength={9}
+                        className="mt-1"
+                      />
+                    ) : (
+                      <p className="text-sm font-medium">{talent.cep}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-3 p-3 bg-muted/30 rounded-lg">
+                  <Home className="h-4 w-4 text-muted-foreground mt-1" />
+                  <div className="flex-1 min-w-0">
+                    <Label className="text-xs text-muted-foreground">Endereço</Label>
+                    {isEditing ? (
+                      <div className="space-y-2 mt-1">
+                        <Input
+                          placeholder="Rua"
+                          value={editedTalent.street}
+                          onChange={(e) => setEditedTalent({...editedTalent, street: e.target.value})}
+                        />
+                        <div className="grid grid-cols-2 gap-2">
+                          <Input
+                            placeholder="Cidade"
+                            value={editedTalent.city}
+                            onChange={(e) => setEditedTalent({...editedTalent, city: e.target.value})}
+                          />
+                          <Input
+                            placeholder="UF"
+                            value={editedTalent.state}
+                            onChange={(e) => setEditedTalent({...editedTalent, state: e.target.value})}
+                            maxLength={2}
+                          />
+                        </div>
+                        <Input
+                          placeholder="Bairro"
+                          value={editedTalent.neighborhood}
+                          onChange={(e) => setEditedTalent({...editedTalent, neighborhood: e.target.value})}
+                        />
+                        <div className="grid grid-cols-2 gap-2">
+                          <Input
+                            placeholder="Número"
+                            value={editedTalent.number}
+                            onChange={(e) => setEditedTalent({...editedTalent, number: e.target.value})}
+                          />
+                          <Input
+                            placeholder="Complemento"
+                            value={editedTalent.complement}
+                            onChange={(e) => setEditedTalent({...editedTalent, complement: e.target.value})}
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-sm space-y-1 mt-1">
+                        <p className="font-medium">{talent.street}</p>
+                        <p className="text-muted-foreground">{talent.city}, {talent.state}</p>
+                        <p className="text-muted-foreground">{talent.neighborhood}</p>
+                        <p className="text-muted-foreground">Nº {talent.number} {talent.complement && `- ${talent.complement}`}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-3 p-3 bg-muted/30 rounded-lg">
+                  <Plane className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex-1">
+                    <Label className="text-xs text-muted-foreground">Disponível para viagem</Label>
+                    {isEditing ? (
+                      <div className="mt-2">
+                        <Switch
+                          checked={editedTalent.availableForTravel}
+                          onCheckedChange={(checked) => setEditedTalent({...editedTalent, availableForTravel: checked})}
                         />
                       </div>
-                      <Input
-                        placeholder="Bairro"
-                        value={editedTalent.neighborhood}
-                        onChange={(e) => setEditedTalent({...editedTalent, neighborhood: e.target.value})}
-                      />
-                      <div className="grid grid-cols-2 gap-2">
-                        <Input
-                          placeholder="Número"
-                          value={editedTalent.number}
-                          onChange={(e) => setEditedTalent({...editedTalent, number: e.target.value})}
-                        />
-                        <Input
-                          placeholder="Complemento"
-                          value={editedTalent.complement}
-                          onChange={(e) => setEditedTalent({...editedTalent, complement: e.target.value})}
-                        />
+                    ) : (
+                      <div className="mt-1">
+                        <Badge variant={talent.availableForTravel ? "default" : "secondary"} className="text-xs">
+                          {talent.availableForTravel ? "Sim" : "Não"}
+                        </Badge>
                       </div>
-                    </div>
-                  ) : (
-                    <div className="text-sm text-muted-foreground space-y-1">
-                      <p>{talent.street}</p>
-                      <p>{talent.city}, {talent.state}</p>
-                      <p>{talent.neighborhood}</p>
-                      <p>Número: {talent.number} {talent.complement && `- ${talent.complement}`}</p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <Label>Ativo</Label>
-                  {isEditing ? (
-                    <Switch
-                      checked={editedTalent.active}
-                      onCheckedChange={(checked) => setEditedTalent({...editedTalent, active: checked})}
-                    />
-                  ) : (
-                    <Badge variant={talent.active ? "default" : "secondary"}>
-                      {talent.active ? "Ativo" : "Inativo"}
-                    </Badge>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
 
               {isEditing && (
-                <Button onClick={handleSave} className="w-full mt-4">
+                <Button onClick={handleSave} className="w-full mt-6">
                   Salvar Alterações
                 </Button>
               )}
@@ -435,38 +589,59 @@ export default function TalentProfile() {
             </TabsList>
 
             <TabsContent value="fotos" className="space-y-4">
-              <Card>
+              <Card className="shadow-card">
                 <CardHeader>
                   <div className="flex items-center justify-between">
-                    <CardTitle>Galeria de Fotos</CardTitle>
-                    <Button size="sm">
-                      <Upload className="mr-2 h-4 w-4" />
-                      Adicionar Fotos
-                    </Button>
+                    <CardTitle className="flex items-center gap-2">
+                      <Camera className="h-5 w-5" />
+                      Galeria de Fotos
+                    </CardTitle>
+                    <div className="flex gap-2">
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={handlePhotoUpload}
+                        className="hidden"
+                        id="photo-upload"
+                      />
+                      <Button size="sm" asChild>
+                        <label htmlFor="photo-upload" className="cursor-pointer">
+                          <Upload className="mr-2 h-4 w-4" />
+                          Adicionar Fotos
+                        </label>
+                      </Button>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {talent.photos.map((photo, index) => (
                       <div key={index} className="relative group">
-                        <img
-                          src={photo}
-                          alt={`Foto ${index + 1}`}
-                          className="w-full h-32 object-cover rounded-lg"
-                        />
+                        <div className="aspect-square rounded-lg overflow-hidden bg-muted shadow-md">
+                          <img
+                            src={photo}
+                            alt={`Foto ${index + 1}`}
+                            className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                          />
+                        </div>
                         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
                           <Button
                             size="sm"
                             variant="destructive"
                             className="text-xs"
+                            onClick={() => handlePhotoDelete(index)}
                           >
                             <Trash2 className="h-3 w-3" />
                           </Button>
                         </div>
                       </div>
                     ))}
-                    <div className="w-full h-32 border-2 border-dashed border-muted-foreground/25 rounded-lg flex items-center justify-center cursor-pointer hover:border-muted-foreground/50 transition-colors">
-                      <Plus className="h-8 w-8 text-muted-foreground/50" />
+                    <div className="aspect-square border-2 border-dashed border-muted-foreground/25 rounded-lg flex items-center justify-center cursor-pointer hover:border-primary/50 transition-colors group">
+                      <label htmlFor="photo-upload" className="cursor-pointer flex flex-col items-center gap-2 p-4">
+                        <Plus className="h-8 w-8 text-muted-foreground/50 group-hover:text-primary/50 transition-colors" />
+                        <span className="text-xs text-muted-foreground">Adicionar Foto</span>
+                      </label>
                     </div>
                   </div>
                 </CardContent>
@@ -474,25 +649,18 @@ export default function TalentProfile() {
             </TabsContent>
 
             <TabsContent value="composite" className="space-y-4">
-              <Card>
+              <Card className="shadow-card">
                 <CardHeader>
                   <CardTitle>Gerar Composite</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground mb-4">
-                      Funcionalidade de geração de composite em desenvolvimento
-                    </p>
-                    <Button disabled>
-                      Gerar Composite
-                    </Button>
-                  </div>
+                  <CompositeTemplates talent={talent} photos={talent.photos} />
                 </CardContent>
               </Card>
             </TabsContent>
 
             <TabsContent value="dna" className="space-y-4">
-              <Card>
+              <Card className="shadow-card">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
@@ -682,43 +850,45 @@ export default function TalentProfile() {
                 </CardHeader>
                 <CardContent>
                   {talent.dna && (
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="font-medium mb-2">Medidas Corporais</h4>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                          <div>
-                            <span className="text-muted-foreground">Altura:</span>
-                            <p>{talent.dna.physicalCharacteristics.height}m</p>
-                          </div>
-                          <div>
-                            <span className="text-muted-foreground">Peso:</span>
-                            <p>{talent.dna.physicalCharacteristics.weight}kg</p>
-                          </div>
-                          <div>
-                            <span className="text-muted-foreground">Manequim:</span>
-                            <p>{talent.dna.physicalCharacteristics.dressSize}</p>
-                          </div>
-                          <div>
-                            <span className="text-muted-foreground">Calçado:</span>
-                            <p>{talent.dna.physicalCharacteristics.shoeSize}</p>
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                          <h4 className="font-medium text-lg text-primary">Medidas Corporais</h4>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="p-3 bg-muted/30 rounded-lg">
+                              <span className="text-xs text-muted-foreground">Altura</span>
+                              <p className="font-semibold">{talent.dna.physicalCharacteristics.height}m</p>
+                            </div>
+                            <div className="p-3 bg-muted/30 rounded-lg">
+                              <span className="text-xs text-muted-foreground">Peso</span>
+                              <p className="font-semibold">{talent.dna.physicalCharacteristics.weight}kg</p>
+                            </div>
+                            <div className="p-3 bg-muted/30 rounded-lg">
+                              <span className="text-xs text-muted-foreground">Manequim</span>
+                              <p className="font-semibold">{talent.dna.physicalCharacteristics.dressSize}</p>
+                            </div>
+                            <div className="p-3 bg-muted/30 rounded-lg">
+                              <span className="text-xs text-muted-foreground">Calçado</span>
+                              <p className="font-semibold">{talent.dna.physicalCharacteristics.shoeSize}</p>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      
-                      <div>
-                        <h4 className="font-medium mb-2">Características Faciais</h4>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                          <div>
-                            <span className="text-muted-foreground">Olhos:</span>
-                            <p>{talent.dna.facialCharacteristics.eyeColor}</p>
-                          </div>
-                          <div>
-                            <span className="text-muted-foreground">Cabelo:</span>
-                            <p>{talent.dna.facialCharacteristics.hairColor}</p>
-                          </div>
-                          <div>
-                            <span className="text-muted-foreground">Etnia:</span>
-                            <p>{talent.dna.facialCharacteristics.ethnicity}</p>
+                        
+                        <div className="space-y-4">
+                          <h4 className="font-medium text-lg text-primary">Características Faciais</h4>
+                          <div className="grid grid-cols-1 gap-3">
+                            <div className="p-3 bg-muted/30 rounded-lg">
+                              <span className="text-xs text-muted-foreground">Olhos</span>
+                              <p className="font-semibold">{talent.dna.facialCharacteristics.eyeColor}</p>
+                            </div>
+                            <div className="p-3 bg-muted/30 rounded-lg">
+                              <span className="text-xs text-muted-foreground">Cabelo</span>
+                              <p className="font-semibold">{talent.dna.facialCharacteristics.hairColor}</p>
+                            </div>
+                            <div className="p-3 bg-muted/30 rounded-lg">
+                              <span className="text-xs text-muted-foreground">Etnia</span>
+                              <p className="font-semibold">{talent.dna.facialCharacteristics.ethnicity}</p>
+                            </div>
                           </div>
                         </div>
                       </div>
