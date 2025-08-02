@@ -4,12 +4,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Search } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { LoadingSpinner } from "@/components/contratos/loading-spinner"
 import { ContractAlert } from "@/components/contratos/contract-alert"
-import { PaymentFields } from "@/components/contratos/payment-fields"
 
 // Mock data - Em produção viria do banco
 const mockProdutores = [
@@ -24,21 +22,12 @@ const mockModelos = [
   { id: "3", fullName: "Laura Santos", document: "456.789.123-00", email: "laura@example.com" }
 ]
 
-const metodosPagemento = [
-  "Sem Custo",
-  "PIX", 
-  "Débito",
-  "Dinheiro",
-  "Cartão de Crédito",
-  "Link de Pagamento"
-]
-
 const mesesPorExtenso = [
   "janeiro", "fevereiro", "março", "abril", "maio", "junho",
   "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"
 ]
 
-export default function NovoContratoSuperFotos() {
+export default function NovoContratoAgenciamento() {
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
   const [alert, setAlert] = useState<{
@@ -56,20 +45,8 @@ export default function NovoContratoSuperFotos() {
     duracaoContrato: "",
     produtorId: "",
     modeloId: "",
-    modeloSearch: "",
-    metodoPagamento: [] as string[],
-    paymentData: {}
+    modeloSearch: ""
   })
-
-  const handleMetodoPagamentoChange = (metodo: string) => {
-    setFormData(prev => {
-      const metodos = prev.metodoPagamento.includes(metodo)
-        ? prev.metodoPagamento.filter(m => m !== metodo)
-        : [...prev.metodoPagamento, metodo]
-      
-      return { ...prev, metodoPagamento: metodos }
-    })
-  }
 
   const filteredModelos = mockModelos.filter(modelo =>
     modelo.fullName.toLowerCase().includes(formData.modeloSearch.toLowerCase()) ||
@@ -100,7 +77,7 @@ export default function NovoContratoSuperFotos() {
         setAlert({
           type: "success", 
           title: "Contrato Gerado com Sucesso",
-          message: `Contrato de Super Fotos para modelo ${selectedModelo?.fullName} gerado com sucesso.`,
+          message: `Contrato de Agenciamento para modelo ${selectedModelo?.fullName} gerado com sucesso.`,
           show: true
         })
       }
@@ -113,19 +90,16 @@ export default function NovoContratoSuperFotos() {
 
   const handleDeleteExistingContract = () => {
     setAlert({ ...alert, show: false })
-    // Aqui faria a chamada para deletar o contrato existente
     console.log("Deletando contrato existente...")
   }
 
   const handleKeepBothContracts = () => {
     setAlert({ ...alert, show: false })
-    // Aqui prosseguiria com a geração do novo contrato
     console.log("Mantendo ambos os contratos...")
   }
 
   const handleViewDocument = () => {
     setAlert({ ...alert, show: false })
-    // Aqui abriria o documento gerado
     console.log("Abrindo documento...")
   }
 
@@ -141,9 +115,9 @@ export default function NovoContratoSuperFotos() {
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Novo Contrato Super Fotos</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Novo Contrato de Agenciamento</h1>
           <p className="text-muted-foreground">
-            Preencha os dados para gerar um novo contrato
+            Preencha os dados para gerar um novo contrato de agenciamento
           </p>
         </div>
       </div>
@@ -171,7 +145,7 @@ export default function NovoContratoSuperFotos() {
           <Card className="bg-gradient-card border-border/50">
             <CardHeader>
               <CardTitle>Dados Básicos do Contrato</CardTitle>
-              <CardDescription>Informações gerais sobre o contrato</CardDescription>
+              <CardDescription>Informações gerais sobre o contrato de agenciamento</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -313,47 +287,6 @@ export default function NovoContratoSuperFotos() {
             </CardContent>
           </Card>
 
-          {/* Parâmetros de Pagamento */}
-          <Card className="bg-gradient-card border-border/50">
-            <CardHeader>
-              <CardTitle>Parâmetros de Pagamento</CardTitle>
-              <CardDescription>Configure as formas de pagamento (múltipla seleção permitida)</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Método de Pagamento *</Label>
-                <div className="flex flex-wrap gap-2">
-                  {metodosPagemento.map((metodo) => (
-                    <Badge
-                      key={metodo}
-                      variant={formData.metodoPagamento.includes(metodo) ? "default" : "outline"}
-                      className={`cursor-pointer transition-colors ${
-                        formData.metodoPagamento.includes(metodo) 
-                          ? "bg-primary text-primary-foreground hover:bg-primary/90" 
-                          : "bg-background border-border hover:bg-accent"
-                      }`}
-                      onClick={() => handleMetodoPagamentoChange(metodo)}
-                    >
-                      {metodo}
-                    </Badge>
-                  ))}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Selecione um ou mais métodos de pagamento. Para pagamentos combinados, selecione múltiplas opções.
-                </p>
-              </div>
-
-              {/* Campos específicos para cada método de pagamento */}
-              {formData.metodoPagamento.length > 0 && !formData.metodoPagamento.includes("Sem Custo") && (
-                <PaymentFields 
-                  paymentMethods={formData.metodoPagamento}
-                  paymentData={formData.paymentData}
-                  onPaymentDataChange={(data) => setFormData(prev => ({ ...prev, paymentData: data }))}
-                />
-              )}
-            </CardContent>
-          </Card>
-
           {/* Botões de Ação */}
           <div className="flex justify-end gap-4">
             <Button 
@@ -368,7 +301,7 @@ export default function NovoContratoSuperFotos() {
             <Button 
               type="submit" 
               className="bg-primary hover:bg-primary/90 min-w-[140px]"
-              disabled={isLoading || formData.metodoPagamento.length === 0}
+              disabled={isLoading}
             >
               {isLoading ? (
                 <div className="flex items-center gap-2">

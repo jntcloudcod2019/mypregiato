@@ -38,7 +38,7 @@ const mesesPorExtenso = [
   "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"
 ]
 
-export default function NovoContratoSuperFotos() {
+export default function NovoContratoSuperFotosMenor() {
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
   const [alert, setAlert] = useState<{
@@ -57,6 +57,8 @@ export default function NovoContratoSuperFotos() {
     produtorId: "",
     modeloId: "",
     modeloSearch: "",
+    nomeResponsavel: "",
+    cpfResponsavel: "",
     metodoPagamento: [] as string[],
     paymentData: {}
   })
@@ -77,8 +79,55 @@ export default function NovoContratoSuperFotos() {
     modelo.email.toLowerCase().includes(formData.modeloSearch.toLowerCase())
   )
 
+  const formatCPF = (value: string) => {
+    const numbers = value.replace(/\D/g, '')
+    if (numbers.length <= 11) {
+      return numbers.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
+    }
+    return value
+  }
+
+  const validateCPF = (cpf: string) => {
+    const numbers = cpf.replace(/\D/g, '')
+    if (numbers.length !== 11) return false
+    
+    // Validação básica de CPF
+    let sum = 0
+    for (let i = 0; i < 9; i++) {
+      sum += parseInt(numbers.charAt(i)) * (10 - i)
+    }
+    let remainder = (sum * 10) % 11
+    if (remainder === 10 || remainder === 11) remainder = 0
+    if (remainder !== parseInt(numbers.charAt(9))) return false
+
+    sum = 0
+    for (let i = 0; i < 10; i++) {
+      sum += parseInt(numbers.charAt(i)) * (11 - i)
+    }
+    remainder = (sum * 10) % 11
+    if (remainder === 10 || remainder === 11) remainder = 0
+    return remainder === parseInt(numbers.charAt(10))
+  }
+
+  const handleCPFChange = (value: string) => {
+    const formatted = formatCPF(value)
+    setFormData(prev => ({ ...prev, cpfResponsavel: formatted }))
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Validar CPF
+    if (!validateCPF(formData.cpfResponsavel)) {
+      setAlert({
+        type: "warning",
+        title: "CPF Inválido",
+        message: "Por favor, informe um CPF válido para o responsável.",
+        show: true
+      })
+      return
+    }
+    
     setIsLoading(true)
     
     try {
@@ -100,7 +149,7 @@ export default function NovoContratoSuperFotos() {
         setAlert({
           type: "success", 
           title: "Contrato Gerado com Sucesso",
-          message: `Contrato de Super Fotos para modelo ${selectedModelo?.fullName} gerado com sucesso.`,
+          message: `Contrato de Super Fotos (Menor Idade) para modelo ${selectedModelo?.fullName} gerado com sucesso.`,
           show: true
         })
       }
@@ -113,19 +162,16 @@ export default function NovoContratoSuperFotos() {
 
   const handleDeleteExistingContract = () => {
     setAlert({ ...alert, show: false })
-    // Aqui faria a chamada para deletar o contrato existente
     console.log("Deletando contrato existente...")
   }
 
   const handleKeepBothContracts = () => {
     setAlert({ ...alert, show: false })
-    // Aqui prosseguiria com a geração do novo contrato
     console.log("Mantendo ambos os contratos...")
   }
 
   const handleViewDocument = () => {
     setAlert({ ...alert, show: false })
-    // Aqui abriria o documento gerado
     console.log("Abrindo documento...")
   }
 
@@ -141,9 +187,9 @@ export default function NovoContratoSuperFotos() {
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Novo Contrato Super Fotos</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Novo Contrato Super Fotos - Menor Idade</h1>
           <p className="text-muted-foreground">
-            Preencha os dados para gerar um novo contrato
+            Preencha os dados para gerar um novo contrato para menor de idade
           </p>
         </div>
       </div>
@@ -155,10 +201,10 @@ export default function NovoContratoSuperFotos() {
             type={alert.type}
             title={alert.title}
             message={alert.message}
-            onAction={alert.type === "warning" ? handleDeleteExistingContract : handleViewDocument}
-            actionLabel={alert.type === "warning" ? "Excluir Anterior" : "Ver Documento"}
-            onSecondaryAction={alert.type === "warning" ? handleKeepBothContracts : undefined}
-            secondaryActionLabel={alert.type === "warning" ? "Manter Ambos" : undefined}
+            onAction={alert.type === "warning" ? (alert.title === "CPF Inválido" ? () => setAlert({...alert, show: false}) : handleDeleteExistingContract) : handleViewDocument}
+            actionLabel={alert.type === "warning" ? (alert.title === "CPF Inválido" ? "OK" : "Excluir Anterior") : "Ver Documento"}
+            onSecondaryAction={alert.type === "warning" && alert.title !== "CPF Inválido" ? handleKeepBothContracts : undefined}
+            secondaryActionLabel={alert.type === "warning" && alert.title !== "CPF Inválido" ? "Manter Ambos" : undefined}
           />
         </div>
       )}
@@ -245,6 +291,44 @@ export default function NovoContratoSuperFotos() {
                     placeholder="Ex: 12"
                     required
                   />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Dados do Responsável */}
+          <Card className="bg-gradient-card border-border/50">
+            <CardHeader>
+              <CardTitle>Dados do Responsável Legal</CardTitle>
+              <CardDescription>Informações do responsável pelo menor de idade</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="nomeResponsavel">Nome do Responsável *</Label>
+                  <Input 
+                    id="nomeResponsavel"
+                    value={formData.nomeResponsavel}
+                    onChange={(e) => setFormData(prev => ({ ...prev, nomeResponsavel: e.target.value }))}
+                    className="bg-background border-border"
+                    placeholder="Ex: João Silva Santos"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="cpfResponsavel">CPF do Responsável *</Label>
+                  <Input 
+                    id="cpfResponsavel"
+                    value={formData.cpfResponsavel}
+                    onChange={(e) => handleCPFChange(e.target.value)}
+                    className="bg-background border-border"
+                    placeholder="000.000.000-00"
+                    maxLength={14}
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Formato: 000.000.000-00 (apenas números válidos)
+                  </p>
                 </div>
               </div>
             </CardContent>
