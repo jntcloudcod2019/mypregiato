@@ -140,9 +140,6 @@ const TalentCard = ({ talent, navigate }: { talent: any; navigate: any }) => {
             <Badge variant="secondary" className="text-xs bg-secondary/20 text-secondary-foreground border border-secondary/30">
               {talent.city}
             </Badge>
-            <Badge variant="outline" className="text-xs border-primary/30 text-primary">
-              {talent.bodyType}
-            </Badge>
           </div>
           <Button 
             variant="outline" 
@@ -306,7 +303,7 @@ export default function Talentos() {
         </div>
         <Button 
           onClick={() => navigate('/talentos/novo')}
-          className="bg-primary hover:bg-primary/90"
+          className="bg-primary hover:bg-primary/90 shadow-elegant hover:shadow-glow border border-primary/20 backdrop-blur-sm"
         >
           <Plus className="h-4 w-4 mr-2" />
           Novo Talento

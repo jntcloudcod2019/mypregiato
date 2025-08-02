@@ -283,7 +283,7 @@ export default function NovoTalento() {
     <div className="p-6 space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+        <h1 className="text-3xl font-bold text-gradient-primary">
           Novo Talento
         </h1>
       </div>
@@ -635,13 +635,17 @@ export default function NovoTalento() {
 
               {/* Submit Button */}
               <div className="flex gap-4">
-                <Button type="submit" className="flex-1">
+                <Button 
+                  type="submit" 
+                  className="flex-1 bg-primary/20 backdrop-blur-sm border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground shadow-elegant hover:shadow-glow transition-all duration-300"
+                >
                   Salvar
                 </Button>
                 <Button 
                   type="button" 
                   variant="outline" 
                   onClick={() => navigate('/talentos')}
+                  className="bg-secondary/20 backdrop-blur-sm border border-secondary/30 text-secondary-foreground hover:bg-secondary hover:text-secondary-foreground shadow-elegant hover:shadow-glow transition-all duration-300"
                 >
                   Cancelar
                 </Button>

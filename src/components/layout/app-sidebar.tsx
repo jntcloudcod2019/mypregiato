@@ -33,7 +33,7 @@ export function AppSidebar() {
 
   const isActive = (path: string) => currentPath === path || currentPath.startsWith(path)
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
-    isActive ? "bg-primary/10 text-primary border-r-2 border-primary" : "hover:bg-accent/10"
+    isActive ? "bg-primary/10 text-primary border-r-2 border-primary" : "hover:bg-accent hover:text-accent-foreground"
 
   return (
     <Sidebar
@@ -45,8 +45,8 @@ export function AppSidebar() {
         <div className="p-4 border-b border-border flex items-center justify-between">
           {!collapsed ? (
             <div className="flex items-center">
-              <h1 className="font-lubalin text-xl font-bold text-primary tracking-wider">
-                MY PREGIATO
+              <h1 className="font-merriweather text-xl font-bold shiny-text tracking-wider">
+                My Pregiato
               </h1>
             </div>
           ) : (
