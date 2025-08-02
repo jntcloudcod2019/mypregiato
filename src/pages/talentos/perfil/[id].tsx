@@ -286,7 +286,7 @@ export default function TalentProfile() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold text-gradient-primary">
               Perfil do Talento
             </h1>
             <p className="text-muted-foreground">
@@ -319,7 +319,7 @@ export default function TalentProfile() {
                 <div className="relative group">
                   <div className="w-32 h-32 rounded-xl overflow-hidden border-4 border-primary/20 shadow-lg">
                     <img
-                      src={talent.profileImage}
+                      src="/src/assets/ana-clara-profile.jpg"
                       alt={talent.name}
                       className="w-full h-full object-cover"
                     />

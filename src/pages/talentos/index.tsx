@@ -114,7 +114,7 @@ const mockTalents = [
 
 const TalentCard = ({ talent, navigate }: { talent: any; navigate: any }) => {
   return (
-    <Card className="w-72 h-96 mx-3 overflow-hidden group hover-lift hover-glow shadow-card bg-gradient-card border-border/50">
+    <Card className="w-full h-96 overflow-hidden group hover-lift hover-glow shadow-card bg-gradient-card border-border/50">
       <div className="relative h-64 overflow-hidden">
         <img 
           src={talent.photo} 
@@ -548,27 +548,11 @@ export default function Talentos() {
         </CardHeader>
         <CardContent>
           {paginatedTalents.length > 0 ? (
-            <Carousel
-              opts={{
-                align: "start",
-                loop: true,
-                skipSnaps: false,
-                containScroll: "trimSnaps",
-              }}
-              className="w-full"
-            >
-              <CarouselContent className="-ml-3">
-                {paginatedTalents.map((talent) => (
-                  <CarouselItem key={talent.id} className="pl-3 basis-auto">
-                    <TalentCard talent={talent} navigate={navigate} />
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <div className="flex justify-center gap-4 mt-6">
-                <CarouselPrevious className="relative left-0 translate-y-0 bg-card border-primary/30 hover:bg-primary hover:text-primary-foreground" />
-                <CarouselNext className="relative right-0 translate-y-0 bg-card border-primary/30 hover:bg-primary hover:text-primary-foreground" />
-              </div>
-            </Carousel>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {paginatedTalents.map((talent) => (
+                <TalentCard key={talent.id} talent={talent} navigate={navigate} />
+              ))}
+            </div>
           ) : (
             <div className="text-center py-12">
               <p className="text-muted-foreground text-lg">Nenhum talento encontrado com os filtros aplicados.</p>

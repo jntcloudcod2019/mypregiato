@@ -169,14 +169,11 @@ export function CompositeTemplates({ talent, photos }: CompositeTemplatesProps) 
             <div style="
               width: 100%; 
               height: 150px; 
-              background: #f3f4f6; 
+              background-image: url('${photo}');
+              background-size: cover;
+              background-position: center;
               border-radius: 8px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              color: #6b7280;
             ">
-              Foto do Modelo
             </div>
           `).join('')}
         </div>
