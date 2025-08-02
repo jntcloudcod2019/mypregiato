@@ -12,7 +12,9 @@
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.38.1",
+    "@fontsource/inter": "^5.2.6",
     "@fontsource/merriweather": "^5.2.9",
+    "@fontsource/roboto": "^5.2.6",
     "@hookform/resolvers": "^3.9.0",
     "@nextui-org/autocomplete": "^2.3.9",
     "@nextui-org/react": "^2.6.11",

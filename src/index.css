@@ -1,141 +1,202 @@
+@import "@fontsource/roboto/300.css";
+@import "@fontsource/roboto/400.css";
+@import "@fontsource/roboto/500.css";
+@import "@fontsource/roboto/700.css";
+@import "@fontsource/inter/300.css";
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/inter/700.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Design System Pregiato - Moderno e Profissional inspirado em crypto/tech */
+/* MUI Dashboard Design System - Exact Copy */
 
 @layer base {
   :root {
-    /* Dark Mode - HeroUI inspired colors */
-    --background: 240 10% 3.9%;       /* #0A0A0B - Deep modern dark */
-    --foreground: 0 0% 98%;           /* #FAFAFA - Clean white */
+    /* Light Mode - MUI Dashboard Theme */
+    --background: 0 0% 100%;                 /* #FFFFFF */
+    --foreground: 210 10% 23%;               /* #3A3A3C */
 
-    --card: 240 6% 6%;                /* #101012 - Elevated surface */
-    --card-foreground: 0 0% 98%;
+    --card: 0 0% 100%;                       /* #FFFFFF */
+    --card-foreground: 210 10% 23%;
 
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 10% 23%;
 
-    /* Primary - Modern blue */
-    --primary: 212 100% 47%;          /* #006FEE - HeroUI primary blue */
+    /* Primary - MUI Blue */
+    --primary: 210 98% 48%;                  /* #1976D2 - MUI Primary Blue */
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 212 100% 42%;
+    --primary-hover: 210 98% 42%;
 
-    /* Secondary - Dark modern */
-    --secondary: 240 6% 10%;          /* #18181B - Dark secondary */
-    --secondary-foreground: 0 0% 98%;
+    /* Secondary - Light Gray */
+    --secondary: 210 40% 95%;                /* #F5F5F5 - Light background */
+    --secondary-foreground: 210 10% 23%;
 
-    --muted: 240 4% 16%;              /* #27272A - Modern muted */
-    --muted-foreground: 240 5% 64.9%; /* #A1A1AA - Muted text */
+    --muted: 210 40% 98%;                    /* #FAFAFA - Very light background */
+    --muted-foreground: 215 16% 47%;         /* #757575 - Muted text */
 
-    /* Accent - Modern emerald */
-    --accent: 160 84% 39%;            /* #17C964 - Success green */
+    /* Success Green */
+    --accent: 122 39% 49%;                   /* #4CAF50 - Success green */
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
+    /* Error Red */
+    --destructive: 0 65% 51%;                /* #D32F2F - Error red */
     --destructive-foreground: 0 0% 100%;
 
-    --border: 240 6% 20%;             /* #27272A - Subtle border */
-    --input: 240 6% 10%;
-    --ring: 212 100% 47%;
+    --border: 220 13% 91%;                   /* #E0E0E0 - Light border */
+    --input: 220 13% 91%;
+    --ring: 210 98% 48%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;                        /* 8px - MUI standard radius */
 
-    /* Modern gradients inspired by tech interfaces */
-    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(14 100% 62%));
-    --gradient-card: linear-gradient(145deg, hsl(12 20% 9%), hsl(12 20% 12%));
-    --gradient-background: linear-gradient(180deg, hsl(8 14% 7%), hsl(12 20% 9%));
-    --gradient-hero: linear-gradient(135deg, hsl(217 91% 60% / 0.1), hsl(14 100% 62% / 0.1));
-    
-    /* Tech-inspired shadows */
-    --shadow-elegant: 0 20px 25px -5px hsl(217 91% 60% / 0.15), 0 8px 10px -6px hsl(217 91% 60% / 0.1);
-    --shadow-card: 0 4px 6px -1px hsl(8 14% 7% / 0.6), 0 2px 4px -2px hsl(8 14% 7% / 0.4);
-    --shadow-modern: 0 10px 15px -3px hsl(8 14% 7% / 0.5), 0 4px 6px -4px hsl(8 14% 7% / 0.3);
-    --shadow-glow: 0 0 60px hsl(217 91% 60% / 0.3);
-    
-    /* Sidebar - Modern dark theme */
-    --sidebar-background: 240 10% 3.9%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 212 100% 47%;
+    /* MUI specific colors */
+    --mui-success: 122 39% 49%;              /* #4CAF50 */
+    --mui-warning: 45 100% 51%;              /* #FF9800 */
+    --mui-error: 0 65% 51%;                  /* #D32F2F */
+    --mui-info: 199 92% 56%;                 /* #2196F3 */
+
+    /* Sidebar - Light theme */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 210 10% 23%;
+    --sidebar-primary: 210 98% 48%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 6% 10%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 240 6% 20%;
-    --sidebar-ring: 212 100% 47%;
+    --sidebar-accent: 210 40% 95%;
+    --sidebar-accent-foreground: 210 10% 23%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 210 98% 48%;
+
+    /* MUI shadows */
+    --shadow-1: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    --shadow-2: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+    --shadow-3: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+    --shadow-4: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+    
+    /* Typography scales */
+    --text-xs: 0.75rem;      /* 12px */
+    --text-sm: 0.875rem;     /* 14px */
+    --text-base: 1rem;       /* 16px */
+    --text-lg: 1.125rem;     /* 18px */
+    --text-xl: 1.25rem;      /* 20px */
+    --text-2xl: 1.5rem;      /* 24px */
+    --text-3xl: 1.875rem;    /* 30px */
     
     /* Animations */
-    --transition-smooth: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    --transition-fast: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --transition-fast: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-normal: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  .light {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 212 100% 47%;
+  .dark {
+    /* Dark Mode - MUI Dark Theme */
+    --background: 210 11% 10%;               /* #1A1A1A */
+    --foreground: 0 0% 98%;                  /* #FAFAFA */
+
+    --card: 210 11% 12%;                     /* #1F1F1F */
+    --card-foreground: 0 0% 98%;
+
+    --popover: 210 11% 12%;
+    --popover-foreground: 0 0% 98%;
+
+    /* Primary - Lighter blue for dark mode */
+    --primary: 210 100% 60%;                 /* #3F8CFF */
     --primary-foreground: 0 0% 100%;
-    --secondary: 240 4.9% 83.9%;
-    --secondary-foreground: 240 10% 3.9%;
-    --muted: 240 4.9% 83.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 160 84% 39%;
+    --primary-hover: 210 100% 55%;
+
+    /* Secondary - Dark gray */
+    --secondary: 210 11% 15%;                /* #262626 */
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 210 11% 15%;                    /* #262626 */
+    --muted-foreground: 215 14% 71%;         /* #B3B3B3 */
+
+    /* Success Green - darker */
+    --accent: 122 39% 45%;                   /* #43A047 */
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;
+
+    /* Error Red - darker */
+    --destructive: 0 62% 47%;                /* #C62828 */
     --destructive-foreground: 0 0% 100%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 212 100% 47%;
-    
-    /* Light mode gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(14 100% 62%));
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(210 40% 98%));
-    --gradient-background: linear-gradient(180deg, hsl(0 0% 100%), hsl(210 40% 98%));
-    
-    /* Light shadows */
-    --shadow-elegant: 0 20px 25px -5px hsl(217 91% 60% / 0.1), 0 8px 10px -6px hsl(217 91% 60% / 0.06);
-    --shadow-card: 0 4px 6px -1px hsl(0 0% 0% / 0.1), 0 2px 4px -2px hsl(0 0% 0% / 0.06);
-    --shadow-modern: 0 10px 15px -3px hsl(0 0% 0% / 0.1), 0 4px 6px -4px hsl(0 0% 0% / 0.05);
-    --shadow-glow: 0 0 60px hsl(217 91% 60% / 0.2);
+
+    --border: 210 11% 20%;                   /* #333333 */
+    --input: 210 11% 15%;
+    --ring: 210 100% 60%;
+
+    /* MUI dark colors */
+    --mui-success: 122 39% 45%;              /* #43A047 */
+    --mui-warning: 45 100% 60%;              /* #FFB74D */
+    --mui-error: 0 62% 47%;                  /* #C62828 */
+    --mui-info: 199 92% 70%;                 /* #64B5F6 */
+
+    /* Sidebar - Dark theme */
+    --sidebar-background: 210 11% 10%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 210 100% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 11% 15%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 210 11% 20%;
+    --sidebar-ring: 210 100% 60%;
+
+    /* Dark shadows */
+    --shadow-1: 0 1px 3px rgba(0,0,0,0.24), 0 1px 2px rgba(0,0,0,0.48);
+    --shadow-2: 0 3px 6px rgba(0,0,0,0.32), 0 3px 6px rgba(0,0,0,0.46);
+    --shadow-3: 0 10px 20px rgba(0,0,0,0.38), 0 6px 6px rgba(0,0,0,0.46);
+    --shadow-4: 0 14px 28px rgba(0,0,0,0.5), 0 10px 10px rgba(0,0,0,0.44);
   }
 }
 
-/* Custom Font Classes */
+/* MUI Dashboard Typography */
 @layer utilities {
-  .font-lubalin {
-    font-family: 'Lubalin Graph', serif;
+  .mui-h1 {
+    @apply text-3xl font-light tracking-tight;
+    font-family: 'Roboto', sans-serif;
   }
   
-  .font-merriweather {
-    font-family: 'Merriweather', serif;
+  .mui-h2 {
+    @apply text-2xl font-light tracking-tight;
+    font-family: 'Roboto', sans-serif;
   }
 
-  /* Shiny text animation */
-  .shiny-text {
-    background: linear-gradient(
-      90deg,
-      hsl(217 91% 60%) 0%,
-      hsl(0 0% 75%) 25%,
-      hsl(217 91% 60%) 50%,
-      hsl(0 0% 75%) 75%,
-      hsl(217 91% 60%) 100%
-    );
-    background-size: 200% auto;
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: shiny 3s linear infinite;
+  .mui-h3 {
+    @apply text-xl font-normal;
+    font-family: 'Roboto', sans-serif;
   }
 
-  @keyframes shiny {
-    0% {
-      background-position: 200% center;
-    }
-    100% {
-      background-position: -200% center;
-    }
+  .mui-h4 {
+    @apply text-lg font-normal;
+    font-family: 'Roboto', sans-serif;
+  }
+
+  .mui-h5 {
+    @apply text-base font-normal;
+    font-family: 'Roboto', sans-serif;
+  }
+
+  .mui-h6 {
+    @apply text-sm font-medium;
+    font-family: 'Roboto', sans-serif;
+  }
+
+  .mui-body1 {
+    @apply text-base font-normal leading-relaxed;
+    font-family: 'Roboto', sans-serif;
+  }
+
+  .mui-body2 {
+    @apply text-sm font-normal leading-relaxed;
+    font-family: 'Roboto', sans-serif;
+  }
+
+  .mui-caption {
+    @apply text-xs font-normal;
+    font-family: 'Roboto', sans-serif;
+  }
+
+  .mui-overline {
+    @apply text-xs font-normal uppercase tracking-wider;
+    font-family: 'Roboto', sans-serif;
   }
 }
 
@@ -147,7 +208,6 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    background: var(--gradient-background);
     min-height: 100vh;
     overflow-x: hidden;
   }

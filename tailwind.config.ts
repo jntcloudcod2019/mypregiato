@@ -19,8 +19,9 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				'lubalin': ['Lubalin Graph', 'sans-serif'],
-				'merriweather': ['Merriweather', 'serif'],
+				'sans': ['Inter', 'system-ui', 'sans-serif'],
+				'roboto': ['Roboto', 'sans-serif'],
+				'inter': ['Inter', 'sans-serif'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',
@@ -66,6 +67,13 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				/* MUI Colors */
+				mui: {
+					success: 'hsl(var(--mui-success))',
+					warning: 'hsl(var(--mui-warning))',
+					error: 'hsl(var(--mui-error))',
+					info: 'hsl(var(--mui-info))'
 				}
 			},
 			backgroundImage: {
@@ -74,7 +82,11 @@ export default {
 			},
 			boxShadow: {
 				'elegant': 'var(--shadow-elegant)',
-				'card': 'var(--shadow-card)'
+				'card': 'var(--shadow-card)',
+				'mui-1': 'var(--shadow-1)',
+				'mui-2': 'var(--shadow-2)', 
+				'mui-3': 'var(--shadow-3)',
+				'mui-4': 'var(--shadow-4)'
 			},
 			transitionProperty: {
 				'smooth': 'var(--transition-smooth)'
