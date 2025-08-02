@@ -66,17 +66,6 @@ const AtendimentoPage = () => {
       mensagensNaoLidas: 0,
       online: false,
       etiquetas: ['Agendamento']
-    },
-    {
-      id: '3',
-      nome: 'Beatriz Costa',
-      telefone: '(11) 77777-7777',
-      foto: '/src/assets/ana-clara-fashion1.jpg',
-      ultimaMensagem: 'Obrigada pelo atendimento!',
-      horaUltimaMensagem: '12:20',
-      mensagensNaoLidas: 1,
-      online: true,
-      etiquetas: ['Fechado']
     }
   ]);
 
@@ -95,13 +84,6 @@ const AtendimentoPage = () => {
       tipo: 'texto',
       remetente: 'operador',
       timestamp: '14:26'
-    },
-    {
-      id: '3',
-      conteudo: 'Gostaria de saber sobre os valores e quando posso agendar uma sessão.',
-      tipo: 'texto',
-      remetente: 'cliente',
-      timestamp: '14:30'
     }
   ]);
 
@@ -110,7 +92,6 @@ const AtendimentoPage = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Scroll automático para última mensagem
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [mensagens]);
@@ -128,77 +109,6 @@ const AtendimentoPage = () => {
 
     setMensagens(prev => [...prev, mensagem]);
     setNovaMensagem('');
-
-    // TODO: Enviar mensagem via WebSocket
-    // const payload = {
-    //   clienteId: clienteSelecionado.id,
-    //   conteudo: novaMensagem,
-    //   tipo: 'texto',
-    //   operadorId: 'current-user-id'
-    // };
-    // socket.emit('enviar_mensagem', payload);
-    
-    // TODO: Salvar mensagem via API REST
-    // await fetch('/api/mensagens', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(payload)
-    // });
-  };
-
-  const [showCallDialog, setShowCallDialog] = useState(false);
-
-  const iniciarChamada = () => {
-    if (!clienteSelecionado) return;
-    
-    setShowCallDialog(true);
-    
-    // TODO: Iniciar chamada WebRTC
-    // const chamadaData = {
-    //   clienteId: clienteSelecionado.id,
-    //   operadorId: 'current-user-id',
-    //   tipo: 'audio'
-    // };
-    // 
-    // // Iniciar negociação WebRTC
-    // await fetch('/api/chamadas/iniciar', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(chamadaData)
-    // });
-  };
-
-  const enviarArquivo = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file || !clienteSelecionado) return;
-
-    // TODO: Upload de arquivo
-    // const formData = new FormData();
-    // formData.append('arquivo', file);
-    // formData.append('clienteId', clienteSelecionado.id);
-    // formData.append('operadorId', 'current-user-id');
-    // 
-    // const response = await fetch('/api/arquivos/upload', {
-    //   method: 'POST',
-    //   body: formData
-    // });
-    // 
-    // const { url, nome } = await response.json();
-
-    const mensagem: Mensagem = {
-      id: Date.now().toString(),
-      conteudo: `Arquivo enviado: ${file.name}`,
-      tipo: 'arquivo',
-      remetente: 'operador',
-      timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-      arquivo: {
-        nome: file.name,
-        url: URL.createObjectURL(file),
-        tipo: file.type
-      }
-    };
-
-    setMensagens(prev => [...prev, mensagem]);
   };
 
   const clientesFiltrados = clientes.filter(cliente =>
@@ -215,9 +125,8 @@ const AtendimentoPage = () => {
 
   return (
     <div className="p-6">
-      {/* Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary-variant))] bg-clip-text text-transparent">
+        <h1 className="text-3xl font-bold text-foreground">
           Atendimento
         </h1>
         <p className="text-muted-foreground mt-1">
@@ -225,11 +134,8 @@ const AtendimentoPage = () => {
         </p>
       </div>
 
-      {/* Interface Principal - Estilo WhatsApp */}
       <Card className="h-[700px] flex overflow-hidden">
-        {/* Sidebar - Lista de Clientes */}
         <div className="w-80 border-r border-border flex flex-col">
-          {/* Header da Sidebar */}
           <div className="p-4 border-b border-border">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -242,7 +148,6 @@ const AtendimentoPage = () => {
             </div>
           </div>
 
-          {/* Lista de Clientes */}
           <ScrollArea className="flex-1">
             {clientesFiltrados.map((cliente) => (
               <div
@@ -280,7 +185,6 @@ const AtendimentoPage = () => {
                       {cliente.ultimaMensagem}
                     </p>
                     
-                    {/* Etiquetas */}
                     <div className="flex gap-1 mt-2">
                       {cliente.etiquetas.map((etiqueta, index) => (
                         <Badge key={index} variant="outline" className="text-xs">
@@ -295,10 +199,8 @@ const AtendimentoPage = () => {
           </ScrollArea>
         </div>
 
-        {/* Área Principal - Chat */}
         {clienteSelecionado ? (
           <div className="flex-1 flex flex-col">
-            {/* Header do Chat */}
             <div className="p-4 border-b border-border bg-muted/30">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -321,7 +223,7 @@ const AtendimentoPage = () => {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="icon" onClick={iniciarChamada}>
+                  <Button variant="ghost" size="icon">
                     <Phone className="h-4 w-4" />
                   </Button>
                   <Button variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()}>
@@ -334,7 +236,6 @@ const AtendimentoPage = () => {
               </div>
             </div>
 
-            {/* Área de Mensagens */}
             <ScrollArea className="flex-1 p-4">
               <div className="space-y-4">
                 {mensagens.map((mensagem) => (
@@ -345,21 +246,13 @@ const AtendimentoPage = () => {
                     <div
                       className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
                         mensagem.remetente === 'operador'
-                          ? 'bg-green-500 text-white'
+                          ? 'bg-primary text-primary-foreground'
                           : 'bg-muted'
                       }`}
                     >
-                      {mensagem.tipo === 'arquivo' ? (
-                        <div className="flex items-center gap-2">
-                          <Paperclip className="h-4 w-4" />
-                          <span className="text-sm">{mensagem.arquivo?.nome}</span>
-                        </div>
-                      ) : (
-                        <p className="text-sm">{mensagem.conteudo}</p>
-                      )}
-                      
+                      <p className="text-sm">{mensagem.conteudo}</p>
                       <p className={`text-xs mt-1 ${
-                        mensagem.remetente === 'operador' ? 'text-green-100' : 'text-muted-foreground'
+                        mensagem.remetente === 'operador' ? 'text-primary-foreground/70' : 'text-muted-foreground'
                       }`}>
                         {mensagem.timestamp}
                       </p>
@@ -370,7 +263,6 @@ const AtendimentoPage = () => {
               </div>
             </ScrollArea>
 
-            {/* Campo de Mensagem */}
             <div className="p-4 border-t border-border">
               <div className="flex items-center gap-2">
                 <Button variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()}>
@@ -404,7 +296,6 @@ const AtendimentoPage = () => {
                 </div>
               </div>
 
-              {/* Reações Rápidas */}
               <div className="flex gap-2 mt-2">
                 <Button variant="outline" size="sm" className="text-xs">
                   👍 Ok
@@ -418,13 +309,11 @@ const AtendimentoPage = () => {
               </div>
             </div>
 
-            {/* Input de arquivo oculto */}
             <input
               ref={fileInputRef}
               type="file"
               className="hidden"
               accept="image/*,application/pdf,.doc,.docx"
-              onChange={enviarArquivo}
             />
           </div>
         ) : (
@@ -441,74 +330,6 @@ const AtendimentoPage = () => {
           </div>
         )}
       </Card>
-
-      {/* Modal de Chamada */}
-      {showCallDialog && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-          <div className="relative">
-            {/* Fundo transparente da chamada */}
-            <div className="w-80 h-96 bg-gradient-to-b from-gray-800/90 to-gray-900/90 backdrop-blur-sm rounded-3xl flex flex-col items-center justify-between p-6 text-white shadow-2xl">
-              {/* Header da chamada */}
-              <div className="text-center">
-                <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center mb-4 mx-auto">
-                  <Avatar className="w-16 h-16">
-                    <AvatarImage src={clienteSelecionado?.foto} alt={clienteSelecionado?.nome} />
-                    <AvatarFallback className="text-gray-700">
-                      {clienteSelecionado?.nome.slice(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                </div>
-                <h3 className="text-lg font-medium">{clienteSelecionado?.nome}</h3>
-                <p className="text-sm text-white/70">Conectando...</p>
-              </div>
-
-              {/* Controles da chamada */}
-              <div className="flex justify-center gap-4">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 text-white"
-                >
-                  🔇
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 text-white"
-                >
-                  🔊
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 text-white"
-                >
-                  📞
-                </Button>
-              </div>
-
-              {/* Botões de ação */}
-              <div className="flex justify-center gap-6">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="w-14 h-14 rounded-full bg-green-500 hover:bg-green-600 text-white"
-                >
-                  ✅
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="w-14 h-14 rounded-full bg-red-500 hover:bg-red-600 text-white"
-                  onClick={() => setShowCallDialog(false)}
-                >
-                  ❌
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

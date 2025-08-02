@@ -6,7 +6,6 @@ import { Users, UserPlus, CheckSquare, TrendingUp, Plus, Eye, Calendar, Phone } 
 import { Link } from "react-router-dom"
 
 export default function CRMDashboard() {
-  // Mock data - em uma aplicação real, viria do backend
   const stats = {
     totalLeads: 127,
     tarefasPendentes: 8,
@@ -35,10 +34,9 @@ export default function CRMDashboard() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary-variant))] bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold text-foreground">
             Dashboard CRM
           </h1>
           <p className="text-muted-foreground mt-1">
@@ -53,7 +51,6 @@ export default function CRMDashboard() {
         </Link>
       </div>
 
-      {/* Cards de estatísticas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -109,7 +106,6 @@ export default function CRMDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Funil de Vendas */}
         <Card>
           <CardHeader>
             <CardTitle>Funil de Vendas</CardTitle>
@@ -131,7 +127,6 @@ export default function CRMDashboard() {
           </CardContent>
         </Card>
 
-        {/* Últimas Interações */}
         <Card>
           <CardHeader>
             <CardTitle>Últimas Interações</CardTitle>
@@ -169,7 +164,6 @@ export default function CRMDashboard() {
         </Card>
       </div>
 
-      {/* Tarefas de Hoje */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

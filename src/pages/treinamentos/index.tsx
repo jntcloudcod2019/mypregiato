@@ -33,13 +33,11 @@ const TreinamentosPage = () => {
   const [busca, setBusca] = useState('');
   const [filtro, setFiltro] = useState<'todos' | 'andamento' | 'concluidos'>('todos');
 
-  // Carregar cursos do localStorage na inicialização
   useEffect(() => {
     const cursosStorage = localStorage.getItem('treinamentos_cursos');
     if (cursosStorage) {
       setCursos(JSON.parse(cursosStorage));
     } else {
-      // Dados mockados para demonstração
       const cursosMock: Curso[] = [
         {
           id: '1',
@@ -62,14 +60,6 @@ const TreinamentosPage = () => {
               linkVideo: 'https://drive.google.com/file/d/exemplo2',
               assistida: true,
               duracao: '22:15'
-            },
-            {
-              id: '1-3',
-              nome: 'Iluminação Natural',
-              descricao: 'Aproveitando a luz natural para melhores fotos',
-              linkVideo: 'https://drive.google.com/file/d/exemplo3',
-              assistida: false,
-              duracao: '18:45'
             }
           ],
           progresso: 25,
@@ -123,10 +113,9 @@ const TreinamentosPage = () => {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary-variant))] bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold text-foreground">
             Treinamentos
           </h1>
           <p className="text-muted-foreground mt-1">
@@ -141,7 +130,6 @@ const TreinamentosPage = () => {
         </Link>
       </div>
 
-      {/* Estatísticas */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -184,7 +172,6 @@ const TreinamentosPage = () => {
         </Card>
       </div>
 
-      {/* Filtros e Busca */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -221,7 +208,6 @@ const TreinamentosPage = () => {
         </div>
       </div>
 
-      {/* Lista de Cursos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {cursosFiltrados.map((curso) => (
           <Card key={curso.id} className="hover:shadow-md transition-shadow group">
@@ -244,7 +230,6 @@ const TreinamentosPage = () => {
             </CardHeader>
             
             <CardContent className="space-y-4">
-              {/* Progresso */}
               {!curso.concluido && (
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
@@ -255,7 +240,6 @@ const TreinamentosPage = () => {
                 </div>
               )}
 
-              {/* Informações do Curso */}
               <div className="flex justify-between text-sm text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <BookOpen className="h-4 w-4" />
@@ -271,7 +255,6 @@ const TreinamentosPage = () => {
                 </div>
               </div>
 
-              {/* Botões de Ação */}
               <div className="flex gap-2 pt-2">
                 <Link to={`/treinamentos/curso/${curso.id}`} className="flex-1">
                   <Button className="w-full" variant={curso.concluido ? "outline" : "default"}>
@@ -285,7 +268,6 @@ const TreinamentosPage = () => {
         ))}
       </div>
 
-      {/* Estado vazio */}
       {cursosFiltrados.length === 0 && (
         <div className="text-center py-12">
           <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
