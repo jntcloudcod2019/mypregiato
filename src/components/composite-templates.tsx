@@ -145,7 +145,9 @@ export function CompositeTemplates({ talent, photos }: CompositeTemplatesProps) 
   }
 
   const getCompositeHTML = () => {
-    const selectedTemplate = templates.find(t => t.id === selectedTemplate)
+    const selectedTemplateData = templates.find(t => t.id === selectedTemplate)
+    
+    if (!selectedTemplateData) return ''
     
     return `
       <div style="

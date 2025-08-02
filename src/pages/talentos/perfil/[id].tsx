@@ -310,7 +310,7 @@ export default function TalentProfile() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="h-5 w-5" />
-                Informações Básicas
+                {talent.name}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -324,12 +324,8 @@ export default function TalentProfile() {
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                    <Camera className="h-4 w-4 text-primary-foreground" />
-                  </div>
                 </div>
                 <div className="text-center">
-                  <h3 className="font-semibold text-lg">{talent.name}</h3>
                   <Badge variant={talent.active ? "default" : "secondary"} className="mt-1">
                     {talent.active ? "Ativo" : "Inativo"}
                   </Badge>
