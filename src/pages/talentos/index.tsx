@@ -114,7 +114,7 @@ const mockTalents = [
 
 const TalentCard = ({ talent, navigate }: { talent: any; navigate: any }) => {
   return (
-    <Card className="w-72 h-96 mx-3 overflow-hidden group hover-lift hover-glow shadow-card bg-gradient-card border-border/50">
+    <Card className="w-72 h-96 mx-3 overflow-hidden group hover-lift hover-glow shadow-lg bg-gradient-card border-border/50">
       <div className="relative h-64 overflow-hidden">
         <img 
           src={talent.photo} 
@@ -142,16 +142,12 @@ const TalentCard = ({ talent, navigate }: { talent: any; navigate: any }) => {
             </Badge>
           </div>
           <Button 
-            variant="outline" 
+            variant="contained" 
             size="sm"
-            className="group relative overflow-hidden border-primary/50 text-primary hover:text-white hover:border-primary transition-all duration-300"
             onClick={() => navigate(`/talentos/perfil/${talent.id}`)}
           >
-            <span className="relative z-10 flex items-center gap-1">
-              <Eye className="h-3 w-3" />
-              Ver mais
-            </span>
-            <div className="absolute inset-0 bg-gradient-primary translate-x-full group-hover:translate-x-0 transition-transform duration-300" />
+            <Eye className="h-3 w-3 mr-1" />
+            Ver mais
           </Button>
         </div>
       </CardContent>
@@ -291,23 +287,26 @@ export default function Talentos() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gradient-primary">
-            Gestão de Talentos
-          </h1>
-          <p className="text-muted-foreground">
-            Gerencie o banco de talentos da agência, adicione novos perfis e acompanhe os cadastros.
-          </p>
+      {/* Header with fixed position for New Talent button */}
+      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border/50 p-4 -m-6 mb-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gradient-primary">
+              Gestão de Talentos
+            </h1>
+            <p className="text-muted-foreground">
+              Gerencie o banco de talentos da agência, adicione novos perfis e acompanhe os cadastros.
+            </p>
+          </div>
+          <Button 
+            onClick={() => navigate('/talentos/novo')}
+            variant="contained"
+            className="shadow-lg"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Novo Talento
+          </Button>
         </div>
-        <Button 
-          onClick={() => navigate('/talentos/novo')}
-          className="bg-primary hover:bg-primary/90 shadow-elegant hover:shadow-glow border border-primary/20 backdrop-blur-sm"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Novo Talento
-        </Button>
       </div>
 
       {/* Search and Filters */}
@@ -330,7 +329,7 @@ export default function Talentos() {
           {/* Advanced Filters Toggle */}
           <div className="flex items-center gap-2">
             <Button
-              variant="outline"
+              variant="contained"
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
               className="flex items-center gap-2"
             >
@@ -365,14 +364,14 @@ export default function Talentos() {
           {/* Advanced Filters */}
           {showAdvancedFilters && (
             <Tabs defaultValue="gender" className="w-full">
-              <TabsList className="grid w-full grid-cols-7">
-                <TabsTrigger value="gender">Gênero</TabsTrigger>
-                <TabsTrigger value="body">Corpo</TabsTrigger>
-                <TabsTrigger value="age">Idade</TabsTrigger>
-                <TabsTrigger value="location">Local</TabsTrigger>
-                <TabsTrigger value="travel">Viagem</TabsTrigger>
-                <TabsTrigger value="disability">Deficiências</TabsTrigger>
-                <TabsTrigger value="features">Características</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-7 gap-1">
+                <TabsTrigger value="gender" className="text-xs px-2">Gênero</TabsTrigger>
+                <TabsTrigger value="body" className="text-xs px-2">Corpo</TabsTrigger>
+                <TabsTrigger value="age" className="text-xs px-2">Idade</TabsTrigger>
+                <TabsTrigger value="location" className="text-xs px-2">Local</TabsTrigger>
+                <TabsTrigger value="travel" className="text-xs px-2">Viagem</TabsTrigger>
+                <TabsTrigger value="disability" className="text-xs px-2">Deficiências</TabsTrigger>
+                <TabsTrigger value="features" className="text-xs px-2">Características</TabsTrigger>
               </TabsList>
 
               <TabsContent value="gender" className="space-y-3">

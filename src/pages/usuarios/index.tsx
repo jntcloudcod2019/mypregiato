@@ -168,7 +168,7 @@ export default function Usuarios() {
 
         <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="shadow-elegant">
+            <Button variant="contained">
               <UserPlus className="mr-2 h-4 w-4" />
               Enviar Convite
             </Button>
@@ -289,7 +289,7 @@ export default function Usuarios() {
                         </Button>
                       )}
                       <Button 
-                        variant="outline" 
+                        variant="contained" 
                         size="sm"
                         onClick={() => handleSendInvite(talent.email, "TALENT")}
                       >
@@ -340,7 +340,7 @@ export default function Usuarios() {
                     <div className="col-span-2">{getStatusBadge(employee.status)}</div>
                     <div className="col-span-2 flex gap-2">
                       <Button 
-                        variant="outline" 
+                        variant="contained" 
                         size="sm"
                         onClick={() => handleSendInvite(employee.email, "EMPLOYEE")}
                       >

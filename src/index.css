@@ -6,38 +6,38 @@
 
 @layer base {
   :root {
-    /* Dark Mode - Inspired by modern crypto/tech interfaces */
-    --background: 8 14% 7%;      /* #0F0F14 - Deep tech dark */
-    --foreground: 0 0% 98%;      /* #FAFAFA - Clean white */
+    /* Dark Mode - HeroUI inspired colors */
+    --background: 240 10% 3.9%;       /* #0A0A0B - Deep modern dark */
+    --foreground: 0 0% 98%;           /* #FAFAFA - Clean white */
 
-    --card: 12 20% 9%;           /* #151520 - Elevated surface */
+    --card: 240 6% 6%;                /* #101012 - Elevated surface */
     --card-foreground: 0 0% 98%;
 
-    --popover: 8 14% 7%;
+    --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
 
-    /* Primary - Electric blue inspired by crypto */
-    --primary: 217 91% 60%;      /* #3B82F6 - Modern electric blue */
+    /* Primary - Modern blue */
+    --primary: 212 100% 47%;          /* #006FEE - HeroUI primary blue */
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 217 91% 55%;
+    --primary-hover: 212 100% 42%;
 
-    /* Secondary - Refined neutral */
-    --secondary: 215 15% 20%;    /* #2D3038 - Tech gray */
+    /* Secondary - Dark modern */
+    --secondary: 240 6% 10%;          /* #18181B - Dark secondary */
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 12 20% 12%;         /* #1A1A26 */
-    --muted-foreground: 220 13% 69%; /* #A1A1B5 */
+    --muted: 240 4% 16%;              /* #27272A - Modern muted */
+    --muted-foreground: 240 5% 64.9%; /* #A1A1AA - Muted text */
 
-    /* Accent - Vibrant tech orange */
-    --accent: 14 100% 62%;       /* #FF5722 - Tech orange */
+    /* Accent - Modern emerald */
+    --accent: 160 84% 39%;            /* #17C964 - Success green */
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 12 20% 15%;        /* #212130 */
-    --input: 12 20% 9%;
-    --ring: 217 91% 60%;
+    --border: 240 6% 20%;             /* #27272A - Subtle border */
+    --input: 240 6% 10%;
+    --ring: 212 100% 47%;
 
     --radius: 0.75rem;
 
@@ -53,15 +53,15 @@
     --shadow-modern: 0 10px 15px -3px hsl(8 14% 7% / 0.5), 0 4px 6px -4px hsl(8 14% 7% / 0.3);
     --shadow-glow: 0 0 60px hsl(217 91% 60% / 0.3);
     
-    /* Sidebar */
-    --sidebar-background: 8 14% 7%;
+    /* Sidebar - Modern dark theme */
+    --sidebar-background: 240 10% 3.9%;
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary: 212 100% 47%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 12 20% 12%;
+    --sidebar-accent: 240 6% 10%;
     --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 12 20% 15%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-border: 240 6% 20%;
+    --sidebar-ring: 212 100% 47%;
     
     /* Animations */
     --transition-smooth: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -70,24 +70,24 @@
 
   .light {
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 217 91% 60%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 84% 4.9%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 14 100% 62%;
-    --accent-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 212 100% 47%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 4.9% 83.9%;
+    --secondary-foreground: 240 10% 3.9%;
+    --muted: 240 4.9% 83.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 160 84% 39%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 217 91% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 212 100% 47%;
     
     /* Light mode gradients */
     --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(14 100% 62%));
