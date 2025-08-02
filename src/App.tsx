@@ -12,6 +12,7 @@ import NovoContratoSuperFotos from "./pages/contratos/novo-contrato-super-fotos"
 import NovoContratoSuperFotosMenor from "./pages/contratos/super-fotos-menor";
 import NovoContratoAgenciamentoMenor from "./pages/contratos/agenciamento-menor";
 import NovoContratoComprometimento from "./pages/contratos/comprometimento";
+import Talentos from "./pages/talentos";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/contratos/super-fotos-menor" element={<NovoContratoSuperFotosMenor />} />
             <Route path="/contratos/agenciamento-menor" element={<NovoContratoAgenciamentoMenor />} />
             <Route path="/contratos/comprometimento" element={<NovoContratoComprometimento />} />
+            <Route path="/talentos" element={<Talentos />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

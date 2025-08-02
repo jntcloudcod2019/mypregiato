@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { FileText, Home, Users, Settings, ChevronDown } from "lucide-react"
+import { FileText, Home, Users, Settings, ChevronDown, Star } from "lucide-react"
 import { NavLink, useLocation } from "react-router-dom"
 
 import {
@@ -18,6 +18,7 @@ import {
 const menuItems = [
   { title: "Dashboard", url: "/dashboard", icon: Home },
   { title: "Contratos", url: "/contratos", icon: FileText },
+  { title: "Talentos", url: "/talentos", icon: Star },
   { title: "Usuários", url: "/usuarios", icon: Users },
   { title: "Configurações", url: "/configuracoes", icon: Settings },
 ]
