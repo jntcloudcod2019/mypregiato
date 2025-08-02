@@ -9,6 +9,7 @@ import TarefasPage from "./pages/crm/tarefas";
 import NovaTarefa from "./pages/crm/tarefas/nova";
 import RelatoriosPage from "./pages/crm/relatorios";
 import ConfiguracoesPage from "./pages/crm/configuracoes";
+import AtendimentoPage from "./pages/atendimento";
 import Contratos from "./pages/contratos";
 import ContratosAgenciamento from "./pages/contratos/agenciamento";
 import NovoContratoAgenciamento from "./pages/contratos/agenciamento/novo";
@@ -38,6 +39,7 @@ const App = () => (
         <Route path="/crm/tarefas/nova" element={<NovaTarefa />} />
         <Route path="/crm/relatorios" element={<RelatoriosPage />} />
         <Route path="/crm/configuracoes" element={<ConfiguracoesPage />} />
+        <Route path="/atendimento" element={<AtendimentoPage />} />
         <Route path="/contratos" element={<Contratos />} />
         <Route path="/contratos/agenciamento" element={<ContratosAgenciamento />} />
         <Route path="/contratos/agenciamento/novo" element={<NovoContratoAgenciamento />} />
