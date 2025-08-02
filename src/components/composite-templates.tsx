@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
-import { Download, Share } from "lucide-react"
+import { Progress } from "@/components/ui/progress"
+import { Download, Share, Eye, X } from "lucide-react"
 import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
 
@@ -43,6 +44,7 @@ export function CompositeTemplates({ talent, photos }: CompositeTemplatesProps) 
   const [selectedTemplate, setSelectedTemplate] = useState(1)
   const [selectedPhotos, setSelectedPhotos] = useState<string[]>([])
   const [isGenerating, setIsGenerating] = useState(false)
+  const [showPreview, setShowPreview] = useState(false)
 
   const handlePhotoSelection = (photo: string, checked: boolean) => {
     if (checked) {
@@ -204,16 +206,30 @@ export function CompositeTemplates({ talent, photos }: CompositeTemplatesProps) 
     `
   }
 
+  const generatePreview = () => {
+    setShowPreview(true)
+  }
+
   return (
     <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold mb-2">Explicação sobre Composite</h3>
-        <p className="text-sm text-muted-foreground mb-4">
-          Um composite, também conhecido como comp card, é um cartão de visita profissional para modelos, 
-          essencial para apresentar suas fotos e informações de maneira concisa e atraente para agências e clientes. 
-          Ele funciona como um currículo visual, destacando o perfil do modelo e facilitando a avaliação para possíveis trabalhos.
-        </p>
-      </div>
+      {showPreview && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+          <div className="bg-background p-6 rounded-lg max-w-4xl max-h-[90vh] overflow-auto relative">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowPreview(false)}
+              className="absolute top-4 right-4 z-10"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+            <div 
+              className="w-[600px] h-[800px] bg-white text-black p-5 rounded-lg shadow-2xl"
+              dangerouslySetInnerHTML={{ __html: getCompositeHTML() }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Template Selection */}
       <div>
@@ -269,25 +285,46 @@ export function CompositeTemplates({ talent, photos }: CompositeTemplatesProps) 
         </p>
       </div>
 
+      {/* Progress Bar */}
+      {isGenerating && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">Gerando composite...</span>
+            <span className="text-sm text-muted-foreground">75%</span>
+          </div>
+          <Progress value={75} className="w-full" />
+        </div>
+      )}
+
       {/* Action Buttons */}
-      <div className="flex gap-3 pt-4">
+      <div className="grid grid-cols-3 gap-3 pt-4">
+        <Button 
+          onClick={generatePreview}
+          disabled={selectedPhotos.length === 0}
+          variant="outline"
+          className="flex items-center gap-2"
+        >
+          <Eye className="h-4 w-4" />
+          Preview
+        </Button>
+        
         <Button 
           onClick={generateComposite}
           disabled={selectedPhotos.length === 0 || isGenerating}
-          className="flex-1"
+          className="flex items-center gap-2"
         >
-          <Download className="mr-2 h-4 w-4" />
-          {isGenerating ? 'Gerando...' : 'Salvar Composite'}
+          <Download className="h-4 w-4" />
+          {isGenerating ? 'Gerando...' : 'Salvar PDF'}
         </Button>
         
         <Button 
           onClick={shareViaWhatsApp}
           disabled={selectedPhotos.length === 0 || isGenerating}
           variant="outline"
-          className="flex-1"
+          className="flex items-center gap-2"
         >
-          <Share className="mr-2 h-4 w-4" />
-          Compartilhar WhatsApp
+          <Share className="h-4 w-4" />
+          WhatsApp
         </Button>
       </div>
     </div>

@@ -114,40 +114,47 @@ const mockTalents = [
 
 const TalentCard = ({ talent, navigate }: { talent: any; navigate: any }) => {
   return (
-    <Card className="w-80 h-96 mx-2 overflow-hidden group hover:shadow-lg transition-all duration-300">
+    <Card className="w-72 h-96 mx-3 overflow-hidden group hover-lift hover-glow shadow-card bg-gradient-card border-border/50">
       <div className="relative h-64 overflow-hidden">
         <img 
           src={talent.photo} 
           alt={talent.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ease-out"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
         <div className="absolute bottom-4 left-4 text-white">
-          <h3 className="font-semibold text-lg">{talent.name}</h3>
+          <h3 className="font-semibold text-lg mb-1">{talent.name}</h3>
           <p className="text-sm opacity-90">{talent.age} anos</p>
         </div>
+        <div className="absolute top-4 right-4">
+          {talent.availableForTravel && (
+            <Badge className="bg-primary/20 text-primary border border-primary/30 backdrop-blur-sm">
+              Viagens
+            </Badge>
+          )}
+        </div>
       </div>
-      <CardContent className="p-4">
+      <CardContent className="p-4 space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex gap-2">
-            <Badge variant="secondary" className="text-xs">
+            <Badge variant="secondary" className="text-xs bg-secondary/20 text-secondary-foreground border border-secondary/30">
               {talent.city}
             </Badge>
-            <Badge variant="outline" className="text-xs">
+            <Badge variant="outline" className="text-xs border-primary/30 text-primary">
               {talent.bodyType}
             </Badge>
           </div>
           <Button 
             variant="outline" 
             size="sm"
-            className="group relative overflow-hidden border-primary text-primary hover:text-white transition-all duration-300"
+            className="group relative overflow-hidden border-primary/50 text-primary hover:text-white hover:border-primary transition-all duration-300"
             onClick={() => navigate(`/talentos/perfil/${talent.id}`)}
           >
             <span className="relative z-10 flex items-center gap-1">
               <Eye className="h-3 w-3" />
               Ver mais
             </span>
-            <div className="absolute inset-0 bg-gradient-to-r from-primary to-primary/80 translate-x-full group-hover:translate-x-0 transition-transform duration-300" />
+            <div className="absolute inset-0 bg-gradient-primary translate-x-full group-hover:translate-x-0 transition-transform duration-300" />
           </Button>
         </div>
       </CardContent>
@@ -290,8 +297,8 @@ export default function Talentos() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-            Talentos
+          <h1 className="text-3xl font-bold text-gradient-primary">
+            Gestão de Talentos
           </h1>
           <p className="text-muted-foreground">
             Gerencie o banco de talentos da agência, adicione novos perfis e acompanhe os cadastros.
@@ -334,10 +341,27 @@ export default function Talentos() {
               Filtros Avançados
             </Button>
             {(selectedGender.length > 0 || selectedBodyType.length > 0 || ageMin || ageMax || selectedCity || availableForTravel) && (
-              <Badge variant="secondary">
-                {[selectedGender.length, selectedBodyType.length, ageMin ? 1 : 0, ageMax ? 1 : 0, selectedCity ? 1 : 0, availableForTravel ? 1 : 0]
-                  .reduce((a, b) => a + b, 0)} filtros ativos
-              </Badge>
+              <>
+                <Badge variant="secondary">
+                  {[selectedGender.length, selectedBodyType.length, ageMin ? 1 : 0, ageMax ? 1 : 0, selectedCity ? 1 : 0, availableForTravel ? 1 : 0]
+                    .reduce((a, b) => a + b, 0)} filtros ativos
+                </Badge>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedGender([])
+                    setSelectedBodyType([])
+                    setAgeMin("")
+                    setAgeMax("")
+                    setSelectedCity("")
+                    setAvailableForTravel("")
+                  }}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  Limpar filtros
+                </Button>
+              </>
             )}
           </div>
 
@@ -537,70 +561,77 @@ export default function Talentos() {
         </CardContent>
       </Card>
 
-      {/* Results */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">
-            Talentos Encontrados ({filteredTalents.length})
-          </h2>
-        </div>
-
-        {/* Carousel */}
-        {paginatedTalents.length > 0 ? (
-          <Carousel className="w-full">
-            <CarouselContent className="-ml-2 md:-ml-4">
-              {paginatedTalents.map((talent) => (
-                 <CarouselItem key={talent.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3">
-                   <TalentCard talent={talent} navigate={navigate} />
-                 </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious />
-            <CarouselNext />
-          </Carousel>
-        ) : (
-          <Card className="p-8">
-            <div className="text-center text-muted-foreground">
-              <p>Nenhum talento encontrado com os filtros aplicados.</p>
-            </div>
-          </Card>
-        )}
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex justify-center">
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious 
-                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                    className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                  />
-                </PaginationItem>
-                
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <PaginationItem key={page}>
-                    <PaginationLink
-                      onClick={() => setCurrentPage(page)}
-                      isActive={currentPage === page}
-                      className="cursor-pointer"
-                    >
-                      {page}
-                    </PaginationLink>
-                  </PaginationItem>
+      {/* Talent Cards */}
+      <Card className="shadow-modern bg-gradient-card border-border/50">
+        <CardHeader>
+          <CardTitle className="text-gradient-primary">Talentos Cadastrados ({filteredTalents.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {paginatedTalents.length > 0 ? (
+            <Carousel
+              opts={{
+                align: "start",
+                loop: true,
+                skipSnaps: false,
+                containScroll: "trimSnaps",
+              }}
+              className="w-full"
+            >
+              <CarouselContent className="-ml-3">
+                {paginatedTalents.map((talent) => (
+                  <CarouselItem key={talent.id} className="pl-3 basis-auto">
+                    <TalentCard talent={talent} navigate={navigate} />
+                  </CarouselItem>
                 ))}
-                
-                <PaginationItem>
-                  <PaginationNext 
-                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                  />
+              </CarouselContent>
+              <div className="flex justify-center gap-4 mt-6">
+                <CarouselPrevious className="relative left-0 translate-y-0 bg-card border-primary/30 hover:bg-primary hover:text-primary-foreground" />
+                <CarouselNext className="relative right-0 translate-y-0 bg-card border-primary/30 hover:bg-primary hover:text-primary-foreground" />
+              </div>
+            </Carousel>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground text-lg">Nenhum talento encontrado com os filtros aplicados.</p>
+              <p className="text-muted-foreground/70 text-sm mt-2">Tente ajustar os filtros ou limpar a busca.</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious 
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                />
+              </PaginationItem>
+              
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <PaginationItem key={page}>
+                  <PaginationLink
+                    onClick={() => setCurrentPage(page)}
+                    isActive={currentPage === page}
+                    className="cursor-pointer"
+                  >
+                    {page}
+                  </PaginationLink>
                 </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          </div>
-        )}
-      </div>
+              ))}
+              
+              <PaginationItem>
+                <PaginationNext 
+                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                  className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
     </div>
   )
 }
