@@ -313,7 +313,7 @@ export default function NovoContratoComprometimento() {
                   value={formData.observacoes}
                   onChange={(e) => setFormData(prev => ({ ...prev, observacoes: e.target.value }))}
                   className="bg-background border-border min-h-[80px]"
-                  placeholder="Observações complementares sobre o contrato..."
+                  placeholder="Adicione observações ou condições especiais (opcional)..."
                 />
               </div>
             </CardContent>
