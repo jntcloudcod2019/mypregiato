@@ -112,7 +112,7 @@ const mockTalents = [
   }
 ]
 
-const TalentCard = ({ talent }: { talent: any }) => {
+const TalentCard = ({ talent, navigate }: { talent: any; navigate: any }) => {
   return (
     <Card className="w-80 h-96 mx-2 overflow-hidden group hover:shadow-lg transition-all duration-300">
       <div className="relative h-64 overflow-hidden">
@@ -141,6 +141,7 @@ const TalentCard = ({ talent }: { talent: any }) => {
             variant="outline" 
             size="sm"
             className="group relative overflow-hidden border-primary text-primary hover:text-white transition-all duration-300"
+            onClick={() => navigate(`/talentos/perfil/${talent.id}`)}
           >
             <span className="relative z-10 flex items-center gap-1">
               <Eye className="h-3 w-3" />
@@ -549,9 +550,9 @@ export default function Talentos() {
           <Carousel className="w-full">
             <CarouselContent className="-ml-2 md:-ml-4">
               {paginatedTalents.map((talent) => (
-                <CarouselItem key={talent.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3">
-                  <TalentCard talent={talent} />
-                </CarouselItem>
+                 <CarouselItem key={talent.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3">
+                   <TalentCard talent={talent} navigate={navigate} />
+                 </CarouselItem>
               ))}
             </CarouselContent>
             <CarouselPrevious />
