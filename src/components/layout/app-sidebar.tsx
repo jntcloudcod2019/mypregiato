@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { FileText, Home, Users, Settings, ChevronDown, Star, DollarSign, BarChart3, Headphones, BookOpen, Clock } from "lucide-react"
+import { FileText, Home, Users, Settings, ChevronDown, Star, DollarSign, BarChart3, Headphones, BookOpen, Clock, Globe } from "lucide-react"
 import { NavLink, useLocation } from "react-router-dom"
 import { ThemeToggle } from "@/components/theme-toggle"
 
@@ -26,6 +26,7 @@ const menuItems = [
   { title: "Talentos", url: "/talentos", icon: Star },
   { title: "Finanças", url: "/financas", icon: DollarSign },
   { title: "Usuários", url: "/usuarios", icon: Users },
+  { title: "API Tester", url: "/api-tester", icon: Globe },
   { title: "Configurações", url: "/configuracoes", icon: Settings },
 ]
 
