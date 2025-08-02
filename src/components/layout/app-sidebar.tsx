@@ -46,7 +46,7 @@ export function AppSidebar() {
           {!collapsed ? (
             <div className="flex items-center">
               <h1 className="font-merriweather text-xl font-bold shiny-text tracking-wider">
-                My Pregiato
+                MY PREGIATO 
               </h1>
             </div>
           ) : (
