@@ -22,6 +22,9 @@ import NovoTalento from "./pages/talentos/novo";
 import TalentProfile from "./pages/talentos/perfil/[id]";
 import Financas from "./pages/financas";
 import Usuarios from "./pages/usuarios";
+import TreinamentosPage from "./pages/treinamentos/index";
+import CriarTreinamentoPage from "./pages/treinamentos/criar/index";
+import CursoPage from "./pages/treinamentos/curso/[id]";
 import NotFound from "./pages/NotFound";
 
 const App = () => (
@@ -39,7 +42,10 @@ const App = () => (
         <Route path="/crm/tarefas/nova" element={<NovaTarefa />} />
         <Route path="/crm/relatorios" element={<RelatoriosPage />} />
         <Route path="/crm/configuracoes" element={<ConfiguracoesPage />} />
-        <Route path="/atendimento" element={<AtendimentoPage />} />
+            <Route path="/atendimento" element={<AtendimentoPage />} />
+            <Route path="/treinamentos" element={<TreinamentosPage />} />
+            <Route path="/treinamentos/criar" element={<CriarTreinamentoPage />} />
+            <Route path="/treinamentos/curso/:id" element={<CursoPage />} />
         <Route path="/contratos" element={<Contratos />} />
         <Route path="/contratos/agenciamento" element={<ContratosAgenciamento />} />
         <Route path="/contratos/agenciamento/novo" element={<NovoContratoAgenciamento />} />
