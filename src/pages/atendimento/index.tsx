@@ -146,8 +146,12 @@ const AtendimentoPage = () => {
     // });
   };
 
+  const [showCallDialog, setShowCallDialog] = useState(false);
+
   const iniciarChamada = () => {
     if (!clienteSelecionado) return;
+    
+    setShowCallDialog(true);
     
     // TODO: Iniciar chamada WebRTC
     // const chamadaData = {
@@ -162,8 +166,6 @@ const AtendimentoPage = () => {
     //   headers: { 'Content-Type': 'application/json' },
     //   body: JSON.stringify(chamadaData)
     // });
-    
-    alert(`Iniciando chamada para ${clienteSelecionado.nome}...`);
   };
 
   const enviarArquivo = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -215,7 +217,7 @@ const AtendimentoPage = () => {
     <div className="p-6">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gradient-primary">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary-variant))] bg-clip-text text-transparent">
           Atendimento
         </h1>
         <p className="text-muted-foreground mt-1">
@@ -439,6 +441,74 @@ const AtendimentoPage = () => {
           </div>
         )}
       </Card>
+
+      {/* Modal de Chamada */}
+      {showCallDialog && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+          <div className="relative">
+            {/* Fundo transparente da chamada */}
+            <div className="w-80 h-96 bg-gradient-to-b from-gray-800/90 to-gray-900/90 backdrop-blur-sm rounded-3xl flex flex-col items-center justify-between p-6 text-white shadow-2xl">
+              {/* Header da chamada */}
+              <div className="text-center">
+                <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center mb-4 mx-auto">
+                  <Avatar className="w-16 h-16">
+                    <AvatarImage src={clienteSelecionado?.foto} alt={clienteSelecionado?.nome} />
+                    <AvatarFallback className="text-gray-700">
+                      {clienteSelecionado?.nome.slice(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
+                <h3 className="text-lg font-medium">{clienteSelecionado?.nome}</h3>
+                <p className="text-sm text-white/70">Conectando...</p>
+              </div>
+
+              {/* Controles da chamada */}
+              <div className="flex justify-center gap-4">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 text-white"
+                >
+                  🔇
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 text-white"
+                >
+                  🔊
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 text-white"
+                >
+                  📞
+                </Button>
+              </div>
+
+              {/* Botões de ação */}
+              <div className="flex justify-center gap-6">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="w-14 h-14 rounded-full bg-green-500 hover:bg-green-600 text-white"
+                >
+                  ✅
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="w-14 h-14 rounded-full bg-red-500 hover:bg-red-600 text-white"
+                  onClick={() => setShowCallDialog(false)}
+                >
+                  ❌
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

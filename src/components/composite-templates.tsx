@@ -13,35 +13,17 @@ interface CompositeTemplatesProps {
   photos: string[]
 }
 
-const templates = [
-  {
-    id: 1,
-    name: "Classic Model",
-    preview: "/placeholder.svg",
-    description: "Layout clássico com 4 fotos e informações básicas"
-  },
-  {
-    id: 2,
-    name: "Fashion Forward",
-    preview: "/placeholder.svg", 
-    description: "Design moderno com grid dinâmico"
-  },
-  {
-    id: 3,
-    name: "Professional",
-    preview: "/placeholder.svg",
-    description: "Layout executivo com destaque para headshot"
-  },
-  {
-    id: 4,
-    name: "Creative",
-    preview: "/placeholder.svg",
-    description: "Design criativo com elementos visuais únicos"
-  }
-]
+// Template fixo - removemos a seleção de templates
+const fixedTemplate = {
+  id: 1,
+  name: "Layout Pregiato",
+  description: "4 fotos em grade 2x2",
+  columns: 2,
+  photoCount: 4,
+  preview: "🖼️ 2x2"
+}
 
 export function CompositeTemplates({ talent, photos }: CompositeTemplatesProps) {
-  const [selectedTemplate, setSelectedTemplate] = useState(1)
   const [selectedPhotos, setSelectedPhotos] = useState<string[]>([])
   const [isGenerating, setIsGenerating] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
@@ -145,63 +127,134 @@ export function CompositeTemplates({ talent, photos }: CompositeTemplatesProps) 
   }
 
   const getCompositeHTML = () => {
-    const selectedTemplateData = templates.find(t => t.id === selectedTemplate)
-    
-    if (!selectedTemplateData) return ''
+    if (selectedPhotos.length === 0) return ''
     
     return `
-      <div style="
-        width: 600px; 
-        height: 800px; 
-        background: white; 
-        padding: 20px; 
-        font-family: Arial, sans-serif;
-        box-sizing: border-box;
-        color: black;
-      ">
-        <div style="text-align: center; margin-bottom: 20px;">
-          <h1 style="color: #2563eb; margin: 0; font-size: 24px;">PREGIATO MANAGEMENT</h1>
-          <h2 style="margin: 10px 0; font-size: 20px;">${talent.name}</h2>
-        </div>
-        
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
-          ${selectedPhotos.slice(0, 4).map(photo => `
-            <div style="
-              width: 100%; 
-              height: 150px; 
-              background-image: url('${photo}');
-              background-size: cover;
-              background-position: center;
-              border-radius: 8px;
-            ">
-            </div>
-          `).join('')}
-        </div>
-        
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-          <div>
-            <h3 style="color: #2563eb; margin-bottom: 10px;">Informações Pessoais</h3>
-            <p><strong>Nome:</strong> ${talent.name}</p>
-            <p><strong>Altura:</strong> ${talent.dna?.physicalCharacteristics?.height || 'N/A'}m</p>
-            <p><strong>Medidas:</strong> ${talent.dna?.physicalCharacteristics?.bust || 'N/A'} - ${talent.dna?.physicalCharacteristics?.waist || 'N/A'} - ${talent.dna?.physicalCharacteristics?.hip || 'N/A'}</p>
-            <p><strong>Calçado:</strong> ${talent.dna?.physicalCharacteristics?.shoeSize || 'N/A'}</p>
-            <p><strong>Olhos:</strong> ${talent.dna?.facialCharacteristics?.eyeColor || 'N/A'}</p>
-            <p><strong>Cabelo:</strong> ${talent.dna?.facialCharacteristics?.hairColor || 'N/A'}</p>
+      <!DOCTYPE html>
+      <html lang="pt-BR">
+      <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Pregiato Composite</title>
+          <style>
+              /* Reset Básico */
+              * {
+                  margin: 0;
+                  padding: 0;
+                  box-sizing: border-box;
+              }
+
+              body {
+                  font-family: Arial, sans-serif;
+                  background-color: #004e7c; /* Cor de fundo azul do logo */
+                  display: flex;
+                  justify-content: center;
+                  align-items: center;
+                  min-height: 100vh;
+                  padding: 20px;
+              }
+
+              .composite-container {
+                  width: 100%;
+                  max-width: 800px; /* Ajuste o tamanho máximo conforme necessário */
+                  background-color: white;
+                  border-radius: 15px;
+                  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+                  overflow: hidden;
+                  display: flex;
+                  flex-direction: column;
+              }
+
+              .composite-header {
+                  height: 80px;
+                  display: flex;
+                  justify-content: center;
+                  align-items: center;
+                  padding: 20px;
+              }
+
+              .composite-main {
+                  padding: 20px;
+                  display: flex;
+                  flex-direction: column;
+                  gap: 20px;
+              }
+
+              .composite-row {
+                  display: flex;
+                  justify-content: space-between;
+                  gap: 20px;
+              }
+
+              .composite-photo-placeholder {
+                  width: 50%;
+                  height: 350px; /* Ajuste a altura das fotos */
+                  background-color: #e0e0e0;
+                  border-radius: 10px;
+                  display: flex;
+                  justify-content: center;
+                  align-items: center;
+                  color: #a0a0a0;
+                  font-weight: bold;
+                  font-size: 1.2em;
+                  border: 2px solid #ccc; /* Borda para demarcar a área */
+                  background-size: cover;
+                  background-position: center;
+                  background-repeat: no-repeat;
+              }
+
+              .composite-footer {
+                  padding: 20px;
+                  text-align: center;
+                  color: #555;
+                  font-size: 0.9em;
+                  border-top: 1px solid #eee;
+              }
+
+              /* Responsividade básica */
+              @media (max-width: 600px) {
+                  .composite-row {
+                      flex-direction: column;
+                  }
+
+                  .composite-photo-placeholder {
+                      width: 100%;
+                  }
+              }
+          </style>
+      </head>
+      <body>
+          <div class="composite-container">
+              <header class="composite-header">
+                  <img src="/src/assets/pregiato-logo.png" alt="Pregiato Logo" style="max-height: 40px;">
+              </header>
+
+              <div class="composite-main">
+                  <div class="composite-row">
+                      <div class="composite-photo-placeholder" style="background-image: url('${selectedPhotos[0] || ''}');">
+                          ${!selectedPhotos[0] ? 'Foto 1' : ''}
+                      </div>
+                      <div class="composite-photo-placeholder" style="background-image: url('${selectedPhotos[1] || ''}');">
+                          ${!selectedPhotos[1] ? 'Foto 2' : ''}
+                      </div>
+                  </div>
+
+                  <div class="composite-row">
+                      <div class="composite-photo-placeholder" style="background-image: url('${selectedPhotos[2] || ''}');">
+                          ${!selectedPhotos[2] ? 'Foto 3' : ''}
+                      </div>
+                      <div class="composite-photo-placeholder" style="background-image: url('${selectedPhotos[3] || ''}');">
+                          ${!selectedPhotos[3] ? 'Foto 4' : ''}
+                      </div>
+                  </div>
+              </div>
+
+              <footer class="composite-footer">
+                  ${talent.name || 'Nome do Talento'}
+              </footer>
           </div>
-          
-          <div>
-            <h3 style="color: #2563eb; margin-bottom: 10px;">Contato</h3>
-            <p><strong>Agência:</strong> Pregiato Management</p>
-            <p><strong>Email:</strong> ${talent.email}</p>
-            <p><strong>WhatsApp:</strong> ${talent.whatsapp}</p>
-            <p><strong>Telefone:</strong> ${talent.phone}</p>
-          </div>
-        </div>
-        
-        <div style="margin-top: 30px; text-align: center; color: #6b7280; font-size: 12px;">
-          <p>www.pregiato.com.br</p>
-        </div>
-      </div>
+      </body>
+      </html>
     `
   }
 
@@ -230,31 +283,7 @@ export function CompositeTemplates({ talent, photos }: CompositeTemplatesProps) 
         </div>
       )}
 
-      {/* Template Selection */}
-      <div>
-        <h4 className="font-medium mb-3">Selecione o Template</h4>
-        <div className="grid grid-cols-2 gap-4">
-          {templates.map((template) => (
-            <Card 
-              key={template.id} 
-              className={`cursor-pointer transition-all hover:shadow-md ${
-                selectedTemplate === template.id ? 'ring-2 ring-primary' : ''
-              }`}
-              onClick={() => setSelectedTemplate(template.id)}
-            >
-              <CardHeader className="pb-2">
-                <div className="aspect-[3/4] bg-muted rounded-lg flex items-center justify-center">
-                  <span className="text-xs text-muted-foreground">Preview</span>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <h5 className="font-medium">{template.name}</h5>
-                <p className="text-xs text-muted-foreground">{template.description}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
+      {/* Template fixo - removido a seleção */}
 
       {/* Photo Selection */}
       <div>

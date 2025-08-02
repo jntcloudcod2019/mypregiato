@@ -38,7 +38,7 @@ export default function CRMDashboard() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gradient-primary">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary-variant))] bg-clip-text text-transparent">
             Dashboard CRM
           </h1>
           <p className="text-muted-foreground mt-1">

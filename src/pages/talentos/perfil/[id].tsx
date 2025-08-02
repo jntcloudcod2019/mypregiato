@@ -286,7 +286,7 @@ export default function TalentProfile() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-gradient-primary">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary-variant))] bg-clip-text text-transparent">
               Perfil do Talento
             </h1>
             <p className="text-muted-foreground">
@@ -308,8 +308,7 @@ export default function TalentProfile() {
         <div className="lg:col-span-1">
           <Card className="shadow-card">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
+              <CardTitle>
                 {talent.name}
               </CardTitle>
             </CardHeader>
