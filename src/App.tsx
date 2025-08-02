@@ -25,6 +25,7 @@ import Usuarios from "./pages/usuarios";
 import TreinamentosPage from "./pages/treinamentos/index";
 import CriarTreinamentoPage from "./pages/treinamentos/criar/index";
 import CursoPage from "./pages/treinamentos/curso/[id]";
+import PontoEletronicoPage from "./pages/ponto";
 import NotFound from "./pages/NotFound";
 
 const App = () => (
@@ -46,6 +47,7 @@ const App = () => (
             <Route path="/treinamentos" element={<TreinamentosPage />} />
             <Route path="/treinamentos/criar" element={<CriarTreinamentoPage />} />
             <Route path="/treinamentos/curso/:id" element={<CursoPage />} />
+            <Route path="/ponto" element={<PontoEletronicoPage />} />
         <Route path="/contratos" element={<Contratos />} />
         <Route path="/contratos/agenciamento" element={<ContratosAgenciamento />} />
         <Route path="/contratos/agenciamento/novo" element={<NovoContratoAgenciamento />} />
