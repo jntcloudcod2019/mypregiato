@@ -122,7 +122,7 @@ export default function Financas() {
     <div className="p-6 space-y-6 bg-background min-h-screen">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Finanças</h1>
+          <h1 className="text-3xl font-bold text-gradient-primary">Finanças</h1>
           <p className="text-muted-foreground">Dashboard financeiro em tempo real</p>
         </div>
         <Badge variant="secondary" className="animate-pulse">

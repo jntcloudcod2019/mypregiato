@@ -288,25 +288,23 @@ export default function Talentos() {
   return (
     <div className="p-6 space-y-6">
       {/* Header with fixed position for New Talent button */}
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border/50 p-4 -m-6 mb-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gradient-primary">
-              Gestão de Talentos
-            </h1>
-            <p className="text-muted-foreground">
-              Gerencie o banco de talentos da agência, adicione novos perfis e acompanhe os cadastros.
-            </p>
-          </div>
-          <Button 
-            onClick={() => navigate('/talentos/novo')}
-            variant="contained"
-            className="shadow-lg"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Talento
-          </Button>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gradient-primary">
+            Gestão de Talentos
+          </h1>
+          <p className="text-muted-foreground">
+            Gerencie o banco de talentos da agência, adicione novos perfis e acompanhe os cadastros.
+          </p>
         </div>
+        <Button 
+          onClick={() => navigate('/talentos/novo')}
+          variant="contained"
+          className="shadow-lg"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Novo Talento
+        </Button>
       </div>
 
       {/* Search and Filters */}

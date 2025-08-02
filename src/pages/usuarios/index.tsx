@@ -162,7 +162,7 @@ export default function Usuarios() {
     <div className="p-6 space-y-6 bg-background min-h-screen">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Gerenciamento de Usuários</h1>
+          <h1 className="text-3xl font-bold text-gradient-primary">Gerenciamento de Usuários</h1>
           <p className="text-muted-foreground">Gerencie talentos e funcionários do sistema</p>
         </div>
 
@@ -288,14 +288,6 @@ export default function Usuarios() {
                           Reenviar
                         </Button>
                       )}
-                      <Button 
-                        variant="contained" 
-                        size="sm"
-                        onClick={() => handleSendInvite(talent.email, "TALENT")}
-                      >
-                        <Mail className="h-3 w-3 mr-1" />
-                        Convidar
-                      </Button>
                     </div>
                   </div>
                 ))}

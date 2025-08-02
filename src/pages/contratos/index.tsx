@@ -66,7 +66,7 @@ export default function Contratos() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Contratos</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-gradient-primary">Contratos</h1>
           <p className="text-muted-foreground">
             Gerencie todos os seus contratos de agenciamento
           </p>
