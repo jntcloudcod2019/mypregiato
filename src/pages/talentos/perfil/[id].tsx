@@ -37,13 +37,13 @@ const mockTalent = {
   complement: "Apto 45",
   availableForTravel: true,
   active: true,
-  profileImage: "/placeholder.svg",
+  profileImage: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face",
   photos: [
-    "/placeholder.svg",
-    "/placeholder.svg",
-    "/placeholder.svg",
-    "/placeholder.svg",
-    "/placeholder.svg"
+    "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=600&h=800&fit=crop&crop=face",
+    "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=600&h=800&fit=crop&crop=face",
+    "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=600&h=800&fit=crop&crop=face",
+    "https://images.unsplash.com/photo-1567532900872-f4e906cbf06a?w=600&h=800&fit=crop&crop=face",
+    "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=600&h=800&fit=crop&crop=face"
   ],
   dna: {
     physicalCharacteristics: {

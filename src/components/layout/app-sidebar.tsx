@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { FileText, Home, Users, Settings, ChevronDown, Star } from "lucide-react"
+import { FileText, Home, Users, Settings, ChevronDown, Star, DollarSign } from "lucide-react"
 import { NavLink, useLocation } from "react-router-dom"
 import { ThemeToggle } from "@/components/theme-toggle"
 
@@ -20,6 +20,7 @@ const menuItems = [
   { title: "Dashboard", url: "/dashboard", icon: Home },
   { title: "Contratos", url: "/contratos", icon: FileText },
   { title: "Talentos", url: "/talentos", icon: Star },
+  { title: "Finanças", url: "/financas", icon: DollarSign },
   { title: "Usuários", url: "/usuarios", icon: Users },
   { title: "Configurações", url: "/configuracoes", icon: Settings },
 ]
@@ -43,9 +44,11 @@ export function AppSidebar() {
         {/* Logo */}
         <div className="p-4 border-b border-border flex items-center justify-between">
           {!collapsed ? (
-            <h2 className="font-bold text-xl bg-gradient-primary bg-clip-text text-transparent">
-              Pregiato
-            </h2>
+            <img 
+              src="/src/assets/pregiato-logo.png" 
+              alt="Pregiato Management" 
+              className="h-8 object-contain"
+            />
           ) : (
             <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">P</span>

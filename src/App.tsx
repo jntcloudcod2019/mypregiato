@@ -16,6 +16,8 @@ import NovoContratoComprometimento from "./pages/contratos/comprometimento";
 import Talentos from "./pages/talentos";
 import NovoTalento from "./pages/talentos/novo";
 import TalentProfile from "./pages/talentos/perfil/[id]";
+import Financas from "./pages/financas";
+import Usuarios from "./pages/usuarios";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +43,8 @@ const App = () => (
           <Route path="/talentos" element={<Talentos />} />
           <Route path="/talentos/novo" element={<NovoTalento />} />
           <Route path="/talentos/perfil/:id" element={<TalentProfile />} />
+          <Route path="/financas" element={<Financas />} />
+          <Route path="/usuarios" element={<Usuarios />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
