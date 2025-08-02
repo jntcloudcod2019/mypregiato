@@ -94,15 +94,24 @@ export default function Contratos() {
               <FileText className="mr-2 h-4 w-4" />
               Contrato de Agenciamento
             </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer hover:bg-accent">
+            <DropdownMenuItem 
+              onClick={() => navigate('/contratos/super-fotos-menor')}
+              className="cursor-pointer hover:bg-accent"
+            >
               <FileText className="mr-2 h-4 w-4" />
               Contrato Super Fotos (Menor Idade)
             </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer hover:bg-accent">
+            <DropdownMenuItem 
+              onClick={() => navigate('/contratos/agenciamento-menor')}
+              className="cursor-pointer hover:bg-accent"
+            >
               <FileText className="mr-2 h-4 w-4" />
               Contrato Agenciamento (Menor Idade)
             </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer hover:bg-accent">
+            <DropdownMenuItem 
+              onClick={() => navigate('/contratos/comprometimento')}
+              className="cursor-pointer hover:bg-accent"
+            >
               <FileText className="mr-2 h-4 w-4" />
               Contrato de Comprometimento
             </DropdownMenuItem>
