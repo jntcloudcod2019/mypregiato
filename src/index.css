@@ -16,72 +16,70 @@
 
 @layer base {
   :root {
-    /* Light Mode - MUI Dashboard Theme */
-    --background: 0 0% 100%;                 /* #FFFFFF */
-    --foreground: 210 10% 23%;               /* #3A3A3C */
-
-    --card: 0 0% 100%;                       /* #FFFFFF */
-    --card-foreground: 210 10% 23%;
-
+    /* Light Mode - Trae AI inspired */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    
     --popover: 0 0% 100%;
-    --popover-foreground: 210 10% 23%;
-
-    /* Primary - MUI Blue */
-    --primary: 210 98% 48%;                  /* #1976D2 - MUI Primary Blue */
-    --primary-foreground: 0 0% 100%;
-    --primary-hover: 210 98% 42%;
-
-    /* Secondary - Light Gray */
-    --secondary: 210 40% 95%;                /* #F5F5F5 - Light background */
-    --secondary-foreground: 210 10% 23%;
-
-    --muted: 210 40% 98%;                    /* #FAFAFA - Very light background */
-    --muted-foreground: 215 16% 47%;         /* #757575 - Muted text */
-
-    /* Success Green */
-    --accent: 122 39% 49%;                   /* #4CAF50 - Success green */
-    --accent-foreground: 0 0% 100%;
-
-    /* Error Red */
-    --destructive: 0 65% 51%;                /* #D32F2F - Error red */
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 220 13% 91%;                   /* #E0E0E0 - Light border */
-    --input: 220 13% 91%;
-    --ring: 210 98% 48%;
-
-    --radius: 0.5rem;                        /* 8px - MUI standard radius */
-
-    /* MUI specific colors */
-    --mui-success: 122 39% 49%;              /* #4CAF50 */
-    --mui-warning: 45 100% 51%;              /* #FF9800 */
-    --mui-error: 0 65% 51%;                  /* #D32F2F */
-    --mui-info: 199 92% 56%;                 /* #2196F3 */
-
+    --popover-foreground: 0 0% 3.9%;
+    
+    /* Primary - Trae AI Green */
+    --primary: 162 85% 40%;
+    --primary-foreground: 0 0% 98%;
+    --primary-hover: 162 85% 35%;
+    
+    /* Secondary */
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    
+    --accent: 162 85% 40%;
+    --accent-foreground: 0 0% 9%;
+    
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 162 85% 40%;
+    
+    --radius: 0.75rem;
+    
+    /* Light theme wire effects */
+    --light-wire-color: 162 85% 50%;
+    --light-wire-glow: 162 85% 50%;
+    
+    /* Gradients for light theme */
+    --gradient-primary: linear-gradient(135deg, hsl(162 85% 40%), hsl(162 85% 30%));
+    --gradient-background: radial-gradient(ellipse at top, hsl(162 85% 98%), hsl(0 0% 100%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(0 0% 98%));
+    
+    /* Shadows for light theme */
+    --shadow-glow: 0 0 20px hsl(var(--primary) / 0.2);
+    --shadow-card: 0 8px 32px hsl(0 0% 0% / 0.08);
+    --shadow-elegant: 0 20px 40px hsl(0 0% 0% / 0.12);
+    
     /* Sidebar - Light theme */
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 210 10% 23%;
-    --sidebar-primary: 210 98% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 40% 95%;
-    --sidebar-accent-foreground: 210 10% 23%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 210 98% 48%;
-
-    /* MUI shadows */
-    --shadow-1: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
-    --shadow-2: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
-    --shadow-3: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
-    --shadow-4: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+    --sidebar-foreground: 0 0% 3.9%;
+    --sidebar-primary: 162 85% 40%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 0 0% 96.1%;
+    --sidebar-accent-foreground: 0 0% 9%;
+    --sidebar-border: 0 0% 89.8%;
+    --sidebar-ring: 162 85% 40%;
     
-    /* Typography scales */
-    --text-xs: 0.75rem;      /* 12px */
-    --text-sm: 0.875rem;     /* 14px */
-    --text-base: 1rem;       /* 16px */
-    --text-lg: 1.125rem;     /* 18px */
-    --text-xl: 1.25rem;      /* 20px */
-    --text-2xl: 1.5rem;      /* 24px */
-    --text-3xl: 1.875rem;    /* 30px */
+    /* Chart colors */
+    --chart-1: 162 85% 40%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
     
     /* Animations */
     --transition-fast: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -89,61 +87,67 @@
   }
 
   .dark {
-    /* Dark Mode - MUI Dark Theme */
-    --background: 210 11% 10%;               /* #1A1A1A */
-    --foreground: 0 0% 98%;                  /* #FAFAFA */
-
-    --card: 210 11% 12%;                     /* #1F1F1F */
+    /* Dark Mode - Trae AI inspired */
+    --background: 0 0% 2%;
+    --foreground: 0 0% 98%;
+    
+    --card: 0 0% 3%;
     --card-foreground: 0 0% 98%;
-
-    --popover: 210 11% 12%;
+    
+    --popover: 0 0% 3%;
     --popover-foreground: 0 0% 98%;
-
-    /* Primary - Lighter blue for dark mode */
-    --primary: 210 100% 60%;                 /* #3F8CFF */
-    --primary-foreground: 0 0% 100%;
-    --primary-hover: 210 100% 55%;
-
-    /* Secondary - Dark gray */
-    --secondary: 210 11% 15%;                /* #262626 */
+    
+    /* Primary - Keep green but adjust for dark */
+    --primary: 162 85% 40%;
+    --primary-foreground: 0 0% 2%;
+    --primary-hover: 162 85% 45%;
+    
+    --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
-
-    --muted: 210 11% 15%;                    /* #262626 */
-    --muted-foreground: 215 14% 71%;         /* #B3B3B3 */
-
-    /* Success Green - darker */
-    --accent: 122 39% 45%;                   /* #43A047 */
-    --accent-foreground: 0 0% 100%;
-
-    /* Error Red - darker */
-    --destructive: 0 62% 47%;                /* #C62828 */
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 210 11% 20%;                   /* #333333 */
-    --input: 210 11% 15%;
-    --ring: 210 100% 60%;
-
-    /* MUI dark colors */
-    --mui-success: 122 39% 45%;              /* #43A047 */
-    --mui-warning: 45 100% 60%;              /* #FFB74D */
-    --mui-error: 0 62% 47%;                  /* #C62828 */
-    --mui-info: 199 92% 70%;                 /* #64B5F6 */
-
+    
+    --muted: 0 0% 8%;
+    --muted-foreground: 240 5% 64.9%;
+    
+    --accent: 162 85% 40%;
+    --accent-foreground: 0 0% 2%;
+    
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 162 85% 40%;
+    
+    /* Dark theme wire effects - Purple */
+    --light-wire-color: 280 100% 70%;
+    --light-wire-glow: 280 100% 70%;
+    
+    /* Gradients for dark theme */
+    --gradient-primary: linear-gradient(135deg, hsl(162 85% 40%), hsl(162 85% 30%));
+    --gradient-background: radial-gradient(ellipse at top, hsl(162 85% 2%), hsl(0 0% 2%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 4%), hsl(0 0% 2%));
+    
+    /* Shadows for dark theme */
+    --shadow-glow: 0 0 20px hsl(var(--primary) / 0.3);
+    --shadow-card: 0 8px 32px hsl(0 0% 0% / 0.4);
+    --shadow-elegant: 0 20px 40px hsl(0 0% 0% / 0.6);
+    
     /* Sidebar - Dark theme */
-    --sidebar-background: 210 11% 10%;
+    --sidebar-background: 0 0% 2%;
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 210 100% 60%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 11% 15%;
+    --sidebar-primary: 162 85% 40%;
+    --sidebar-primary-foreground: 0 0% 2%;
+    --sidebar-accent: 240 3.7% 15.9%;
     --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 210 11% 20%;
-    --sidebar-ring: 210 100% 60%;
-
-    /* Dark shadows */
-    --shadow-1: 0 1px 3px rgba(0,0,0,0.24), 0 1px 2px rgba(0,0,0,0.48);
-    --shadow-2: 0 3px 6px rgba(0,0,0,0.32), 0 3px 6px rgba(0,0,0,0.46);
-    --shadow-3: 0 10px 20px rgba(0,0,0,0.38), 0 6px 6px rgba(0,0,0,0.46);
-    --shadow-4: 0 14px 28px rgba(0,0,0,0.5), 0 10px 10px rgba(0,0,0,0.44);
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 162 85% 40%;
+    
+    /* Chart colors for dark theme */
+    --chart-1: 162 85% 40%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
   }
 }
 
@@ -232,11 +236,103 @@
 
   /* Tech-inspired glow effects */
   .glow-primary {
-    box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+    filter: drop-shadow(0 0 10px hsl(var(--primary) / 0.5));
   }
 
   .glow-accent {
-    box-shadow: 0 0 20px hsl(var(--accent) / 0.3);
+    filter: drop-shadow(0 0 8px hsl(var(--accent) / 0.4));
+  }
+
+  /* Animated light wire effects */
+  @keyframes lightWireFlow {
+    0% {
+      transform: translateX(-100%);
+      opacity: 0;
+    }
+    50% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateX(200%);
+      opacity: 0;
+    }
+  }
+
+  @keyframes lightWirePulse {
+    0%, 100% {
+      box-shadow: 0 0 5px hsl(var(--light-wire-color) / 0.5);
+    }
+    50% {
+      box-shadow: 0 0 20px hsl(var(--light-wire-glow) / 0.8);
+    }
+  }
+
+  .light-wire {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .light-wire::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(var(--light-wire-color) / 0.6),
+      hsl(var(--light-wire-glow) / 0.8),
+      hsl(var(--light-wire-color) / 0.6),
+      transparent
+    );
+    animation: lightWireFlow 3s ease-in-out infinite;
+  }
+
+  .light-wire-border-top {
+    border-top: 1px solid hsl(var(--border));
+    animation: lightWirePulse 2s ease-in-out infinite;
+  }
+
+  .light-wire-border-right {
+    border-right: 1px solid hsl(var(--border));
+    animation: lightWirePulse 2s ease-in-out infinite;
+  }
+
+  /* Dark theme wire effects */
+  .dark .light-wire::before {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(var(--light-wire-color) / 0.6),
+      hsl(var(--light-wire-glow) / 0.8),
+      hsl(var(--light-wire-color) / 0.6),
+      transparent
+    );
+  }
+
+  .dark .light-wire-border-top {
+    animation: lightWirePulse 2s ease-in-out infinite;
+    box-shadow: 0 0 5px hsl(var(--light-wire-color) / 0.3);
+  }
+
+  .dark .light-wire-border-right {
+    animation: lightWirePulse 2s ease-in-out infinite;
+    box-shadow: 0 0 5px hsl(var(--light-wire-color) / 0.3);
+  }
+
+  /* Float animation for particles */
+  @keyframes float {
+    0%, 100% { 
+      transform: translateY(0px) rotate(0deg); 
+    }
+    33% { 
+      transform: translateY(-10px) rotate(120deg); 
+    }
+    66% { 
+      transform: translateY(-5px) rotate(240deg); 
+    }
   }
 }
 

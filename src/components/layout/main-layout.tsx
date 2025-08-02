@@ -28,7 +28,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
           
           <div className="flex-1 flex flex-col">
             {/* Header */}
-            <header className="h-16 flex items-center justify-between px-6 border-b border-border bg-card/50 backdrop-blur">
+            <header className="h-16 flex items-center justify-between px-6 border-b border-border bg-card/50 backdrop-blur light-wire light-wire-border-top">
               <div className="flex items-center gap-3">
                 <SidebarTrigger className="p-2 hover:bg-accent rounded-lg transition-colors" />
                 <h1 className="font-semibold text-foreground">Sistema Pregiato</h1>

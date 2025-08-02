@@ -48,20 +48,50 @@ export default function CustomLogin() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/50 to-background p-4">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDYwIDAgTCAwIDAgMCA2MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJoc2wodjIxMCAxMSUgMjAlIC8gMC4wNSkiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-50"></div>
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden" style={{background: 'var(--gradient-background)'}}>
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0">
+        {/* Grid Pattern */}
+        <div className="absolute inset-0 opacity-10" style={{
+          backgroundImage: `
+            linear-gradient(hsl(var(--primary) / 0.1) 1px, transparent 1px),
+            linear-gradient(90deg, hsl(var(--primary) / 0.1) 1px, transparent 1px)
+          `,
+          backgroundSize: '50px 50px'
+        }}></div>
+        
+        {/* Floating particles */}
+        <div className="absolute inset-0">
+          {[...Array(20)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-1 h-1 bg-primary rounded-full opacity-30"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animation: `float ${3 + Math.random() * 2}s ease-in-out infinite`,
+                animationDelay: `${Math.random() * 2}s`
+              }}
+            />
+          ))}
+        </div>
+        
+        {/* Gradient orbs */}
+        <div className="absolute top-20 left-20 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-20 right-20 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}} />
+      </div>
       
-      <div className="relative w-full max-w-md">
-        <Card className="backdrop-blur-sm border-border/50 shadow-elegant">
+      <div className="relative w-full max-w-md z-10">
+        <Card className="backdrop-blur-xl border border-primary/20 shadow-2xl bg-card/80" style={{background: 'var(--gradient-card)'}}>
           <CardHeader className="text-center space-y-6">
             {/* Logo */}
             <div className="flex justify-center">
-              <div className="w-24 h-24 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/20">
+              <div className="relative w-24 h-24 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/30 light-wire overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/20 to-transparent animate-pulse" />
                 <img 
                   src={pregiatoLogo} 
                   alt="Pregiato Logo" 
-                  className="w-16 h-16 object-contain"
+                  className="w-16 h-16 object-contain relative z-10 glow-primary"
                 />
               </div>
             </div>
@@ -137,8 +167,12 @@ export default function CustomLogin() {
                 </div>
               </div>
               
-              <Button type="submit" className="w-full bg-primary hover:bg-primary-hover text-primary-foreground">
-                {isLogin ? "Entrar" : "Criar Conta"}
+              <Button 
+                type="submit" 
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-glow transition-all duration-300 relative overflow-hidden group"
+              >
+                <span className="relative z-10">{isLogin ? "Entrar" : "Criar Conta"}</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
               </Button>
             </form>
 
