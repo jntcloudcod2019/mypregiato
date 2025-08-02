@@ -1,6 +1,14 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import MainLayout from "./components/layout/main-layout";
 import Dashboard from "./pages/dashboard";
+import CRMDashboard from "./pages/crm/dashboard";
+import LeadsPage from "./pages/crm/leads";
+import NovoLead from "./pages/crm/leads/novo";
+import DetalheLead from "./pages/crm/leads/[id]";
+import TarefasPage from "./pages/crm/tarefas";
+import NovaTarefa from "./pages/crm/tarefas/nova";
+import RelatoriosPage from "./pages/crm/relatorios";
+import ConfiguracoesPage from "./pages/crm/configuracoes";
 import Contratos from "./pages/contratos";
 import ContratosAgenciamento from "./pages/contratos/agenciamento";
 import NovoContratoAgenciamento from "./pages/contratos/agenciamento/novo";
@@ -21,6 +29,15 @@ const App = () => (
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/crm" element={<CRMDashboard />} />
+        <Route path="/crm/leads" element={<LeadsPage />} />
+        <Route path="/crm/leads/novo" element={<NovoLead />} />
+        <Route path="/crm/leads/:id" element={<DetalheLead />} />
+        <Route path="/crm/leads/:id/editar" element={<NovoLead />} />
+        <Route path="/crm/tarefas" element={<TarefasPage />} />
+        <Route path="/crm/tarefas/nova" element={<NovaTarefa />} />
+        <Route path="/crm/relatorios" element={<RelatoriosPage />} />
+        <Route path="/crm/configuracoes" element={<ConfiguracoesPage />} />
         <Route path="/contratos" element={<Contratos />} />
         <Route path="/contratos/agenciamento" element={<ContratosAgenciamento />} />
         <Route path="/contratos/agenciamento/novo" element={<NovoContratoAgenciamento />} />
