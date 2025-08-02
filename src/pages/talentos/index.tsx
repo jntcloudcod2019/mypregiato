@@ -1,5 +1,6 @@
 import { useState } from "react"
-import { Search, Filter, ChevronLeft, ChevronRight, Eye } from "lucide-react"
+import { useNavigate } from "react-router-dom"
+import { Search, Filter, ChevronLeft, ChevronRight, Eye, Plus } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -154,6 +155,7 @@ const TalentCard = ({ talent }: { talent: any }) => {
 }
 
 export default function Talentos() {
+  const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState("")
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
@@ -285,13 +287,22 @@ export default function Talentos() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-          Talentos
-        </h1>
-        <p className="text-muted-foreground">
-          Gerencie o banco de talentos da agência, adicione novos perfis e acompanhe os cadastros.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+            Talentos
+          </h1>
+          <p className="text-muted-foreground">
+            Gerencie o banco de talentos da agência, adicione novos perfis e acompanhe os cadastros.
+          </p>
+        </div>
+        <Button 
+          onClick={() => navigate('/talentos/novo')}
+          className="bg-primary hover:bg-primary/90"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Novo Talento
+        </Button>
       </div>
 
       {/* Search and Filters */}
