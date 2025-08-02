@@ -316,13 +316,27 @@ export default function TalentProfile() {
             <CardContent className="space-y-6">
               {/* Profile Image */}
               <div className="flex flex-col items-center space-y-4">
-                <div className="relative">
+                <div className="relative group">
                   <div className="w-32 h-32 rounded-xl overflow-hidden border-4 border-primary/20 shadow-lg">
                     <img
                       src={talent.profileImage}
                       alt={talent.name}
                       className="w-full h-full object-cover"
                     />
+                  </div>
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl flex items-center justify-center">
+                    <Button 
+                      variant="contained" 
+                      size="sm"
+                      className="text-xs"
+                      onClick={() => {
+                        // Funcionalidade para alterar foto
+                        console.log('Alterar foto do perfil')
+                      }}
+                    >
+                      <Camera className="h-3 w-3 mr-1" />
+                      Alterar
+                    </Button>
                   </div>
                 </div>
                 <div className="text-center">

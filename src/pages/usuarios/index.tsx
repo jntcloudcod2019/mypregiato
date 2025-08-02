@@ -288,6 +288,16 @@ export default function Usuarios() {
                           Reenviar
                         </Button>
                       )}
+                      {talent.inviteStatus === "Aceito" && (
+                        <Button 
+                          variant="contained" 
+                          size="sm"
+                          onClick={() => handleSendInvite(talent.email, "TALENT")}
+                        >
+                          <Mail className="h-3 w-3 mr-1" />
+                          Convidar
+                        </Button>
+                      )}
                     </div>
                   </div>
                 ))}

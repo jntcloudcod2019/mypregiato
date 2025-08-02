@@ -362,14 +362,14 @@ export default function Talentos() {
           {/* Advanced Filters */}
           {showAdvancedFilters && (
             <Tabs defaultValue="gender" className="w-full">
-              <TabsList className="grid w-full grid-cols-7 gap-1">
-                <TabsTrigger value="gender" className="text-xs px-2">Gênero</TabsTrigger>
-                <TabsTrigger value="body" className="text-xs px-2">Corpo</TabsTrigger>
-                <TabsTrigger value="age" className="text-xs px-2">Idade</TabsTrigger>
-                <TabsTrigger value="location" className="text-xs px-2">Local</TabsTrigger>
-                <TabsTrigger value="travel" className="text-xs px-2">Viagem</TabsTrigger>
-                <TabsTrigger value="disability" className="text-xs px-2">Deficiências</TabsTrigger>
-                <TabsTrigger value="features" className="text-xs px-2">Características</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-4 md:grid-cols-7 gap-1">
+                <TabsTrigger value="gender" className="text-xs px-1 md:px-2">Gênero</TabsTrigger>
+                <TabsTrigger value="body" className="text-xs px-1 md:px-2">Corpo</TabsTrigger>
+                <TabsTrigger value="age" className="text-xs px-1 md:px-2">Idade</TabsTrigger>
+                <TabsTrigger value="location" className="text-xs px-1 md:px-2">Local</TabsTrigger>
+                <TabsTrigger value="travel" className="text-xs px-1 md:px-2">Viagem</TabsTrigger>
+                <TabsTrigger value="disability" className="text-xs px-1 md:px-2">Deficiências</TabsTrigger>
+                <TabsTrigger value="features" className="text-xs px-1 md:px-2">Características</TabsTrigger>
               </TabsList>
 
               <TabsContent value="gender" className="space-y-3">
