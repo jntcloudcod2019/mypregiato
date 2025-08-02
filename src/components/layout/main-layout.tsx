@@ -1,13 +1,24 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "./app-sidebar"
-import { UserButton, SignedIn, SignedOut, SignInButton } from "@clerk/clerk-react"
+import { UserButton, SignedIn, SignedOut, SignInButton, useClerk } from "@clerk/clerk-react"
 import { Button } from "@/components/ui/button"
+import { LogOut, RotateCcw } from "lucide-react"
 
 interface MainLayoutProps {
   children: React.ReactNode
 }
 
 export default function MainLayout({ children }: MainLayoutProps) {
+  const { signOut } = useClerk()
+
+  const handleLogout = () => {
+    signOut()
+  }
+
+  const handleRefresh = () => {
+    window.location.reload()
+  }
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
@@ -23,6 +34,24 @@ export default function MainLayout({ children }: MainLayoutProps) {
               </div>
               
               <div className="flex items-center gap-3">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleRefresh}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                </Button>
+                
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleLogout}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <LogOut className="h-4 w-4" />
+                </Button>
+                
                 <UserButton 
                   appearance={{
                     elements: {
