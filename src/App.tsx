@@ -43,11 +43,12 @@ const App = () => (
         <Route path="/crm/tarefas/nova" element={<NovaTarefa />} />
         <Route path="/crm/relatorios" element={<RelatoriosPage />} />
         <Route path="/crm/configuracoes" element={<ConfiguracoesPage />} />
-            <Route path="/atendimento" element={<AtendimentoPage />} />
-            <Route path="/treinamentos" element={<TreinamentosPage />} />
-            <Route path="/treinamentos/criar" element={<CriarTreinamentoPage />} />
-            <Route path="/treinamentos/curso/:id" element={<CursoPage />} />
-            <Route path="/ponto" element={<PontoEletronicoPage />} />
+        <Route path="/configuracoes" element={<ConfiguracoesPage />} />
+        <Route path="/atendimento" element={<AtendimentoPage />} />
+        <Route path="/treinamentos" element={<TreinamentosPage />} />
+        <Route path="/treinamentos/criar" element={<CriarTreinamentoPage />} />
+        <Route path="/treinamentos/curso/:id" element={<CursoPage />} />
+        <Route path="/ponto" element={<PontoEletronicoPage />} />
         <Route path="/contratos" element={<Contratos />} />
         <Route path="/contratos/agenciamento" element={<ContratosAgenciamento />} />
         <Route path="/contratos/agenciamento/novo" element={<NovoContratoAgenciamento />} />
