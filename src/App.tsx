@@ -1,9 +1,4 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Routes, Route } from "react-router-dom";
-import { ThemeProvider } from "next-themes";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import MainLayout from "./components/layout/main-layout";
 import Dashboard from "./pages/dashboard";
 import Contratos from "./pages/contratos";
@@ -20,37 +15,28 @@ import Financas from "./pages/financas";
 import Usuarios from "./pages/usuarios";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
-
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <MainLayout>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/contratos" element={<Contratos />} />
-            <Route path="/contratos/agenciamento" element={<ContratosAgenciamento />} />
-            <Route path="/contratos/agenciamento/novo" element={<NovoContratoAgenciamento />} />
-            <Route path="/contratos/novo-super-fotos" element={<NovoContratoSuperFotos />} />
-            <Route path="/contratos/super-fotos-menor" element={<NovoContratoSuperFotosMenor />} />
-            <Route path="/contratos/agenciamento-menor" element={<NovoContratoAgenciamentoMenor />} />
-            <Route path="/contratos/comprometimento" element={<NovoContratoComprometimento />} />
-          <Route path="/talentos" element={<Talentos />} />
-          <Route path="/talentos/novo" element={<NovoTalento />} />
-          <Route path="/talentos/perfil/:id" element={<TalentProfile />} />
-          <Route path="/financas" element={<Financas />} />
-          <Route path="/usuarios" element={<Usuarios />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </MainLayout>
-    </TooltipProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
+  <BrowserRouter>
+    <MainLayout>
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/contratos" element={<Contratos />} />
+        <Route path="/contratos/agenciamento" element={<ContratosAgenciamento />} />
+        <Route path="/contratos/agenciamento/novo" element={<NovoContratoAgenciamento />} />
+        <Route path="/contratos/novo-super-fotos" element={<NovoContratoSuperFotos />} />
+        <Route path="/contratos/super-fotos-menor" element={<NovoContratoSuperFotosMenor />} />
+        <Route path="/contratos/agenciamento-menor" element={<NovoContratoAgenciamentoMenor />} />
+        <Route path="/contratos/comprometimento" element={<NovoContratoComprometimento />} />
+        <Route path="/talentos" element={<Talentos />} />
+        <Route path="/talentos/novo" element={<NovoTalento />} />
+        <Route path="/talentos/perfil/:id" element={<TalentProfile />} />
+        <Route path="/financas" element={<Financas />} />
+        <Route path="/usuarios" element={<Usuarios />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </MainLayout>
+  </BrowserRouter>
 );
 
 export default App;
