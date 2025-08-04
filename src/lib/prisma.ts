@@ -1,10 +1,5 @@
 
-import { PrismaClient } from '@prisma/client'
+// Prisma is not compatible with frontend-only environments
+// This file has been replaced with mock-database.ts for browser compatibility
 
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined
-}
-
-export const prisma = globalForPrisma.prisma ?? new PrismaClient()
-
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+export const prisma = null
