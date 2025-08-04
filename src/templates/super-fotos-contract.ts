@@ -11,6 +11,8 @@ font-family: Arial, sans-serif;
 font-size: 14px;
 line-height: 1.6;
 margin: 20px;
+color: #000000;
+background-color: #ffffff;
 }
 
 h1 {
@@ -29,11 +31,12 @@ margin-bottom: 10px;
 
 p {
 margin: 5px 0;
+text-align: justify;
 }
 
-.highlight {
-background-color: yellow;
-padding: 2px;
+.contract-field {
+font-weight: bold;
+color: #000000;
 }
 
 .signature {
@@ -77,7 +80,7 @@ object-fit: contain;
 <p>Pelo presente instrumento particular de contrato, as partes abaixo qualificadas, a saber:</p>
 
 <h2>CONTRATANTE:</h2>
-<p><span class="highlight">${data.modelo.fullName}</span>, inscrito(a) no CPF: <span class="highlight">${data.modelo.document}</span>, residente e domiciliada no endereço <span class="highlight">${data.modelo.street}</span>, nº <span class="highlight">${data.modelo.numberAddress || 'S/N'}</span>, <span class="highlight">${data.modelo.complement || ''}</span>, localizado no bairro <span class="highlight">${data.modelo.neighborhood}</span>, situado na cidade <span class="highlight">${data.modelo.city}</span> - <span class="highlight">${data.uf}</span> CEP: <span class="highlight">${data.modelo.postalcode}</span>, tendo como telefone principal: <span class="highlight">${data.modelo.phone}</span> e telefone secundário: <span class="highlight">${data.modelo.phone}</span>.</p>
+<p><span class="contract-field">${data.modelo.fullName}</span>, inscrito(a) no CPF: <span class="contract-field">${data.modelo.document}</span>, residente e domiciliada no endereço <span class="contract-field">${data.modelo.street}</span>, nº <span class="contract-field">${data.modelo.numberAddress || 'S/N'}</span>, <span class="contract-field">${data.modelo.complement || ''}</span>, localizado no bairro <span class="contract-field">${data.modelo.neighborhood}</span>, situado na cidade <span class="contract-field">${data.modelo.city}</span> - <span class="contract-field">${data.uf}</span> CEP: <span class="contract-field">${data.modelo.postalcode}</span>, tendo como telefone principal: <span class="contract-field">${data.modelo.phone}</span> e telefone secundário: <span class="contract-field">${data.modelo.phone}</span>.</p>
 
 <h2>CONTRATADA:</h2>
 <p>SUPER FOTOS FOTOGRAFIAS LTDA, inscrita no CNPJ sob o nº 13.310.215/0001-50, com sede na Avenida Paulista, nº 1636 – salas 1105/1324 – Cerqueira Cesar – São Paulo – SP – CEP: 01310-200, representada por quem de direito via cartão CNPJ.</p>
@@ -103,8 +106,8 @@ object-fit: contain;
 <p>c) O material fotográfico será entregue ao(à) CONTRATANTE no prazo de até 05 (cinco) dias úteis após a sessão fotográfica.</p>
 
 <h2>CLÁUSULA 4ª - PAGAMENTO</h2>
-<p>Pela prestação dos serviços, o CONTRATANTE pagará à CONTRATADA o valor total de R$ <span class="highlight">${data.valorContrato || '0,00'}</span>, sendo:</p>
-<p>a) Método de pagamento: <span class="highlight">${data.metodoPagamento.join(', ')}</span>.</p>
+<p>Pela prestação dos serviços, o CONTRATANTE pagará à CONTRATADA o valor total de R$ <span class="contract-field">${data.valorContrato || '0,00'}</span>, sendo:</p>
+<p>a) Método de pagamento: <span class="contract-field">${data.metodoPagamento.join(', ')}</span>.</p>
 <p>b) Em caso de pagamento via cartão de crédito, débito e PIX, o CONTRATANTE compromete-se a não solicitar chargebacks (processo de estorno de um valor pago junto as bandeiras de cartão) após a entrega do material, salvo em caso do descumprimento do presente contrato.</p>
 <p>c) Fica a critério da CONTRATADA a concessão de descontos e facilitação das formas de pagamento de acordo com sua discricionariedade.</p>
 

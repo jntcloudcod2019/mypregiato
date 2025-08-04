@@ -1,4 +1,3 @@
-
 import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
 import { ContractData } from '@/types/contract'
@@ -59,18 +58,18 @@ export const generateContractPDF = async (
         break
     }
     
-    console.log('[CONTRACT] Template HTML gerado, gerando PDF diretamente...')
+    console.log('[CONTRACT] Template HTML gerado, gerando PDF com alta qualidade...')
     
     // Usar jsPDF com HTML direto ao invés de html2canvas para melhor performance
     const pdf = new jsPDF('p', 'mm', 'a4')
     
-    // Configurações otimizadas do PDF
+    // Configurações otimizadas do PDF para alta qualidade
     const pageWidth = pdf.internal.pageSize.getWidth()
     const pageHeight = pdf.internal.pageSize.getHeight()
-    const margin = 20
+    const margin = 15
     const contentWidth = pageWidth - (margin * 2)
     
-    // Processar o HTML de forma mais simples
+    // Processar o HTML com configurações de alta qualidade
     const tempDiv = document.createElement('div')
     tempDiv.innerHTML = htmlContent
     tempDiv.style.position = 'absolute'
@@ -79,39 +78,41 @@ export const generateContractPDF = async (
     tempDiv.style.width = `${contentWidth * 3.78}px` // Conversão mm para px
     tempDiv.style.backgroundColor = 'white'
     tempDiv.style.fontFamily = 'Arial, sans-serif'
-    tempDiv.style.fontSize = '12px'
-    tempDiv.style.lineHeight = '1.4'
-    tempDiv.style.color = 'black'
+    tempDiv.style.fontSize = '14px'
+    tempDiv.style.lineHeight = '1.6'
+    tempDiv.style.color = '#000000'
     tempDiv.style.padding = '20px'
     tempDiv.style.boxSizing = 'border-box'
     document.body.appendChild(tempDiv)
     
-    // Aguardar renderização
-    await new Promise(resolve => setTimeout(resolve, 100))
+    // Aguardar renderização completa
+    await new Promise(resolve => setTimeout(resolve, 500))
     
-    console.log('[CONTRACT] Capturando conteúdo...')
+    console.log('[CONTRACT] Capturando conteúdo com alta resolução...')
     
     try {
-      // Capturar com configurações muito otimizadas
+      // Capturar com configurações de alta qualidade
       const canvas = await html2canvas(tempDiv, {
-        scale: 0.8, // Escala reduzida
+        scale: 2, // Alta resolução
         useCORS: true,
         allowTaint: false,
         backgroundColor: '#ffffff',
         logging: false,
-        imageTimeout: 5000,
+        imageTimeout: 10000,
         removeContainer: false,
         width: tempDiv.scrollWidth,
-        height: tempDiv.scrollHeight
+        height: tempDiv.scrollHeight,
+        windowWidth: tempDiv.scrollWidth,
+        windowHeight: tempDiv.scrollHeight
       })
       
-      console.log('[CONTRACT] Canvas capturado, dimensões:', canvas.width, 'x', canvas.height)
+      console.log('[CONTRACT] Canvas capturado com alta qualidade, dimensões:', canvas.width, 'x', canvas.height)
       
       // Remover elemento temporário
       document.body.removeChild(tempDiv)
       
-      // Converter para imagem altamente comprimida
-      const imgData = canvas.toDataURL('image/jpeg', 0.5) // Qualidade muito baixa para menor tamanho
+      // Converter para imagem com qualidade alta
+      const imgData = canvas.toDataURL('image/png', 1.0) // Qualidade máxima PNG
       
       // Calcular dimensões
       const imgWidth = contentWidth
@@ -122,7 +123,7 @@ export const generateContractPDF = async (
       // Verificar se precisa de múltiplas páginas
       if (imgHeight <= (pageHeight - (margin * 2))) {
         // Cabe em uma página
-        pdf.addImage(imgData, 'JPEG', margin, yPosition, imgWidth, imgHeight)
+        pdf.addImage(imgData, 'PNG', margin, yPosition, imgWidth, imgHeight)
       } else {
         // Múltiplas páginas
         const pageContentHeight = pageHeight - (margin * 2)
@@ -141,13 +142,13 @@ export const generateContractPDF = async (
           
           if (pageCtx) {
             pageCtx.drawImage(canvas, 0, sourceY, canvas.width, sourceHeight, 0, 0, canvas.width, sourceHeight)
-            const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.5)
+            const pageImgData = pageCanvas.toDataURL('image/png', 1.0)
             
             if (sourceY > 0) {
               pdf.addPage()
             }
             
-            pdf.addImage(pageImgData, 'JPEG', margin, margin, imgWidth, currentPageHeight)
+            pdf.addImage(pageImgData, 'PNG', margin, margin, imgWidth, currentPageHeight)
           }
           
           remainingHeight -= currentPageHeight
@@ -190,15 +191,11 @@ export const generateContractPDF = async (
     const pdfOutput = pdf.output('datauristring')
     const pdfBase64 = pdfOutput.split(',')[1]
     
-    console.log('[CONTRACT] PDF gerado com sucesso, tamanho:', pdfBase64.length, 'caracteres')
+    console.log('[CONTRACT] PDF gerado com alta qualidade, tamanho:', pdfBase64.length, 'caracteres')
     
     // Verificar tamanho
     const sizeInMB = (pdfBase64.length * 3) / (4 * 1024 * 1024)
-    console.log(`[CONTRACT] Tamanho estimado do PDF: ${sizeInMB.toFixed(2)}MB`)
-    
-    if (sizeInMB > 2) {
-      console.warn('[CONTRACT] PDF ainda grande, mas dentro do limite aceitável')
-    }
+    console.log(`[CONTRACT] Tamanho do PDF: ${sizeInMB.toFixed(2)}MB`)
     
     return pdfBase64
     
