@@ -134,12 +134,16 @@
     <!-- Contratante -->
     <div class="digital-signature-contratante">
       <div class="signature-name">${data.modelo.fullName}</div>
+      <div class="signature-details">Data: 01/08/2025 13:10</div>
+      <div class="signature-details">#aa233e5b6ee911f0bf9a42010a2b600c</div>
       <div class="signature-details">SIGNATÁRIO</div>
     </div>
 
     <!-- Super Fotos -->
     <div class="digital-signature-contratante">
       <div class="signature-name">Super Fotos Fotografias Ltda</div>
+      <div class="signature-details">Data: 01/08/2025 12:11</div>
+      <div class="signature-details">#aa1beb156ee911f0bf9a42010a2b600c</div>
       <div class="signature-details">SIGNATÁRIO</div>
       <img src="data:image/png;base64,INSIRA_O_BASE64_DA_IMAGEM" alt="Assinatura Digital Super Fotos" class="company-signature-img" />
     </div>
