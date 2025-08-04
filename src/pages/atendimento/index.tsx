@@ -14,6 +14,7 @@ import { TalentChat as TalentChatComponent } from "@/components/whatsapp/talent-
 import { QRCodeModal } from "@/components/whatsapp/qr-code-modal"
 import { AttendanceDashboard } from "@/components/whatsapp/attendance-dashboard"
 import { OperatorsCompactDashboard } from "@/components/whatsapp/operators-compact-dashboard"
+import { OperatorStatusControl } from "@/components/whatsapp/operator-status-control"
 import { TalentData } from "@/types/talent"
 import { cn } from "@/lib/utils"
 
@@ -190,14 +191,17 @@ export default function AtendimentoPage() {
           </div>
         </div>
 
-        {/* Layout reorganizado - Sidebar esquerda com operadores e controle WhatsApp */}
+        {/* Layout reorganizado - Sidebar esquerda com controle de status, operadores e controle WhatsApp */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-8">
           {/* Sidebar esquerda */}
-          <div className="lg:col-span-1 space-y-6">
+          <div className="lg:col-span-1 space-y-4">
+            {/* Controle de Status do Operador */}
+            <OperatorStatusControl />
+            
             {/* Operadores Online */}
             <OperatorsCompactDashboard />
             
-            {/* Controle WhatsApp alinhado */}
+            {/* Controle WhatsApp */}
             <Card className="bg-gradient-to-b from-card to-card/80 border-border/50 shadow-lg backdrop-blur-sm">
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-3 text-lg">

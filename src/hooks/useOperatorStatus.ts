@@ -47,7 +47,7 @@ export const useOperatorStatus = () => {
       onlineOperators.set(user.id, operator)
       setCurrentOperator(operator)
       
-      console.log(`✅ Operador ${operator.name} conectado`)
+      console.log(`✅ Operador ${operator.name} conectado com status: ${operator.status}`)
       notifyOperatorChange()
 
       // Heartbeat para manter presença ativa
@@ -82,9 +82,14 @@ export const useOperatorStatus = () => {
           return timeSinceActivity < 300000
         })
         .sort((a, b) => {
-          // Operador atual primeiro
+          // Operadores disponíveis primeiro
+          if (a.status === 'available' && b.status !== 'available') return -1
+          if (b.status === 'available' && a.status !== 'available') return 1
+          
+          // Operador atual primeiro entre os do mesmo status
           if (a.id === user?.id) return -1
           if (b.id === user?.id) return 1
+          
           return a.name.localeCompare(b.name)
         })
 
@@ -119,6 +124,11 @@ export const useOperatorStatus = () => {
       notifyOperatorChange()
       
       console.log(`🔄 Status do operador ${updated.name} atualizado para: ${status}`)
+      
+      // Emitir evento global para outros sistemas
+      window.dispatchEvent(new CustomEvent('operatorStatusChanged', { 
+        detail: { operatorId: user.id, status, operator: updated }
+      }))
     }
   }
 
@@ -135,23 +145,47 @@ export const useOperatorStatus = () => {
       onlineOperators.set(user.id, updated)
       setCurrentOperator(updated)
       notifyOperatorChange()
+      
+      // Emitir evento global
+      window.dispatchEvent(new CustomEvent('operatorStatusChanged', { 
+        detail: { operatorId: user.id, status: 'busy', operator: updated }
+      }))
     }
   }
 
   const decrementActiveAttendances = () => {
     if (currentOperator && user) {
       const newCount = Math.max(0, currentOperator.activeAttendances - 1)
+      const newStatus = newCount === 0 ? 'available' as const : 'busy' as const
+      
       const updated = {
         ...currentOperator,
         activeAttendances: newCount,
-        status: newCount === 0 ? 'available' as const : 'busy' as const,
+        status: newStatus,
         lastActivity: new Date().toISOString()
       }
       
       onlineOperators.set(user.id, updated)
       setCurrentOperator(updated)
       notifyOperatorChange()
+      
+      // Emitir evento global
+      window.dispatchEvent(new CustomEvent('operatorStatusChanged', { 
+        detail: { operatorId: user.id, status: newStatus, operator: updated }
+      }))
     }
+  }
+
+  const getAvailableOperators = () => {
+    return operators.filter(op => op.status === 'available')
+  }
+
+  const getBusyOperators = () => {
+    return operators.filter(op => op.status === 'busy')
+  }
+
+  const getAwayOperators = () => {
+    return operators.filter(op => op.status === 'away')
   }
 
   return {
@@ -159,6 +193,9 @@ export const useOperatorStatus = () => {
     currentOperator,
     updateOperatorStatus,
     incrementActiveAttendances,
-    decrementActiveAttendances
+    decrementActiveAttendances,
+    getAvailableOperators,
+    getBusyOperators,
+    getAwayOperators
   }
 }
