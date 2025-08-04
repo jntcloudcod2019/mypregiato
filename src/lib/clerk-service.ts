@@ -1,8 +1,23 @@
-import { createClerkClient } from '@clerk/backend'
-import { prisma } from './prisma'
+
+// Mock Clerk service for frontend-only environment
+// In a real application, these functions would call backend APIs
+
 import { v4 as uuidv4 } from 'uuid'
 
-const clerkClient = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY })
+// Mock Clerk client - replace with actual API calls to your backend
+const mockClerkClient = {
+  invitations: {
+    createInvitation: async (data: any) => ({
+      id: `inv_${uuidv4()}`,
+      emailAddress: data.emailAddress,
+      redirectUrl: data.redirectUrl,
+      publicMetadata: data.publicMetadata
+    }),
+    revokeInvitation: async (inviteId: string) => ({
+      success: true
+    })
+  }
+}
 
 export async function sendClerkInvite(
   email: string,
@@ -11,14 +26,11 @@ export async function sendClerkInvite(
   talentId: string
 ): Promise<{ inviteId: string, inviteToken: string }> {
   try {
-    // Gerar token único para o convite
+    // Generate unique token for invite
     const inviteToken = uuidv4()
     
-    // Criar convite no Clerk (simulado por enquanto)
-    // TODO: Implementar quando CLERK_SECRET_KEY estiver configurada
-    const invitation = { id: `inv_${uuidv4()}` } // Simulação
-    /*
-    const invitation = await clerkClient.invitations.createInvitation({
+    // Create invite via mock (in real app, this would be a backend API call)
+    const invitation = await mockClerkClient.invitations.createInvitation({
       emailAddress: email,
       redirectUrl: `${window.location.origin}/complete-profile?token=${inviteToken}`,
       publicMetadata: {
@@ -27,43 +39,47 @@ export async function sendClerkInvite(
         role: 'TALENT'
       }
     })
-    */
     
-    // Atualizar talento com informações do convite
-    await prisma.talent.update()
+    console.log('Mock Clerk invite sent:', { email, firstName, lastName, talentId, inviteToken })
     
     return {
       inviteId: invitation.id,
       inviteToken
     }
   } catch (error) {
-    console.error('Erro ao enviar convite Clerk:', error)
-    throw new Error('Erro ao enviar convite de cadastro')
+    console.error('Error sending Clerk invite:', error)
+    throw new Error('Error sending registration invite')
   }
 }
 
 export async function resendClerkInvite(talentId: string): Promise<void> {
   try {
-    const talent = await prisma.talent.findUnique()
-    
-    if (!talent || !talent.email) {
-      throw new Error('Talento não encontrado ou sem email')
+    // In a real app, this would fetch talent data from your backend
+    const mockTalent = {
+      id: talentId,
+      fullName: 'Mock User',
+      email: 'mock@example.com',
+      clerkInviteId: null
     }
     
-    if (talent.clerkInviteId) {
-      // Reenviar convite existente (simulado)
-      // await clerkClient.invitations.revokeInvitation(talent.clerkInviteId)
+    if (!mockTalent.email) {
+      throw new Error('Talent not found or missing email')
     }
     
-    // Criar novo convite
-    const nameParts = talent.fullName.split(' ')
+    if (mockTalent.clerkInviteId) {
+      // Revoke existing invite
+      await mockClerkClient.invitations.revokeInvitation(mockTalent.clerkInviteId)
+    }
+    
+    // Create new invite
+    const nameParts = mockTalent.fullName.split(' ')
     const firstName = nameParts[0]
     const lastName = nameParts.slice(1).join(' ') || '-'
     
-    await sendClerkInvite(talent.email, firstName, lastName, talentId)
+    await sendClerkInvite(mockTalent.email, firstName, lastName, talentId)
   } catch (error) {
-    console.error('Erro ao reenviar convite:', error)
-    throw new Error('Erro ao reenviar convite')
+    console.error('Error resending invite:', error)
+    throw new Error('Error resending invite')
   }
 }
 
@@ -72,20 +88,13 @@ export async function completeUserRegistration(
   inviteToken: string
 ): Promise<void> {
   try {
-    // Buscar talento pelo token
-    const talent = await prisma.talent.findUnique()
+    // In a real app, this would validate the token and update user data via backend API
+    console.log('Mock user registration completion:', { clerkUserId, inviteToken })
     
-    if (!talent) {
-      throw new Error('Token de convite inválido')
-    }
-    
-    // Atualizar usuário existente com clerk_id
-    await prisma.user.update()
-    
-    // Limpar token do convite
-    await prisma.talent.update()
+    // Mock successful completion
+    return Promise.resolve()
   } catch (error) {
-    console.error('Erro ao completar registro:', error)
-    throw new Error('Erro ao completar registro do usuário')
+    console.error('Error completing registration:', error)
+    throw new Error('Error completing user registration')
   }
 }
