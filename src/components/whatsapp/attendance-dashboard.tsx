@@ -166,35 +166,58 @@ export const AttendanceDashboard = ({ onStartAttendance }: AttendanceDashboardPr
 
   return (
     <Card className="backdrop-blur-sm bg-card/95 border-border/50 shadow-xl">
-      <CardHeader className="pb-4">
-        <CardTitle className="flex items-center gap-3 text-xl">
-          <div className="p-2 bg-gradient-to-br from-primary/20 to-primary/10 rounded-lg">
-            <MessageSquare className="h-6 w-6 text-primary" />
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <div className="p-1.5 bg-gradient-to-br from-primary/20 to-primary/10 rounded-lg">
+            <MessageSquare className="h-4 w-4 text-primary" />
           </div>
           Central de Atendimento
         </CardTitle>
         
-        {/* Métricas com animação */}
-        <div className="grid grid-cols-3 gap-4 mt-4">
-          <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
-            <div className="text-2xl font-bold text-blue-600 mb-1">{totalInQueue}</div>
-            <div className="text-sm text-blue-600/80 font-medium">Na Fila</div>
-            <div className="absolute top-0 right-0 w-16 h-16 bg-blue-500/10 rounded-full -mr-8 -mt-8" />
+        {/* Métricas em coluna vertical - mais compactas */}
+        <div className="flex flex-col gap-2 mt-3">
+          {/* Azul - Na Fila */}
+          <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg p-3 border border-blue-200 dark:border-blue-800">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-lg font-bold text-blue-600">{totalInQueue}</div>
+                <div className="text-xs text-blue-600/80 font-medium">Na Fila</div>
+              </div>
+              <div className="w-8 h-8 bg-blue-500/10 rounded-full flex items-center justify-center">
+                <User className="w-4 h-4 text-blue-500" />
+              </div>
+            </div>
           </div>
-          <div className="relative overflow-hidden bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-xl p-4 border border-green-200 dark:border-green-800">
-            <div className="text-2xl font-bold text-green-600 mb-1">{attendingCount}</div>
-            <div className="text-sm text-green-600/80 font-medium">Atendendo</div>
-            <div className="absolute top-0 right-0 w-16 h-16 bg-green-500/10 rounded-full -mr-8 -mt-8" />
+
+          {/* Verde - Atendendo */}
+          <div className="relative overflow-hidden bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg p-3 border border-green-200 dark:border-green-800">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-lg font-bold text-green-600">{attendingCount}</div>
+                <div className="text-xs text-green-600/80 font-medium">Atendendo</div>
+              </div>
+              <div className="w-8 h-8 bg-green-500/10 rounded-full flex items-center justify-center">
+                <Phone className="w-4 h-4 text-green-500" />
+              </div>
+            </div>
           </div>
-          <div className="relative overflow-hidden bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-xl p-4 border border-orange-200 dark:border-orange-800">
-            <div className="text-2xl font-bold text-orange-600 mb-1">{averageWaitTime}</div>
-            <div className="text-sm text-orange-600/80 font-medium">Min Médio</div>
-            <div className="absolute top-0 right-0 w-16 h-16 bg-orange-500/10 rounded-full -mr-8 -mt-8" />
+
+          {/* Vermelha - Tempo Médio */}
+          <div className="relative overflow-hidden bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 rounded-lg p-3 border border-red-200 dark:border-red-800">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-lg font-bold text-red-600">{averageWaitTime}</div>
+                <div className="text-xs text-red-600/80 font-medium">Min Médio</div>
+              </div>
+              <div className="w-8 h-8 bg-red-500/10 rounded-full flex items-center justify-center">
+                <Clock className="w-4 h-4 text-red-500" />
+              </div>
+            </div>
           </div>
         </div>
       </CardHeader>
       
-      <CardContent>
+      <CardContent className="pt-0">
         <Tabs defaultValue="queue" className="w-full">
           <TabsList className="grid w-full grid-cols-2 bg-muted/50">
             <TabsTrigger value="queue" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
@@ -219,34 +242,34 @@ export const AttendanceDashboard = ({ onStartAttendance }: AttendanceDashboardPr
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="queue" className="mt-6">
+          <TabsContent value="queue" className="mt-4">
             {totalInQueue > 0 ? (
-              <div className="max-h-96 overflow-y-auto">
+              <div className="max-h-64 overflow-y-auto">
                 <AnimatedList items={queueItems} delay={150} />
               </div>
             ) : (
-              <div className="text-center py-12 text-muted-foreground">
-                <div className="w-24 h-24 bg-muted/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <MessageSquare className="h-12 w-12 opacity-50" />
+              <div className="text-center py-8 text-muted-foreground">
+                <div className="w-16 h-16 bg-muted/30 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <MessageSquare className="h-8 w-8 opacity-50" />
                 </div>
-                <p className="text-lg font-medium mb-2">Fila vazia</p>
-                <p className="text-sm">Nenhum cliente aguardando atendimento</p>
+                <p className="text-sm font-medium mb-1">Fila vazia</p>
+                <p className="text-xs">Nenhum cliente aguardando</p>
               </div>
             )}
           </TabsContent>
           
-          <TabsContent value="active" className="mt-6">
+          <TabsContent value="active" className="mt-4">
             {myAttendances.length > 0 ? (
-              <div className="max-h-96 overflow-y-auto">
+              <div className="max-h-64 overflow-y-auto">
                 <AnimatedList items={activeItems} delay={150} />
               </div>
             ) : (
-              <div className="text-center py-12 text-muted-foreground">
-                <div className="w-24 h-24 bg-muted/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <User className="h-12 w-12 opacity-50" />
+              <div className="text-center py-8 text-muted-foreground">
+                <div className="w-16 h-16 bg-muted/30 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <User className="h-8 w-8 opacity-50" />
                 </div>
-                <p className="text-lg font-medium mb-2">Nenhum atendimento ativo</p>
-                <p className="text-sm">Seus atendimentos aparecerão aqui</p>
+                <p className="text-sm font-medium mb-1">Nenhum atendimento ativo</p>
+                <p className="text-xs">Seus atendimentos aparecerão aqui</p>
               </div>
             )}
           </TabsContent>
