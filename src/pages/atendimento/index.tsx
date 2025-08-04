@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -10,9 +9,8 @@ import { useWhatsAppConnection } from "@/hooks/useWhatsAppConnection"
 import { whatsAppService } from "@/services/whatsapp-service"
 import { TalentChat as TalentChatComponent } from "@/components/whatsapp/talent-chat"
 import { QRCodeModal } from "@/components/whatsapp/qr-code-modal"
-import { AttendanceQueueDashboard } from "@/components/whatsapp/attendance-queue-dashboard"
+import { AttendanceDashboard } from "@/components/whatsapp/attendance-dashboard"
 import { OperatorsCompactDashboard } from "@/components/whatsapp/operators-compact-dashboard"
-import { ActiveAttendancesPanel } from "@/components/whatsapp/active-attendances-panel"
 import { TalentData } from "@/types/talent"
 
 // Mock data para demonstração - talentos cadastrados com todas as propriedades necessárias
@@ -162,14 +160,11 @@ export default function AtendimentoPage() {
           <OperatorsCompactDashboard />
         </div>
         
-        {/* Dashboard de Atendimentos Ativos */}
+        {/* Dashboard de Atendimento Unificado */}
         <div className="xl:col-span-3">
-          <ActiveAttendancesPanel />
+          <AttendanceDashboard onStartAttendance={handleStartAttendance} />
         </div>
       </div>
-
-      {/* Dashboard de Fila de Atendimento */}
-      <AttendanceQueueDashboard onStartAttendance={handleStartAttendance} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Painel de Controle do WhatsApp */}
