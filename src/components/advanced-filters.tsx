@@ -1,3 +1,4 @@
+
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -47,7 +48,7 @@ export function AdvancedFilters({ filters, onFiltersChange, onClearFilters }: Ad
   }
 
   const hasActiveFilters = Object.values(filters).some(value => 
-    value !== undefined && value !== null && value !== '' && 
+    value !== undefined && value !== null && value !== '' && value !== 'all' &&
     (Array.isArray(value) ? value.length > 0 : true)
   )
 
@@ -100,12 +101,12 @@ export function AdvancedFilters({ filters, onFiltersChange, onClearFilters }: Ad
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label>Gênero</Label>
-                    <Select value={filters.gender || ""} onValueChange={(value) => updateFilter('gender', value || undefined)}>
+                    <Select value={filters.gender || "all"} onValueChange={(value) => updateFilter('gender', value === 'all' ? undefined : value)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecionar gênero" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Todos</SelectItem>
+                        <SelectItem value="all">Todos</SelectItem>
                         <SelectItem value="masculino">Masculino</SelectItem>
                         <SelectItem value="feminino">Feminino</SelectItem>
                         <SelectItem value="nao-binario">Não binário</SelectItem>
@@ -126,14 +127,14 @@ export function AdvancedFilters({ filters, onFiltersChange, onClearFilters }: Ad
                   <div className="space-y-2">
                     <Label>Disponível para viagem</Label>
                     <Select 
-                      value={filters.travelAvailable === undefined ? "" : filters.travelAvailable.toString()} 
-                      onValueChange={(value) => updateFilter('travelAvailable', value === "" ? undefined : value === "true")}
+                      value={filters.travelAvailable === undefined ? "all" : filters.travelAvailable.toString()} 
+                      onValueChange={(value) => updateFilter('travelAvailable', value === "all" ? undefined : value === "true")}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Selecionar" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Todos</SelectItem>
+                        <SelectItem value="all">Todos</SelectItem>
                         <SelectItem value="true">Sim</SelectItem>
                         <SelectItem value="false">Não</SelectItem>
                       </SelectContent>
@@ -172,12 +173,12 @@ export function AdvancedFilters({ filters, onFiltersChange, onClearFilters }: Ad
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label>Tipo Corporal</Label>
-                    <Select value={filters.bodyType || ""} onValueChange={(value) => updateFilter('bodyType', value || undefined)}>
+                    <Select value={filters.bodyType || "all"} onValueChange={(value) => updateFilter('bodyType', value === 'all' ? undefined : value)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecionar tipo" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Todos</SelectItem>
+                        <SelectItem value="all">Todos</SelectItem>
                         <SelectItem value="magro">Magro</SelectItem>
                         <SelectItem value="plus-size">Plus Size</SelectItem>
                         <SelectItem value="fitness">Fitness</SelectItem>
@@ -188,12 +189,12 @@ export function AdvancedFilters({ filters, onFiltersChange, onClearFilters }: Ad
 
                   <div className="space-y-2">
                     <Label>Cor do Cabelo</Label>
-                    <Select value={filters.hairColor || ""} onValueChange={(value) => updateFilter('hairColor', value || undefined)}>
+                    <Select value={filters.hairColor || "all"} onValueChange={(value) => updateFilter('hairColor', value === 'all' ? undefined : value)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecionar cor" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Todas</SelectItem>
+                        <SelectItem value="all">Todas</SelectItem>
                         <SelectItem value="loiro">Loiro</SelectItem>
                         <SelectItem value="castanho">Castanho</SelectItem>
                         <SelectItem value="preto">Preto</SelectItem>
@@ -205,12 +206,12 @@ export function AdvancedFilters({ filters, onFiltersChange, onClearFilters }: Ad
 
                   <div className="space-y-2">
                     <Label>Cor dos Olhos</Label>
-                    <Select value={filters.eyeColor || ""} onValueChange={(value) => updateFilter('eyeColor', value || undefined)}>
+                    <Select value={filters.eyeColor || "all"} onValueChange={(value) => updateFilter('eyeColor', value === 'all' ? undefined : value)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecionar cor" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Todas</SelectItem>
+                        <SelectItem value="all">Todas</SelectItem>
                         <SelectItem value="azul">Azul</SelectItem>
                         <SelectItem value="verde">Verde</SelectItem>
                         <SelectItem value="castanho">Castanho</SelectItem>
