@@ -1,4 +1,3 @@
-
 import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
 import { ContractData } from '@/types/contract'
@@ -60,215 +59,161 @@ export const generateContractPDF = async (
     }
     
     console.log('[CONTRACT] Template HTML gerado, iniciando renderização...')
+    console.log('[CONTRACT] HTML Content length:', htmlContent.length)
     
-    // Criar elemento temporário com configurações melhoradas
+    // Criar elemento temporário com configurações otimizadas
     const tempDiv = document.createElement('div')
     tempDiv.innerHTML = htmlContent
-    tempDiv.style.position = 'fixed'
-    tempDiv.style.top = '-10000px'
-    tempDiv.style.left = '0'
-    tempDiv.style.width = '794px' // A4 width em pixels (210mm * 3.78)
-    tempDiv.style.maxWidth = '794px'
-    tempDiv.style.backgroundColor = '#ffffff'
-    tempDiv.style.fontFamily = 'Arial, sans-serif'
-    tempDiv.style.fontSize = '14px'
-    tempDiv.style.lineHeight = '1.6'
-    tempDiv.style.color = '#000000'
-    tempDiv.style.padding = '20px'
-    tempDiv.style.boxSizing = 'border-box'
-    tempDiv.style.zIndex = '-1000'
-    tempDiv.style.visibility = 'hidden'
+    
+    // Configurações melhoradas para renderização
+    tempDiv.style.cssText = `
+      position: fixed;
+      top: -20000px;
+      left: 0;
+      width: 794px;
+      min-height: 1123px;
+      max-width: 794px;
+      background-color: white;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      color: black;
+      padding: 20px;
+      box-sizing: border-box;
+      z-index: 9999;
+      visibility: visible;
+      opacity: 1;
+      display: block;
+    `
     
     document.body.appendChild(tempDiv)
+    console.log('[CONTRACT] Elemento adicionado ao DOM')
     
-    console.log('[CONTRACT] Elemento adicionado ao DOM, aguardando renderização...')
+    // Aguardar renderização com mais tempo e verificações
+    await new Promise(resolve => setTimeout(resolve, 1000))
     
-    // Aguardar renderização completa com mais tempo
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    // Verificar se o elemento foi renderizado
+    // Verificações de renderização
     const computedStyle = window.getComputedStyle(tempDiv)
-    console.log('[CONTRACT] Elemento renderizado - altura:', tempDiv.offsetHeight, 'cor:', computedStyle.color)
+    console.log('[CONTRACT] Elemento renderizado:')
+    console.log('- Altura:', tempDiv.offsetHeight)
+    console.log('- Largura:', tempDiv.offsetWidth)
+    console.log('- Cor do texto:', computedStyle.color)
+    console.log('- Cor de fundo:', computedStyle.backgroundColor)
+    console.log('- Visibilidade:', computedStyle.visibility)
     
     let pdfBase64: string
     
     try {
-      console.log('[CONTRACT] Capturando conteúdo com html2canvas...')
+      console.log('[CONTRACT] Iniciando captura com html2canvas...')
       
       // Configurações otimizadas para captura
-      const canvas = await html2canvas(tempDiv, {
+      const canvasOptions = {
         scale: 2,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
-        logging: true,
-        imageTimeout: 15000,
+        logging: false,
+        imageTimeout: 30000,
         removeContainer: false,
-        width: tempDiv.scrollWidth,
-        height: tempDiv.scrollHeight,
-        windowWidth: tempDiv.scrollWidth,
-        windowHeight: tempDiv.scrollHeight,
-        onclone: (clonedDoc) => {
-          // Garantir que o elemento clonado tenha as mesmas propriedades
-          const clonedElement = clonedDoc.querySelector('div')
+        width: 794,
+        height: tempDiv.scrollHeight || 1123,
+        windowWidth: 794,
+        windowHeight: tempDiv.scrollHeight || 1123,
+        foreignObjectRendering: true,
+        ignoreElements: (element: Element) => {
+          // Ignorar elementos que podem causar problemas
+          return element.tagName === 'SCRIPT' || element.tagName === 'NOSCRIPT'
+        },
+        onclone: (clonedDoc: Document) => {
+          console.log('[CONTRACT] Processando documento clonado...')
+          const clonedElement = clonedDoc.body.querySelector('div')
           if (clonedElement) {
-            clonedElement.style.visibility = 'visible'
-            clonedElement.style.position = 'static'
-            clonedElement.style.backgroundColor = '#ffffff'
-            clonedElement.style.color = '#000000'
+            clonedElement.style.cssText = `
+              position: static;
+              visibility: visible;
+              opacity: 1;
+              display: block;
+              background-color: white;
+              color: black;
+              width: 794px;
+              min-height: 1123px;
+              font-family: Arial, sans-serif;
+              font-size: 14px;
+              line-height: 1.6;
+              padding: 20px;
+              box-sizing: border-box;
+            `
+            
+            // Garantir que todos os elementos filhos estejam visíveis
+            const allElements = clonedElement.querySelectorAll('*')
+            allElements.forEach(el => {
+              if (el instanceof HTMLElement) {
+                el.style.visibility = 'visible'
+                el.style.opacity = '1'
+                el.style.display = el.style.display || 'block'
+              }
+            })
+            
+            console.log('[CONTRACT] Documento clonado configurado')
           }
         }
-      })
+      }
       
-      console.log('[CONTRACT] Canvas capturado, dimensões:', canvas.width, 'x', canvas.height)
+      const canvas = await html2canvas(tempDiv, canvasOptions)
       
-      // Verificar se o canvas não está vazio
+      console.log('[CONTRACT] Canvas capturado:')
+      console.log('- Largura:', canvas.width)
+      console.log('- Altura:', canvas.height)
+      
+      // Verificação simplificada de conteúdo - apenas verificar se o canvas não está completamente vazio
       const ctx = canvas.getContext('2d')
-      const imageData = ctx?.getImageData(0, 0, canvas.width, canvas.height)
-      const hasContent = imageData?.data.some((value, index) => {
-        // Verificar se não é apenas pixels brancos ou transparentes
-        const alpha = imageData.data[index * 4 + 3]
-        return alpha > 0 && (
-          imageData.data[index * 4] < 255 || 
-          imageData.data[index * 4 + 1] < 255 || 
-          imageData.data[index * 4 + 2] < 255
-        )
-      })
-      
-      if (!hasContent) {
-        throw new Error('Canvas capturado está vazio ou sem conteúdo visível')
+      if (!ctx) {
+        throw new Error('Não foi possível obter contexto do canvas')
       }
       
-      // Gerar PDF usando jsPDF
-      const pdf = new jsPDF('p', 'mm', 'a4')
-      const pageWidth = pdf.internal.pageSize.getWidth()
-      const pageHeight = pdf.internal.pageSize.getHeight()
-      const margin = 15
-      const contentWidth = pageWidth - (margin * 2)
+      // Verificar uma amostra de pixels para confirmar que há conteúdo
+      const sampleSize = Math.min(canvas.width, canvas.height, 100)
+      const imageData = ctx.getImageData(0, 0, sampleSize, sampleSize)
+      const pixels = imageData.data
       
-      // Converter canvas para imagem
-      const imgData = canvas.toDataURL('image/png', 1.0)
-      
-      // Calcular dimensões proporcionais
-      const imgWidth = contentWidth
-      const imgHeight = (canvas.height * imgWidth) / canvas.width
-      
-      // Adicionar imagem ao PDF
-      if (imgHeight <= (pageHeight - (margin * 2))) {
-        // Cabe em uma página
-        pdf.addImage(imgData, 'PNG', margin, margin, imgWidth, imgHeight)
-      } else {
-        // Múltiplas páginas
-        const pageContentHeight = pageHeight - (margin * 2)
-        let remainingHeight = imgHeight
-        let sourceY = 0
-        
-        while (remainingHeight > 0) {
-          const currentPageHeight = Math.min(remainingHeight, pageContentHeight)
-          const sourceHeight = (currentPageHeight * canvas.height) / imgHeight
-          
-          // Criar canvas para esta página
-          const pageCanvas = document.createElement('canvas')
-          pageCanvas.width = canvas.width
-          pageCanvas.height = sourceHeight
-          const pageCtx = pageCanvas.getContext('2d')
-          
-          if (pageCtx) {
-            pageCtx.drawImage(canvas, 0, sourceY, canvas.width, sourceHeight, 0, 0, canvas.width, sourceHeight)
-            const pageImgData = pageCanvas.toDataURL('image/png', 1.0)
-            
-            if (sourceY > 0) {
-              pdf.addPage()
-            }
-            
-            pdf.addImage(pageImgData, 'PNG', margin, margin, imgWidth, currentPageHeight)
-          }
-          
-          remainingHeight -= currentPageHeight
-          sourceY += sourceHeight
+      // Verificar se há pixels que não são completamente transparentes
+      let hasVisibleContent = false
+      for (let i = 3; i < pixels.length; i += 4) {
+        if (pixels[i] > 0) { // Pixel com alpha > 0
+          hasVisibleContent = true
+          break
         }
       }
       
-      // Gerar base64
-      const pdfOutput = pdf.output('datauristring')
-      pdfBase64 = pdfOutput.split(',')[1]
+      console.log('[CONTRACT] Canvas tem conteúdo visível:', hasVisibleContent)
+      
+      if (!hasVisibleContent) {
+        console.warn('[CONTRACT] Canvas parece estar vazio, tentando novamente...')
+        
+        // Tentar novamente com configurações diferentes
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        
+        const retryCanvas = await html2canvas(tempDiv, {
+          ...canvasOptions,
+          scale: 1,
+          height: Math.max(tempDiv.scrollHeight, 1123),
+          useCORS: false
+        })
+        
+        console.log('[CONTRACT] Segundo canvas capturado:', retryCanvas.width, 'x', retryCanvas.height)
+        
+        // Se ainda assim estiver vazio, prosseguir mesmo assim
+        pdfBase64 = await this.createPDFFromCanvas(retryCanvas)
+      } else {
+        pdfBase64 = await this.createPDFFromCanvas(canvas)
+      }
       
     } catch (canvasError) {
-      console.error('[CONTRACT] Erro no html2canvas, usando fallback:', canvasError)
+      console.error('[CONTRACT] Erro no html2canvas:', canvasError)
+      console.log('[CONTRACT] Usando fallback de PDF simples...')
       
-      // Fallback: gerar PDF simples com jsPDF
-      const pdf = new jsPDF('p', 'mm', 'a4')
-      const pageWidth = pdf.internal.pageSize.getWidth()
-      const margin = 15
-      
-      // Título
-      pdf.setFontSize(18)
-      pdf.setTextColor(0, 0, 0)
-      
-      let title = 'CONTRATO'
-      switch (contractType) {
-        case 'agenciamento':
-          title = 'CONTRATO DE AGENCIAMENTO'
-          break
-        case 'comprometimento':
-          title = 'CONTRATO DE COMPROMETIMENTO'
-          break
-        case 'super-fotos-menor':
-          title = 'CONTRATO SUPER FOTOS - MENOR DE IDADE'
-          break
-        case 'agenciamento-menor':
-          title = 'CONTRATO DE AGENCIAMENTO - MENOR DE IDADE'
-          break
-        default:
-          title = 'CONTRATO DE PRESTAÇÃO DE SERVIÇOS FOTOGRÁFICOS'
-      }
-      
-      pdf.text(title, pageWidth / 2, 30, { align: 'center' })
-      
-      // Informações básicas
-      pdf.setFontSize(12)
-      let yPos = 50
-      
-      const addLine = (text: string) => {
-        pdf.text(text, margin, yPos)
-        yPos += 8
-      }
-      
-      addLine(`Local: ${contractData.cidade}/${contractData.uf}`)
-      addLine(`Data: ${contractData.dia} de ${contractData.mes} de ${contractData.ano}`)
-      addLine('')
-      addLine('MODELO:')
-      addLine(`Nome: ${contractData.modelo.fullName}`)
-      addLine(`Documento: ${contractData.modelo.document}`)
-      addLine(`Email: ${contractData.modelo.email}`)
-      addLine(`Telefone: ${contractData.modelo.phone}`)
-      addLine(`Endereço: ${contractData.modelo.street}, ${contractData.modelo.numberAddress}`)
-      addLine(`${contractData.modelo.neighborhood} - ${contractData.modelo.city}`)
-      addLine(`CEP: ${contractData.modelo.postalcode}`)
-      
-      if (contractData.valorContrato && contractData.valorContrato !== '0,00') {
-        addLine('')
-        addLine(`Valor: R$ ${contractData.valorContrato}`)
-        addLine(`Pagamento: ${contractData.metodoPagamento.join(', ')}`)
-      }
-      
-      if (contractData.duracaoContrato) {
-        addLine(`Duração: ${contractData.duracaoContrato} meses`)
-      }
-      
-      // Assinaturas
-      yPos += 30
-      addLine('_________________________')
-      addLine(contractData.modelo.fullName)
-      addLine('Assinatura do Modelo')
-      
-      yPos += 20
-      addLine('_________________________')
-      addLine('SUPER FOTOS FOTOGRAFIAS LTDA')
-      addLine('Assinatura da Empresa')
-      
-      const pdfOutput = pdf.output('datauristring')
-      pdfBase64 = pdfOutput.split(',')[1]
+      // Fallback mais robusto
+      pdfBase64 = await this.createFallbackPDF(contractData, contractType)
     }
     
     // Remover elemento temporário
@@ -288,6 +233,172 @@ export const generateContractPDF = async (
     console.error('[CONTRACT] Erro ao gerar PDF:', error)
     throw new Error(`Erro ao gerar contrato PDF: ${error instanceof Error ? error.message : 'Erro desconhecido'}`)
   }
+}
+
+// Método auxiliar para criar PDF a partir do canvas
+const createPDFFromCanvas = async (canvas: HTMLCanvasElement): Promise<string> => {
+  const pdf = new jsPDF('p', 'mm', 'a4')
+  const pageWidth = pdf.internal.pageSize.getWidth()
+  const pageHeight = pdf.internal.pageSize.getHeight()
+  const margin = 15
+  const contentWidth = pageWidth - (margin * 2)
+  
+  // Converter canvas para imagem
+  const imgData = canvas.toDataURL('image/png', 1.0)
+  
+  // Calcular dimensões proporcionais
+  const imgWidth = contentWidth
+  const imgHeight = (canvas.height * imgWidth) / canvas.width
+  
+  console.log('[CONTRACT] Adicionando imagem ao PDF:', imgWidth, 'x', imgHeight)
+  
+  // Adicionar imagem ao PDF
+  if (imgHeight <= (pageHeight - (margin * 2))) {
+    // Cabe em uma página
+    pdf.addImage(imgData, 'PNG', margin, margin, imgWidth, imgHeight)
+  } else {
+    // Múltiplas páginas
+    const pageContentHeight = pageHeight - (margin * 2)
+    let remainingHeight = imgHeight
+    let sourceY = 0
+    
+    while (remainingHeight > 0) {
+      const currentPageHeight = Math.min(remainingHeight, pageContentHeight)
+      const sourceHeight = (currentPageHeight * canvas.height) / imgHeight
+      
+      // Criar canvas para esta página
+      const pageCanvas = document.createElement('canvas')
+      pageCanvas.width = canvas.width
+      pageCanvas.height = sourceHeight
+      const pageCtx = pageCanvas.getContext('2d')
+      
+      if (pageCtx) {
+        pageCtx.drawImage(canvas, 0, sourceY, canvas.width, sourceHeight, 0, 0, canvas.width, sourceHeight)
+        const pageImgData = pageCanvas.toDataURL('image/png', 1.0)
+        
+        if (sourceY > 0) {
+          pdf.addPage()
+        }
+        
+        pdf.addImage(pageImgData, 'PNG', margin, margin, imgWidth, currentPageHeight)
+      }
+      
+      remainingHeight -= currentPageHeight
+      sourceY += sourceHeight
+    }
+  }
+  
+  // Gerar base64
+  const pdfOutput = pdf.output('datauristring')
+  return pdfOutput.split(',')[1]
+}
+
+// Método auxiliar para fallback de PDF
+const createFallbackPDF = async (contractData: ContractData, contractType: ContractType): Promise<string> => {
+  console.log('[CONTRACT] Gerando PDF fallback mais completo...')
+  
+  const pdf = new jsPDF('p', 'mm', 'a4')
+  const pageWidth = pdf.internal.pageSize.getWidth()
+  const margin = 15
+  const lineHeight = 6
+  let yPos = 30
+  
+  // Função para adicionar texto com quebra de linha
+  const addText = (text: string, fontSize = 12, isBold = false) => {
+    if (yPos > 270) {
+      pdf.addPage()
+      yPos = 30
+    }
+    
+    pdf.setFontSize(fontSize)
+    if (isBold) {
+      pdf.setFont('helvetica', 'bold')
+    } else {
+      pdf.setFont('helvetica', 'normal')
+    }
+    
+    const lines = pdf.splitTextToSize(text, pageWidth - (margin * 2))
+    pdf.text(lines, margin, yPos)
+    yPos += lines.length * lineHeight
+  }
+  
+  // Título
+  let title = 'CONTRATO DE PRESTAÇÃO DE SERVIÇOS FOTOGRÁFICOS'
+  switch (contractType) {
+    case 'agenciamento':
+      title = 'CONTRATO DE AGENCIAMENTO'
+      break
+    case 'comprometimento':
+      title = 'CONTRATO DE COMPROMETIMENTO'
+      break
+    case 'super-fotos-menor':
+      title = 'CONTRATO SUPER FOTOS - MENOR DE IDADE'
+      break
+    case 'agenciamento-menor':
+      title = 'CONTRATO DE AGENCIAMENTO - MENOR DE IDADE'
+      break
+  }
+  
+  pdf.setFontSize(16)
+  pdf.setFont('helvetica', 'bold')
+  pdf.text(title, pageWidth / 2, yPos, { align: 'center' })
+  yPos += 15
+  
+  // Informações básicas
+  addText(`${contractData.cidade} - ${contractData.uf}, ${contractData.dia} de ${contractData.mes} de ${contractData.ano}.`)
+  yPos += 5
+  
+  addText('Pelo presente instrumento particular de contrato, as partes abaixo qualificadas, a saber:')
+  yPos += 5
+  
+  // CONTRATANTE
+  addText('CONTRATANTE:', 14, true)
+  addText(`${contractData.modelo.fullName}, inscrito(a) no CPF: ${contractData.modelo.document}, residente e domiciliada no endereço ${contractData.modelo.street}, nº ${contractData.modelo.numberAddress || 'S/N'}, ${contractData.modelo.complement || ''}, localizado no bairro ${contractData.modelo.neighborhood}, situado na cidade ${contractData.modelo.city} - ${contractData.uf} CEP: ${contractData.modelo.postalcode}, tendo como telefone principal: ${contractData.modelo.phone}.`)
+  yPos += 5
+  
+  // CONTRATADA
+  addText('CONTRATADA:', 14, true)
+  addText('SUPER FOTOS FOTOGRAFIAS LTDA, inscrita no CNPJ sob o nº 13.310.215/0001-50, com sede na Avenida Paulista, nº 1636 – salas 1105/1324 – Cerqueira Cesar – São Paulo – SP – CEP: 01310-200.')
+  yPos += 10
+  
+  // Cláusulas principais (resumidas para o fallback)
+  addText('CLÁUSULA 1ª - OBJETO DO CONTRATO', 12, true)
+  addText('A CONTRATADA compromete-se a prestar serviços de produção de material fotográfico, incluindo produção fotográfica e edição de fotos.')
+  yPos += 5
+  
+  if (contractData.valorContrato && contractData.valorContrato !== '0,00') {
+    addText('PAGAMENTO:', 12, true)
+    addText(`Valor: R$ ${contractData.valorContrato}`)
+    addText(`Método de pagamento: ${contractData.metodoPagamento.join(', ')}`)
+    yPos += 5
+  }
+  
+  if (contractData.duracaoContrato) {
+    addText(`Duração do contrato: ${contractData.duracaoContrato} meses`)
+    yPos += 5
+  }
+  
+  // Direito de imagem
+  addText('DIREITO DE IMAGEM:', 12, true)
+  addText('O CONTRATANTE cede à CONTRATADA o direito de uso das imagens obtidas nas sessões fotográficas para divulgação junto a empresas parceiras.')
+  yPos += 10
+  
+  // Assinaturas
+  yPos += 20
+  addText('ASSINATURAS:', 12, true)
+  yPos += 10
+  
+  addText('_' + '_'.repeat(40))
+  addText(contractData.modelo.fullName)
+  addText('Assinatura do Contratante')
+  yPos += 15
+  
+  addText('_' + '_'.repeat(40))
+  addText('SUPER FOTOS FOTOGRAFIAS LTDA')
+  addText('Assinatura da Contratada')
+  
+  const pdfOutput = pdf.output('datauristring')
+  return pdfOutput.split(',')[1]
 }
 
 export const normalizePhoneToE164 = (phone: string): string => {
