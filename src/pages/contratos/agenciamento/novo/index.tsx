@@ -10,7 +10,7 @@ import { LoadingSpinner } from "@/components/contratos/loading-spinner"
 import { ContractAlert } from "@/components/contratos/contract-alert"
 import { PDFPreviewModal } from "@/components/contratos/pdf-preview-modal"
 import { generateContractPDF } from "@/services/contract-generator"
-import { sendContractToAutentique } from "@/services/autentique-service"
+import { AutentiqueService } from "@/services/autentique-service"
 import { getTalents } from "@/lib/talent-service"
 import { TalentData } from "@/types/talent"
 import { ContractData } from "@/types/contract"
@@ -152,13 +152,11 @@ export default function NovoContratoAgenciamento() {
 
     try {
       console.log('[CONTRATO] Enviando para Autentique...')
-      const contractName = `Contrato_Agenciamento_${pdfPreview.contractData.modelo.fullName.replace(/\s+/g, '_')}_${new Date().getTime()}`
       
-      const result = await sendContractToAutentique(
+      const result = await AutentiqueService.sendContract(
         pdfPreview.pdfBase64,
-        contractName,
-        pdfPreview.contractData.modelo.phone,
-        pdfPreview.contractData.modelo.fullName
+        pdfPreview.contractData,
+        'agenciamento'
       )
 
       if (result.success) {

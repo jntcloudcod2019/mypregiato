@@ -1,4 +1,5 @@
 import { ContractData, AutentiqueResponse } from '@/types/contract'
+import { ContractsService } from '@/services/contracts-service'
 
 export class AutentiqueService {
   private static readonly API_URL = 'https://api.autentique.com.br/v2/graphql'
@@ -174,5 +175,52 @@ export class AutentiqueService {
     }
 
     return response.json()
+  }
+}
+
+// Manter compatibilidade com a função antiga
+export async function sendContractToAutentique(
+  pdfBase64: string,
+  contractName: string,
+  phoneNumber: string,
+  modelName: string
+): Promise<{ success: boolean; message: string }> {
+  try {
+    // Criar dados básicos do modelo para compatibilidade
+    const contractData: ContractData = {
+      cidade: '',
+      uf: '',
+      dia: new Date().getDate().toString(),
+      mes: new Date().toLocaleDateString('pt-BR', { month: 'long' }),
+      ano: new Date().getFullYear().toString(),
+      modelo: {
+        id: 'temp',
+        fullName: modelName,
+        document: '',
+        email: 'temp@temp.com',
+        phone: phoneNumber,
+        postalcode: '',
+        street: '',
+        neighborhood: '',
+        city: '',
+        numberAddress: '',
+        complement: ''
+      },
+      valorContrato: '0,00',
+      metodoPagamento: [],
+      paymentData: {}
+    }
+
+    const result = await AutentiqueService.sendContract(pdfBase64, contractData, 'agenciamento')
+    return {
+      success: result.success,
+      message: result.message
+    }
+  } catch (error) {
+    console.error('[SENDCONTRACTTOAUTENTIQUE] Erro:', error)
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Erro desconhecido'
+    }
   }
 }
