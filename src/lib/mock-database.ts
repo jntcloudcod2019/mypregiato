@@ -28,10 +28,7 @@ class MockDatabase {
       ...data,
       id: `talent_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       createdAt: new Date(),
-      updatedAt: new Date(),
-      inviteSent: false,
-      status: true,
-      dnaStatus: 'UNDEFINED' as const
+      updatedAt: new Date()
     }
     talents.push(newTalent)
     this.saveToStorage('talents', talents)
@@ -61,6 +58,7 @@ class MockDatabase {
     const dnaData: TalentDNAData = {
       id: existingIndex >= 0 ? dnaRecords[existingIndex].id : `dna_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       talentId,
+      travelAvailability: data.travelAvailability ?? false, // Fix: ensure required field is always present
       ...data,
       createdAt: existingIndex >= 0 ? dnaRecords[existingIndex].createdAt : new Date(),
       updatedAt: new Date()
@@ -104,7 +102,7 @@ class MockDatabase {
       uploadedAt: new Date()
     }
     files.push(newFile)
-    this.saveToStorage('files', newFile)
+    this.saveToStorage('files', files) // Fix: save array instead of single file
     return newFile
   }
 
@@ -189,7 +187,7 @@ class MockDatabase {
           skinTone: 'Clara',
           shoeSize: '37',
           bodyType: 'Fitness',
-          travelAvailability: true,
+          travelAvailability: true, // Fix: ensure required field is present
           createdAt: new Date('2023-01-15'),
           updatedAt: new Date('2023-01-15')
         }

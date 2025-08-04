@@ -25,7 +25,14 @@ export const getTalentById = async (id: string): Promise<TalentData | null> => {
 export const createTalent = async (data: CreateTalentData): Promise<TalentData> => {
   try {
     await new Promise(resolve => setTimeout(resolve, 500))
-    return mockDb.createTalent(data)
+    // Fix: Add missing required fields for TalentData
+    const talentData = {
+      ...data,
+      inviteSent: false,
+      status: true,
+      dnaStatus: 'UNDEFINED' as const
+    }
+    return mockDb.createTalent(talentData)
   } catch (error) {
     console.error('Error creating talent:', error)
     throw new Error('Failed to create talent')
