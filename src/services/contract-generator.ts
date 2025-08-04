@@ -67,33 +67,33 @@ export const generateContractPDF = async (
     tempDiv.style.position = 'absolute'
     tempDiv.style.left = '-9999px'
     tempDiv.style.top = '0'
-    tempDiv.style.width = '595px' // Largura A4 em pixels (210mm)
+    tempDiv.style.width = '800px' // Largura otimizada
     tempDiv.style.backgroundColor = 'white'
-    tempDiv.style.padding = '20px'
+    tempDiv.style.padding = '40px'
     tempDiv.style.fontFamily = 'Arial, sans-serif'
-    tempDiv.style.fontSize = '12px'
-    tempDiv.style.lineHeight = '1.4'
+    tempDiv.style.fontSize = '14px'
+    tempDiv.style.lineHeight = '1.5'
     tempDiv.style.color = 'black'
     tempDiv.style.boxSizing = 'border-box'
     document.body.appendChild(tempDiv)
     
     // Aguardar um tempo para o DOM ser renderizado
-    await new Promise(resolve => setTimeout(resolve, 500))
+    await new Promise(resolve => setTimeout(resolve, 1000))
     
     console.log('[CONTRACT] Capturando como canvas...')
     
-    // Capturar como canvas com configurações otimizadas para menor tamanho
+    // Capturar como canvas com configurações otimizadas
     const canvas = await html2canvas(tempDiv, {
-      scale: 1.5, // Reduzido de 2 para 1.5
+      scale: 1, // Reduzido para diminuir tamanho
       useCORS: true,
       allowTaint: false,
       backgroundColor: '#ffffff',
-      width: 595, // Largura A4
+      width: 800,
       height: tempDiv.scrollHeight,
       logging: false,
       imageTimeout: 15000,
-      removeContainer: true,
-      quality: 0.8 // Adicionar qualidade reduzida para diminuir tamanho
+      removeContainer: true
+      // Removido 'quality' pois não existe nesta versão do html2canvas
     })
     
     console.log('[CONTRACT] Canvas capturado, dimensões:', canvas.width, 'x', canvas.height)
@@ -106,8 +106,8 @@ export const generateContractPDF = async (
     // Criar PDF com configurações A4 otimizadas
     const pdf = new jsPDF('p', 'mm', 'a4')
     
-    // Converter canvas para imagem com qualidade reduzida
-    const imgData = canvas.toDataURL('image/jpeg', 0.8) // JPEG com qualidade 0.8 ao invés de PNG
+    // Converter canvas para imagem JPEG com compressão
+    const imgData = canvas.toDataURL('image/jpeg', 0.7) // JPEG com qualidade 0.7
     
     // Calcular dimensões para A4
     const pageWidth = pdf.internal.pageSize.getWidth()
@@ -140,7 +140,7 @@ export const generateContractPDF = async (
         
         if (pageCtx) {
           pageCtx.drawImage(canvas, 0, sourceY, canvas.width, sourceHeight, 0, 0, canvas.width, sourceHeight)
-          const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.8)
+          const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.7)
           
           if (sourceY > 0) {
             pdf.addPage()
@@ -160,12 +160,12 @@ export const generateContractPDF = async (
     
     console.log('[CONTRACT] PDF gerado com sucesso, tamanho:', pdfBase64.length, 'caracteres')
     
-    // Verificar se o tamanho é razoável (menos de 10MB)
+    // Verificar se o tamanho é razoável (menos de 5MB)
     const sizeInMB = (pdfBase64.length * 3) / (4 * 1024 * 1024)
     console.log(`[CONTRACT] Tamanho estimado do PDF: ${sizeInMB.toFixed(2)}MB`)
     
-    if (sizeInMB > 10) {
-      console.warn('[CONTRACT] PDF muito grande, pode haver problemas de performance')
+    if (sizeInMB > 5) {
+      console.warn('[CONTRACT] PDF muito grande, pode haver problemas de upload')
     }
     
     return pdfBase64

@@ -25,7 +25,7 @@ export interface ContractData {
 }
 
 export interface AutentiqueResponse {
-  data: {
+  data?: {
     createDocument: {
       id: string
       name: string
@@ -38,6 +38,10 @@ export interface AutentiqueResponse {
       }>
     }
   }
+  errors?: Array<{
+    message: string
+    extensions?: any
+  }>
 }
 
 export interface ContractResult {
