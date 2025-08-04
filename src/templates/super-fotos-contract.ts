@@ -1,4 +1,5 @@
 
+
 export const getContractTemplate = (data: any) => `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -39,8 +40,13 @@ font-weight: bold;
 color: #000000;
 }
 
-.signature {
+.signature-section {
 margin-top: 40px;
+page-break-inside: avoid;
+}
+
+.signature {
+margin: 30px 0;
 text-align: center;
 font-weight: bold;
 position: relative;
@@ -51,7 +57,7 @@ margin-right: auto;
 }
 
 .signature p {
-margin: 5px 0;
+margin: 8px 0;
 font-size: 14px;
 }
 
@@ -59,16 +65,43 @@ font-size: 14px;
 display: block;
 width: 300px;
 border-bottom: 2px solid black;
-margin: 10px auto;
-padding-top: 10px;
+margin: 15px auto;
+padding-top: 15px;
 }
 
 .signature-img {
-width: 200px;
+width: 150px;
 height: auto;
 display: block;
-margin: 10px auto;
+margin: 15px auto;
 object-fit: contain;
+border: 1px solid #ddd;
+padding: 5px;
+background-color: white;
+}
+
+.company-signature {
+border: 2px solid #333;
+padding: 20px;
+margin: 20px auto;
+width: 350px;
+background-color: #f9f9f9;
+}
+
+.company-info {
+text-align: center;
+margin-bottom: 15px;
+}
+
+.company-name {
+font-size: 16px;
+font-weight: bold;
+margin-bottom: 5px;
+}
+
+.company-cnpj {
+font-size: 12px;
+color: #666;
 }
 </style>
 </head>
@@ -139,17 +172,26 @@ object-fit: contain;
 <h2>CLÁUSULA 10ª - FORO</h2>
 <p>Fica eleito o foro da Comarca de São Paulo/SP para dirimir quaisquer controvérsias oriundas do presente contrato, com exclusão de qualquer outro, por mais privilegiado que seja.</p>
 
+<div class="signature-section">
+
 <div class="signature">
 <p>Nome: ${data.modelo.fullName}</p>
 <div class="signature-line"></div>
-<p>Assinatura:</p>
+<p>Assinatura do Contratante</p>
 </div>
 
-<div class="signature">
-<p>SUPER FOTOS FOTOGRAFIAS LTDA</p>
+<div class="company-signature">
+<div class="company-info">
+<div class="company-name">SUPER FOTOS FOTOGRAFIAS LTDA</div>
+<div class="company-cnpj">CNPJ: 13.310.215/0001-50</div>
+</div>
 <img src="/lovable-uploads/f5ad4329-0123-4568-b84c-14389033fc2d.png" alt="Assinatura Super Fotos" class="signature-img" />
-<p>Assinatura:</p>
+<div class="signature-line"></div>
+<p style="margin-top: 10px; font-size: 14px; font-weight: bold;">Assinatura da Contratada</p>
+</div>
+
 </div>
 
 </body>
 </html>`;
+
