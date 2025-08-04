@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { format, differenceInYears } from "date-fns"
-import { CalendarIcon, AlertTriangle, CheckCircle2, XCircle, Loader2 } from "lucide-react"
+import { CalendarIcon, AlertTriangle, CheckCircle2, XCircle, Loader2, ArrowLeft } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -66,6 +66,7 @@ const formSchema = z.object({
   birthDate: z.date({
     required_error: "Data de nascimento é obrigatória",
   }),
+  age: z.number().min(0).max(120).optional(),
   gender: z.string().min(1, "Gênero é obrigatório"),
   postalcode: z.string().min(8, "CEP é obrigatório"),
   street: z.string().min(1, "Rua é obrigatória"),
@@ -152,6 +153,7 @@ export default function NovoTalento() {
       document: "",
       email: "",
       phone: "",
+      age: undefined,
       gender: "",
       postalcode: "",
       street: "",
@@ -514,8 +516,9 @@ export default function NovoTalento() {
                        <FormLabel>Idade</FormLabel>
                        <FormControl>
                          <Input
-                           {...field}
                            type="number"
+                           value={field.value || ''}
+                           onChange={(e) => field.onChange(Number(e.target.value) || undefined)}
                            placeholder="Calculado automaticamente"
                            readOnly
                            className="bg-muted"

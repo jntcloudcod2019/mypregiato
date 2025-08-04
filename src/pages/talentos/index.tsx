@@ -137,12 +137,12 @@ export default function TalentosPage() {
         talent.email?.toLowerCase().includes(searchTerm.toLowerCase())
       
       // Status filter
-      const matchesStatus = !statusFilter || 
+      const matchesStatus = !statusFilter || statusFilter === 'all' ||
         (statusFilter === 'active' && talent.status) ||
         (statusFilter === 'inactive' && !talent.status)
       
       // DNA filter
-      const matchesDNA = !dnaFilter || talent.dnaStatus === dnaFilter
+      const matchesDNA = !dnaFilter || dnaFilter === 'all' || talent.dnaStatus === dnaFilter
       
       // Advanced filters
       const matchesAdvanced = Object.keys(advancedFilters).length === 0 || 
@@ -314,7 +314,7 @@ export default function TalentosPage() {
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos os status</SelectItem>
+              <SelectItem value="all">Todos os status</SelectItem>
               <SelectItem value="active">Ativo</SelectItem>
               <SelectItem value="inactive">Inativo</SelectItem>
             </SelectContent>
@@ -325,7 +325,7 @@ export default function TalentosPage() {
               <SelectValue placeholder="DNA" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos os DNA</SelectItem>
+              <SelectItem value="all">Todos os DNA</SelectItem>
               <SelectItem value="COMPLETE">Completo</SelectItem>
               <SelectItem value="PARTIAL">Parcial</SelectItem>
               <SelectItem value="UNDEFINED">Indefinido</SelectItem>
@@ -396,8 +396,8 @@ export default function TalentosPage() {
                   variant="outline" 
                   onClick={() => {
                     setSearchTerm('')
-                    setStatusFilter('')
-                    setDnaFilter('')
+                    setStatusFilter('all')
+                    setDnaFilter('all')
                     setAdvancedFilters({})
                   }}
                 >
