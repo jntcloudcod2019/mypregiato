@@ -1,65 +1,38 @@
-import { prisma } from './prisma'
+
 import { ProducerData } from '@/types/talent'
 
-export async function getProducers(): Promise<ProducerData[]> {
-  const producers = await prisma.user.findMany({
-    where: {
-      role: 'PRODUCER'
-    },
-    select: {
-      id: true,
-      first_name: true,
-      last_name: true,
-      email: true,
-    },
-    orderBy: [
-      { first_name: 'asc' },
-      { last_name: 'asc' }
-    ]
-  })
+// Mock producers data
+const mockProducers: ProducerData[] = [
+  {
+    id: '1',
+    first_name: 'João',
+    last_name: 'Silva',
+    code: 'PM-001',
+    email: 'joao@pregiato.com'
+  },
+  {
+    id: '2',
+    first_name: 'Maria',
+    last_name: 'Santos',
+    code: 'PM-002',
+    email: 'maria@pregiato.com'
+  },
+  {
+    id: '3',
+    first_name: 'Pedro',
+    last_name: 'Oliveira',
+    code: 'PM-003',
+    email: 'pedro@pregiato.com'
+  }
+]
 
-  // Gerar códigos únicos para cada produtor
-  return producers.map(producer => ({
-    ...producer,
-    code: `PM-${Math.floor(1000 + Math.random() * 9000)}`
-  }))
+export const getProducers = async (): Promise<ProducerData[]> => {
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 300))
+  return mockProducers
 }
 
-export async function getUserById(id: string) {
-  return await prisma.user.findUnique({
-    where: { id }
-  })
-}
-
-export async function createUser(data: {
-  clerk_id: string
-  email: string
-  first_name: string
-  last_name: string
-  image_url?: string
-  role?: 'ADMIN' | 'PRODUCER' | 'BOOKER' | 'ASSISTANT' | 'TALENT'
-}) {
-  return await prisma.user.create({
-    data: {
-      ...data,
-      updatedAt: new Date()
-    }
-  })
-}
-
-export async function updateUser(id: string, data: Partial<{
-  clerk_id: string
-  email: string
-  first_name: string
-  last_name: string
-  image_url: string
-  role: 'ADMIN' | 'PRODUCER' | 'BOOKER' | 'ASSISTANT' | 'TALENT'
-}>) {
-  return await prisma.user.update({
-    where: { id },
-    data: {
-      ...data,
-      updatedAt: new Date()
-    }
-  })
+export const getProducerById = async (id: string): Promise<ProducerData | null> => {
+  await new Promise(resolve => setTimeout(resolve, 200))
+  return mockProducers.find(p => p.id === id) || null
 }

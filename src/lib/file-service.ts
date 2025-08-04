@@ -1,85 +1,85 @@
-import { prisma } from './prisma'
-import { FileData } from '@/types/talent'
-import sharp from 'sharp'
 
-export async function uploadPhoto(
-  file: File,
+// Mock file service for frontend-only environment
+export interface FileData {
+  id: string
+  filename: string
+  url: string
   talentId: string
-): Promise<FileData> {
-  try {
-    // Converter file para buffer
-    const arrayBuffer = await file.arrayBuffer()
-    const buffer = Buffer.from(arrayBuffer)
-    
-    // Comprimir imagem usando sharp
-    const compressedBuffer = await sharp(buffer)
-      .resize(1200, 1200, { 
-        fit: 'inside',
-        withoutEnlargement: true 
-      })
-      .jpeg({ 
-        quality: 80,
-        progressive: true 
-      })
-      .toBuffer()
-    
-    // Converter para base64
-    const base64 = `data:${file.type};base64,${compressedBuffer.toString('base64')}`
-    
-    // Salvar no banco de dados
-    const fileRecord = await prisma.file.create({
-      data: {
-        url: base64,
-        type: 'PHOTO',
-        talentId,
-        fileName: file.name,
-        mimeType: file.type,
-        uploadedAt: new Date()
-      }
-    })
-    
-    return fileRecord as FileData
-  } catch (error) {
-    console.error('Erro ao fazer upload da foto:', error)
-    throw new Error('Erro ao processar a imagem')
-  }
+  type: 'photo' | 'document'
+  createdAt: Date
 }
 
-export async function getTalentPhotos(talentId: string): Promise<FileData[]> {
-  const files = await prisma.file.findMany({
-    where: {
-      talentId,
-      type: 'PHOTO'
+// Mock storage for files
+const mockFiles: Record<string, FileData[]> = {
+  '1': [
+    {
+      id: '1',
+      filename: 'ana-clara-profile.jpg',
+      url: '/src/assets/ana-clara-profile.jpg',
+      talentId: '1',
+      type: 'photo',
+      createdAt: new Date()
     },
-    orderBy: {
-      uploadedAt: 'desc'
+    {
+      id: '2',
+      filename: 'ana-clara-fashion1.jpg',
+      url: '/src/assets/ana-clara-fashion1.jpg',
+      talentId: '1',
+      type: 'photo',
+      createdAt: new Date()
     }
-  })
-  
-  return files as FileData[]
+  ]
 }
 
-export async function deletePhoto(fileId: string): Promise<void> {
-  await prisma.file.delete({
-    where: { id: fileId }
-  })
+export const getTalentFiles = async (talentId: string, type?: 'photo' | 'document'): Promise<FileData[]> => {
+  await new Promise(resolve => setTimeout(resolve, 200))
+  
+  const files = mockFiles[talentId] || []
+  return type ? files.filter(f => f.type === type) : files
 }
 
-export async function saveComposite(
-  compositeData: string,
-  talentId: string,
-  fileName: string
-): Promise<FileData> {
-  const fileRecord = await prisma.file.create({
-    data: {
-      url: compositeData,
-      type: 'COMPOSITE',
-      talentId,
-      fileName,
-      mimeType: 'application/pdf',
-      uploadedAt: new Date()
-    }
-  })
+export const uploadTalentFile = async (
+  talentId: string, 
+  file: File, 
+  type: 'photo' | 'document'
+): Promise<FileData> => {
+  await new Promise(resolve => setTimeout(resolve, 1000))
   
-  return fileRecord as FileData
+  // In a real implementation, this would upload to a file storage service
+  const url = URL.createObjectURL(file)
+  
+  const newFile: FileData = {
+    id: Date.now().toString(),
+    filename: file.name,
+    url,
+    talentId,
+    type,
+    createdAt: new Date()
+  }
+  
+  if (!mockFiles[talentId]) {
+    mockFiles[talentId] = []
+  }
+  mockFiles[talentId].push(newFile)
+  
+  return newFile
+}
+
+export const deleteTalentFile = async (fileId: string): Promise<boolean> => {
+  await new Promise(resolve => setTimeout(resolve, 300))
+  
+  for (const talentId in mockFiles) {
+    const index = mockFiles[talentId].findIndex(f => f.id === fileId)
+    if (index > -1) {
+      const file = mockFiles[talentId][index]
+      // Revoke the blob URL to free memory
+      if (file.url.startsWith('blob:')) {
+        URL.revokeObjectURL(file.url)
+      }
+      mockFiles[talentId].splice(index, 1)
+      return true
+    }
+  }
+  
+  return false
 }
