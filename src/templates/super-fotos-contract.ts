@@ -267,5 +267,3 @@ padding-top: 5px;
 
 </body>
 </html>`;
-
-</initial_code>
