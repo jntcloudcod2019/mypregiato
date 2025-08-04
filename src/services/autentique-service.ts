@@ -31,7 +31,19 @@ export const sendContractToAutentique = async (
     const validatedPhone = normalizePhoneToE164(modelPhone)
     console.log(`[AUTENTIQUE] Telefone normalizado: ${validatedPhone}`)
     
-    // Preparar a mutation GraphQL
+    // Converter base64 para blob
+    console.log('[AUTENTIQUE] Convertendo base64 para blob...')
+    const binaryString = atob(pdfBase64)
+    const bytes = new Uint8Array(binaryString.length)
+    
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i)
+    }
+    
+    const pdfBlob = new Blob([bytes], { type: 'application/pdf' })
+    console.log(`[AUTENTIQUE] Blob criado com sucesso, tamanho: ${(pdfBlob.size / (1024 * 1024)).toFixed(2)}MB`)
+    
+    // Preparar a mutation GraphQL seguindo exatamente a documentação
     const operations = {
       query: `
         mutation CreateDocumentMutation($document: DocumentInput!, $signers: [SignerInput!]!, $file: Upload!) {
@@ -49,7 +61,10 @@ export const sendContractToAutentique = async (
         }
       `,
       variables: {
-        document: { name: contractName },
+        document: { 
+          name: contractName,
+          reminder_frequency: "DAILY"
+        },
         signers: [
           {
             phone: validatedPhone,
@@ -61,78 +76,91 @@ export const sendContractToAutentique = async (
       }
     }
     
-    const map = { file: ["variables.file"] }
+    const map = { 
+      "0": ["variables.file"] 
+    }
     
-    // Criar FormData
+    // Criar FormData seguindo o padrão da documentação
     const formData = new FormData()
     formData.append('operations', JSON.stringify(operations))
     formData.append('map', JSON.stringify(map))
-    
-    // Converter base64 para blob de forma otimizada
-    try {
-      console.log('[AUTENTIQUE] Convertendo base64 para blob...')
-      
-      // Decodificar base64 de forma mais eficiente
-      const binaryString = atob(pdfBase64)
-      const bytes = new Uint8Array(binaryString.length)
-      
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i)
-      }
-      
-      const pdfBlob = new Blob([bytes], { type: 'application/pdf' })
-      
-      console.log(`[AUTENTIQUE] Blob criado com sucesso, tamanho: ${(pdfBlob.size / (1024 * 1024)).toFixed(2)}MB`)
-      formData.append('file', pdfBlob, `${contractName}.pdf`)
-      
-    } catch (blobError) {
-      console.error('[AUTENTIQUE] Erro ao converter base64 para blob:', blobError)
-      throw new Error('Erro ao processar o arquivo PDF em base64')
-    }
+    formData.append('0', pdfBlob, `${contractName}.pdf`)
     
     console.log(`[AUTENTIQUE] Enviando contrato via WhatsApp para ${modelName} - ${validatedPhone}`)
     
-    // Fazer a requisição com timeout otimizado
+    // Fazer a requisição com headers corretos
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 90000) // 90 segundos para arquivos maiores
+    const timeoutId = setTimeout(() => controller.abort(), 120000) // 2 minutos
     
     try {
       const response = await fetch(AUTENTIQUE_API_URL, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${AUTENTIQUE_TOKEN}`,
+          // Não incluir Content-Type para FormData - deixar o browser definir
         },
         body: formData,
-        signal: controller.signal
+        signal: controller.signal,
+        mode: 'cors', // Especificar CORS explicitamente
+        credentials: 'omit' // Não enviar cookies
       })
       
       clearTimeout(timeoutId)
       
+      console.log(`[AUTENTIQUE] Response status: ${response.status}`)
+      
       if (!response.ok) {
-        const errorText = await response.text()
+        let errorText = ''
+        try {
+          errorText = await response.text()
+        } catch (e) {
+          errorText = 'Erro ao ler resposta'
+        }
+        
         console.error(`[AUTENTIQUE] Erro na requisição: ${response.status}`)
         console.error(`[AUTENTIQUE] Response: ${errorText}`)
         
-        // Tratar erros específicos
+        // Tratar erros específicos baseados no status
         if (response.status === 413) {
           throw new Error('Arquivo muito grande para upload. Tente reduzir o tamanho do PDF.')
         } else if (response.status === 422) {
           throw new Error('Dados inválidos no contrato. Verifique as informações.')
-        } else if (response.status === 401) {
-          throw new Error('Token de autenticação inválido')
+        } else if (response.status === 401 || response.status === 403) {
+          throw new Error('Token de autenticação inválido ou sem permissão')
+        } else if (response.status === 429) {
+          throw new Error('Muitas requisições. Aguarde alguns minutos e tente novamente.')
         } else if (response.status >= 500) {
           throw new Error('Erro no servidor do Autentique. Tente novamente em alguns minutos.')
         } else {
-          throw new Error(`Erro na API do Autentique: ${response.status} - ${errorText}`)
+          throw new Error(`Erro na API do Autentique (${response.status}): ${errorText || 'Erro desconhecido'}`)
         }
       }
       
-      const result: AutentiqueResponse = await response.json()
+      let result: AutentiqueResponse
+      try {
+        const responseText = await response.text()
+        console.log('[AUTENTIQUE] Response text:', responseText)
+        result = JSON.parse(responseText)
+      } catch (parseError) {
+        console.error('[AUTENTIQUE] Erro ao fazer parse da resposta:', parseError)
+        throw new Error('Resposta inválida da API do Autentique')
+      }
       
-      if (result.errors) {
+      // Verificar se há erros GraphQL
+      if (result.errors && result.errors.length > 0) {
         console.error('[AUTENTIQUE] Erros GraphQL:', result.errors)
         const errorMessage = result.errors[0]?.message || 'Erro desconhecido na API'
-        throw new Error(`Erro GraphQL: ${errorMessage}`)
+        
+        // Tratar erros específicos do GraphQL
+        if (errorMessage.includes('phone')) {
+          throw new Error('Número de telefone inválido. Verifique o formato.')
+        } else if (errorMessage.includes('file') || errorMessage.includes('upload')) {
+          throw new Error('Erro no upload do arquivo. Tente novamente.')
+        } else if (errorMessage.includes('token') || errorMessage.includes('authentication')) {
+          throw new Error('Token de autenticação inválido')
+        } else {
+          throw new Error(`Erro na API: ${errorMessage}`)
+        }
       }
       
       if (!result.data?.createDocument) {
@@ -154,11 +182,17 @@ export const sendContractToAutentique = async (
         whatsappLink: whatsappLink
       }
       
-    } catch (fetchError) {
+    } catch (fetchError: any) {
       clearTimeout(timeoutId)
       
+      console.error('[AUTENTIQUE] Erro na requisição fetch:', fetchError)
+      
       if (fetchError.name === 'AbortError') {
-        throw new Error('Timeout na requisição. O arquivo pode estar muito grande. Tente novamente.')
+        throw new Error('Timeout na requisição. Tente novamente.')
+      } else if (fetchError.message === 'Failed to fetch') {
+        throw new Error('Erro de conectividade. Verifique sua conexão e tente novamente.')
+      } else if (fetchError.message?.includes('CORS')) {
+        throw new Error('Erro de CORS. Problema de configuração do servidor.')
       }
       
       throw fetchError
