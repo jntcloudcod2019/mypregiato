@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -38,6 +39,31 @@ const mesesPorExtenso = [
   "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"
 ]
 
+// Mock modelo para teste quando digitado um nome
+const createMockModel = (name: string): TalentData => ({
+  id: `mock_${Date.now()}`,
+  fullName: name,
+  email: `${name.toLowerCase().replace(/\s+/g, '.')}@email.com`,
+  phone: "(11) 99999-9999",
+  document: "123.456.789-00",
+  postalcode: "01310-200",
+  street: "Avenida Paulista",
+  neighborhood: "Cerqueira César", 
+  city: "São Paulo",
+  numberAddress: "1636",
+  complement: "Sala 1105",
+  uf: "SP",
+  age: 25,
+  inviteSent: false,
+  status: true,
+  dnaStatus: 'UNDEFINED' as const,
+  updatedAt: new Date(),
+  createdAt: new Date(),
+  producer: null,
+  dna: null,
+  files: []
+})
+
 interface PaymentData {
   valor?: string;
   [key: string]: any;
@@ -48,7 +74,6 @@ export default function NovoContratoSuperFotos() {
   const [isLoading, setIsLoading] = useState(false)
   const [talents, setTalents] = useState<TalentData[]>([])
   const [loadingTalents, setLoadingTalents] = useState(true)
-  const [debugInfo, setDebugInfo] = useState<string>('Iniciando...')
   const [pdfPreview, setPdfPreview] = useState<{
     show: boolean
     pdfBase64: string
@@ -78,83 +103,34 @@ export default function NovoContratoSuperFotos() {
     paymentData: {} as PaymentData
   })
 
-  // Carregar talentos na inicialização com debug detalhado
+  // Carregar talentos na inicialização
   useEffect(() => {
     const loadTalents = async () => {
       try {
-        console.log('🔄 [DEBUG] Iniciando carregamento de talentos...')
-        setDebugInfo('Carregando talentos...')
         setLoadingTalents(true)
-        
-        console.log('🔄 [DEBUG] Chamando getTalents()...')
         const talentsData = await getTalents()
-        
-        console.log('✅ [DEBUG] getTalents() retornou:', talentsData)
-        console.log('✅ [DEBUG] Número de talentos:', talentsData?.length || 0)
-        console.log('✅ [DEBUG] Primeiro talento:', talentsData?.[0])
-        
-        if (!talentsData) {
-          console.error('❌ [DEBUG] getTalents() retornou null/undefined')
-          setDebugInfo('Erro: getTalents() retornou dados vazios')
-          return
-        }
-        
-        if (talentsData.length === 0) {
-          console.warn('⚠️ [DEBUG] getTalents() retornou array vazio')
-          setDebugInfo('Aviso: Nenhum talento encontrado no banco mock')
-          setTalents([])
-          return
-        }
-        
         setTalents(talentsData)
-        setDebugInfo(`✅ ${talentsData.length} talentos carregados com sucesso`)
-        console.log('✅ [DEBUG] Estado talents atualizado com:', talentsData.length, 'talentos')
-        
-        // Debug dos talentos individualmente
-        talentsData.forEach((talent, index) => {
-          console.log(`🔍 [DEBUG] Talento ${index + 1}:`, {
-            id: talent.id,
-            fullName: talent.fullName,
-            email: talent.email,
-            document: talent.document
-          })
-        })
-        
       } catch (error) {
-        console.error("❌ [DEBUG] Erro ao carregar talentos:", error)
-        console.error("❌ [DEBUG] Stack trace:", error instanceof Error ? error.stack : 'Sem stack trace')
-        setDebugInfo(`❌ Erro: ${error instanceof Error ? error.message : 'Erro desconhecido'}`)
+        console.error("Erro ao carregar talentos:", error)
         setAlert({
           type: "error",
           title: "Erro ao Carregar Talentos",
-          message: `Não foi possível carregar a lista de talentos. Erro: ${error instanceof Error ? error.message : 'Desconhecido'}`,
+          message: "Não foi possível carregar a lista de talentos.",
           show: true
         })
       } finally {
         setLoadingTalents(false)
-        console.log('🏁 [DEBUG] Carregamento finalizado. Loading state:', false)
       }
     }
     loadTalents()
   }, [])
 
-  // Debug do filtro de modelos
+  // Filtrar modelos baseado na busca
   const filteredModelos = talents.filter(talent => {
-    const matchesSearch = !formData.modeloSearch || 
-      talent.fullName.toLowerCase().includes(formData.modeloSearch.toLowerCase()) ||
+    if (!formData.modeloSearch) return true
+    return talent.fullName.toLowerCase().includes(formData.modeloSearch.toLowerCase()) ||
       (talent.document && talent.document.includes(formData.modeloSearch)) ||
       (talent.email && talent.email.toLowerCase().includes(formData.modeloSearch.toLowerCase()))
-    
-    console.log('🔍 [FILTER] Talento:', talent.fullName, 'Busca:', formData.modeloSearch, 'Match:', matchesSearch)
-    return matchesSearch
-  })
-
-  console.log('📊 [DEBUG] Estados atuais:', {
-    talentsTotal: talents.length,
-    filteredTotal: filteredModelos.length,
-    loadingTalents,
-    searchTerm: formData.modeloSearch,
-    debugInfo
   })
 
   const handleMetodoPagamentoChange = (metodo: string) => {
@@ -169,15 +145,11 @@ export default function NovoContratoSuperFotos() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('[CONTRATO] Botão clicado - iniciando validação...')
-    console.log('[CONTRATO] Form data:', formData)
-    
     setIsLoading(true)
     
     try {
       // Validações básicas
-      if (!formData.cidade || !formData.uf || !formData.dia || !formData.mes || !formData.modeloId) {
-        console.log('[CONTRATO] Erro: Campos obrigatórios faltando')
+      if (!formData.cidade || !formData.uf || !formData.dia || !formData.mes) {
         setAlert({
           type: "error",
           title: "Campos Obrigatórios",
@@ -187,8 +159,17 @@ export default function NovoContratoSuperFotos() {
         return
       }
 
+      if (!formData.modeloId && !formData.modeloSearch) {
+        setAlert({
+          type: "error",
+          title: "Modelo Obrigatório",
+          message: "Por favor, selecione ou digite o nome de um modelo.",
+          show: true
+        })
+        return
+      }
+
       if (formData.metodoPagamento.length === 0) {
-        console.log('[CONTRATO] Erro: Método de pagamento não selecionado')
         setAlert({
           type: "error",
           title: "Método de Pagamento",
@@ -198,27 +179,20 @@ export default function NovoContratoSuperFotos() {
         return
       }
 
-      console.log('[CONTRATO] Iniciando processo de geração...')
+      // Buscar dados do modelo selecionado ou criar mock
+      let selectedModelo: TalentData
       
-      // Buscar dados do modelo selecionado
-      const selectedModelo = talents.find(t => t.id === formData.modeloId)
-      if (!selectedModelo) {
-        console.log('[CONTRATO] Erro: Modelo não encontrado')
-        throw new Error('Modelo não encontrado')
-      }
-
-      console.log('[CONTRATO] Modelo selecionado:', selectedModelo)
-
-      // Verificar se o modelo tem telefone
-      if (!selectedModelo.phone) {
-        console.log('[CONTRATO] Erro: Telefone não cadastrado')
-        setAlert({
-          type: "error",
-          title: "Dados Incompletos",
-          message: "O modelo selecionado não possui telefone cadastrado. É necessário para envio via WhatsApp.",
-          show: true
-        })
-        return
+      if (formData.modeloId) {
+        const found = talents.find(t => t.id === formData.modeloId)
+        if (!found) {
+          throw new Error('Modelo selecionado não encontrado')
+        }
+        selectedModelo = found
+      } else if (formData.modeloSearch) {
+        // Criar modelo mock baseado no nome digitado
+        selectedModelo = createMockModel(formData.modeloSearch)
+      } else {
+        throw new Error('Nenhum modelo selecionado ou digitado')
       }
 
       // Preparar dados do contrato
@@ -232,34 +206,29 @@ export default function NovoContratoSuperFotos() {
         modelo: {
           id: selectedModelo.id,
           fullName: selectedModelo.fullName,
-          document: selectedModelo.document || '',
-          email: selectedModelo.email || '',
-          phone: selectedModelo.phone,
-          postalcode: selectedModelo.postalcode || '',
-          street: selectedModelo.street || '',
-          neighborhood: selectedModelo.neighborhood || '',
-          city: selectedModelo.city || '',
-          numberAddress: selectedModelo.numberAddress || '',
-          complement: selectedModelo.complement || ''
+          document: selectedModelo.document || '123.456.789-00',
+          email: selectedModelo.email || `${selectedModelo.fullName.toLowerCase().replace(/\s+/g, '.')}@email.com`,
+          phone: selectedModelo.phone || '(11) 99999-9999',
+          postalcode: selectedModelo.postalcode || '01310-200',
+          street: selectedModelo.street || 'Avenida Paulista',
+          neighborhood: selectedModelo.neighborhood || 'Cerqueira César',
+          city: selectedModelo.city || 'São Paulo',
+          numberAddress: selectedModelo.numberAddress || '1636',
+          complement: selectedModelo.complement || 'Sala 1105'
         },
         valorContrato: formData.paymentData.valor || '0,00',
         metodoPagamento: formData.metodoPagamento,
         paymentData: formData.paymentData
       }
 
-      console.log('[CONTRATO] Dados preparados:', contractData)
-
       // Gerar PDF
-      console.log('[CONTRATO] Gerando PDF...')
       const pdfBase64 = await generateContractPDF(contractData, 'super-fotos')
-      console.log('[CONTRATO] PDF gerado, tamanho:', pdfBase64?.length || 0)
       
       if (!pdfBase64) {
-        throw new Error('Falha ao gerar PDF - resultado vazio')
+        throw new Error('Falha ao gerar PDF')
       }
 
       // Mostrar preview
-      console.log('[CONTRATO] Mostrando preview...')
       setPdfPreview({
         show: true,
         pdfBase64,
@@ -267,7 +236,7 @@ export default function NovoContratoSuperFotos() {
       })
 
     } catch (error) {
-      console.error("[CONTRATO] Erro ao gerar contrato:", error)
+      console.error("Erro ao gerar contrato:", error)
       setAlert({
         type: "error",
         title: "Erro ao Gerar Contrato",
@@ -283,7 +252,6 @@ export default function NovoContratoSuperFotos() {
     if (!pdfPreview.contractData) return
 
     try {
-      console.log('[CONTRATO] Enviando para Autentique...')
       const contractName = `Contrato_SuperFotos_${pdfPreview.contractData.modelo.fullName.replace(/\s+/g, '_')}_${new Date().getTime()}`
       
       const result = await sendContractToAutentique(
@@ -357,12 +325,8 @@ export default function NovoContratoSuperFotos() {
     formData.uf && 
     formData.dia && 
     formData.mes && 
-    formData.modeloId && 
+    (formData.modeloId || formData.modeloSearch) && 
     formData.metodoPagamento.length > 0
-
-  console.log('[CONTRATO] Form válido:', isFormValid)
-  console.log('[CONTRATO] Talentos disponíveis:', talents.length)
-  console.log('[CONTRATO] Loading talentos:', loadingTalents)
 
   return (
     <div className="p-6 space-y-6">
@@ -382,32 +346,6 @@ export default function NovoContratoSuperFotos() {
           </p>
         </div>
       </div>
-
-      {/* Debug Info Card - Temporário para debug */}
-      <Card className="bg-yellow-50 border-yellow-200">
-        <CardHeader>
-          <CardTitle className="text-yellow-800">🔧 DEBUG INFO (Temporário)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2 text-sm">
-            <p><strong>Status:</strong> {debugInfo}</p>
-            <p><strong>Loading:</strong> {loadingTalents ? 'Sim' : 'Não'}</p>
-            <p><strong>Talentos carregados:</strong> {talents.length}</p>
-            <p><strong>Modelos filtrados:</strong> {filteredModelos.length}</p>
-            <p><strong>Busca atual:</strong> "{formData.modeloSearch}"</p>
-            {talents.length > 0 && (
-              <div>
-                <strong>Primeiros 3 talentos:</strong>
-                <ul className="ml-4">
-                  {talents.slice(0, 3).map(talent => (
-                    <li key={talent.id}>• {talent.fullName} ({talent.email})</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Alert */}
       {alert.show && (
@@ -540,58 +478,43 @@ export default function NovoContratoSuperFotos() {
 
                 <div className="space-y-2">
                   <Label>Selecionar Modelo *</Label>
-                  <div className="relative">
-                    <Input
-                      placeholder="Busque por nome, documento ou email"
-                      value={formData.modeloSearch}
-                      onChange={(e) => {
-                        const value = e.target.value
-                        console.log('🔍 [SEARCH] Nova busca:', value)
-                        setFormData(prev => ({ ...prev, modeloSearch: value }))
-                      }}
-                      className="bg-background border-border pr-10"
-                      disabled={loadingTalents}
-                    />
-                    <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <Select 
-                    value={formData.modeloId} 
-                    onValueChange={(value) => {
-                      console.log('✅ [SELECT] Modelo selecionado:', value)
-                      const selectedTalent = talents.find(t => t.id === value)
-                      console.log('✅ [SELECT] Dados do talento selecionado:', selectedTalent)
-                      setFormData(prev => ({ ...prev, modeloId: value }))
-                    }}
-                    disabled={loadingTalents}
-                  >
-                    <SelectTrigger className="bg-background border-border">
-                      <SelectValue placeholder={
-                        loadingTalents 
-                          ? "Carregando modelos..." 
-                          : talents.length === 0 
-                            ? "Nenhum modelo encontrado" 
-                            : filteredModelos.length === 0
-                              ? "Nenhum modelo encontrado com essa busca"
-                              : "Selecione um modelo"
-                      } />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {loadingTalents ? (
-                        <div className="px-4 py-2 text-sm text-muted-foreground">
-                          Carregando modelos...
-                        </div>
-                      ) : talents.length === 0 ? (
-                        <div className="px-4 py-2 text-sm text-muted-foreground">
-                          Nenhum modelo cadastrado no sistema
-                        </div>
-                      ) : filteredModelos.length === 0 ? (
-                        <div className="px-4 py-2 text-sm text-muted-foreground">
-                          Nenhum modelo encontrado com essa busca
-                        </div>
-                      ) : (
-                        filteredModelos.map((modelo) => {
-                          console.log('📋 [RENDER] Renderizando modelo no select:', modelo.fullName)
-                          return (
+                  <div className="space-y-2">
+                    <div className="relative">
+                      <Input
+                        placeholder="Digite o nome do modelo (ex: Ana Silva)"
+                        value={formData.modeloSearch}
+                        onChange={(e) => {
+                          const value = e.target.value
+                          setFormData(prev => ({ 
+                            ...prev, 
+                            modeloSearch: value,
+                            modeloId: "" // Limpar seleção quando digitar
+                          }))
+                        }}
+                        className="bg-background border-border pr-10"
+                        disabled={loadingTalents}
+                      />
+                      <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    </div>
+                    
+                    {/* Seletor de modelos existentes (opcional) */}
+                    {!loadingTalents && talents.length > 0 && (
+                      <Select 
+                        value={formData.modeloId} 
+                        onValueChange={(value) => {
+                          const selectedTalent = talents.find(t => t.id === value)
+                          setFormData(prev => ({ 
+                            ...prev, 
+                            modeloId: value,
+                            modeloSearch: selectedTalent?.fullName || "" // Preencher campo de busca
+                          }))
+                        }}
+                      >
+                        <SelectTrigger className="bg-background border-border">
+                          <SelectValue placeholder="Ou selecione um modelo existente" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {filteredModelos.map((modelo) => (
                             <SelectItem key={modelo.id} value={modelo.id}>
                               <div className="flex flex-col">
                                 <span className="font-medium">{modelo.fullName}</span>
@@ -600,25 +523,14 @@ export default function NovoContratoSuperFotos() {
                                 </span>
                               </div>
                             </SelectItem>
-                          )
-                        })
-                      )}
-                    </SelectContent>
-                  </Select>
-                  
-                  {/* Informações de debug para o usuário */}
-                  <div className="text-xs text-muted-foreground space-y-1">
-                    {loadingTalents && (
-                      <p>⏳ Carregando lista de modelos...</p>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     )}
-                    {!loadingTalents && (
-                      <p>
-                        📊 {talents.length} modelo{talents.length !== 1 ? 's' : ''} total
-                        {formData.modeloSearch && (
-                          <span> • {filteredModelos.length} encontrado{filteredModelos.length !== 1 ? 's' : ''} na busca</span>
-                        )}
-                      </p>
-                    )}
+                    
+                    <p className="text-xs text-muted-foreground">
+                      Digite o nome do modelo ou selecione um existente. Se digitar um nome, será criado um modelo de teste com dados padrão para o contrato.
+                    </p>
                   </div>
                 </div>
               </div>
