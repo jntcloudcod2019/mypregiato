@@ -19,6 +19,7 @@ export interface WhatsAppConnection {
   qrCode?: string
   status: 'disconnected' | 'qr_ready' | 'connecting' | 'connected'
   sessionId?: string
+  lastActivity?: string
 }
 
 export interface TalentChat {

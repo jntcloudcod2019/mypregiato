@@ -120,6 +120,7 @@ export class WhatsAppService {
     if (connectionState.isConnected && clientInfo.isAuthenticated) {
       // Connection is active, update last activity
       clientInfo.lastActivity = new Date().toISOString()
+      connectionState.lastActivity = clientInfo.lastActivity
       
       // Randomly simulate connection issues (5% chance)
       if (Math.random() < 0.05) {
@@ -174,7 +175,8 @@ export class WhatsAppService {
     connectionState = {
       isConnected: true,
       status: 'connected',
-      sessionId: `restored_session_${Date.now()}`
+      sessionId: `restored_session_${Date.now()}`,
+      lastActivity: clientInfo.lastActivity
     }
 
     this.emit('connection_update', connectionState)
@@ -233,11 +235,12 @@ export class WhatsAppService {
     
     // Update last activity
     clientInfo.lastActivity = new Date().toISOString()
+    connectionState.lastActivity = clientInfo.lastActivity
     
     // Emit heartbeat event
     this.emit('heartbeat', {
       timestamp: clientInfo.lastActivity,
-      connectionHealth: 'good'
+      connectionHealth: this.getConnectionHealth()
     })
   }
 
@@ -379,7 +382,8 @@ export class WhatsAppService {
     connectionState = {
       isConnected: true,
       status: 'connected',
-      sessionId: `intelligent_session_${Date.now()}`
+      sessionId: `intelligent_session_${Date.now()}`,
+      lastActivity: clientInfo.lastActivity
     }
 
     this.emit('connection_update', connectionState)
@@ -612,12 +616,15 @@ export class WhatsAppService {
     }, 2000)
   }
 
-  // Get connection status
+  // Get connection status with intelligence
   getConnectionStatus(): WhatsAppConnection {
-    return { ...connectionState }
+    return { 
+      ...connectionState,
+      lastActivity: clientInfo.lastActivity
+    }
   }
 
-  // Get client info with business details
+  // Get client info with intelligence
   getClientInfo() {
     return { ...clientInfo }
   }
@@ -662,51 +669,6 @@ export class WhatsAppService {
       const bTime = b.lastMessage?.timestamp || '0'
       return new Date(bTime).getTime() - new Date(aTime).getTime()
     })
-  }
-
-  // Handle authentication failures
-  private handleAuthFailure() {
-    console.error('❌ Falha de autenticação WhatsApp')
-    connectionState = {
-      isConnected: false,
-      status: 'disconnected'
-    }
-    this.emit('connection_update', connectionState)
-    this.emit('auth_failure', { message: 'Falha de autenticação. Escaneie o QR novamente.' })
-  }
-
-  // Handle disconnection
-  private handleDisconnection(reason: string) {
-    console.log('🔌 WhatsApp desconectado:', reason)
-    connectionState = {
-      isConnected: false,
-      status: 'disconnected'
-    }
-    this.emit('connection_update', connectionState)
-    this.emit('disconnected', { reason })
-
-    // Auto-reconnect attempt
-    if (this.reconnectAttempts < this.maxReconnectAttempts) {
-      this.reconnectAttempts++
-      console.log(`🔄 Tentativa de reconexão ${this.reconnectAttempts}/${this.maxReconnectAttempts}...`)
-      
-      setTimeout(() => {
-        this.generateQRCode()
-      }, 5000)
-    }
-  }
-
-  // Get connection status with intelligence
-  getConnectionStatus(): WhatsAppConnection {
-    return { 
-      ...connectionState,
-      lastActivity: clientInfo.lastActivity
-    }
-  }
-
-  // Get client info with intelligence
-  getClientInfo() {
-    return { ...clientInfo }
   }
 
   // Check if system has active number connected
