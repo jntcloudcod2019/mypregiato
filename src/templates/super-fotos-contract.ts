@@ -64,7 +64,7 @@ padding-top: 10px;
 }
 
 .signature-img {
-width: 250px;
+width: 200px;
 height: auto;
 display: block;
 margin: 10px auto;
@@ -147,7 +147,7 @@ object-fit: contain;
 
 <div class="signature">
 <p>SUPER FOTOS FOTOGRAFIAS LTDA</p>
-<div class="signature-line"></div>
+<img src="/lovable-uploads/f5ad4329-0123-4568-b84c-14389033fc2d.png" alt="Assinatura Super Fotos" class="signature-img" />
 <p>Assinatura:</p>
 </div>
 
