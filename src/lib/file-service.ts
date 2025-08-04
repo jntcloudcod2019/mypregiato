@@ -31,11 +31,44 @@ const mockFiles: Record<string, FileData[]> = {
   ]
 }
 
+export const getTalentPhotos = async (talentId: string): Promise<FileData[]> => {
+  await new Promise(resolve => setTimeout(resolve, 200))
+  
+  const files = mockFiles[talentId] || []
+  return files.filter(f => f.type === 'photo')
+}
+
 export const getTalentFiles = async (talentId: string, type?: 'photo' | 'document'): Promise<FileData[]> => {
   await new Promise(resolve => setTimeout(resolve, 200))
   
   const files = mockFiles[talentId] || []
   return type ? files.filter(f => f.type === type) : files
+}
+
+export const uploadPhoto = async (
+  talentId: string, 
+  file: File
+): Promise<FileData> => {
+  await new Promise(resolve => setTimeout(resolve, 1000))
+  
+  // In a real implementation, this would upload to a file storage service
+  const url = URL.createObjectURL(file)
+  
+  const newFile: FileData = {
+    id: Date.now().toString(),
+    filename: file.name,
+    url,
+    talentId,
+    type: 'photo',
+    createdAt: new Date()
+  }
+  
+  if (!mockFiles[talentId]) {
+    mockFiles[talentId] = []
+  }
+  mockFiles[talentId].push(newFile)
+  
+  return newFile
 }
 
 export const uploadTalentFile = async (
@@ -63,6 +96,25 @@ export const uploadTalentFile = async (
   mockFiles[talentId].push(newFile)
   
   return newFile
+}
+
+export const deletePhoto = async (fileId: string): Promise<boolean> => {
+  await new Promise(resolve => setTimeout(resolve, 300))
+  
+  for (const talentId in mockFiles) {
+    const index = mockFiles[talentId].findIndex(f => f.id === fileId)
+    if (index > -1) {
+      const file = mockFiles[talentId][index]
+      // Revoke the blob URL to free memory
+      if (file.url.startsWith('blob:')) {
+        URL.revokeObjectURL(file.url)
+      }
+      mockFiles[talentId].splice(index, 1)
+      return true
+    }
+  }
+  
+  return false
 }
 
 export const deleteTalentFile = async (fileId: string): Promise<boolean> => {

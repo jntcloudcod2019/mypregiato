@@ -266,7 +266,10 @@ export default function NovoTalento() {
         document: data.document,
         birthDate: data.birthDate,
         age,
-        gender: data.gender
+        gender: data.gender,
+        inviteSent: false,
+        status: true,
+        dnaStatus: 'UNDEFINED' as const
       }
 
       // Create talent

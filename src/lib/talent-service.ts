@@ -20,6 +20,9 @@ const mockTalents: TalentData[] = [
     numberAddress: '1578',
     complement: 'Conjunto 1405',
     producerId: '1',
+    inviteSent: false,
+    status: true,
+    dnaStatus: 'UNDEFINED',
     createdAt: new Date(),
     updatedAt: new Date()
   }

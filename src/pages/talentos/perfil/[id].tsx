@@ -193,7 +193,7 @@ export default function TalentProfile() {
         const compressedFile = await compressImage(file)
         
         // Upload photo
-        await uploadPhoto(compressedFile, id)
+        await uploadPhoto(id, compressedFile)
       }
       
       // Refresh talent data to show new photos

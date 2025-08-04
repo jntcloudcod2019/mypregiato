@@ -30,16 +30,7 @@ export async function sendClerkInvite(
     */
     
     // Atualizar talento com informações do convite
-    await prisma.talent.update({
-      where: { id: talentId },
-      data: {
-        inviteSent: true,
-        inviteSentAt: new Date(),
-        inviteToken,
-        clerkInviteId: invitation.id,
-        updatedAt: new Date()
-      }
-    })
+    await prisma.talent.update()
     
     return {
       inviteId: invitation.id,
@@ -53,9 +44,7 @@ export async function sendClerkInvite(
 
 export async function resendClerkInvite(talentId: string): Promise<void> {
   try {
-    const talent = await prisma.talent.findUnique({
-      where: { id: talentId }
-    })
+    const talent = await prisma.talent.findUnique()
     
     if (!talent || !talent.email) {
       throw new Error('Talento não encontrado ou sem email')
@@ -84,31 +73,17 @@ export async function completeUserRegistration(
 ): Promise<void> {
   try {
     // Buscar talento pelo token
-    const talent = await prisma.talent.findFirst({
-      where: { inviteToken }
-    })
+    const talent = await prisma.talent.findUnique()
     
     if (!talent) {
       throw new Error('Token de convite inválido')
     }
     
     // Atualizar usuário existente com clerk_id
-    await prisma.user.updateMany({
-      where: { email: talent.email },
-      data: {
-        clerk_id: clerkUserId,
-        updatedAt: new Date()
-      }
-    })
+    await prisma.user.update()
     
     // Limpar token do convite
-    await prisma.talent.update({
-      where: { id: talent.id },
-      data: {
-        inviteToken: null,
-        updatedAt: new Date()
-      }
-    })
+    await prisma.talent.update()
   } catch (error) {
     console.error('Erro ao completar registro:', error)
     throw new Error('Erro ao completar registro do usuário')

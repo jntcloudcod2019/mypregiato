@@ -1,141 +1,133 @@
-
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useNavigate } from "react-router-dom"
-import { Search, Filter, ChevronLeft, ChevronRight, Eye, Plus, Loader2 } from "lucide-react"
-import { Input } from "@/components/ui/input"
+import { Plus, Search, Filter, Eye, MoreHorizontal, UserPlus, Clock, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Checkbox } from "@/components/ui/checkbox"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Label } from "@/components/ui/label"
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
-import { getAllTalents } from "@/lib/talent-service"
+import { getTalents } from '@/lib/talent-service'
 import { TalentData } from "@/types/talent"
 import { useToast } from "@/hooks/use-toast"
 
 const TalentCard = ({ talent, navigate }: { talent: TalentData; navigate: any }) => {
-  const photo = talent.files?.[0]?.url || "/placeholder.svg"
-  const inviteStatus = talent.inviteSent ? (talent.clerkInviteId ? "Ativo" : "Pendente") : "Não Enviado"
-  
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase()
+  }
+
+  const getStatusBadge = () => {
+    if (!talent.status) {
+      return <Badge variant="secondary">Inativo</Badge>
+    }
+    if (talent.inviteSent) {
+      return <Badge variant="default" className="bg-green-500">Convite Enviado</Badge>
+    }
+    return <Badge variant="outline">Ativo</Badge>
+  }
+
+  const getDNAStatus = () => {
+    switch (talent.dnaStatus) {
+      case 'COMPLETE':
+        return <Badge variant="default" className="bg-blue-500">DNA Completo</Badge>
+      case 'PARTIAL':
+        return <Badge variant="secondary">DNA Parcial</Badge>
+      default:
+        return <Badge variant="outline">DNA Pendente</Badge>
+    }
+  }
+
   return (
-    <Card className="w-full h-96 overflow-hidden group hover-lift hover-glow shadow-card bg-gradient-card border-border/50">
-      <div className="relative h-64 overflow-hidden">
-        <img 
-          src={photo} 
-          alt={talent.fullName}
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ease-out"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-        <div className="absolute bottom-4 left-4 text-white">
-          <h3 className="font-semibold text-lg mb-1">{talent.fullName}</h3>
-          <p className="text-sm opacity-90">{talent.age} anos</p>
-        </div>
-        <div className="absolute top-4 right-4 flex flex-col gap-1">
-          {talent.dna?.travelAvailability && (
-            <Badge className="bg-primary/20 text-primary border border-primary/30 backdrop-blur-sm">
-              Viagens
-            </Badge>
-          )}
-          <Badge 
-            variant={inviteStatus === "Ativo" ? "default" : inviteStatus === "Pendente" ? "secondary" : "outline"}
-            className="text-xs backdrop-blur-sm"
-          >
-            {inviteStatus}
-          </Badge>
-        </div>
-      </div>
-      <CardContent className="p-4 space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex gap-2">
-            <Badge variant="secondary" className="text-xs bg-secondary/20 text-secondary-foreground border border-secondary/30">
-              {talent.city || "Não informado"}
-            </Badge>
-            <Badge variant="outline" className={`text-xs ${talent.dnaStatus === 'COMPLETE' ? 'text-green-600' : talent.dnaStatus === 'PARTIAL' ? 'text-yellow-600' : 'text-gray-600'}`}>
-              DNA: {talent.dnaStatus === 'COMPLETE' ? 'Completo' : talent.dnaStatus === 'PARTIAL' ? 'Parcial' : 'Indefinido'}
-            </Badge>
+    <Card className="group hover:shadow-lg transition-all duration-300 border-primary/20 hover:border-primary/40 bg-card/50 backdrop-blur-sm">
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center space-x-3">
+            <Avatar className="h-12 w-12 ring-2 ring-primary/20">
+              <AvatarImage src="" alt={talent.fullName} />
+              <AvatarFallback className="bg-primary/10 text-primary">
+                {getInitials(talent.fullName)}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                {talent.fullName}
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {talent.age} anos • {talent.gender}
+              </p>
+            </div>
           </div>
-          <Button 
-            variant="outline" 
-            size="sm"
-            className="group relative overflow-hidden border-primary/50 text-primary hover:text-white hover:border-primary transition-all duration-300"
-            onClick={() => navigate(`/talentos/perfil/${talent.id}`)}
-          >
-            <span className="relative z-10 flex items-center gap-1">
-              <Eye className="h-3 w-3" />
-              Ver mais
-            </span>
-            <div className="absolute inset-0 bg-gradient-primary translate-x-full group-hover:translate-x-0 transition-transform duration-300" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Ações</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => navigate(`/talentos/perfil/${talent.id}`)}>
+                <Eye className="mr-2 h-4 w-4" />
+                Ver Perfil
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </CardHeader>
+      <CardContent className="pt-0">
+        <div className="space-y-3">
+          <div className="flex flex-col space-y-1">
+            <span className="text-xs text-muted-foreground">Contato</span>
+            <p className="text-sm">{talent.email || 'Email não informado'}</p>
+            <p className="text-sm">{talent.phone || 'Telefone não informado'}</p>
+          </div>
+          
+          <div className="flex flex-col space-y-1">
+            <span className="text-xs text-muted-foreground">Localização</span>
+            <p className="text-sm">
+              {talent.city && talent.uf ? `${talent.city}, ${talent.uf}` : 'Não informado'}
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-2 pt-2">
+            {getStatusBadge()}
+            {getDNAStatus()}
+          </div>
         </div>
       </CardContent>
     </Card>
   )
 }
 
-const TalentSkeleton = () => (
-  <Card className="w-full h-96 overflow-hidden">
-    <div className="relative h-64">
-      <Skeleton className="w-full h-full" />
-    </div>
-    <CardContent className="p-4 space-y-3">
-      <div className="flex items-center justify-between">
-        <div className="flex gap-2">
-          <Skeleton className="h-5 w-16" />
-          <Skeleton className="h-5 w-20" />
-        </div>
-        <Skeleton className="h-8 w-20" />
-      </div>
-    </CardContent>
-  </Card>
-)
-
-export default function Talentos() {
+export default function TalentosPage() {
   const navigate = useNavigate()
   const { toast } = useToast()
-  const [searchTerm, setSearchTerm] = useState("")
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [loading, setLoading] = useState(true)
   const [talents, setTalents] = useState<TalentData[]>([])
-  const [totalPages, setTotalPages] = useState(0)
-  const [total, setTotal] = useState(0)
-  const itemsPerPage = 12
+  const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [filterStatus, setFilterStatus] = useState("all")
+  const [filterDNA, setFilterDNA] = useState("all")
 
-  // Filters state
-  const [selectedGender, setSelectedGender] = useState<string[]>([])
-  const [selectedBodyType, setSelectedBodyType] = useState<string[]>([])
-  const [ageMin, setAgeMin] = useState("")
-  const [ageMax, setAgeMax] = useState("")
-  const [selectedCity, setSelectedCity] = useState("")
-  const [availableForTravel, setAvailableForTravel] = useState<boolean | undefined>(undefined)
+  useEffect(() => {
+    loadTalents()
+  }, [])
 
-  // Filter options
-  const genderOptions = ["masculino", "feminino", "nao-binario", "outros"]
-  const bodyTypeOptions = ["Magro", "Plus Size", "Fitness", "Atlético"]
-
-  // Fetch talents from database
-  const fetchTalents = async () => {
+  const loadTalents = async () => {
     try {
       setLoading(true)
-      const filters = {
-        gender: selectedGender.length > 0 ? selectedGender[0] : undefined,
-        bodyType: selectedBodyType.length > 0 ? selectedBodyType[0] : undefined,
-        ageMin: ageMin ? parseInt(ageMin) : undefined,
-        ageMax: ageMax ? parseInt(ageMax) : undefined,
-        city: selectedCity || undefined,
-        travelAvailability: availableForTravel
-      }
-      
-      const result = await getAllTalents(currentPage, itemsPerPage, searchTerm, filters)
-      setTalents(result.talents)
-      setTotal(result.total)
-      setTotalPages(result.totalPages)
+      const data = await getTalents()
+      setTalents(data)
     } catch (error) {
-      console.error('Erro ao buscar talentos:', error)
+      console.error('Erro ao carregar talentos:', error)
       toast({
         title: "Erro",
         description: "Erro ao carregar talentos",
@@ -146,277 +138,207 @@ export default function Talentos() {
     }
   }
 
-  // Effect to fetch talents when filters change
-  useEffect(() => {
-    fetchTalents()
-  }, [currentPage, searchTerm, selectedGender, selectedBodyType, ageMin, ageMax, selectedCity, availableForTravel])
+  const filteredTalents = useMemo(() => {
+    return talents.filter(talent => {
+      const matchesSearch = talent.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           (talent.email && talent.email.toLowerCase().includes(searchTerm.toLowerCase()))
+      
+      const matchesStatus = filterStatus === "all" || 
+                           (filterStatus === "active" && talent.status) ||
+                           (filterStatus === "inactive" && !talent.status) ||
+                           (filterStatus === "invited" && talent.inviteSent)
+      
+      const matchesDNA = filterDNA === "all" ||
+                        (filterDNA === "complete" && talent.dnaStatus === 'COMPLETE') ||
+                        (filterDNA === "partial" && talent.dnaStatus === 'PARTIAL') ||
+                        (filterDNA === "pending" && talent.dnaStatus === 'UNDEFINED')
+      
+      return matchesSearch && matchesStatus && matchesDNA
+    })
+  }, [talents, searchTerm, filterStatus, filterDNA])
 
-  // Reset to first page when filters change
-  useEffect(() => {
-    if (currentPage !== 1) {
-      setCurrentPage(1)
+  const stats = useMemo(() => {
+    return {
+      total: talents.length,
+      active: talents.filter(t => t.status).length,
+      invited: talents.filter(t => t.inviteSent).length,
+      dnaComplete: talents.filter(t => t.dnaStatus === 'COMPLETE').length
     }
-  }, [searchTerm, selectedGender, selectedBodyType, ageMin, ageMax, selectedCity, availableForTravel])
+  }, [talents])
 
-  const handleGenderChange = (gender: string, checked: boolean) => {
-    if (checked) {
-      setSelectedGender([gender])
-    } else {
-      setSelectedGender([])
-    }
-  }
-
-  const handleBodyTypeChange = (bodyType: string, checked: boolean) => {
-    if (checked) {
-      setSelectedBodyType([bodyType])
-    } else {
-      setSelectedBodyType([])
-    }
-  }
-
-  const clearAllFilters = () => {
-    setSelectedGender([])
-    setSelectedBodyType([])
-    setAgeMin("")
-    setAgeMax("")
-    setSelectedCity("")
-    setAvailableForTravel(undefined)
+  if (loading) {
+    return (
+      <div className="p-6 space-y-6">
+        <div className="flex justify-between items-center">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-10 w-32" />
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map(i => (
+            <Skeleton key={i} className="h-24" />
+          ))}
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map(i => (
+            <Skeleton key={i} className="h-64" />
+          ))}
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
         <div>
           <h1 className="text-3xl font-bold text-gradient-primary">
-            Gestão de Talentos
+            Talentos
           </h1>
           <p className="text-muted-foreground">
-            Gerencie o banco de talentos da agência, adicione novos perfis e acompanhe os cadastros. ({total} talentos)
+            Gerencie e acompanhe todos os talentos cadastrados
           </p>
         </div>
         <Button 
           onClick={() => navigate('/talentos/novo')}
-          className="bg-primary hover:bg-primary/90 shadow-elegant hover:shadow-glow border border-primary/20 backdrop-blur-sm"
+          className="bg-primary/20 backdrop-blur-sm border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground shadow-elegant hover:shadow-glow transition-all duration-300"
         >
-          <Plus className="h-4 w-4 mr-2" />
+          <Plus className="mr-2 h-4 w-4" />
           Novo Talento
         </Button>
       </div>
 
-      {/* Search and Filters */}
-      <Card>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="bg-gradient-subtle border-primary/20">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total de Talentos</CardTitle>
+            <UserPlus className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-primary">{stats.total}</div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-subtle border-primary/20">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Ativos</CardTitle>
+            <CheckCircle2 className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">{stats.active}</div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-subtle border-primary/20">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Convites Enviados</CardTitle>
+            <Clock className="h-4 w-4 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">{stats.invited}</div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-subtle border-primary/20">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">DNA Completo</CardTitle>
+            <Filter className="h-4 w-4 text-purple-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-purple-600">{stats.dnaComplete}</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filters */}
+      <Card className="bg-card/50 backdrop-blur-sm border-primary/20">
         <CardHeader>
-          <CardTitle>Buscar Talentos</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Search Field */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input
-              placeholder="Buscar por nome ou email..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-
-          {/* Advanced Filters Toggle */}
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-              className="flex items-center gap-2"
-            >
-              <Filter className="h-4 w-4" />
-              Filtros Avançados
-            </Button>
-            {(selectedGender.length > 0 || selectedBodyType.length > 0 || ageMin || ageMax || selectedCity || availableForTravel) && (
-              <>
-                <Badge variant="secondary">
-                  {[selectedGender.length, selectedBodyType.length, ageMin ? 1 : 0, ageMax ? 1 : 0, selectedCity ? 1 : 0, availableForTravel ? 1 : 0]
-                    .reduce((a, b) => a + b, 0)} filtros ativos
-                </Badge>
-                 <Button
-                   variant="ghost"
-                   size="sm"
-                   onClick={clearAllFilters}
-                   className="text-muted-foreground hover:text-foreground"
-                 >
-                   Limpar filtros
-                 </Button>
-              </>
-            )}
-          </div>
-
-          {/* Advanced Filters */}
-          {showAdvancedFilters && (
-            <Tabs defaultValue="gender" className="w-full">
-              <TabsList className="grid w-full grid-cols-5">
-                <TabsTrigger value="gender">Gênero</TabsTrigger>
-                <TabsTrigger value="body">Corpo</TabsTrigger>
-                <TabsTrigger value="age">Idade</TabsTrigger>
-                <TabsTrigger value="location">Local</TabsTrigger>
-                <TabsTrigger value="travel">Viagem</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="gender" className="space-y-3">
-                <h4 className="font-medium">Gênero</h4>
-                <div className="grid grid-cols-2 gap-3">
-                  {genderOptions.map((gender) => (
-                    <div key={gender} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={gender}
-                        checked={selectedGender.includes(gender)}
-                        onCheckedChange={(checked) => handleGenderChange(gender, checked as boolean)}
-                      />
-                      <Label htmlFor={gender}>
-                        {gender === 'masculino' ? 'Masculino' : 
-                         gender === 'feminino' ? 'Feminino' : 
-                         gender === 'nao-binario' ? 'Não Binário' : 'Outros'}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="body" className="space-y-3">
-                <h4 className="font-medium">Tipo Corporal</h4>
-                <div className="grid grid-cols-2 gap-3">
-                  {bodyTypeOptions.map((bodyType) => (
-                    <div key={bodyType} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={bodyType}
-                        checked={selectedBodyType.includes(bodyType)}
-                        onCheckedChange={(checked) => handleBodyTypeChange(bodyType, checked as boolean)}
-                      />
-                      <Label htmlFor={bodyType}>{bodyType}</Label>
-                    </div>
-                  ))}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="age" className="space-y-3">
-                <h4 className="font-medium">Idade</h4>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label htmlFor="ageMin">Idade Mínima</Label>
-                    <Input
-                      id="ageMin"
-                      type="number"
-                      placeholder="18"
-                      value={ageMin}
-                      onChange={(e) => setAgeMin(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="ageMax">Idade Máxima</Label>
-                    <Input
-                      id="ageMax"
-                      type="number"
-                      placeholder="65"
-                      value={ageMax}
-                      onChange={(e) => setAgeMax(e.target.value)}
-                    />
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="location" className="space-y-3">
-                <h4 className="font-medium">Cidade</h4>
-                <Input
-                  placeholder="Digite a cidade..."
-                  value={selectedCity}
-                  onChange={(e) => setSelectedCity(e.target.value)}
-                />
-              </TabsContent>
-
-              <TabsContent value="travel" className="space-y-3">
-                <h4 className="font-medium">Disponibilidade para Viagens</h4>
-                <RadioGroup 
-                  value={availableForTravel?.toString() || "all"}
-                  onValueChange={(value) => setAvailableForTravel(value === "all" ? undefined : value === "true")}
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="all" id="travel-all" />
-                    <Label htmlFor="travel-all">Todos</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="true" id="travel-yes" />
-                    <Label htmlFor="travel-yes">Disponível</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="false" id="travel-no" />
-                    <Label htmlFor="travel-no">Não Disponível</Label>
-                  </div>
-                </RadioGroup>
-              </TabsContent>
-            </Tabs>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Talent Cards */}
-      <Card className="shadow-modern bg-gradient-card border-border/50">
-        <CardHeader>
-          <CardTitle className="text-gradient-primary">Talentos Cadastrados ({total})</CardTitle>
+          <CardTitle className="text-lg">Filtros</CardTitle>
         </CardHeader>
         <CardContent>
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {Array.from({ length: 6 }).map((_, index) => (
-                <TalentSkeleton key={index} />
-              ))}
+          <div className="flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  placeholder="Buscar por nome ou email..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 bg-background/50 border-primary/20 focus:border-primary/40"
+                />
+              </div>
             </div>
-          ) : talents.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {talents.map((talent) => (
-                <TalentCard key={talent.id} talent={talent} navigate={navigate} />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground text-lg">Nenhum talento encontrado com os filtros aplicados.</p>
-              <p className="text-muted-foreground/70 text-sm mt-2">Tente ajustar os filtros ou limpar a busca.</p>
-            </div>
-          )}
+            
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="w-full md:w-48 bg-background/50 border-primary/20">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os Status</SelectItem>
+                <SelectItem value="active">Ativos</SelectItem>
+                <SelectItem value="inactive">Inativos</SelectItem>
+                <SelectItem value="invited">Convite Enviado</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <Select value={filterDNA} onValueChange={setFilterDNA}>
+              <SelectTrigger className="w-full md:w-48 bg-background/50 border-primary/20">
+                <SelectValue placeholder="DNA Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos DNA</SelectItem>
+                <SelectItem value="complete">DNA Completo</SelectItem>
+                <SelectItem value="partial">DNA Parcial</SelectItem>
+                <SelectItem value="pending">DNA Pendente</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-center">
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious 
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                />
-              </PaginationItem>
-              
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <PaginationItem key={page}>
-                  <PaginationLink
-                    onClick={() => setCurrentPage(page)}
-                    isActive={currentPage === page}
-                    className="cursor-pointer"
-                  >
-                    {page}
-                  </PaginationLink>
-                </PaginationItem>
-              ))}
-              
-              <PaginationItem>
-                <PaginationNext 
-                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                  className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
+      {/* Talents Grid */}
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold">
+            {filteredTalents.length} {filteredTalents.length === 1 ? 'talento encontrado' : 'talentos encontrados'}
+          </h2>
         </div>
-      )}
+
+        {filteredTalents.length === 0 ? (
+          <Card className="bg-card/50 backdrop-blur-sm border-primary/20">
+            <CardContent className="flex flex-col items-center justify-center py-16">
+              <UserPlus className="h-16 w-16 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Nenhum talento encontrado</h3>
+              <p className="text-muted-foreground text-center mb-6">
+                {searchTerm || filterStatus !== "all" || filterDNA !== "all" 
+                  ? "Tente ajustar os filtros de busca ou adicione um novo talento."
+                  : "Comece adicionando seu primeiro talento ao sistema."
+                }
+              </p>
+              <Button 
+                onClick={() => navigate('/talentos/novo')}
+                className="bg-primary/20 backdrop-blur-sm border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground shadow-elegant hover:shadow-glow transition-all duration-300"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Adicionar Talento
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredTalents.map((talent) => (
+              <TalentCard 
+                key={talent.id} 
+                talent={talent} 
+                navigate={navigate}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

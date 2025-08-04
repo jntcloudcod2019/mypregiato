@@ -14,15 +14,8 @@ const mockDNAData: Record<string, TalentDNAData> = {
     shirtSize: 'M',
     pantsSize: '40',
     shoeSize: '37',
-    braSize: '36B',
     faceShape: 'Oval',
-    eyeShape: 'Amendoados',
-    noseShape: 'Reto',
-    lipShape: 'Carnudos',
-    tattoos: false,
-    piercings: false,
-    smoker: false,
-    hasChildren: false,
+    travelAvailability: false,
     createdAt: new Date(),
     updatedAt: new Date()
   }
@@ -33,7 +26,7 @@ export const getTalentDNA = async (talentId: string): Promise<TalentDNAData | nu
   return mockDNAData[talentId] || null
 }
 
-export const saveTalentDNA = async (talentId: string, data: Partial<TalentDNAData>): Promise<TalentDNAData> => {
+export const createOrUpdateTalentDNA = async (talentId: string, data: Partial<TalentDNAData>): Promise<TalentDNAData> => {
   await new Promise(resolve => setTimeout(resolve, 500))
   
   const existingDNA = mockDNAData[talentId]
