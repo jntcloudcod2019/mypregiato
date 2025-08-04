@@ -1,27 +1,11 @@
 
-import { prisma } from './prisma'
-import { TalentData, ProducerData, CreateTalentData } from '@/types/talent'
+import { get, post, put, del } from '@/services/api/api'
+import { TalentData, ProducerData, CreateTalentData, UpdateTalentData } from '@/types/talent'
 
 export const getTalents = async (): Promise<TalentData[]> => {
   try {
-    const talents = await prisma.talent.findMany({
-      include: {
-        producer: {
-          select: {
-            id: true,
-            first_name: true,
-            last_name: true,
-            email: true
-          }
-        },
-        dna: true,
-        files: true
-      },
-      orderBy: {
-        createdAt: 'desc'
-      }
-    })
-    return talents as TalentData[]
+    const data = await get<TalentData[]>('/talents')
+    return data
   } catch (error) {
     console.error('Error fetching talents:', error)
     throw new Error('Failed to fetch talents')
@@ -30,22 +14,8 @@ export const getTalents = async (): Promise<TalentData[]> => {
 
 export const getTalentById = async (id: string): Promise<TalentData | null> => {
   try {
-    const talent = await prisma.talent.findUnique({
-      where: { id },
-      include: {
-        producer: {
-          select: {
-            id: true,
-            first_name: true,
-            last_name: true,
-            email: true
-          }
-        },
-        dna: true,
-        files: true
-      }
-    })
-    return talent as TalentData | null
+    const data = await get<TalentData>(`/talents/${id}`)
+    return data
   } catch (error) {
     console.error('Error fetching talent:', error)
     throw new Error('Failed to fetch talent')
@@ -54,52 +24,29 @@ export const getTalentById = async (id: string): Promise<TalentData | null> => {
 
 export const createTalent = async (data: CreateTalentData): Promise<TalentData> => {
   try {
-    const talent = await prisma.talent.create({
-      data: {
-        ...data,
-        inviteSent: false,
-        status: true,
-        dnaStatus: 'UNDEFINED'
-      },
-      include: {
-        producer: {
-          select: {
-            id: true,
-            first_name: true,
-            last_name: true,
-            email: true
-          }
-        },
-        dna: true,
-        files: true
-      }
+    const talent = await post<TalentData>('/talents', {
+      ...data,
+      inviteSent: false,
+      status: true,
+      dnaStatus: 'UNDEFINED'
     })
-    return talent as TalentData
-  } catch (error) {
+    return talent
+  } catch (error: any) {
     console.error('Error creating talent:', error)
+    
+    // Se o erro vem do servidor com uma mensagem específica
+    if (error.response?.data?.error) {
+      throw new Error(error.response.data.error)
+    }
+    
     throw new Error('Failed to create talent')
   }
 }
 
-export const updateTalent = async (id: string, data: Partial<TalentData>): Promise<TalentData | null> => {
+export const updateTalent = async (id: string, data: UpdateTalentData): Promise<TalentData | null> => {
   try {
-    const talent = await prisma.talent.update({
-      where: { id },
-      data,
-      include: {
-        producer: {
-          select: {
-            id: true,
-            first_name: true,
-            last_name: true,
-            email: true
-          }
-        },
-        dna: true,
-        files: true
-      }
-    })
-    return talent as TalentData
+    const talent = await put<TalentData>(`/talents/${id}`, data)
+    return talent
   } catch (error) {
     console.error('Error updating talent:', error)
     throw new Error('Failed to update talent')
@@ -108,15 +55,12 @@ export const updateTalent = async (id: string, data: Partial<TalentData>): Promi
 
 export const checkTalentExists = async (email?: string, document?: string): Promise<boolean> => {
   try {
-    const existingTalent = await prisma.talent.findFirst({
-      where: {
-        OR: [
-          email ? { email } : {},
-          document ? { document } : {}
-        ].filter(condition => Object.keys(condition).length > 0)
-      }
-    })
-    return !!existingTalent
+    const params: Record<string, any> = {}
+    if (email) params.email = email
+    if (document) params.document = document
+    
+    const data = await get<{ exists: boolean }>('/talents/check-exists', params)
+    return data.exists
   } catch (error) {
     console.error('Error checking talent existence:', error)
     return false
@@ -125,25 +69,8 @@ export const checkTalentExists = async (email?: string, document?: string): Prom
 
 export const getProducers = async (): Promise<ProducerData[]> => {
   try {
-    const producers = await prisma.user.findMany({
-      where: {
-        role: {
-          in: ['PRODUCER', 'ADMIN']
-        }
-      },
-      select: {
-        id: true,
-        first_name: true,
-        last_name: true,
-        email: true,
-        clerk_id: true
-      }
-    })
-    
-    return producers.map(producer => ({
-      ...producer,
-      code: `PM-${producer.id.slice(-3).toUpperCase()}`
-    })) as ProducerData[]
+    const data = await get<ProducerData[]>('/producers')
+    return data
   } catch (error) {
     console.error('Error fetching producers:', error)
     return []

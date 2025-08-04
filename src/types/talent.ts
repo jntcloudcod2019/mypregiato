@@ -102,3 +102,5 @@ export interface CreateTalentData {
   age: number
   gender?: string
 }
+
+export type UpdateTalentData = Omit<Partial<TalentData>, 'id' | 'producer' | 'dna' | 'files' | 'updatedAt' | 'createdAt'>
