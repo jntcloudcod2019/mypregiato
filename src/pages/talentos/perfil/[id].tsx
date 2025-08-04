@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
@@ -301,7 +302,7 @@ export default function TalentProfile() {
           <Alert className="border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200 shadow-elegant">
             <CheckCircle className="h-4 w-4" />
             <AlertDescription>
-              Informações de {talent.name} atualizadas com sucesso.
+              Informações de {talent.fullName} atualizadas com sucesso.
             </AlertDescription>
           </Alert>
         </div>
@@ -518,13 +519,13 @@ export default function TalentProfile() {
                     <Label className="text-xs text-muted-foreground">CEP</Label>
                     {isEditing ? (
                       <Input
-                        value={editedTalent.cep}
-                        onChange={(e) => setEditedTalent({...editedTalent, cep: formatCEP(e.target.value)})}
+                        value={editedTalent.postalcode}
+                        onChange={(e) => setEditedTalent({...editedTalent, postalcode: formatCEP(e.target.value)})}
                         maxLength={9}
                         className="mt-1"
                       />
                     ) : (
-                      <p className="text-sm font-medium">{talent.cep}</p>
+                      <p className="text-sm font-medium">{talent.postalcode}</p>
                     )}
                   </div>
                 </div>
@@ -548,8 +549,8 @@ export default function TalentProfile() {
                           />
                           <Input
                             placeholder="UF"
-                            value={editedTalent.state}
-                            onChange={(e) => setEditedTalent({...editedTalent, state: e.target.value})}
+                            value={editedTalent.uf}
+                            onChange={(e) => setEditedTalent({...editedTalent, uf: e.target.value})}
                             maxLength={2}
                           />
                         </div>
@@ -561,8 +562,8 @@ export default function TalentProfile() {
                         <div className="grid grid-cols-2 gap-2">
                           <Input
                             placeholder="Número"
-                            value={editedTalent.number}
-                            onChange={(e) => setEditedTalent({...editedTalent, number: e.target.value})}
+                            value={editedTalent.numberAddress}
+                            onChange={(e) => setEditedTalent({...editedTalent, numberAddress: e.target.value})}
                           />
                           <Input
                             placeholder="Complemento"
@@ -574,9 +575,9 @@ export default function TalentProfile() {
                     ) : (
                       <div className="text-sm space-y-1 mt-1">
                         <p className="font-medium">{talent.street}</p>
-                        <p className="text-muted-foreground">{talent.city}, {talent.state}</p>
+                        <p className="text-muted-foreground">{talent.city}, {talent.uf}</p>
                         <p className="text-muted-foreground">{talent.neighborhood}</p>
-                        <p className="text-muted-foreground">Nº {talent.number} {talent.complement && `- ${talent.complement}`}</p>
+                        <p className="text-muted-foreground">Nº {talent.numberAddress} {talent.complement && `- ${talent.complement}`}</p>
                       </div>
                     )}
                   </div>
@@ -586,20 +587,11 @@ export default function TalentProfile() {
                   <Plane className="h-4 w-4 text-muted-foreground" />
                   <div className="flex-1">
                     <Label className="text-xs text-muted-foreground">Disponível para viagem</Label>
-                    {isEditing ? (
-                      <div className="mt-2">
-                        <Switch
-                          checked={editedTalent.availableForTravel}
-                          onCheckedChange={(checked) => setEditedTalent({...editedTalent, availableForTravel: checked})}
-                        />
-                      </div>
-                    ) : (
-                      <div className="mt-1">
-                        <Badge variant={talent.availableForTravel ? "default" : "secondary"} className="text-xs">
-                          {talent.availableForTravel ? "Sim" : "Não"}
-                        </Badge>
-                      </div>
-                    )}
+                    <div className="mt-1">
+                      <Badge variant={talent.dna?.travelAvailability ? "default" : "secondary"} className="text-xs">
+                        {talent.dna?.travelAvailability ? "Sim" : "Não"}
+                      </Badge>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -639,45 +631,52 @@ export default function TalentProfile() {
                         className="hidden"
                         id="photo-upload"
                       />
-                      <Button size="sm" asChild>
+                      <Button size="sm" asChild disabled={uploadingPhoto}>
                         <label htmlFor="photo-upload" className="cursor-pointer">
                           <Upload className="mr-2 h-4 w-4" />
-                          Adicionar Fotos
+                          {uploadingPhoto ? 'Carregando...' : 'Adicionar Fotos'}
                         </label>
                       </Button>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {talent.photos.map((photo, index) => (
-                      <div key={index} className="relative group">
-                        <div className="aspect-square rounded-lg overflow-hidden bg-muted shadow-md">
-                          <img
-                            src={photo}
-                            alt={`Foto ${index + 1}`}
-                            className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                          />
-                        </div>
-                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            className="text-xs"
-                            onClick={() => handlePhotoDelete(index)}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                    <div className="aspect-square border-2 border-dashed border-muted-foreground/25 rounded-lg flex items-center justify-center cursor-pointer hover:border-primary/50 transition-colors group">
-                      <label htmlFor="photo-upload" className="cursor-pointer flex flex-col items-center gap-2 p-4">
-                        <Plus className="h-8 w-8 text-muted-foreground/50 group-hover:text-primary/50 transition-colors" />
-                        <span className="text-xs text-muted-foreground">Adicionar Foto</span>
-                      </label>
+                  {loadingPhotos ? (
+                    <div className="flex items-center justify-center h-32">
+                      <Loader2 className="h-6 w-6 animate-spin" />
+                      <span className="ml-2">Aguarde um instante...</span>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {talent.files?.filter(file => file.type === 'PHOTO').map((file, index) => (
+                        <div key={file.id} className="relative group">
+                          <div className="aspect-square rounded-lg overflow-hidden bg-muted shadow-md">
+                            <img
+                              src={file.url}
+                              alt={`Foto ${index + 1}`}
+                              className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                            />
+                          </div>
+                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              className="text-xs"
+                              onClick={() => handlePhotoDelete(file.id)}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                      <div className="aspect-square border-2 border-dashed border-muted-foreground/25 rounded-lg flex items-center justify-center cursor-pointer hover:border-primary/50 transition-colors group">
+                        <label htmlFor="photo-upload" className="cursor-pointer flex flex-col items-center gap-2 p-4">
+                          <Plus className="h-8 w-8 text-muted-foreground/50 group-hover:text-primary/50 transition-colors" />
+                          <span className="text-xs text-muted-foreground">Adicionar Foto</span>
+                        </label>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
@@ -688,7 +687,10 @@ export default function TalentProfile() {
                   <CardTitle>Gerar Composite</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CompositeTemplates talent={talent} photos={talent.photos} />
+                  <CompositeTemplates 
+                    talent={talent} 
+                    photos={talent.files?.filter(file => file.type === 'PHOTO').map(file => file.url) || []} 
+                  />
                 </CardContent>
               </Card>
             </TabsContent>
@@ -711,7 +713,7 @@ export default function TalentProfile() {
                       </DialogTrigger>
                       <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
                         <DialogHeader>
-                          <DialogTitle>DNA do Talento - {talent.name}</DialogTitle>
+                          <DialogTitle>DNA do Talento - {talent.fullName}</DialogTitle>
                         </DialogHeader>
                         
                         <Tabs value={activeDNATab} onValueChange={setActiveDNATab}>
@@ -725,76 +727,27 @@ export default function TalentProfile() {
                           <TabsContent value="physical" className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                               <div>
-                                <Label>Formato do Rosto</Label>
-                                <Select defaultValue={talent.dna.physicalCharacteristics.faceShape}>
-                                  <SelectTrigger>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="Oval">Oval</SelectItem>
-                                    <SelectItem value="Redondo">Redondo</SelectItem>
-                                    <SelectItem value="Quadrado">Quadrado</SelectItem>
-                                    <SelectItem value="Triangular">Triangular</SelectItem>
-                                    <SelectItem value="Coração">Coração</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            </div>
-                          </TabsContent>
-
-                          <TabsContent value="body" className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                              <div>
                                 <Label>Altura (m)</Label>
-                                <Input defaultValue={talent.dna.physicalCharacteristics.height} placeholder="1.75" />
+                                <Input 
+                                  value={dnaData.height || ''}
+                                  onChange={(e) => setDnaData({...dnaData, height: e.target.value})}
+                                  placeholder="1.75" 
+                                />
                               </div>
                               <div>
                                 <Label>Peso (kg)</Label>
-                                <Input defaultValue={talent.dna.physicalCharacteristics.weight} placeholder="65" />
-                              </div>
-                              <div>
-                                <Label>Busto (cm)</Label>
-                                <Input defaultValue={talent.dna.physicalCharacteristics.bust} placeholder="90" />
-                              </div>
-                              <div>
-                                <Label>Cintura (cm)</Label>
-                                <Input defaultValue={talent.dna.physicalCharacteristics.waist} placeholder="65" />
-                              </div>
-                              <div>
-                                <Label>Quadril (cm)</Label>
-                                <Input defaultValue={talent.dna.physicalCharacteristics.hip} placeholder="95" />
-                              </div>
-                              <div>
-                                <Label>Tamanho do Sapato</Label>
-                                <Input defaultValue={talent.dna.physicalCharacteristics.shoeSize} placeholder="38" />
-                              </div>
-                              <div>
-                                <Label>Manequim</Label>
-                                <Input defaultValue={talent.dna.physicalCharacteristics.dressSize} placeholder="M" />
-                              </div>
-                            </div>
-                          </TabsContent>
-
-                          <TabsContent value="facial" className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                              <div>
-                                <Label>Cor dos Olhos</Label>
-                                <Select defaultValue={talent.dna.facialCharacteristics.eyeColor}>
-                                  <SelectTrigger>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="Azul">Azul</SelectItem>
-                                    <SelectItem value="Verde">Verde</SelectItem>
-                                    <SelectItem value="Castanho">Castanho</SelectItem>
-                                    <SelectItem value="Preto">Preto</SelectItem>
-                                    <SelectItem value="Outro">Outro</SelectItem>
-                                  </SelectContent>
-                                </Select>
+                                <Input 
+                                  value={dnaData.weight || ''}
+                                  onChange={(e) => setDnaData({...dnaData, weight: e.target.value})}
+                                  placeholder="65" 
+                                />
                               </div>
                               <div>
                                 <Label>Cor do Cabelo</Label>
-                                <Select defaultValue={talent.dna.facialCharacteristics.hairColor}>
+                                <Select 
+                                  value={dnaData.hairColor || ''} 
+                                  onValueChange={(value) => setDnaData({...dnaData, hairColor: value})}
+                                >
                                   <SelectTrigger>
                                     <SelectValue />
                                   </SelectTrigger>
@@ -808,25 +761,96 @@ export default function TalentProfile() {
                                 </Select>
                               </div>
                               <div>
-                                <Label>Etnia</Label>
-                                <Select defaultValue={talent.dna.facialCharacteristics.ethnicity}>
+                                <Label>Cor dos Olhos</Label>
+                                <Select 
+                                  value={dnaData.eyeColor || ''} 
+                                  onValueChange={(value) => setDnaData({...dnaData, eyeColor: value})}
+                                >
                                   <SelectTrigger>
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    <SelectItem value="Branco">Branco</SelectItem>
-                                    <SelectItem value="Negro">Negro</SelectItem>
-                                    <SelectItem value="Pardo">Pardo</SelectItem>
-                                    <SelectItem value="Amarelo">Amarelo</SelectItem>
-                                    <SelectItem value="Indígena">Indígena</SelectItem>
+                                    <SelectItem value="Azul">Azul</SelectItem>
+                                    <SelectItem value="Verde">Verde</SelectItem>
+                                    <SelectItem value="Castanho">Castanho</SelectItem>
+                                    <SelectItem value="Preto">Preto</SelectItem>
                                     <SelectItem value="Outro">Outro</SelectItem>
                                   </SelectContent>
                                 </Select>
                               </div>
-                              <div className="col-span-2">
+                            </div>
+                          </TabsContent>
+
+                          <TabsContent value="body" className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <Label>Busto/Peito (cm)</Label>
+                                <Input 
+                                  value={dnaData.chestSize || ''}
+                                  onChange={(e) => setDnaData({...dnaData, chestSize: e.target.value})}
+                                  placeholder="90" 
+                                />
+                              </div>
+                              <div>
+                                <Label>Cintura (cm)</Label>
+                                <Input 
+                                  value={dnaData.waistSize || ''}
+                                  onChange={(e) => setDnaData({...dnaData, waistSize: e.target.value})}
+                                  placeholder="65" 
+                                />
+                              </div>
+                              <div>
+                                <Label>Quadril (cm)</Label>
+                                <Input 
+                                  value={dnaData.hipSize || ''}
+                                  onChange={(e) => setDnaData({...dnaData, hipSize: e.target.value})}
+                                  placeholder="95" 
+                                />
+                              </div>
+                              <div>
+                                <Label>Tamanho do Sapato</Label>
+                                <Input 
+                                  value={dnaData.shoeSize || ''}
+                                  onChange={(e) => setDnaData({...dnaData, shoeSize: e.target.value})}
+                                  placeholder="38" 
+                                />
+                              </div>
+                              <div>
+                                <Label>Manequim</Label>
+                                <Input 
+                                  value={dnaData.dressSize || ''}
+                                  onChange={(e) => setDnaData({...dnaData, dressSize: e.target.value})}
+                                  placeholder="M" 
+                                />
+                              </div>
+                            </div>
+                          </TabsContent>
+
+                          <TabsContent value="facial" className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <Label>Formato do Rosto</Label>
+                                <Select 
+                                  value={dnaData.faceShape || ''} 
+                                  onValueChange={(value) => setDnaData({...dnaData, faceShape: value})}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="Oval">Oval</SelectItem>
+                                    <SelectItem value="Redondo">Redondo</SelectItem>
+                                    <SelectItem value="Quadrado">Quadrado</SelectItem>
+                                    <SelectItem value="Triangular">Triangular</SelectItem>
+                                    <SelectItem value="Coração">Coração</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
                                 <Label>Características Étnicas</Label>
                                 <Textarea 
-                                  defaultValue={talent.dna.facialCharacteristics.ethnicDetails}
+                                  value={dnaData.ethnicFeatures || ''}
+                                  onChange={(e) => setDnaData({...dnaData, ethnicFeatures: e.target.value})}
                                   placeholder="Descreva características específicas..."
                                 />
                               </div>
@@ -836,34 +860,29 @@ export default function TalentProfile() {
                           <TabsContent value="other" className="space-y-4">
                             <div className="space-y-4">
                               <div className="flex items-center space-x-2">
-                                <Switch id="tattoos" defaultChecked={talent.dna.otherCharacteristics.tattoos} />
-                                <Label htmlFor="tattoos">Possui Tatuagens</Label>
-                              </div>
-                              <div>
-                                <Label>Descrição das Tatuagens</Label>
-                                <Textarea 
-                                  defaultValue={talent.dna.otherCharacteristics.tattoosDescription}
-                                  placeholder="Descreva as tatuagens..."
+                                <Switch 
+                                  id="travel" 
+                                  checked={dnaData.travelAvailability || false}
+                                  onCheckedChange={(checked) => setDnaData({...dnaData, travelAvailability: checked})}
                                 />
+                                <Label htmlFor="travel">Disponível para viagem</Label>
                               </div>
                               
-                              <div className="flex items-center space-x-2">
-                                <Switch id="piercings" defaultChecked={talent.dna.otherCharacteristics.piercings} />
-                                <Label htmlFor="piercings">Possui Piercings</Label>
-                              </div>
                               <div>
-                                <Label>Descrição dos Piercings</Label>
+                                <Label>Idiomas</Label>
                                 <Textarea 
-                                  defaultValue={talent.dna.otherCharacteristics.piercingsDescription}
-                                  placeholder="Descreva os piercings..."
+                                  value={dnaData.languages || ''}
+                                  onChange={(e) => setDnaData({...dnaData, languages: e.target.value})}
+                                  placeholder="Português, Inglês, Espanhol..."
                                 />
                               </div>
                               
                               <div>
-                                <Label>Habilidades</Label>
+                                <Label>Características Especiais</Label>
                                 <Textarea 
-                                  defaultValue={talent.dna.otherCharacteristics.skills}
-                                  placeholder="Dança, atuação, esportes, etc..."
+                                  value={dnaData.specialFeatures || ''}
+                                  onChange={(e) => setDnaData({...dnaData, specialFeatures: e.target.value})}
+                                  placeholder="Tatuagens, piercings, cicatrizes..."
                                 />
                               </div>
                             </div>
@@ -874,8 +893,8 @@ export default function TalentProfile() {
                           <Button variant="outline" onClick={() => setShowDNADialog(false)}>
                             Cancelar
                           </Button>
-                          <Button onClick={handleDNASave}>
-                            Salvar DNA
+                          <Button onClick={handleDNASave} disabled={savingDNA}>
+                            {savingDNA ? 'Salvando...' : 'Salvar DNA'}
                           </Button>
                         </div>
                       </DialogContent>
@@ -883,7 +902,7 @@ export default function TalentProfile() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  {talent.dna && (
+                  {talent.dna ? (
                     <div className="space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-4">
@@ -891,19 +910,19 @@ export default function TalentProfile() {
                           <div className="grid grid-cols-2 gap-4">
                             <div className="p-3 bg-muted/30 rounded-lg">
                               <span className="text-xs text-muted-foreground">Altura</span>
-                              <p className="font-semibold">{talent.dna.physicalCharacteristics.height}m</p>
+                              <p className="font-semibold">{talent.dna.height || '-'}</p>
                             </div>
                             <div className="p-3 bg-muted/30 rounded-lg">
                               <span className="text-xs text-muted-foreground">Peso</span>
-                              <p className="font-semibold">{talent.dna.physicalCharacteristics.weight}kg</p>
+                              <p className="font-semibold">{talent.dna.weight || '-'}</p>
                             </div>
                             <div className="p-3 bg-muted/30 rounded-lg">
                               <span className="text-xs text-muted-foreground">Manequim</span>
-                              <p className="font-semibold">{talent.dna.physicalCharacteristics.dressSize}</p>
+                              <p className="font-semibold">{talent.dna.dressSize || '-'}</p>
                             </div>
                             <div className="p-3 bg-muted/30 rounded-lg">
                               <span className="text-xs text-muted-foreground">Calçado</span>
-                              <p className="font-semibold">{talent.dna.physicalCharacteristics.shoeSize}</p>
+                              <p className="font-semibold">{talent.dna.shoeSize || '-'}</p>
                             </div>
                           </div>
                         </div>
@@ -913,19 +932,24 @@ export default function TalentProfile() {
                           <div className="grid grid-cols-1 gap-3">
                             <div className="p-3 bg-muted/30 rounded-lg">
                               <span className="text-xs text-muted-foreground">Olhos</span>
-                              <p className="font-semibold">{talent.dna.facialCharacteristics.eyeColor}</p>
+                              <p className="font-semibold">{talent.dna.eyeColor || '-'}</p>
                             </div>
                             <div className="p-3 bg-muted/30 rounded-lg">
                               <span className="text-xs text-muted-foreground">Cabelo</span>
-                              <p className="font-semibold">{talent.dna.facialCharacteristics.hairColor}</p>
+                              <p className="font-semibold">{talent.dna.hairColor || '-'}</p>
                             </div>
                             <div className="p-3 bg-muted/30 rounded-lg">
-                              <span className="text-xs text-muted-foreground">Etnia</span>
-                              <p className="font-semibold">{talent.dna.facialCharacteristics.ethnicity}</p>
+                              <span className="text-xs text-muted-foreground">Formato do Rosto</span>
+                              <p className="font-semibold">{talent.dna.faceShape || '-'}</p>
                             </div>
                           </div>
                         </div>
                       </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <p>Nenhuma informação de DNA cadastrada.</p>
+                      <p className="text-sm">Clique em "Completar DNA" para começar.</p>
                     </div>
                   )}
                 </CardContent>

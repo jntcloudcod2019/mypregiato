@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { useForm } from "react-hook-form"
@@ -46,7 +47,7 @@ const getAddressFromCEP = async (cep: string) => {
       return {
         street: data.logradouro || "",
         city: data.localidade || "",
-        state: data.uf || "",
+        uf: data.uf || "",
         neighborhood: data.bairro || ""
       }
     }
@@ -56,7 +57,7 @@ const getAddressFromCEP = async (cep: string) => {
   return null
 }
 
-// Form validation schema
+// Form validation schema - updated to match database fields
 const formSchema = z.object({
   fullName: z.string().min(2, "Nome completo é obrigatório"),
   document: z.string().min(11, "CPF/CNPJ é obrigatório"),
@@ -146,7 +147,21 @@ export default function NovoTalento() {
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
-    defaultValues: {},
+    defaultValues: {
+      fullName: "",
+      document: "",
+      email: "",
+      phone: "",
+      gender: "",
+      postalcode: "",
+      street: "",
+      city: "",
+      uf: "",
+      neighborhood: "",
+      numberAddress: "",
+      complement: "",
+      producerId: "",
+    },
   })
 
   // Load producers on component mount
@@ -207,14 +222,13 @@ export default function NovoTalento() {
         if (address) {
           form.setValue("street", address.street)
           form.setValue("city", address.city)
-          form.setValue("uf", address.state)
+          form.setValue("uf", address.uf)
           form.setValue("neighborhood", address.neighborhood)
         }
       }
       setIsLoadingCEP(false)
     }
   }
-
 
   const onSubmit = async (data: FormData) => {
     try {
@@ -563,7 +577,7 @@ export default function NovoTalento() {
 
                 <FormField
                   control={form.control}
-                  name="state"
+                  name="uf"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>UF *</FormLabel>
@@ -591,7 +605,7 @@ export default function NovoTalento() {
 
                 <FormField
                   control={form.control}
-                  name="number"
+                  name="numberAddress"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Número *</FormLabel>
@@ -618,61 +632,21 @@ export default function NovoTalento() {
                 />
               </div>
 
-              {/* Disponibilidade para viagem */}
-              <FormField
-                control={form.control}
-                name="availableForTravel"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>
-                        Disponível para viagem
-                      </FormLabel>
-                      <FormDescription>
-                        Marque se o talento está disponível para trabalhos que envolvam viagens
-                      </FormDescription>
-                    </div>
-                  </FormItem>
-                )}
-              />
-
-              {/* Status */}
-              <FormField
-                control={form.control}
-                name="isActive"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>
-                        Ativo
-                      </FormLabel>
-                      <FormDescription>
-                        Marque esta opção para ativar o talento no sistema
-                      </FormDescription>
-                    </div>
-                  </FormItem>
-                )}
-              />
-
               {/* Submit Button */}
               <div className="flex gap-4">
                 <Button 
                   type="submit" 
+                  disabled={isSubmitting}
                   className="flex-1 bg-primary/20 backdrop-blur-sm border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground shadow-elegant hover:shadow-glow transition-all duration-300"
                 >
-                  Salvar
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Salvando...
+                    </>
+                  ) : (
+                    'Salvar'
+                  )}
                 </Button>
                 <Button 
                   type="button" 
