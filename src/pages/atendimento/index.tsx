@@ -418,10 +418,12 @@ export default function AtendimentoPage() {
                           >
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-3">
-                                <Avatar className="h-10 w-10">
-                                  <AvatarImage src={`https://api.dicebear.com/7.x/personas/svg?seed=${talent.fullName}`} />
+                                <Avatar className={cn(
+                                  "h-10 w-10",
+                                  hasUnread && "ring-2 ring-primary/50 ring-offset-2 ring-offset-background animate-pulse"
+                                )}>
                                   <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary text-xs">
-                                    {talent.fullName.slice(0, 2).toUpperCase()}
+                                    <User className="h-5 w-5" />
                                   </AvatarFallback>
                                 </Avatar>
                                 <div className="min-w-0">

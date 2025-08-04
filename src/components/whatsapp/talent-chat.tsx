@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -20,7 +19,8 @@ import {
   MoreVertical,
   X,
   Mic,
-  Image as ImageIcon
+  Image as ImageIcon,
+  User
 } from 'lucide-react'
 import { TalentData } from '@/types/talent'
 import { WhatsAppMessage } from '@/types/whatsapp'
@@ -36,6 +36,7 @@ export const TalentChat: React.FC<TalentChatProps> = ({ talent, onClose }) => {
   const [message, setMessage] = useState('')
   const [isCallActive, setIsCallActive] = useState(false)
   const [isTyping, setIsTyping] = useState(false)
+  const [newMessageAnimation, setNewMessageAnimation] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -51,6 +52,19 @@ export const TalentChat: React.FC<TalentChatProps> = ({ talent, onClose }) => {
       markAsRead()
     }
   }, [conversation, markAsRead])
+
+  // Detectar nova mensagem e aplicar animação
+  useEffect(() => {
+    if (conversation?.messages && conversation.messages.length > 0) {
+      const lastMessage = conversation.messages[conversation.messages.length - 1]
+      if (lastMessage.sender === 'talent') {
+        setNewMessageAnimation(lastMessage.id)
+        setTimeout(() => {
+          setNewMessageAnimation(null)
+        }, 2000)
+      }
+    }
+  }, [conversation?.messages])
 
   // Auto-resize textarea
   useEffect(() => {
@@ -147,9 +161,8 @@ export const TalentChat: React.FC<TalentChatProps> = ({ talent, onClose }) => {
           <div className="flex items-center gap-4">
             <div className="relative">
               <Avatar className="h-12 w-12 ring-2 ring-primary/20 ring-offset-2 ring-offset-background">
-                <AvatarImage src={`https://api.dicebear.com/7.x/personas/svg?seed=${talent.fullName}`} />
                 <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-semibold">
-                  {talent.fullName.slice(0, 2).toUpperCase()}
+                  <User className="h-6 w-6" />
                 </AvatarFallback>
               </Avatar>
               {conversation?.isOnline && (
@@ -210,7 +223,8 @@ export const TalentChat: React.FC<TalentChatProps> = ({ talent, onClose }) => {
               key={msg.id}
               className={cn(
                 "flex animate-fade-in",
-                msg.sender === 'operator' ? 'justify-end' : 'justify-start'
+                msg.sender === 'operator' ? 'justify-end' : 'justify-start',
+                newMessageAnimation === msg.id && msg.sender === 'talent' && "animate-pulse"
               )}
               style={{ animationDelay: `${index * 50}ms` }}
             >
@@ -219,7 +233,8 @@ export const TalentChat: React.FC<TalentChatProps> = ({ talent, onClose }) => {
                   "group relative max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-sm transition-all duration-200 hover:shadow-md",
                   msg.sender === 'operator'
                     ? 'bg-gradient-to-br from-primary to-primary/90 text-primary-foreground rounded-br-md'
-                    : 'bg-gradient-to-br from-card to-muted/50 border border-border/50 rounded-bl-md'
+                    : 'bg-gradient-to-br from-card to-muted/50 border border-border/50 rounded-bl-md',
+                  newMessageAnimation === msg.id && msg.sender === 'talent' && "ring-2 ring-primary/50 ring-offset-2 ring-offset-background"
                 )}
               >
                 {msg.file && (
