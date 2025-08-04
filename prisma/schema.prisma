@@ -1,0 +1,134 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String   @id @default(cuid())
+  clerk_id   String   @unique
+  email      String   @unique
+  first_name String
+  last_name  String
+  image_url  String?
+  role       Role     @default(TALENT)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relação com talentos quando o usuário é produtor
+  talents Talent[] @relation("ProducerTalents")
+
+  @@map("User")
+}
+
+model Talent {
+  id            String    @id @default(cuid())
+  producerId    String?
+  fullName      String
+  email         String?   @unique
+  phone         String?
+  postalcode    String?
+  street        String?
+  neighborhood  String?
+  city          String?
+  numberAddress String?
+  complement    String?
+  uf            String?
+  document      String?   @unique
+  birthDate     DateTime?
+  age           Int       @default(0)
+  gender        String?
+  inviteSent    Boolean   @default(false)
+  status        Boolean   @default(true)
+  dnaStatus     DnaStatus @default(UNDEFINED)
+  inviteSentAt  DateTime?
+  inviteToken   String?
+  clerkInviteId String?
+  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime  @default(now())
+
+  // Relações
+  producer  User?      @relation("ProducerTalents", fields: [producerId], references: [id])
+  dna       TalentDNA?
+  files     File[]     @relation("TalentFiles")
+
+  @@map("Talent")
+}
+
+model TalentDNA {
+  id                   String   @id @default(cuid())
+  talentId             String   @unique
+  height               String?
+  weight               String?
+  hairColor            String?
+  hairType             String?
+  hairLength           String?
+  eyeColor             String?
+  skinTone             String?
+  chestSize            String?
+  waistSize            String?
+  hipSize              String?
+  shoeSize             String?
+  dressSize            String?
+  pantsSize            String?
+  shirtSize            String?
+  jacketSize           String?
+  faceShape            String?
+  ethnicFeatures       String?
+  bodyType             String?
+  specialFeatures      String?
+  accent               String?
+  languages            String?
+  intellectualDisability String?
+  physicalDisability   String?
+  religion             String?
+  travelAvailability   Boolean  @default(false)
+  visualDisability     String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  // Relação
+  talent Talent @relation(fields: [talentId], references: [id], onDelete: Cascade)
+
+  @@map("TalentDNA")
+}
+
+model File {
+  id         String   @id @default(cuid())
+  url        String   @db.LongText
+  type       FileType
+  talentId   String?
+  projectId  String?
+  uploadedAt DateTime @default(now())
+  fileName   String?
+  mimeType   String?
+
+  // Relação
+  talent Talent? @relation("TalentFiles", fields: [talentId], references: [id], onDelete: SetNull)
+
+  @@map("File")
+}
+
+enum Role {
+  ADMIN
+  PRODUCER
+  BOOKER
+  ASSISTANT
+  TALENT
+}
+
+enum DnaStatus {
+  UNDEFINED
+  COMPLETE
+  PARTIAL
+}
+
+enum FileType {
+  PHOTO
+  VIDEO
+  DOCUMENT
+  COMPOSITE
+}
