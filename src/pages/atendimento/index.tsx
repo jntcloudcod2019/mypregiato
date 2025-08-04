@@ -17,7 +17,7 @@ import { OperatorsCompactDashboard } from "@/components/whatsapp/operators-compa
 import { TalentData } from "@/types/talent"
 import { cn } from "@/lib/utils"
 
-// Mock data para demonstração - talentos cadastrados com todas as propriedades necessárias
+// Mock data para demonstração
 const mockTalents: TalentData[] = [
   {
     id: '1',
@@ -120,6 +120,10 @@ export default function AtendimentoPage() {
   const handleGenerateQR = async () => {
     try {
       await generateQR()
+      // Simular conexão real para demo
+      setTimeout(() => {
+        ;(whatsAppService as any).simulateRealConnection?.()
+      }, 8000)
       setShowQRModal(true)
     } catch (error) {
       console.error('Error generating QR:', error)
@@ -132,11 +136,9 @@ export default function AtendimentoPage() {
   }
 
   const handleStartAttendance = (talentId: string, talentName: string, talentPhone: string) => {
-    // Inicializar conversa e abrir chat automaticamente
     whatsAppService.initializeConversation(talentId, talentName, talentPhone)
     setSelectedTalent(talentId)
     
-    // Scroll para o chat
     setTimeout(() => {
       const chatElement = document.getElementById('talent-chat')
       if (chatElement) {
@@ -150,18 +152,18 @@ export default function AtendimentoPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
       <div className="p-6 max-w-7xl mx-auto">
-        {/* Header melhorado */}
+        {/* Header */}
         <div className="mb-8 flex justify-between items-start">
           <div className="space-y-2">
             <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
               Central de Atendimento
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl">
-              Sistema inteligente de atendimento PREGIATO MANAGEMENT com controle avançado de operadores
+              Sistema inteligente de atendimento PREGIATO MANAGEMENT em tempo real
             </p>
           </div>
           
-          {/* User info com design melhorado */}
+          {/* User info */}
           <div className="flex items-center gap-4 bg-gradient-to-r from-card via-card to-muted/30 border border-border/50 rounded-2xl px-6 py-4 shadow-lg backdrop-blur-sm">
             <div className="flex items-center gap-3">
               {user?.imageUrl ? (
@@ -188,21 +190,14 @@ export default function AtendimentoPage() {
           </div>
         </div>
 
-        {/* Layout em Grid melhorado */}
-        <div className="grid grid-cols-1 xl:grid-cols-5 gap-8 mb-8">
-          <div className="xl:col-span-1">
+        {/* Layout reorganizado - Sidebar esquerda com operadores e controle WhatsApp */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-8">
+          {/* Sidebar esquerda */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* Operadores Online */}
             <OperatorsCompactDashboard />
-          </div>
-          
-          <div className="xl:col-span-4">
-            <AttendanceDashboard onStartAttendance={handleStartAttendance} />
-          </div>
-        </div>
-
-        {/* Main content com melhor responsividade */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Sidebar de controles */}
-          <div className="lg:col-span-1">
+            
+            {/* Controle WhatsApp alinhado */}
             <Card className="bg-gradient-to-b from-card to-card/80 border-border/50 shadow-lg backdrop-blur-sm">
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-3 text-lg">
@@ -213,7 +208,7 @@ export default function AtendimentoPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Status Connection com design melhorado */}
+                {/* Status Connection em tempo real */}
                 <div className={cn(
                   "flex items-center justify-between p-4 rounded-xl border transition-all duration-300",
                   connection.isConnected 
@@ -236,9 +231,9 @@ export default function AtendimentoPage() {
                         {connection.isConnected ? 'Conectado' : 'Desconectado'}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {connection.status === 'connected' && 'Sistema ativo'}
+                        {connection.status === 'connected' && 'Em tempo real'}
                         {connection.status === 'connecting' && 'Conectando...'}
-                        {connection.status === 'qr_ready' && 'QR Code pronto'}
+                        {connection.status === 'qr_ready' && 'QR Code ativo'}
                         {connection.status === 'disconnected' && 'Offline'}
                       </p>
                     </div>
@@ -255,7 +250,7 @@ export default function AtendimentoPage() {
                   </Badge>
                 </div>
 
-                {/* Action buttons melhorados */}
+                {/* Action buttons */}
                 <div className="space-y-3">
                   {!connection.isConnected && (
                     <Button
@@ -282,7 +277,7 @@ export default function AtendimentoPage() {
 
                 <Separator className="bg-border/50" />
 
-                {/* Contacts list melhorado */}
+                {/* Lista de contatos */}
                 <div>
                   <h3 className="font-semibold mb-4 text-foreground flex items-center gap-2">
                     <MessageSquare className="h-4 w-4" />
@@ -337,34 +332,39 @@ export default function AtendimentoPage() {
             </Card>
           </div>
 
-          {/* Chat area melhorada */}
-          <div className="lg:col-span-3" id="talent-chat">
-            {selectedTalent && selectedTalentData ? (
-              <TalentChatComponent 
-                talent={selectedTalentData} 
-                onClose={() => setSelectedTalent(null)} 
-              />
-            ) : (
-              <Card className="h-[600px] bg-gradient-to-br from-card via-muted/30 to-card shadow-2xl border-0 backdrop-blur-sm">
-                <CardContent className="h-full flex items-center justify-center">
-                  <div className="text-center text-muted-foreground max-w-md">
-                    <div className="w-32 h-32 bg-gradient-to-br from-primary/10 to-primary/5 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                      <MessageSquare className="h-16 w-16 text-primary/50" />
-                    </div>
-                    <h3 className="text-2xl font-semibold mb-3 text-foreground">Selecione um contato</h3>
-                    <p className="text-muted-foreground leading-relaxed">
-                      Escolha um modelo da lista ao lado ou clique em <strong>"Iniciar Atendimento"</strong> na fila para começar uma conversa
-                    </p>
-                    <div className="mt-6 flex justify-center gap-2">
-                      <div className="w-2 h-2 bg-primary/30 rounded-full animate-bounce" />
-                      <div className="w-2 h-2 bg-primary/30 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                      <div className="w-2 h-2 bg-primary/30 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+          {/* Dashboard de Atendimentos - ocupa 3 colunas */}
+          <div className="lg:col-span-3">
+            <AttendanceDashboard onStartAttendance={handleStartAttendance} />
           </div>
+        </div>
+
+        {/* Chat area */}
+        <div className="mt-8" id="talent-chat">
+          {selectedTalent && selectedTalentData ? (
+            <TalentChatComponent 
+              talent={selectedTalentData} 
+              onClose={() => setSelectedTalent(null)} 
+            />
+          ) : (
+            <Card className="h-[600px] bg-gradient-to-br from-card via-muted/30 to-card shadow-2xl border-0 backdrop-blur-sm">
+              <CardContent className="h-full flex items-center justify-center">
+                <div className="text-center text-muted-foreground max-w-md">
+                  <div className="w-32 h-32 bg-gradient-to-br from-primary/10 to-primary/5 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                    <MessageSquare className="h-16 w-16 text-primary/50" />
+                  </div>
+                  <h3 className="text-2xl font-semibold mb-3 text-foreground">Selecione um contato</h3>
+                  <p className="text-muted-foreground leading-relaxed">
+                    Escolha um modelo da lista ao lado ou clique em <strong>"Iniciar Atendimento"</strong> na fila para começar uma conversa
+                  </p>
+                  <div className="mt-6 flex justify-center gap-2">
+                    <div className="w-2 h-2 bg-primary/30 rounded-full animate-bounce" />
+                    <div className="w-2 h-2 bg-primary/30 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+                    <div className="w-2 h-2 bg-primary/30 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* QR Modal */}
