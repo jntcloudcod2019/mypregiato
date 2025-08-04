@@ -1,5 +1,7 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { FileText, Users, Calendar, TrendingUp } from "lucide-react"
+import AttendanceFlowWidget from "@/components/dashboard/attendance-flow-widget"
 
 export default function Dashboard() {
   const stats = [
@@ -61,6 +63,17 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      {/* Fluxo de Atendimento em Tempo Real */}
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <h2 className="text-2xl font-bold tracking-tight">Fluxo de Atendimento</h2>
+          <p className="text-muted-foreground">
+            Acompanhe o atendimento ao cliente em tempo real
+          </p>
+        </div>
+        <AttendanceFlowWidget />
       </div>
 
       {/* Recent Activity */}
