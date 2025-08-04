@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { Search, Filter, ChevronLeft, ChevronRight, Eye, Plus, Loader2 } from "lucide-react"
@@ -115,11 +116,6 @@ export default function Talentos() {
   // Filter options
   const genderOptions = ["masculino", "feminino", "nao-binario", "outros"]
   const bodyTypeOptions = ["Magro", "Plus Size", "Fitness", "Atlético"]
-  const hairColorOptions = ["Loiro", "Castanho", "Preto", "Ruivo", "Outro"]
-  const eyeColorOptions = ["Azul", "Verde", "Castanho", "Preto", "Outro"]
-  const ethnicityOptions = ["Branco", "Negro", "Pardo", "Amarelo", "Indígena", "Outro"]
-  const expressivenessOptions = ["Baixa", "Média", "Alta"]
-  const disabilityOptions = ["Nenhuma", "Visual", "Auditiva", "Física", "Intelectual", "Múltipla"]
 
   // Fetch talents from database
   const fetchTalents = async () => {
@@ -256,32 +252,32 @@ export default function Talentos() {
           {/* Advanced Filters */}
           {showAdvancedFilters && (
             <Tabs defaultValue="gender" className="w-full">
-              <TabsList className="grid w-full grid-cols-7">
+              <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="gender">Gênero</TabsTrigger>
                 <TabsTrigger value="body">Corpo</TabsTrigger>
                 <TabsTrigger value="age">Idade</TabsTrigger>
                 <TabsTrigger value="location">Local</TabsTrigger>
-                 <TabsTrigger value="travel">Viagem</TabsTrigger>
+                <TabsTrigger value="travel">Viagem</TabsTrigger>
               </TabsList>
 
               <TabsContent value="gender" className="space-y-3">
                 <h4 className="font-medium">Gênero</h4>
-                 <div className="grid grid-cols-2 gap-3">
-                   {genderOptions.map((gender) => (
-                     <div key={gender} className="flex items-center space-x-2">
-                       <Checkbox
-                         id={gender}
-                         checked={selectedGender.includes(gender)}
-                         onCheckedChange={(checked) => handleGenderChange(gender, checked as boolean)}
-                       />
-                       <Label htmlFor={gender}>
-                         {gender === 'masculino' ? 'Masculino' : 
-                          gender === 'feminino' ? 'Feminino' : 
-                          gender === 'nao-binario' ? 'Não Binário' : 'Outros'}
-                       </Label>
-                     </div>
-                   ))}
-                 </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {genderOptions.map((gender) => (
+                    <div key={gender} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={gender}
+                        checked={selectedGender.includes(gender)}
+                        onCheckedChange={(checked) => handleGenderChange(gender, checked as boolean)}
+                      />
+                      <Label htmlFor={gender}>
+                        {gender === 'masculino' ? 'Masculino' : 
+                         gender === 'feminino' ? 'Feminino' : 
+                         gender === 'nao-binario' ? 'Não Binário' : 'Outros'}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
               </TabsContent>
 
               <TabsContent value="body" className="space-y-3">
@@ -335,73 +331,25 @@ export default function Talentos() {
                 />
               </TabsContent>
 
-
-                  <div className="space-y-3">
-                    <h4 className="font-medium">Cor dos Olhos</h4>
-                    <div className="space-y-2">
-                      {eyeColorOptions.map((color) => (
-                        <div key={color} className="flex items-center space-x-2">
-                          <Checkbox id={`eye-${color}`} />
-                          <Label htmlFor={`eye-${color}`}>{color}</Label>
-                        </div>
-                      ))}
-                    </div>
+              <TabsContent value="travel" className="space-y-3">
+                <h4 className="font-medium">Disponibilidade para Viagens</h4>
+                <RadioGroup 
+                  value={availableForTravel?.toString() || "all"}
+                  onValueChange={(value) => setAvailableForTravel(value === "all" ? undefined : value === "true")}
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="all" id="travel-all" />
+                    <Label htmlFor="travel-all">Todos</Label>
                   </div>
-
-                  <div className="space-y-3">
-                    <h4 className="font-medium">Etnia/Raça</h4>
-                    <div className="space-y-2">
-                      {ethnicityOptions.map((ethnicity) => (
-                        <div key={ethnicity} className="flex items-center space-x-2">
-                          <Checkbox id={`ethnicity-${ethnicity}`} />
-                          <Label htmlFor={`ethnicity-${ethnicity}`}>{ethnicity}</Label>
-                        </div>
-                      ))}
-                    </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="true" id="travel-yes" />
+                    <Label htmlFor="travel-yes">Disponível</Label>
                   </div>
-
-                  <div className="space-y-3">
-                    <h4 className="font-medium">Nível de Expressividade</h4>
-                    <div className="space-y-2">
-                      {expressivenessOptions.map((level) => (
-                        <div key={level} className="flex items-center space-x-2">
-                          <Checkbox id={`expr-${level}`} />
-                          <Label htmlFor={`expr-${level}`}>{level}</Label>
-                        </div>
-                      ))}
-                    </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="false" id="travel-no" />
+                    <Label htmlFor="travel-no">Não Disponível</Label>
                   </div>
-                </div>
-
-                <div className="border-t pt-4">
-                  <h4 className="font-medium mb-3">Métricas Físicas (Biometria)</h4>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <div>
-                      <Label htmlFor="height">Altura (m)</Label>
-                      <Input id="height" placeholder="1.75" />
-                    </div>
-                    <div>
-                      <Label htmlFor="bust">Busto (cm)</Label>
-                      <Input id="bust" placeholder="90" />
-                    </div>
-                    <div>
-                      <Label htmlFor="waist">Cintura (cm)</Label>
-                      <Input id="waist" placeholder="60" />
-                    </div>
-                    <div>
-                      <Label htmlFor="hip">Quadril (cm)</Label>
-                      <Input id="hip" placeholder="90" />
-                    </div>
-                    <div>
-                      <Label htmlFor="shoeSize">Sapato</Label>
-                      <Input id="shoeSize" placeholder="38" />
-                    </div>
-                    <div>
-                      <Label htmlFor="size">Manequim</Label>
-                      <Input id="size" placeholder="M" />
-                    </div>
-                  </div>
-                </div>
+                </RadioGroup>
               </TabsContent>
             </Tabs>
           )}
@@ -411,12 +359,18 @@ export default function Talentos() {
       {/* Talent Cards */}
       <Card className="shadow-modern bg-gradient-card border-border/50">
         <CardHeader>
-          <CardTitle className="text-gradient-primary">Talentos Cadastrados ({filteredTalents.length})</CardTitle>
+          <CardTitle className="text-gradient-primary">Talentos Cadastrados ({total})</CardTitle>
         </CardHeader>
         <CardContent>
-          {paginatedTalents.length > 0 ? (
+          {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {paginatedTalents.map((talent) => (
+              {Array.from({ length: 6 }).map((_, index) => (
+                <TalentSkeleton key={index} />
+              ))}
+            </div>
+          ) : talents.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {talents.map((talent) => (
                 <TalentCard key={talent.id} talent={talent} navigate={navigate} />
               ))}
             </div>
