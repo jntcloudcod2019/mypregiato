@@ -59,77 +59,104 @@ export const generateContractPDF = async (
         break
     }
     
-    console.log('[CONTRACT] Template HTML gerado, gerando PDF otimizado...')
+    console.log('[CONTRACT] Template HTML gerado, iniciando renderização...')
     
-    const pdf = new jsPDF('p', 'mm', 'a4')
-    
-    // Configurações otimizadas do PDF
-    const pageWidth = pdf.internal.pageSize.getWidth()
-    const pageHeight = pdf.internal.pageSize.getHeight()
-    const margin = 15
-    const contentWidth = pageWidth - (margin * 2)
-    
-    // Processar o HTML com configurações otimizadas para reduzir tamanho
+    // Criar elemento temporário com configurações melhoradas
     const tempDiv = document.createElement('div')
     tempDiv.innerHTML = htmlContent
-    tempDiv.style.position = 'absolute'
-    tempDiv.style.left = '-9999px'
-    tempDiv.style.top = '0'
-    tempDiv.style.width = `${contentWidth * 3}px` // Reduzido de 3.78 para 3
-    tempDiv.style.backgroundColor = 'white'
+    tempDiv.style.position = 'fixed'
+    tempDiv.style.top = '-10000px'
+    tempDiv.style.left = '0'
+    tempDiv.style.width = '794px' // A4 width em pixels (210mm * 3.78)
+    tempDiv.style.maxWidth = '794px'
+    tempDiv.style.backgroundColor = '#ffffff'
     tempDiv.style.fontFamily = 'Arial, sans-serif'
-    tempDiv.style.fontSize = '12px' // Reduzido de 14px para 12px
-    tempDiv.style.lineHeight = '1.4' // Reduzido de 1.6 para 1.4
+    tempDiv.style.fontSize = '14px'
+    tempDiv.style.lineHeight = '1.6'
     tempDiv.style.color = '#000000'
-    tempDiv.style.padding = '15px' // Reduzido de 20px para 15px
+    tempDiv.style.padding = '20px'
     tempDiv.style.boxSizing = 'border-box'
+    tempDiv.style.zIndex = '-1000'
+    tempDiv.style.visibility = 'hidden'
+    
     document.body.appendChild(tempDiv)
     
-    // Aguardar renderização completa
-    await new Promise(resolve => setTimeout(resolve, 300))
+    console.log('[CONTRACT] Elemento adicionado ao DOM, aguardando renderização...')
     
-    console.log('[CONTRACT] Capturando conteúdo com resolução otimizada...')
+    // Aguardar renderização completa com mais tempo
+    await new Promise(resolve => setTimeout(resolve, 500))
+    
+    // Verificar se o elemento foi renderizado
+    const computedStyle = window.getComputedStyle(tempDiv)
+    console.log('[CONTRACT] Elemento renderizado - altura:', tempDiv.offsetHeight, 'cor:', computedStyle.color)
+    
+    let pdfBase64: string
     
     try {
-      // Capturar com configurações otimizadas para menor tamanho
+      console.log('[CONTRACT] Capturando conteúdo com html2canvas...')
+      
+      // Configurações otimizadas para captura
       const canvas = await html2canvas(tempDiv, {
-        scale: 1.2, // Reduzido de 2 para 1.2 para menor tamanho
+        scale: 2,
         useCORS: true,
-        allowTaint: false,
+        allowTaint: true,
         backgroundColor: '#ffffff',
-        logging: false,
-        imageTimeout: 8000,
+        logging: true,
+        imageTimeout: 15000,
         removeContainer: false,
         width: tempDiv.scrollWidth,
         height: tempDiv.scrollHeight,
         windowWidth: tempDiv.scrollWidth,
         windowHeight: tempDiv.scrollHeight,
-        // Configurações adicionais para otimização
-        foreignObjectRendering: true,
-        ignoreElements: (element) => {
-          // Ignorar elementos que podem causar problemas de renderização
-          return element.tagName === 'IFRAME' || element.tagName === 'SCRIPT'
+        onclone: (clonedDoc) => {
+          // Garantir que o elemento clonado tenha as mesmas propriedades
+          const clonedElement = clonedDoc.querySelector('div')
+          if (clonedElement) {
+            clonedElement.style.visibility = 'visible'
+            clonedElement.style.position = 'static'
+            clonedElement.style.backgroundColor = '#ffffff'
+            clonedElement.style.color = '#000000'
+          }
         }
       })
       
       console.log('[CONTRACT] Canvas capturado, dimensões:', canvas.width, 'x', canvas.height)
       
-      // Remover elemento temporário
-      document.body.removeChild(tempDiv)
+      // Verificar se o canvas não está vazio
+      const ctx = canvas.getContext('2d')
+      const imageData = ctx?.getImageData(0, 0, canvas.width, canvas.height)
+      const hasContent = imageData?.data.some((value, index) => {
+        // Verificar se não é apenas pixels brancos ou transparentes
+        const alpha = imageData.data[index * 4 + 3]
+        return alpha > 0 && (
+          imageData.data[index * 4] < 255 || 
+          imageData.data[index * 4 + 1] < 255 || 
+          imageData.data[index * 4 + 2] < 255
+        )
+      })
       
-      // Converter para imagem JPEG com compressão para reduzir tamanho
-      const imgData = canvas.toDataURL('image/jpeg', 0.85) // JPEG com 85% qualidade ao invés de PNG 100%
+      if (!hasContent) {
+        throw new Error('Canvas capturado está vazio ou sem conteúdo visível')
+      }
       
-      // Calcular dimensões
+      // Gerar PDF usando jsPDF
+      const pdf = new jsPDF('p', 'mm', 'a4')
+      const pageWidth = pdf.internal.pageSize.getWidth()
+      const pageHeight = pdf.internal.pageSize.getHeight()
+      const margin = 15
+      const contentWidth = pageWidth - (margin * 2)
+      
+      // Converter canvas para imagem
+      const imgData = canvas.toDataURL('image/png', 1.0)
+      
+      // Calcular dimensões proporcionais
       const imgWidth = contentWidth
       const imgHeight = (canvas.height * imgWidth) / canvas.width
       
-      let yPosition = margin
-      
-      // Verificar se precisa de múltiplas páginas
+      // Adicionar imagem ao PDF
       if (imgHeight <= (pageHeight - (margin * 2))) {
         // Cabe em uma página
-        pdf.addImage(imgData, 'JPEG', margin, yPosition, imgWidth, imgHeight, undefined, 'FAST')
+        pdf.addImage(imgData, 'PNG', margin, margin, imgWidth, imgHeight)
       } else {
         // Múltiplas páginas
         const pageContentHeight = pageHeight - (margin * 2)
@@ -140,25 +167,21 @@ export const generateContractPDF = async (
           const currentPageHeight = Math.min(remainingHeight, pageContentHeight)
           const sourceHeight = (currentPageHeight * canvas.height) / imgHeight
           
-          // Canvas para esta página
+          // Criar canvas para esta página
           const pageCanvas = document.createElement('canvas')
           pageCanvas.width = canvas.width
           pageCanvas.height = sourceHeight
           const pageCtx = pageCanvas.getContext('2d')
           
           if (pageCtx) {
-            // Configurações de qualidade otimizada
-            pageCtx.imageSmoothingEnabled = true
-            pageCtx.imageSmoothingQuality = 'medium'
-            
             pageCtx.drawImage(canvas, 0, sourceY, canvas.width, sourceHeight, 0, 0, canvas.width, sourceHeight)
-            const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.85)
+            const pageImgData = pageCanvas.toDataURL('image/png', 1.0)
             
             if (sourceY > 0) {
               pdf.addPage()
             }
             
-            pdf.addImage(pageImgData, 'JPEG', margin, margin, imgWidth, currentPageHeight, undefined, 'FAST')
+            pdf.addImage(pageImgData, 'PNG', margin, margin, imgWidth, currentPageHeight)
           }
           
           remainingHeight -= currentPageHeight
@@ -166,51 +189,98 @@ export const generateContractPDF = async (
         }
       }
       
+      // Gerar base64
+      const pdfOutput = pdf.output('datauristring')
+      pdfBase64 = pdfOutput.split(',')[1]
+      
     } catch (canvasError) {
-      console.error('[CONTRACT] Erro no html2canvas:', canvasError)
-      // Remover elemento se ainda existir
-      if (document.body.contains(tempDiv)) {
-        document.body.removeChild(tempDiv)
+      console.error('[CONTRACT] Erro no html2canvas, usando fallback:', canvasError)
+      
+      // Fallback: gerar PDF simples com jsPDF
+      const pdf = new jsPDF('p', 'mm', 'a4')
+      const pageWidth = pdf.internal.pageSize.getWidth()
+      const margin = 15
+      
+      // Título
+      pdf.setFontSize(18)
+      pdf.setTextColor(0, 0, 0)
+      
+      let title = 'CONTRATO'
+      switch (contractType) {
+        case 'agenciamento':
+          title = 'CONTRATO DE AGENCIAMENTO'
+          break
+        case 'comprometimento':
+          title = 'CONTRATO DE COMPROMETIMENTO'
+          break
+        case 'super-fotos-menor':
+          title = 'CONTRATO SUPER FOTOS - MENOR DE IDADE'
+          break
+        case 'agenciamento-menor':
+          title = 'CONTRATO DE AGENCIAMENTO - MENOR DE IDADE'
+          break
+        default:
+          title = 'CONTRATO DE PRESTAÇÃO DE SERVIÇOS FOTOGRÁFICOS'
       }
       
-      // Fallback: gerar PDF simples com texto
-      console.log('[CONTRACT] Usando fallback: PDF apenas com texto')
+      pdf.text(title, pageWidth / 2, 30, { align: 'center' })
       
-      pdf.setFontSize(16)
-      pdf.text('CONTRATO', pageWidth / 2, 30, { align: 'center' })
-      
+      // Informações básicas
       pdf.setFontSize(12)
-      const lines = [
-        `Contrato celebrado em ${contractData.cidade}/${contractData.uf}`,
-        `Data: ${contractData.dia} de ${contractData.mes} de ${contractData.ano}`,
-        `Modelo: ${contractData.modelo.fullName}`,
-        `Documento: ${contractData.modelo.document}`,
-        `Email: ${contractData.modelo.email}`,
-        `Telefone: ${contractData.modelo.phone}`,
-        `Duração: ${contractData.duracaoContrato || 12} meses`
-      ]
-      
       let yPos = 50
-      lines.forEach(line => {
-        pdf.text(line, margin, yPos)
-        yPos += 10
-      })
+      
+      const addLine = (text: string) => {
+        pdf.text(text, margin, yPos)
+        yPos += 8
+      }
+      
+      addLine(`Local: ${contractData.cidade}/${contractData.uf}`)
+      addLine(`Data: ${contractData.dia} de ${contractData.mes} de ${contractData.ano}`)
+      addLine('')
+      addLine('MODELO:')
+      addLine(`Nome: ${contractData.modelo.fullName}`)
+      addLine(`Documento: ${contractData.modelo.document}`)
+      addLine(`Email: ${contractData.modelo.email}`)
+      addLine(`Telefone: ${contractData.modelo.phone}`)
+      addLine(`Endereço: ${contractData.modelo.street}, ${contractData.modelo.numberAddress}`)
+      addLine(`${contractData.modelo.neighborhood} - ${contractData.modelo.city}`)
+      addLine(`CEP: ${contractData.modelo.postalcode}`)
+      
+      if (contractData.valorContrato && contractData.valorContrato !== '0,00') {
+        addLine('')
+        addLine(`Valor: R$ ${contractData.valorContrato}`)
+        addLine(`Pagamento: ${contractData.metodoPagamento.join(', ')}`)
+      }
+      
+      if (contractData.duracaoContrato) {
+        addLine(`Duração: ${contractData.duracaoContrato} meses`)
+      }
+      
+      // Assinaturas
+      yPos += 30
+      addLine('_________________________')
+      addLine(contractData.modelo.fullName)
+      addLine('Assinatura do Modelo')
+      
+      yPos += 20
+      addLine('_________________________')
+      addLine('SUPER FOTOS FOTOGRAFIAS LTDA')
+      addLine('Assinatura da Empresa')
+      
+      const pdfOutput = pdf.output('datauristring')
+      pdfBase64 = pdfOutput.split(',')[1]
     }
     
-    // Gerar output em base64 (sempre convertido em base64)
-    const pdfOutput = pdf.output('datauristring')
-    const pdfBase64 = pdfOutput.split(',')[1]
+    // Remover elemento temporário
+    if (document.body.contains(tempDiv)) {
+      document.body.removeChild(tempDiv)
+    }
     
-    console.log('[CONTRACT] PDF gerado e convertido para base64, tamanho:', pdfBase64.length, 'caracteres')
+    console.log('[CONTRACT] PDF gerado com sucesso, tamanho:', pdfBase64.length, 'caracteres')
     
     // Verificar tamanho final
     const sizeInMB = (pdfBase64.length * 3) / (4 * 1024 * 1024)
     console.log(`[CONTRACT] Tamanho final do PDF: ${sizeInMB.toFixed(2)}MB`)
-    
-    // Verificar se ainda está muito grande
-    if (sizeInMB > 20) { // Limite mais conservador
-      console.warn(`[CONTRACT] PDF ainda grande (${sizeInMB.toFixed(2)}MB), mas dentro do limite aceitável`)
-    }
     
     return pdfBase64
     
