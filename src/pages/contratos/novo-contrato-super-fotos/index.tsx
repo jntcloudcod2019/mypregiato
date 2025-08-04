@@ -1,3 +1,4 @@
+
 import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -10,18 +11,17 @@ import { useNavigate } from "react-router-dom"
 import { LoadingSpinner } from "@/components/contratos/loading-spinner"
 import { ContractAlert } from "@/components/contratos/contract-alert"
 import { PaymentFields } from "@/components/contratos/payment-fields"
+import { generateContractPDF } from "@/services/contract-generator"
+import { sendContractToAutentique } from "@/services/autentique-service"
+import { getTalents } from "@/lib/talent-service"
+import { TalentData } from "@/types/talent"
+import { ContractData } from "@/types/contract"
 
 // Mock data - Em produção viria do banco
 const mockProdutores = [
   { id: "1", name: "João Santos", email: "joao@example.com" },
   { id: "2", name: "Ana Costa", email: "ana@example.com" },
   { id: "3", name: "Carlos Oliveira", email: "carlos@example.com" }
-]
-
-const mockModelos = [
-  { id: "1", fullName: "Maria Silva", document: "123.456.789-00", email: "maria@example.com" },
-  { id: "2", fullName: "Pedro Lima", document: "987.654.321-00", email: "pedro@example.com" },
-  { id: "3", fullName: "Laura Santos", document: "456.789.123-00", email: "laura@example.com" }
 ]
 
 const metodosPagemento = [
@@ -41,8 +41,9 @@ const mesesPorExtenso = [
 export default function NovoContratoSuperFotos() {
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
+  const [talents, setTalents] = useState<TalentData[]>([])
   const [alert, setAlert] = useState<{
-    type: "success" | "warning"
+    type: "success" | "warning" | "error"
     title: string
     message: string
     show: boolean
@@ -61,6 +62,19 @@ export default function NovoContratoSuperFotos() {
     paymentData: {}
   })
 
+  // Carregar talentos na inicialização
+  useState(() => {
+    const loadTalents = async () => {
+      try {
+        const talentsData = await getTalents()
+        setTalents(talentsData)
+      } catch (error) {
+        console.error("Erro ao carregar talentos:", error)
+      }
+    }
+    loadTalents()
+  })
+
   const handleMetodoPagamentoChange = (metodo: string) => {
     setFormData(prev => {
       const metodos = prev.metodoPagamento.includes(metodo)
@@ -71,10 +85,10 @@ export default function NovoContratoSuperFotos() {
     })
   }
 
-  const filteredModelos = mockModelos.filter(modelo =>
-    modelo.fullName.toLowerCase().includes(formData.modeloSearch.toLowerCase()) ||
-    modelo.document.includes(formData.modeloSearch) ||
-    modelo.email.toLowerCase().includes(formData.modeloSearch.toLowerCase())
+  const filteredModelos = talents.filter(talent =>
+    talent.fullName.toLowerCase().includes(formData.modeloSearch.toLowerCase()) ||
+    (talent.document && talent.document.includes(formData.modeloSearch)) ||
+    (talent.email && talent.email.toLowerCase().includes(formData.modeloSearch.toLowerCase()))
   )
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -82,30 +96,105 @@ export default function NovoContratoSuperFotos() {
     setIsLoading(true)
     
     try {
-      // Simular verificação de contrato existente
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      console.log('[CONTRATO] Iniciando processo de geração...')
       
-      // Simular resposta da API
-      const existeContrato = Math.random() > 0.7 // 30% chance de existir contrato
-      
-      if (existeContrato) {
+      // Buscar dados do modelo selecionado
+      const selectedModelo = talents.find(t => t.id === formData.modeloId)
+      if (!selectedModelo) {
+        throw new Error('Modelo não encontrado')
+      }
+
+      // Verificar se o modelo tem telefone
+      if (!selectedModelo.phone) {
         setAlert({
-          type: "warning",
-          title: "Contrato Existente",
-          message: "Existe um contrato para este modelo. Para gerar outro é necessário excluir o anterior",
+          type: "error",
+          title: "Dados Incompletos",
+          message: "O modelo selecionado não possui telefone cadastrado. É necessário para envio via WhatsApp.",
           show: true
         })
-      } else {
-        const selectedModelo = mockModelos.find(m => m.id === formData.modeloId)
+        return
+      }
+
+      // Preparar dados do contrato
+      const contractData: ContractData = {
+        cidade: formData.cidade,
+        uf: formData.uf,
+        dia: formData.dia,
+        mes: formData.mes,
+        ano: new Date().getFullYear().toString(),
+        modelo: {
+          id: selectedModelo.id,
+          fullName: selectedModelo.fullName,
+          document: selectedModelo.document || '',
+          email: selectedModelo.email || '',
+          phone: selectedModelo.phone,
+          postalcode: selectedModelo.postalcode || '',
+          street: selectedModelo.street || '',
+          neighborhood: selectedModelo.neighborhood || '',
+          city: selectedModelo.city || '',
+          numberAddress: selectedModelo.numberAddress || '',
+          complement: selectedModelo.complement || ''
+        },
+        valorContrato: formData.paymentData.valor || '0,00',
+        metodoPagamento: formData.metodoPagamento,
+        paymentData: formData.paymentData
+      }
+
+      console.log('[CONTRATO] Dados preparados:', contractData)
+
+      // Gerar PDF
+      console.log('[CONTRATO] Gerando PDF...')
+      const pdfBase64 = await generateContractPDF(contractData)
+      
+      // Enviar para Autentique
+      console.log('[CONTRATO] Enviando para Autentique...')
+      const contractName = `Contrato_SuperFotos_${selectedModelo.fullName.replace(/\s+/g, '_')}_${new Date().getTime()}`
+      
+      const result = await sendContractToAutentique(
+        pdfBase64,
+        contractName,
+        selectedModelo.phone,
+        selectedModelo.fullName
+      )
+
+      if (result.success) {
         setAlert({
-          type: "success", 
-          title: "Contrato Gerado com Sucesso",
-          message: `Contrato de Super Fotos para modelo ${selectedModelo?.fullName} gerado com sucesso.`,
+          type: "success",
+          title: "Contrato Enviado com Sucesso",
+          message: `${result.message}. O contrato foi enviado via WhatsApp para ${selectedModelo.fullName}.`,
+          show: true
+        })
+        
+        // Limpar formulário
+        setFormData({
+          cidade: "",
+          uf: "",
+          dia: "",
+          mes: "",
+          duracaoContrato: "",
+          produtorId: "",
+          modeloId: "",
+          modeloSearch: "",
+          metodoPagamento: [],
+          paymentData: {}
+        })
+      } else {
+        setAlert({
+          type: "error",
+          title: "Erro ao Enviar Contrato",
+          message: result.message,
           show: true
         })
       }
+
     } catch (error) {
       console.error("Erro ao gerar contrato:", error)
+      setAlert({
+        type: "error",
+        title: "Erro ao Gerar Contrato",
+        message: error instanceof Error ? error.message : "Erro desconhecido ao processar contrato",
+        show: true
+      })
     } finally {
       setIsLoading(false)
     }
@@ -113,19 +202,16 @@ export default function NovoContratoSuperFotos() {
 
   const handleDeleteExistingContract = () => {
     setAlert({ ...alert, show: false })
-    // Aqui faria a chamada para deletar o contrato existente
     console.log("Deletando contrato existente...")
   }
 
   const handleKeepBothContracts = () => {
     setAlert({ ...alert, show: false })
-    // Aqui prosseguiria com a geração do novo contrato
     console.log("Mantendo ambos os contratos...")
   }
 
   const handleViewDocument = () => {
     setAlert({ ...alert, show: false })
-    // Aqui abriria o documento gerado
     console.log("Abrindo documento...")
   }
 
@@ -152,7 +238,7 @@ export default function NovoContratoSuperFotos() {
       {alert.show && (
         <div className="mb-6">
           <ContractAlert
-            type={alert.type}
+            type={alert.type as "success" | "warning"}
             title={alert.title}
             message={alert.message}
             onAction={alert.type === "warning" ? handleDeleteExistingContract : handleViewDocument}
@@ -164,7 +250,7 @@ export default function NovoContratoSuperFotos() {
       )}
 
       {isLoading ? (
-        <LoadingSpinner message="Gerando contrato..." />
+        <LoadingSpinner message="Gerando e enviando contrato..." />
       ) : (
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Dados Básicos */}
@@ -368,12 +454,12 @@ export default function NovoContratoSuperFotos() {
             <Button 
               type="submit" 
               className="bg-primary hover:bg-primary/90 min-w-[140px]"
-              disabled={isLoading || formData.metodoPagamento.length === 0}
+              disabled={isLoading || formData.metodoPagamento.length === 0 || !formData.cidade || !formData.uf || !formData.dia || !formData.mes || !formData.modeloId}
             >
               {isLoading ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Gerando...
+                  Processando...
                 </div>
               ) : (
                 "Gerar Contrato"
