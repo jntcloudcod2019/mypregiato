@@ -2,13 +2,18 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Clock, Users, UserCheck, AlertCircle, MessageCircle } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Clock, Users, UserCheck, AlertCircle, MessageCircle, Play } from "lucide-react"
 import { useAttendanceQueue } from "@/hooks/useAttendanceQueue"
 import { useWhatsAppConnection } from "@/hooks/useWhatsAppConnection"
+import { useOperatorStatus } from "@/hooks/useOperatorStatus"
+import { useActiveAttendance } from "@/hooks/useActiveAttendance"
 
 export const AttendanceQueueDashboard = () => {
-  const { queue, totalInQueue, averageWaitTime, attendingCount } = useAttendanceQueue()
+  const { queue, totalInQueue, averageWaitTime, takeFromQueue } = useAttendanceQueue()
   const { connection } = useWhatsAppConnection()
+  const { currentOperator } = useOperatorStatus()
+  const { totalActive } = useActiveAttendance()
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -33,6 +38,13 @@ export const AttendanceQueueDashboard = () => {
     const hours = Math.floor(minutes / 60)
     const mins = minutes % 60
     return `${hours}h ${mins}min`
+  }
+
+  const handleTakeFromQueue = (item: any) => {
+    const success = takeFromQueue(item.id, item.talentName, item.talentPhone)
+    if (success) {
+      console.log(`Atendimento iniciado para ${item.talentName}`)
+    }
   }
 
   if (!connection.isConnected) {
@@ -76,12 +88,12 @@ export const AttendanceQueueDashboard = () => {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-green-800 flex items-center gap-2">
               <UserCheck className="h-4 w-4" />
-              Atendendo
+              Em Atendimento
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-900">{attendingCount}</div>
-            <p className="text-xs text-green-600">em atendimento ativo</p>
+            <div className="text-2xl font-bold text-green-900">{totalActive}</div>
+            <p className="text-xs text-green-600">sendo atendidos agora</p>
           </CardContent>
         </Card>
 
@@ -96,7 +108,7 @@ export const AttendanceQueueDashboard = () => {
             <div className="text-2xl font-bold text-orange-900">
               {averageWaitTime > 0 ? formatWaitTime(averageWaitTime) : '-'}
             </div>
-            <p className="text-xs text-orange-600">de espera</p>
+            <p className="text-xs text-orange-600">de espera na fila</p>
           </CardContent>
         </Card>
 
@@ -104,15 +116,17 @@ export const AttendanceQueueDashboard = () => {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-purple-800 flex items-center gap-2">
               <MessageCircle className="h-4 w-4" />
-              Status
+              Operador
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-sm font-medium text-purple-900">Online</span>
+              <span className="text-sm font-medium text-purple-900">
+                {currentOperator?.name.split(' ')[0] || 'Desconhecido'}
+              </span>
             </div>
-            <p className="text-xs text-purple-600">sistema ativo</p>
+            <p className="text-xs text-purple-600">online e ativo</p>
           </CardContent>
         </Card>
       </div>
@@ -123,7 +137,7 @@ export const AttendanceQueueDashboard = () => {
           <CardHeader>
             <CardTitle className="text-lg font-semibold flex items-center gap-2">
               <Users className="h-5 w-5" />
-              Fila de Atendimento
+              Fila de Espera ({totalInQueue} aguardando)
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -132,7 +146,7 @@ export const AttendanceQueueDashboard = () => {
                 {queue.map((item, index) => (
                   <div
                     key={item.id}
-                    className="flex items-center justify-between p-3 border rounded-lg bg-white hover:bg-gray-50 transition-colors"
+                    className="flex items-center justify-between p-4 border rounded-lg bg-white hover:bg-gray-50 transition-colors"
                   >
                     <div className="flex items-center gap-3">
                       <div className="flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold">
@@ -148,19 +162,30 @@ export const AttendanceQueueDashboard = () => {
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge
-                        variant="outline"
-                        className={`text-white ${getPriorityColor(item.priority)}`}
-                      >
-                        {getPriorityText(item.priority)}
-                      </Badge>
-                      <div className="text-right">
-                        <p className="text-sm font-medium text-gray-700">
-                          {formatWaitTime(item.waitingTime)}
-                        </p>
-                        <p className="text-xs text-gray-500">esperando</p>
+                    <div className="flex items-center gap-3">
+                      <div className="text-center">
+                        <Badge
+                          variant="outline"
+                          className={`text-white ${getPriorityColor(item.priority)} mb-2`}
+                        >
+                          {getPriorityText(item.priority)}
+                        </Badge>
+                        <div className="text-right">
+                          <p className="text-sm font-medium text-gray-700">
+                            {formatWaitTime(item.waitingTime)}
+                          </p>
+                          <p className="text-xs text-gray-500">esperando</p>
+                        </div>
                       </div>
+                      <Button
+                        size="sm"
+                        onClick={() => handleTakeFromQueue(item)}
+                        disabled={!currentOperator}
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        <Play className="h-3 w-3 mr-1" />
+                        Atender
+                      </Button>
                     </div>
                   </div>
                 ))}

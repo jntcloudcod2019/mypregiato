@@ -1,4 +1,5 @@
 import { WhatsAppConnection, WhatsAppMessage, TalentChat } from '@/types/whatsapp'
+import { ActiveAttendance } from '@/hooks/useActiveAttendance'
 
 // WhatsApp connection state
 let connectionState: WhatsAppConnection = {
@@ -8,6 +9,9 @@ let connectionState: WhatsAppConnection = {
 
 // Conversations storage
 const conversations = new Map<string, TalentChat>()
+
+// Active attendances storage
+const activeAttendances = new Map<string, ActiveAttendance>()
 
 // Client info with automatic detection
 let clientInfo: { 
@@ -244,12 +248,10 @@ export class WhatsAppService {
     })
   }
 
-  // Smart QR generation with better detection
   async generateQRCode(): Promise<string> {
     try {
       console.log('📱 Sistema inteligente gerando QR Code...')
       
-      // Reset connection state
       connectionState = {
         isConnected: false,
         status: 'qr_ready',
@@ -259,12 +261,10 @@ export class WhatsAppService {
 
       await new Promise(resolve => setTimeout(resolve, 1500))
 
-      // Generate more realistic QR content
       const timestamp = Date.now()
       const sessionKey = Math.random().toString(36).substr(2, 16)
       const qrContent = `2@${timestamp},${sessionKey},PREGIATO_MANAGEMENT`
       
-      // Generate QR code
       const qrCodeDataURL = await this.generateQRImage(qrContent)
       
       connectionState = {
@@ -276,7 +276,6 @@ export class WhatsAppService {
       this.emit('connection_update', connectionState)
       console.log('✅ QR Code inteligente gerado com sucesso')
 
-      // Smart QR expiration with retry logic
       setTimeout(() => {
         if (connectionState.status === 'qr_ready' && !connectionState.isConnected) {
           this.qrRetryCount++
@@ -290,13 +289,12 @@ export class WhatsAppService {
         }
       }, 60000)
 
-      // Intelligent scan simulation (improved)
-      if (Math.random() > 0.2) { // 80% chance of connection for demo
+      if (Math.random() > 0.2) {
         setTimeout(() => {
           if (connectionState.status === 'qr_ready') {
             this.simulateIntelligentConnection()
           }
-        }, Math.random() * 15000 + 5000) // 5-20 seconds
+        }, Math.random() * 15000 + 5000)
       }
 
       return qrCodeDataURL
@@ -311,7 +309,6 @@ export class WhatsAppService {
     }
   }
 
-  // Generate QR image with better quality
   private async generateQRImage(content: string): Promise<string> {
     const canvas = document.createElement('canvas')
     const ctx = canvas.getContext('2d')
@@ -319,16 +316,13 @@ export class WhatsAppService {
     canvas.height = 300
     
     if (ctx) {
-      // White background
       ctx.fillStyle = '#ffffff'
       ctx.fillRect(0, 0, 300, 300)
       ctx.fillStyle = '#000000'
       
-      // Create more realistic QR pattern
       const blockSize = 6
       for (let i = 0; i < 300; i += blockSize) {
         for (let j = 0; j < 300; j += blockSize) {
-          // Create QR-like patterns with positioning squares
           const isPositionSquare = (i < 60 && j < 60) || 
                                  (i > 240 && j < 60) || 
                                  (i < 60 && j > 240)
@@ -339,7 +333,6 @@ export class WhatsAppService {
         }
       }
       
-      // Add positioning squares
       this.drawPositioningSquare(ctx, 15, 15)
       this.drawPositioningSquare(ctx, 255, 15)
       this.drawPositioningSquare(ctx, 15, 255)
@@ -349,7 +342,6 @@ export class WhatsAppService {
   }
 
   private drawPositioningSquare(ctx: CanvasRenderingContext2D, x: number, y: number) {
-    // Outer square
     ctx.fillRect(x - 15, y - 15, 30, 30)
     ctx.fillStyle = '#ffffff'
     ctx.fillRect(x - 9, y - 9, 18, 18)
@@ -357,7 +349,6 @@ export class WhatsAppService {
     ctx.fillRect(x - 3, y - 3, 6, 6)
   }
 
-  // Intelligent connection simulation
   private async simulateIntelligentConnection() {
     console.log('🤖 Sistema detectou scan do QR! Iniciando conexão inteligente...')
     
@@ -367,10 +358,8 @@ export class WhatsAppService {
     }
     this.emit('connection_update', connectionState)
 
-    // Simulate connection process with intelligence
     await new Promise(resolve => setTimeout(resolve, 3000))
 
-    // Intelligent client detection
     clientInfo = {
       ...clientInfo,
       number: '5511999887766',
@@ -390,24 +379,19 @@ export class WhatsAppService {
     console.log('✅ Sistema inteligente conectado com sucesso!')
     console.log(`📞 Número detectado: ${clientInfo.number}`)
 
-    // Reset retry counters
     this.reconnectAttempts = 0
     this.qrRetryCount = 0
 
-    // Start intelligent handlers
     this.startMessageHandling()
     this.startContactMonitoring()
   }
 
-  // Monitor new contacts trying to reach the server
   private startContactMonitoring() {
     console.log('👥 Sistema inteligente monitorando novos contatos...')
     
-    // Simulate new contacts reaching out with intelligence
     const simulateIntelligentContact = () => {
       if (!connectionState.isConnected) return
 
-      // More realistic contact simulation (10% chance every interval)
       if (Math.random() > 0.9) {
         const contactNumber = `5511${Math.floor(Math.random() * 900000000 + 100000000)}`
         const contactNames = [
@@ -439,24 +423,19 @@ export class WhatsAppService {
         }
       }
 
-      // Schedule next intelligent check
-      setTimeout(simulateIntelligentContact, Math.random() * 45000 + 15000) // 15-60 seconds
+      setTimeout(simulateIntelligentContact, Math.random() * 45000 + 15000)
     }
 
-    // Start monitoring after connection
     setTimeout(simulateIntelligentContact, 10000)
   }
 
-  // Start handling incoming messages
   private startMessageHandling() {
-    // Simulate incoming messages
     const receiveRandomMessage = () => {
       if (!connectionState.isConnected) return
 
       const conversationEntries = Array.from(conversations.entries())
       if (conversationEntries.length === 0) return
 
-      // Random conversation
       const [talentId, conversation] = conversationEntries[Math.floor(Math.random() * conversationEntries.length)]
       
       const mockMessages = [
@@ -482,19 +461,27 @@ export class WhatsAppService {
 
       conversation.messages.push(message)
       conversation.lastMessage = message
-      conversation.unreadCount++
+      
+      // Only increment unread if not being attended
+      const attendance = activeAttendances.get(talentId)
+      if (!attendance) {
+        conversation.unreadCount++
+      } else {
+        // Update attendance message count
+        attendance.messageCount++
+        attendance.lastMessageTime = message.timestamp
+        attendance.status = 'waiting_client'
+        activeAttendances.set(talentId, attendance)
+      }
 
       this.emit('message_received', { talentId, message })
 
-      // Schedule next message
-      setTimeout(receiveRandomMessage, Math.random() * 30000 + 15000) // 15-45 seconds
+      setTimeout(receiveRandomMessage, Math.random() * 30000 + 15000)
     }
 
-    // Start receiving messages after 5 seconds
     setTimeout(receiveRandomMessage, 5000)
   }
 
-  // Send message to talent
   async sendMessage(talentId: string, content: string, type: 'text' | 'image' | 'audio' | 'file' = 'text', file?: any): Promise<WhatsAppMessage> {
     if (!connectionState.isConnected) {
       throw new Error('Servidor WhatsApp PREGIATO MANAGEMENT não está conectado')
@@ -517,7 +504,6 @@ export class WhatsAppService {
       } : undefined
     }
 
-    // Get conversation
     let conversation = conversations.get(talentId)
     if (!conversation) {
       conversation = {
@@ -534,11 +520,19 @@ export class WhatsAppService {
     conversation.messages.push(message)
     conversation.lastMessage = message
 
+    // Update attendance if exists
+    const attendance = activeAttendances.get(talentId)
+    if (attendance) {
+      attendance.messageCount++
+      attendance.lastMessageTime = message.timestamp
+      attendance.status = 'responding'
+      activeAttendances.set(talentId, attendance)
+    }
+
     this.emit('message_sent', { talentId, message })
 
     // Simulate WhatsApp message delivery process
     try {
-      // Simulate network delay
       await new Promise(resolve => setTimeout(resolve, 800))
       
       message.status = 'sent'
@@ -548,7 +542,6 @@ export class WhatsAppService {
       message.status = 'delivered'
       this.emit('message_status_update', { talentId, message })
       
-      // Sometimes mark as read after a delay
       if (Math.random() > 0.3) {
         setTimeout(() => {
           message.status = 'read'
@@ -568,11 +561,31 @@ export class WhatsAppService {
     return message
   }
 
-  // Intelligent disconnect
+  startAttendance(attendance: ActiveAttendance): void {
+    console.log(`🎯 Iniciando atendimento: ${attendance.talentName} por ${attendance.operatorName}`)
+    activeAttendances.set(attendance.talentId, attendance)
+    this.emit('attendance_started', attendance)
+  }
+
+  endAttendance(attendanceId: string): void {
+    const attendance = Array.from(activeAttendances.values()).find(att => att.id === attendanceId)
+    if (attendance) {
+      console.log(`⏹️ Finalizando atendimento: ${attendance.talentName}`)
+      activeAttendances.delete(attendance.talentId)
+      this.emit('attendance_ended', attendance)
+    }
+  }
+
+  getActiveAttendances(): ActiveAttendance[] {
+    return Array.from(activeAttendances.values()).map(attendance => ({
+      ...attendance,
+      duration: Math.floor((Date.now() - new Date(attendance.startTime).getTime()) / 60000)
+    }))
+  }
+
   async disconnect(): Promise<void> {
     console.log('🔌 Sistema inteligente desconectando WhatsApp...')
     
-    // Clear monitoring intervals
     if (this.connectionMonitor) {
       clearInterval(this.connectionMonitor)
       this.connectionMonitor = null
@@ -601,22 +614,22 @@ export class WhatsAppService {
     this.reconnectAttempts = 0
     this.qrRetryCount = 0
     
+    // Clear active attendances on disconnect
+    activeAttendances.clear()
+    
     this.emit('connection_update', connectionState)
     console.log('❌ Sistema inteligente desconectado do WhatsApp')
   }
 
-  // Reset connection with intelligence
   private resetConnection() {
     console.log('🔄 Sistema inteligente resetando conexão...')
     this.disconnect()
     
-    // Restart monitoring after reset
     setTimeout(() => {
       this.startConnectionMonitoring()
     }, 2000)
   }
 
-  // Get connection status with intelligence
   getConnectionStatus(): WhatsAppConnection {
     return { 
       ...connectionState,
@@ -624,12 +637,10 @@ export class WhatsAppService {
     }
   }
 
-  // Get client info with intelligence
   getClientInfo() {
     return { ...clientInfo }
   }
 
-  // Initialize conversation for talent
   initializeConversation(talentId: string, talentName: string, talentPhone: string): TalentChat {
     let conversation = conversations.get(talentId)
     
@@ -640,7 +651,7 @@ export class WhatsAppService {
         talentPhone,
         messages: [],
         unreadCount: 0,
-        isOnline: Math.random() > 0.3 // 70% chance of being online
+        isOnline: Math.random() > 0.3
       }
       conversations.set(talentId, conversation)
     }
@@ -648,12 +659,10 @@ export class WhatsAppService {
     return conversation
   }
 
-  // Get conversation
   getConversation(talentId: string): TalentChat | null {
     return conversations.get(talentId) || null
   }
 
-  // Mark conversation as read
   markAsRead(talentId: string) {
     const conversation = conversations.get(talentId)
     if (conversation) {
@@ -662,7 +671,6 @@ export class WhatsAppService {
     }
   }
 
-  // Get all conversations
   getAllConversations(): TalentChat[] {
     return Array.from(conversations.values()).sort((a, b) => {
       const aTime = a.lastMessage?.timestamp || '0'
@@ -671,12 +679,10 @@ export class WhatsAppService {
     })
   }
 
-  // Check if system has active number connected
   hasActiveNumber(): boolean {
     return connectionState.isConnected && !!clientInfo.number && !!clientInfo.isAuthenticated
   }
 
-  // Get connection health
   getConnectionHealth() {
     if (!connectionState.isConnected) return 'disconnected'
     
@@ -685,13 +691,12 @@ export class WhatsAppService {
     
     const timeSinceLastActivity = Date.now() - new Date(lastActivity).getTime()
     
-    if (timeSinceLastActivity < 60000) return 'excellent' // Less than 1 minute
-    if (timeSinceLastActivity < 300000) return 'good' // Less than 5 minutes
-    if (timeSinceLastActivity < 900000) return 'fair' // Less than 15 minutes
+    if (timeSinceLastActivity < 60000) return 'excellent'
+    if (timeSinceLastActivity < 300000) return 'good'
+    if (timeSinceLastActivity < 900000) return 'fair'
     return 'poor'
   }
 
-  // Handle authentication failures with intelligence
   private handleAuthFailure() {
     console.error('❌ Sistema inteligente detectou falha de autenticação WhatsApp')
     connectionState = {
@@ -703,7 +708,6 @@ export class WhatsAppService {
     this.emit('auth_failure', { message: 'Falha de autenticação detectada. Escaneie o QR novamente.' })
   }
 
-  // Handle disconnection with intelligence
   private handleDisconnection(reason: string) {
     console.log('🔌 Sistema inteligente detectou desconexão:', reason)
     connectionState = {
@@ -714,14 +718,13 @@ export class WhatsAppService {
     this.emit('connection_update', connectionState)
     this.emit('disconnected', { reason })
 
-    // Intelligent auto-reconnect
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++
       console.log(`🔄 Sistema tentando reconexão inteligente ${this.reconnectAttempts}/${this.maxReconnectAttempts}...`)
       
       setTimeout(() => {
         this.checkForRestorableSession()
-      }, 5000 * this.reconnectAttempts) // Exponential backoff
+      }, 5000 * this.reconnectAttempts)
     } else {
       console.log('❌ Sistema esgotou tentativas de reconexão automática')
       this.emit('max_reconnect_attempts', { 
@@ -730,7 +733,6 @@ export class WhatsAppService {
     }
   }
 
-  // Cleanup method
   destroy() {
     console.log('🧹 Destruindo sistema inteligente WhatsApp...')
     
@@ -745,6 +747,7 @@ export class WhatsAppService {
     this.isMonitoring = false
     this.eventListeners.clear()
     conversations.clear()
+    activeAttendances.clear()
     this.contactNotifications.clear()
   }
 }

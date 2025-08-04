@@ -11,6 +11,8 @@ import { whatsAppService } from "@/services/whatsapp-service"
 import { TalentChat as TalentChatComponent } from "@/components/whatsapp/talent-chat"
 import { QRCodeModal } from "@/components/whatsapp/qr-code-modal"
 import { AttendanceQueueDashboard } from "@/components/whatsapp/attendance-queue-dashboard"
+import { OperatorsDashboard } from "@/components/whatsapp/operators-dashboard"
+import { ActiveAttendancesPanel } from "@/components/whatsapp/active-attendances-panel"
 import { TalentData } from "@/types/talent"
 
 // Mock data para demonstração - talentos cadastrados com todas as propriedades necessárias
@@ -122,7 +124,6 @@ export default function AtendimentoPage() {
   }
 
   const handleTalentSelect = (talentId: string, talentName: string, talentPhone: string) => {
-    // Initialize conversation if it doesn't exist
     whatsAppService.initializeConversation(talentId, talentName, talentPhone)
     setSelectedTalent(talentId)
   }
@@ -136,9 +137,15 @@ export default function AtendimentoPage() {
           Central de Atendimento WhatsApp
         </h1>
         <p className="text-gray-600">
-          Sistema inteligente de atendimento PREGIATO MANAGEMENT
+          Sistema inteligente de atendimento PREGIATO MANAGEMENT com controle de operadores
         </p>
       </div>
+
+      {/* Dashboard de Operadores */}
+      <OperatorsDashboard />
+
+      {/* Dashboard de Atendimentos Ativos */}
+      <ActiveAttendancesPanel />
 
       {/* Dashboard de Fila de Atendimento */}
       <AttendanceQueueDashboard />
@@ -255,8 +262,8 @@ export default function AtendimentoPage() {
               <CardContent className="h-full flex items-center justify-center">
                 <div className="text-center text-gray-500">
                   <MessageSquare className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                  <p className="text-lg font-medium mb-2">Selecione um contato</p>
-                  <p className="text-sm">Escolha um modelo da lista para iniciar o atendimento</p>
+                  <p className="text-lg font-medium mb-2">Selecione um contato ou atenda da fila</p>
+                  <p className="text-sm">Escolha um modelo da lista ou clique em "Atender" na fila de espera</p>
                 </div>
               </CardContent>
             </Card>
