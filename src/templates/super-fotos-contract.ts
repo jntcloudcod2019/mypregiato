@@ -233,5 +233,3 @@ Assinatura: <span class="signature-underline"></span>
 
 </body>
 </html>`;
-
-</initial_code>
