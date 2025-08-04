@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -23,6 +22,70 @@ const mockProdutores = [
   { id: "1", name: "João Santos", email: "joao@example.com" },
   { id: "2", name: "Ana Costa", email: "ana@example.com" },
   { id: "3", name: "Carlos Oliveira", email: "carlos@example.com" }
+]
+
+// Mock modelos para teste
+const mockModelos = [
+  {
+    id: "mock_1",
+    fullName: "Ana Silva",
+    email: "ana.silva@email.com",
+    phone: "(11) 99999-1111",
+    document: "123.456.789-01",
+    postalcode: "01310-100",
+    street: "Avenida Paulista",
+    neighborhood: "Bela Vista",
+    city: "São Paulo",
+    numberAddress: "1000",
+    complement: "Apto 101",
+    uf: "SP",
+    age: 25
+  },
+  {
+    id: "mock_2", 
+    fullName: "Marina Costa",
+    email: "marina.costa@email.com",
+    phone: "(11) 99999-2222",
+    document: "987.654.321-01",
+    postalcode: "04038-001",
+    street: "Rua Augusta",
+    neighborhood: "Consolação",
+    city: "São Paulo",
+    numberAddress: "500",
+    complement: null,
+    uf: "SP",
+    age: 28
+  },
+  {
+    id: "mock_3",
+    fullName: "Beatriz Santos",
+    email: "beatriz.santos@email.com", 
+    phone: "(11) 99999-3333",
+    document: "456.789.123-01",
+    postalcode: "22071-900",
+    street: "Avenida Copacabana",
+    neighborhood: "Copacabana",
+    city: "Rio de Janeiro",
+    numberAddress: "200",
+    complement: "Cobertura",
+    uf: "RJ",
+    age: 24
+  },
+  {
+    id: "mock_4",
+    fullName: "Camila Oliveira",
+    email: "camila.oliveira@email.com",
+    phone: "(11) 99999-4444",
+    document: "789.123.456-01",
+    postalcode: "80010-000", 
+    street: "Rua XV de Novembro",
+    neighborhood: "Centro",
+    city: "Curitiba",
+    numberAddress: "300",
+    complement: null,
+    uf: "PR",
+    age: 26
+  }
 ]
 
 const metodosPagemento = [
@@ -73,7 +136,7 @@ export default function NovoContratoSuperFotos() {
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
   const [talents, setTalents] = useState<TalentData[]>([])
-  const [loadingTalents, setLoadingTalents] = useState(true)
+  const [loadingTalents, setLoadingTalents] = useState(false)
   const [pdfPreview, setPdfPreview] = useState<{
     show: boolean
     pdfBase64: string
@@ -103,30 +166,25 @@ export default function NovoContratoSuperFotos() {
     paymentData: {} as PaymentData
   })
 
-  // Carregar talentos na inicialização
-  useEffect(() => {
-    const loadTalents = async () => {
-      try {
-        setLoadingTalents(true)
-        const talentsData = await getTalents()
-        setTalents(talentsData)
-      } catch (error) {
-        console.error("Erro ao carregar talentos:", error)
-        setAlert({
-          type: "error",
-          title: "Erro ao Carregar Talentos",
-          message: "Não foi possível carregar a lista de talentos.",
-          show: true
-        })
-      } finally {
-        setLoadingTalents(false)
-      }
-    }
-    loadTalents()
-  }, [])
+  // Combinar talentos reais com mock models para teste
+  const allModelos = [...talents, ...mockModelos.map(mock => ({
+    ...mock,
+    producerId: null,
+    inviteSent: false,
+    status: true,
+    dnaStatus: 'UNDEFINED' as const,
+    inviteSentAt: null,
+    inviteToken: null,
+    clerkInviteId: null,
+    updatedAt: new Date(),
+    createdAt: new Date(),
+    producer: null,
+    dna: null,
+    files: []
+  }))]
 
   // Filtrar modelos baseado na busca
-  const filteredModelos = talents.filter(talent => {
+  const filteredModelos = allModelos.filter(talent => {
     if (!formData.modeloSearch) return true
     return talent.fullName.toLowerCase().includes(formData.modeloSearch.toLowerCase()) ||
       (talent.document && talent.document.includes(formData.modeloSearch)) ||
@@ -183,7 +241,7 @@ export default function NovoContratoSuperFotos() {
       let selectedModelo: TalentData
       
       if (formData.modeloId) {
-        const found = talents.find(t => t.id === formData.modeloId)
+        const found = allModelos.find(t => t.id === formData.modeloId)
         if (!found) {
           throw new Error('Modelo selecionado não encontrado')
         }
@@ -492,17 +550,16 @@ export default function NovoContratoSuperFotos() {
                           }))
                         }}
                         className="bg-background border-border pr-10"
-                        disabled={loadingTalents}
                       />
                       <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     </div>
                     
                     {/* Seletor de modelos existentes (opcional) */}
-                    {!loadingTalents && talents.length > 0 && (
+                    {allModelos.length > 0 && (
                       <Select 
                         value={formData.modeloId} 
                         onValueChange={(value) => {
-                          const selectedTalent = talents.find(t => t.id === value)
+                          const selectedTalent = allModelos.find(t => t.id === value)
                           setFormData(prev => ({ 
                             ...prev, 
                             modeloId: value,
@@ -511,7 +568,7 @@ export default function NovoContratoSuperFotos() {
                         }}
                       >
                         <SelectTrigger className="bg-background border-border">
-                          <SelectValue placeholder="Ou selecione um modelo existente" />
+                          <SelectValue placeholder="Ou selecione um modelo da lista" />
                         </SelectTrigger>
                         <SelectContent>
                           {filteredModelos.map((modelo) => (
@@ -519,7 +576,7 @@ export default function NovoContratoSuperFotos() {
                               <div className="flex flex-col">
                                 <span className="font-medium">{modelo.fullName}</span>
                                 <span className="text-xs text-muted-foreground">
-                                  {modelo.document || 'Sem documento'} • {modelo.email || 'Sem email'}
+                                  {modelo.document || 'Mock'} • {modelo.email || 'Sem email'}
                                 </span>
                               </div>
                             </SelectItem>
@@ -529,7 +586,7 @@ export default function NovoContratoSuperFotos() {
                     )}
                     
                     <p className="text-xs text-muted-foreground">
-                      Digite o nome do modelo ou selecione um existente. Se digitar um nome, será criado um modelo de teste com dados padrão para o contrato.
+                      Digite o nome do modelo ou selecione um da lista. Modelos mock estão disponíveis para teste.
                     </p>
                   </div>
                 </div>
