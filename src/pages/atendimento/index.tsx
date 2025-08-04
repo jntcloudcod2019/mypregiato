@@ -122,33 +122,103 @@ const AtendimentoPage = () => {
   const [showQRModal, setShowQRModal] = useState(false);
   const [serverInfo, setServerInfo] = useState<any>(null);
   const [newContactAlerts, setNewContactAlerts] = useState<any[]>([]);
+  const [connectionHealth, setConnectionHealth] = useState<string>('disconnected');
+  const [hasActiveNumber, setHasActiveNumber] = useState(false);
 
   const { connection, generateQR, disconnect, isGeneratingQR } = useWhatsAppConnection();
   const { toast } = useToast();
 
-  // Listen for new contact alerts
+  // Listen for intelligent system events
   useEffect(() => {
     const handleNewContactAlert = (contactData: any) => {
-      setNewContactAlerts(prev => [contactData, ...prev].slice(0, 10)); // Keep only last 10
+      setNewContactAlerts(prev => [contactData, ...prev].slice(0, 10));
       toast({
-        title: "Novo Contato!",
-        description: `${contactData.name} entrou em contato: "${contactData.message.substring(0, 50)}..."`,
-        duration: 5000,
+        title: "🔔 Novo Contato Detectado!",
+        description: `${contactData.name} (${contactData.number}): "${contactData.message.substring(0, 50)}..."`,
+        duration: 8000,
       });
     };
 
     const handleClientReady = (data: any) => {
       setServerInfo(data.businessInfo);
+      setHasActiveNumber(data.hasActiveConnection || false);
     };
 
+    const handleSessionRestored = (data: any) => {
+      toast({
+        title: "🤖 Sistema Inteligente",
+        description: "Sessão anterior restaurada automaticamente!",
+        duration: 5000,
+      });
+      setHasActiveNumber(true);
+    };
+
+    const handleNoActiveSession = (data: any) => {
+      toast({
+        title: "ℹ️ Sistema Inteligente",
+        description: "Nenhum número conectado encontrado. Conecte um número para iniciar.",
+        duration: 5000,
+      });
+      setHasActiveNumber(false);
+    };
+
+    const handleConnectionRestored = (data: any) => {
+      toast({
+        title: "✅ Sistema Inteligente",
+        description: data.message,
+        duration: 5000,
+      });
+    };
+
+    const handleHeartbeat = (data: any) => {
+      setConnectionHealth(data.connectionHealth);
+    };
+
+    const handleMaxReconnectAttempts = (data: any) => {
+      toast({
+        title: "⚠️ Sistema Inteligente",
+        description: data.message,
+        variant: "destructive",
+        duration: 10000,
+      });
+    };
+
+    // Register all intelligent system listeners
     whatsAppService.on('new_contact_alert', handleNewContactAlert);
     whatsAppService.on('client_ready', handleClientReady);
+    whatsAppService.on('session_restored', handleSessionRestored);
+    whatsAppService.on('no_active_session', handleNoActiveSession);
+    whatsAppService.on('connection_restored', handleConnectionRestored);
+    whatsAppService.on('heartbeat', handleHeartbeat);
+    whatsAppService.on('max_reconnect_attempts', handleMaxReconnectAttempts);
 
     return () => {
       whatsAppService.off('new_contact_alert', handleNewContactAlert);
       whatsAppService.off('client_ready', handleClientReady);
+      whatsAppService.off('session_restored', handleSessionRestored);
+      whatsAppService.off('no_active_session', handleNoActiveSession);
+      whatsAppService.off('connection_restored', handleConnectionRestored);
+      whatsAppService.off('heartbeat', handleHeartbeat);
+      whatsAppService.off('max_reconnect_attempts', handleMaxReconnectAttempts);
     };
   }, [toast]);
+
+  // Monitor connection status intelligently
+  useEffect(() => {
+    const checkConnectionStatus = () => {
+      const hasActive = whatsAppService.hasActiveNumber();
+      const health = whatsAppService.getConnectionHealth();
+      
+      setHasActiveNumber(hasActive);
+      setConnectionHealth(health);
+    };
+
+    // Check immediately and then every 10 seconds
+    checkConnectionStatus();
+    const interval = setInterval(checkConnectionStatus, 10000);
+
+    return () => clearInterval(interval);
+  }, [connection.isConnected]);
 
   // Load current user and check permissions
   useEffect(() => {
@@ -276,32 +346,59 @@ const AtendimentoPage = () => {
     }
   };
 
-  // Show loading or access denied
-  if (!isLoaded) {
-    return (
-      <div className="p-6 flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p>Carregando...</p>
-        </div>
-      </div>
-    );
-  }
+  // Get connection status display
+  const getConnectionStatusDisplay = () => {
+    if (!connection.isConnected) {
+      return {
+        color: 'bg-red-500',
+        text: 'Desconectado',
+        icon: <WifiOff className="w-4 h-4" />
+      };
+    }
 
-  if (!hasAccess && currentUser) {
-    return (
-      <div className="p-6 flex items-center justify-center min-h-screen">
-        <Card className="p-8 text-center max-w-md">
-          <AlertCircle className="w-16 h-16 text-destructive mx-auto mb-4" />
-          <h2 className="text-xl font-semibold mb-2">Acesso Negado</h2>
-          <p className="text-muted-foreground">
-            Apenas funcionários têm acesso ao sistema de atendimento. 
-            Seu perfil está configurado como: <strong>{currentUser.role}</strong>
-          </p>
-        </Card>
-      </div>
-    );
-  }
+    if (!hasActiveNumber) {
+      return {
+        color: 'bg-yellow-500',
+        text: 'Conectado - Sem Número',
+        icon: <AlertCircle className="w-4 h-4" />
+      };
+    }
+
+    switch (connectionHealth) {
+      case 'excellent':
+        return {
+          color: 'bg-green-500',
+          text: 'Excelente',
+          icon: <Wifi className="w-4 h-4" />
+        };
+      case 'good':
+        return {
+          color: 'bg-green-400',
+          text: 'Boa',
+          icon: <Wifi className="w-4 h-4" />
+        };
+      case 'fair':
+        return {
+          color: 'bg-yellow-500',
+          text: 'Regular',
+          icon: <Wifi className="w-4 h-4" />
+        };
+      case 'poor':
+        return {
+          color: 'bg-orange-500',
+          text: 'Fraca',
+          icon: <AlertCircle className="w-4 h-4" />
+        };
+      default:
+        return {
+          color: 'bg-gray-500',
+          text: 'Desconhecido',
+          icon: <AlertCircle className="w-4 h-4" />
+        };
+    }
+  };
+
+  const connectionStatus = getConnectionStatusDisplay();
 
   return (
     <div className="p-6">
@@ -309,10 +406,10 @@ const AtendimentoPage = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-foreground">
-              Sistema de Atendimento WhatsApp
+              Sistema Inteligente de Atendimento WhatsApp
             </h1>
             <p className="text-muted-foreground mt-1">
-              Central de atendimento PREGIATO MANAGEMENT - Gestão completa de comunicação
+              Central inteligente PREGIATO MANAGEMENT - Detecção automática de conexões
             </p>
           </div>
           
@@ -329,46 +426,95 @@ const AtendimentoPage = () => {
           )}
         </div>
 
-        {/* Server Status and New Contact Alerts */}
-        {connection.isConnected && serverInfo && (
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card className="p-4">
-              <div className="flex items-center gap-3">
+        {/* Intelligent System Status */}
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="p-4">
+            <div className="flex items-center gap-3">
+              <div className={`w-4 h-4 ${connectionStatus.color} rounded-full ${connection.isConnected ? 'animate-pulse' : ''}`} />
+              <div className="flex-1">
+                <h3 className="font-semibold flex items-center gap-2">
+                  {connectionStatus.icon}
+                  Status da Conexão
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {connectionStatus.text}
+                </p>
+              </div>
+            </div>
+            {connection.isConnected && hasActiveNumber && serverInfo?.number && (
+              <div className="mt-2 text-xs text-muted-foreground">
+                📞 {serverInfo.number}
+              </div>
+            )}
+          </Card>
+
+          <Card className="p-4">
+            <div className="flex items-center gap-3">
+              {serverInfo?.profilePicture ? (
                 <Avatar className="h-12 w-12">
                   <AvatarImage src={serverInfo.profilePicture} alt="PREGIATO MANAGEMENT" />
                   <AvatarFallback>PM</AvatarFallback>
                 </Avatar>
-                <div>
-                  <h3 className="font-semibold">{serverInfo.businessName}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Servidor Online • {serverInfo.number || 'Carregando...'}
-                  </p>
-                </div>
-                <div className="ml-auto">
-                  <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium">Novos Contatos</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {newContactAlerts.length} alertas hoje
-                  </p>
-                </div>
-                <Badge variant="secondary" className="bg-blue-500 text-white">
-                  {newContactAlerts.length}
-                </Badge>
-              </div>
-              {newContactAlerts.length > 0 && (
-                <div className="mt-2 text-xs text-muted-foreground">
-                  Último: {new Date(newContactAlerts[0]?.timestamp).toLocaleTimeString('pt-BR')}
+              ) : (
+                <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center">
+                  <MessageCircle className="w-6 h-6 text-muted-foreground" />
                 </div>
               )}
-            </Card>
-          </div>
+              <div>
+                <h3 className="font-semibold">
+                  {serverInfo?.businessName || 'PREGIATO MANAGEMENT'}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {hasActiveNumber ? 'Número Ativo Detectado' : 'Aguardando Conexão'}
+                </p>
+              </div>
+              <div className="ml-auto">
+                {hasActiveNumber ? (
+                  <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                ) : (
+                  <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
+                )}
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-medium flex items-center gap-2">
+                  <Users className="w-4 h-4" />
+                  Novos Contatos
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {newContactAlerts.length} detectados hoje
+                </p>
+              </div>
+              <Badge variant="secondary" className="bg-blue-500 text-white">
+                {newContactAlerts.length}
+              </Badge>
+            </div>
+            {newContactAlerts.length > 0 && (
+              <div className="mt-2 text-xs text-muted-foreground">
+                Último: {new Date(newContactAlerts[0]?.timestamp).toLocaleTimeString('pt-BR')}
+              </div>
+            )}
+          </Card>
+        </div>
+
+        {/* Smart Alerts */}
+        {!hasActiveNumber && connection.isConnected && (
+          <Card className="p-4 mt-4 border-yellow-200 bg-yellow-50">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 text-yellow-600" />
+              <div>
+                <h3 className="font-medium text-yellow-800">Sistema Conectado sem Número Ativo</h3>
+                <p className="text-sm text-yellow-700">
+                  O servidor está conectado mas não foi detectado nenhum número WhatsApp ativo. 
+                  Escaneie o QR Code para ativar um número.
+                </p>
+              </div>
+            </div>
+          </Card>
         )}
       </div>
 
@@ -380,7 +526,10 @@ const AtendimentoPage = () => {
           </TabsTrigger>
           <TabsTrigger value="grupos" className="flex items-center gap-2" disabled={!hasAccess}>
             <Users className="w-4 h-4" />
-            Modelos WhatsApp
+            Sistema Inteligente WhatsApp
+            {hasActiveNumber && (
+              <div className="w-2 h-2 bg-green-500 rounded-full ml-1"></div>
+            )}
           </TabsTrigger>
         </TabsList>
 
@@ -585,30 +734,67 @@ const AtendimentoPage = () => {
 
         <TabsContent value="grupos">
           <div className="space-y-4">
-            {/* WhatsApp Connection Status */}
+            {/* Enhanced WhatsApp Connection Status */}
             <Card className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className={`w-3 h-3 rounded-full ${connection.isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
+                  <div className={`w-4 h-4 rounded-full ${connectionStatus.color} ${connection.isConnected ? 'animate-pulse' : ''}`} />
                   <div>
-                    <h3 className="font-medium">Status Servidor WhatsApp</h3>
+                    <h3 className="font-medium flex items-center gap-2">
+                      {connectionStatus.icon}
+                      Sistema Inteligente WhatsApp
+                    </h3>
                     <p className="text-sm text-muted-foreground">
                       {connection.isConnected 
-                        ? 'PREGIATO MANAGEMENT conectado e operacional' 
-                        : 'Servidor desconectado'
+                        ? hasActiveNumber
+                          ? `PREGIATO MANAGEMENT operacional - Conexão ${connectionStatus.text.toLowerCase()}`
+                          : 'Sistema conectado - Nenhum número WhatsApp detectado'
+                        : 'Sistema desconectado - Aguardando ativação'
                       }
                     </p>
                   </div>
                 </div>
-                <Button 
-                  variant={connection.isConnected ? "outline" : "default"}
-                  onClick={handleConnectWhatsApp}
-                  className="flex items-center gap-2"
-                >
-                  {connection.isConnected ? <WifiOff className="w-4 h-4" /> : <Wifi className="w-4 h-4" />}
-                  {connection.isConnected ? 'Desconectar' : 'Conectar Servidor'}
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Badge variant={hasActiveNumber ? "default" : "secondary"} className={hasActiveNumber ? "bg-green-500 text-white" : ""}>
+                    {hasActiveNumber ? "Número Ativo" : "Sem Número"}
+                  </Badge>
+                  <Button 
+                    variant={connection.isConnected ? "outline" : "default"}
+                    onClick={handleConnectWhatsApp}
+                    className="flex items-center gap-2"
+                  >
+                    {connection.isConnected ? <WifiOff className="w-4 h-4" /> : <Wifi className="w-4 h-4" />}
+                    {connection.isConnected ? 'Desconectar' : 'Conectar Sistema'}
+                  </Button>
+                </div>
               </div>
+              
+              {/* Connection Health Bar */}
+              {connection.isConnected && hasActiveNumber && (
+                <div className="mt-3 pt-3 border-t">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Saúde da Conexão:</span>
+                    <span className={`font-medium ${
+                      connectionHealth === 'excellent' ? 'text-green-600' :
+                      connectionHealth === 'good' ? 'text-green-500' :
+                      connectionHealth === 'fair' ? 'text-yellow-500' :
+                      'text-orange-500'
+                    }`}>
+                      {connectionStatus.text}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                    <div 
+                      className={`h-2 rounded-full transition-all duration-500 ${
+                        connectionHealth === 'excellent' ? 'bg-green-500 w-full' :
+                        connectionHealth === 'good' ? 'bg-green-400 w-3/4' :
+                        connectionHealth === 'fair' ? 'bg-yellow-500 w-1/2' :
+                        'bg-orange-500 w-1/4'
+                      }`}
+                    ></div>
+                  </div>
+                </div>
+              )}
             </Card>
 
             <Tabs defaultValue="modelos">
