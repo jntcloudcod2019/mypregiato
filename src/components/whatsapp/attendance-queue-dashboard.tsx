@@ -1,29 +1,27 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Button } from "@/components/ui/button"
-import { Clock, Users, UserCheck, AlertCircle, MessageCircle, Play } from "lucide-react"
+import { Clock, MessageSquare, AlertTriangle, Phone, PlayCircle } from "lucide-react"
 import { useAttendanceQueue } from "@/hooks/useAttendanceQueue"
-import { useWhatsAppConnection } from "@/hooks/useWhatsAppConnection"
-import { useOperatorStatus } from "@/hooks/useOperatorStatus"
-import { useActiveAttendance } from "@/hooks/useActiveAttendance"
 
-export const AttendanceQueueDashboard = () => {
-  const { queue, totalInQueue, averageWaitTime, takeFromQueue } = useAttendanceQueue()
-  const { connection } = useWhatsAppConnection()
-  const { currentOperator } = useOperatorStatus()
-  const { totalActive } = useActiveAttendance()
+interface AttendanceQueueDashboardProps {
+  onStartAttendance?: (talentId: string, talentName: string, talentPhone: string) => void
+}
 
-  const getPriorityColor = (priority: string) => {
+export const AttendanceQueueDashboard = ({ onStartAttendance }: AttendanceQueueDashboardProps) => {
+  const { queue, totalInQueue, averageWaitTime, attendingCount, takeFromQueue } = useAttendanceQueue()
+
+  const getPriorityColor = (priority: 'normal' | 'high' | 'urgent') => {
     switch (priority) {
-      case 'urgent': return 'bg-red-500'
-      case 'high': return 'bg-yellow-500'
-      default: return 'bg-green-500'
+      case 'urgent': return 'bg-red-500 text-red-50'
+      case 'high': return 'bg-orange-500 text-orange-50'
+      default: return 'bg-blue-500 text-blue-50'
     }
   }
 
-  const getPriorityText = (priority: string) => {
+  const getPriorityText = (priority: 'normal' | 'high' | 'urgent') => {
     switch (priority) {
       case 'urgent': return 'Urgente'
       case 'high': return 'Alta'
@@ -32,180 +30,99 @@ export const AttendanceQueueDashboard = () => {
   }
 
   const formatWaitTime = (minutes: number) => {
-    if (minutes < 60) {
-      return `${minutes}min`
-    }
+    if (minutes < 1) return 'Agora'
+    if (minutes < 60) return `${minutes}min`
     const hours = Math.floor(minutes / 60)
     const mins = minutes % 60
-    return `${hours}h ${mins}min`
+    return `${hours}h${mins > 0 ? ` ${mins}min` : ''}`
   }
 
-  const handleTakeFromQueue = (item: any) => {
-    const success = takeFromQueue(item.id, item.talentName, item.talentPhone)
-    if (success) {
-      console.log(`Atendimento iniciado para ${item.talentName}`)
+  const handleStartAttendance = (talentId: string, talentName: string, talentPhone: string) => {
+    const success = takeFromQueue(talentId, talentName, talentPhone)
+    if (success && onStartAttendance) {
+      onStartAttendance(talentId, talentName, talentPhone)
     }
-  }
-
-  if (!connection.isConnected) {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <Card className="border-red-200 bg-red-50/50">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-red-800 flex items-center gap-2">
-              <AlertCircle className="h-4 w-4" />
-              Sistema Desconectado
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xs text-red-600">
-              Conecte o WhatsApp para iniciar o atendimento
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    )
   }
 
   return (
-    <div className="space-y-4 mb-6">
-      {/* Métricas principais */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="border-blue-200 bg-blue-50/50">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-blue-800 flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Na Fila
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-900">{totalInQueue}</div>
-            <p className="text-xs text-blue-600">pessoas aguardando</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-green-200 bg-green-50/50">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-green-800 flex items-center gap-2">
-              <UserCheck className="h-4 w-4" />
-              Em Atendimento
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-900">{totalActive}</div>
-            <p className="text-xs text-green-600">sendo atendidos agora</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-orange-200 bg-orange-50/50">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-orange-800 flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              Tempo Médio
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-900">
-              {averageWaitTime > 0 ? formatWaitTime(averageWaitTime) : '-'}
-            </div>
-            <p className="text-xs text-orange-600">de espera na fila</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-purple-200 bg-purple-50/50">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-purple-800 flex items-center gap-2">
-              <MessageCircle className="h-4 w-4" />
-              Operador
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-sm font-medium text-purple-900">
-                {currentOperator?.name.split(' ')[0] || 'Desconhecido'}
-              </span>
-            </div>
-            <p className="text-xs text-purple-600">online e ativo</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Fila de atendimento */}
-      {totalInQueue > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Fila de Espera ({totalInQueue} aguardando)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-64">
-              <div className="space-y-3">
-                {queue.map((item, index) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center justify-between p-4 border rounded-lg bg-white hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold">
-                        {index + 1}
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900">{item.talentName}</p>
-                        <p className="text-sm text-gray-500">{item.talentPhone}</p>
-                        {item.lastMessage && (
-                          <p className="text-xs text-gray-400 mt-1 max-w-48 truncate">
-                            "{item.lastMessage}"
-                          </p>
-                        )}
+    <Card className="bg-card border-border mb-6">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-card-foreground">
+          <MessageSquare className="h-5 w-5" />
+          Fila de Atendimento
+        </CardTitle>
+        
+        {/* Métricas da Fila */}
+        <div className="grid grid-cols-3 gap-4 mt-4">
+          <div className="bg-muted/50 rounded-lg p-3 text-center">
+            <div className="text-2xl font-bold text-card-foreground">{totalInQueue}</div>
+            <div className="text-sm text-muted-foreground">Na Fila</div>
+          </div>
+          <div className="bg-muted/50 rounded-lg p-3 text-center">
+            <div className="text-2xl font-bold text-card-foreground">{attendingCount}</div>
+            <div className="text-sm text-muted-foreground">Atendendo</div>
+          </div>
+          <div className="bg-muted/50 rounded-lg p-3 text-center">
+            <div className="text-2xl font-bold text-card-foreground">{averageWaitTime}</div>
+            <div className="text-sm text-muted-foreground">Min Médio</div>
+          </div>
+        </div>
+      </CardHeader>
+      
+      <CardContent>
+        {totalInQueue > 0 ? (
+          <ScrollArea className="h-64">
+            <div className="space-y-3">
+              {queue.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between p-4 border border-border rounded-lg bg-card hover:bg-muted/30 transition-colors"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="flex flex-col items-center">
+                      <Badge className={getPriorityColor(item.priority)}>
+                        {getPriorityText(item.priority)}
+                      </Badge>
+                      <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
+                        <Clock className="h-3 w-3" />
+                        {formatWaitTime(item.waitingTime)}
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <div className="text-center">
-                        <Badge
-                          variant="outline"
-                          className={`text-white ${getPriorityColor(item.priority)} mb-2`}
-                        >
-                          {getPriorityText(item.priority)}
-                        </Badge>
-                        <div className="text-right">
-                          <p className="text-sm font-medium text-gray-700">
-                            {formatWaitTime(item.waitingTime)}
-                          </p>
-                          <p className="text-xs text-gray-500">esperando</p>
-                        </div>
+                    
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-card-foreground">{item.talentName}</h4>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Phone className="h-3 w-3" />
+                        {item.talentPhone}
                       </div>
-                      <Button
-                        size="sm"
-                        onClick={() => handleTakeFromQueue(item)}
-                        disabled={!currentOperator}
-                        className="bg-green-600 hover:bg-green-700 text-white"
-                      >
-                        <Play className="h-3 w-3 mr-1" />
-                        Atender
-                      </Button>
+                      {item.lastMessage && (
+                        <p className="text-sm text-muted-foreground mt-1 truncate max-w-xs">
+                          "{item.lastMessage}"
+                        </p>
+                      )}
                     </div>
                   </div>
-                ))}
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
-      )}
 
-      {totalInQueue === 0 && connection.isConnected && (
-        <Card className="border-green-200 bg-green-50/50">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <UserCheck className="h-8 w-8 text-green-600 mx-auto mb-2" />
-              <p className="text-green-800 font-medium">Nenhuma pessoa na fila</p>
-              <p className="text-sm text-green-600">Todos os atendimentos estão em dia!</p>
+                  <Button
+                    onClick={() => handleStartAttendance(item.id, item.talentName, item.talentPhone)}
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                    size="sm"
+                  >
+                    <PlayCircle className="h-4 w-4 mr-2" />
+                    Iniciar Atendimento
+                  </Button>
+                </div>
+              ))}
             </div>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+          </ScrollArea>
+        ) : (
+          <div className="text-center py-12 text-muted-foreground">
+            <MessageSquare className="h-12 w-12 mx-auto mb-3 opacity-50" />
+            <p className="text-lg font-medium mb-2">Fila vazia</p>
+            <p className="text-sm">Nenhum cliente aguardando atendimento no momento</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   )
 }

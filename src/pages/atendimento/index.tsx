@@ -11,7 +11,7 @@ import { whatsAppService } from "@/services/whatsapp-service"
 import { TalentChat as TalentChatComponent } from "@/components/whatsapp/talent-chat"
 import { QRCodeModal } from "@/components/whatsapp/qr-code-modal"
 import { AttendanceQueueDashboard } from "@/components/whatsapp/attendance-queue-dashboard"
-import { OperatorsDashboard } from "@/components/whatsapp/operators-dashboard"
+import { OperatorsCompactDashboard } from "@/components/whatsapp/operators-compact-dashboard"
 import { ActiveAttendancesPanel } from "@/components/whatsapp/active-attendances-panel"
 import { TalentData } from "@/types/talent"
 
@@ -128,53 +128,74 @@ export default function AtendimentoPage() {
     setSelectedTalent(talentId)
   }
 
+  const handleStartAttendance = (talentId: string, talentName: string, talentPhone: string) => {
+    // Inicializar conversa e abrir chat automaticamente
+    whatsAppService.initializeConversation(talentId, talentName, talentPhone)
+    setSelectedTalent(talentId)
+    
+    // Scroll para o chat
+    setTimeout(() => {
+      const chatElement = document.getElementById('talent-chat')
+      if (chatElement) {
+        chatElement.scrollIntoView({ behavior: 'smooth' })
+      }
+    }, 100)
+  }
+
   const selectedTalentData = selectedTalent ? mockTalents.find(t => t.id === selectedTalent) : null
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-6 max-w-7xl mx-auto bg-background min-h-screen">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <h1 className="text-3xl font-bold text-foreground mb-2">
           Central de Atendimento WhatsApp
         </h1>
-        <p className="text-gray-600">
+        <p className="text-muted-foreground">
           Sistema inteligente de atendimento PREGIATO MANAGEMENT com controle de operadores
         </p>
       </div>
 
-      {/* Dashboard de Operadores */}
-      <OperatorsDashboard />
-
-      {/* Dashboard de Atendimentos Ativos */}
-      <ActiveAttendancesPanel />
+      {/* Layout em Grid Responsivo */}
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 mb-6">
+        {/* Dashboard de Operadores - Compacto */}
+        <div className="xl:col-span-1">
+          <OperatorsCompactDashboard />
+        </div>
+        
+        {/* Dashboard de Atendimentos Ativos */}
+        <div className="xl:col-span-3">
+          <ActiveAttendancesPanel />
+        </div>
+      </div>
 
       {/* Dashboard de Fila de Atendimento */}
-      <AttendanceQueueDashboard />
+      <AttendanceQueueDashboard onStartAttendance={handleStartAttendance} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Painel de Controle do WhatsApp */}
-        <Card className="lg:col-span-1">
+        <Card className="lg:col-span-1 bg-card border-border">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-card-foreground">
               <Phone className="h-5 w-5" />
               Controle WhatsApp
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Status de Conexão */}
-            <div className="flex items-center justify-between p-3 border rounded-lg">
+            <div className="flex items-center justify-between p-3 border border-border rounded-lg bg-muted/30">
               <div className="flex items-center gap-2">
                 {connection.isConnected ? (
-                  <Wifi className="h-4 w-4 text-green-600" />
+                  <Wifi className="h-4 w-4 text-green-500" />
                 ) : (
-                  <WifiOff className="h-4 w-4 text-red-600" />
+                  <WifiOff className="h-4 w-4 text-destructive" />
                 )}
-                <span className="text-sm font-medium">
+                <span className="text-sm font-medium text-card-foreground">
                   {connection.isConnected ? 'Conectado' : 'Desconectado'}
                 </span>
               </div>
               <Badge
                 variant={connection.isConnected ? 'default' : 'destructive'}
-                className={connection.isConnected ? 'bg-green-600' : ''}
+                className={connection.isConnected ? 'bg-green-500 text-green-50' : ''}
               >
                 {connection.status === 'connected' && 'Ativo'}
                 {connection.status === 'connecting' && 'Conectando'}
@@ -189,7 +210,7 @@ export default function AtendimentoPage() {
                 <Button
                   onClick={handleGenerateQR}
                   disabled={isGeneratingQR}
-                  className="w-full"
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
                   <QrCode className="h-4 w-4 mr-2" />
                   {isGeneratingQR ? 'Gerando...' : 'Conectar WhatsApp'}
@@ -212,7 +233,7 @@ export default function AtendimentoPage() {
 
             {/* Lista de Contatos */}
             <div>
-              <h3 className="font-semibold mb-3 text-gray-900">Contatos dos Modelos</h3>
+              <h3 className="font-semibold mb-3 text-card-foreground">Contatos dos Modelos</h3>
               <ScrollArea className="h-64">
                 <div className="space-y-2">
                   {mockTalents.map((talent) => {
@@ -223,14 +244,16 @@ export default function AtendimentoPage() {
                       <button
                         key={talent.id}
                         onClick={() => handleTalentSelect(talent.id, talent.fullName, talent.phone || '')}
-                        className={`w-full text-left p-3 border rounded-lg transition-colors hover:bg-gray-50 ${
-                          selectedTalent === talent.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                        className={`w-full text-left p-3 border border-border rounded-lg transition-colors hover:bg-muted/50 ${
+                          selectedTalent === talent.id 
+                            ? 'border-primary bg-primary/10' 
+                            : 'bg-card'
                         }`}
                       >
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="font-medium text-gray-900">{talent.fullName}</p>
-                            <p className="text-sm text-gray-500">{talent.phone}</p>
+                            <p className="font-medium text-card-foreground">{talent.fullName}</p>
+                            <p className="text-sm text-muted-foreground">{talent.phone}</p>
                           </div>
                           <div className="flex items-center gap-2">
                             {hasUnread && (
@@ -238,7 +261,7 @@ export default function AtendimentoPage() {
                                 {conversation.unreadCount}
                               </Badge>
                             )}
-                            <MessageSquare className="h-4 w-4 text-gray-400" />
+                            <MessageSquare className="h-4 w-4 text-muted-foreground" />
                           </div>
                         </div>
                       </button>
@@ -251,19 +274,19 @@ export default function AtendimentoPage() {
         </Card>
 
         {/* Área de Chat */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2" id="talent-chat">
           {selectedTalent && selectedTalentData ? (
             <TalentChatComponent 
               talent={selectedTalentData} 
               onClose={() => setSelectedTalent(null)} 
             />
           ) : (
-            <Card className="h-[600px]">
+            <Card className="h-[600px] bg-card border-border">
               <CardContent className="h-full flex items-center justify-center">
-                <div className="text-center text-gray-500">
-                  <MessageSquare className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                  <p className="text-lg font-medium mb-2">Selecione um contato ou atenda da fila</p>
-                  <p className="text-sm">Escolha um modelo da lista ou clique em "Atender" na fila de espera</p>
+                <div className="text-center text-muted-foreground">
+                  <MessageSquare className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                  <p className="text-lg font-medium mb-2">Selecione um contato ou inicie da fila</p>
+                  <p className="text-sm">Escolha um modelo da lista ou clique em "Iniciar Atendimento" na fila</p>
                 </div>
               </CardContent>
             </Card>
