@@ -325,10 +325,20 @@ export default function NovoTalento() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gradient-primary">
-          Novo Talento
-        </h1>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gradient-primary">
+            Novo Talento
+          </h1>
+        </div>
+        <Button
+          variant="outline"
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Voltar
+        </Button>
       </div>
 
       {/* Alert */}
@@ -495,30 +505,51 @@ export default function NovoTalento() {
                   )}
                 />
 
-                {/* Gênero */}
-                <FormField
-                  control={form.control}
-                  name="gender"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Gênero *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o gênero" />
-                          </SelectTrigger>
-                        </FormControl>
-                         <SelectContent>
-                           <SelectItem value="masculino">Masculino</SelectItem>
-                           <SelectItem value="feminino">Feminino</SelectItem>
-                           <SelectItem value="nao-binario">Não Binário</SelectItem>
-                           <SelectItem value="outros">Outros</SelectItem>
-                         </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                 {/* Idade */}
+                 <FormField
+                   control={form.control}
+                   name="age"
+                   render={({ field }) => (
+                     <FormItem>
+                       <FormLabel>Idade</FormLabel>
+                       <FormControl>
+                         <Input
+                           {...field}
+                           type="number"
+                           placeholder="Calculado automaticamente"
+                           readOnly
+                           className="bg-muted"
+                         />
+                       </FormControl>
+                       <FormMessage />
+                     </FormItem>
+                   )}
+                 />
+
+                 {/* Gênero */}
+                 <FormField
+                   control={form.control}
+                   name="gender"
+                   render={({ field }) => (
+                     <FormItem>
+                       <FormLabel>Gênero *</FormLabel>
+                       <Select onValueChange={field.onChange} defaultValue={field.value}>
+                         <FormControl>
+                           <SelectTrigger>
+                             <SelectValue placeholder="Selecione o gênero" />
+                           </SelectTrigger>
+                         </FormControl>
+                          <SelectContent>
+                            <SelectItem value="masculino">Masculino</SelectItem>
+                            <SelectItem value="feminino">Feminino</SelectItem>
+                            <SelectItem value="nao-binario">Não Binário</SelectItem>
+                            <SelectItem value="outros">Outros</SelectItem>
+                          </SelectContent>
+                       </Select>
+                       <FormMessage />
+                     </FormItem>
+                   )}
+                 />
 
                  {/* CEP */}
                  <FormField

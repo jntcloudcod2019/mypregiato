@@ -250,7 +250,9 @@ export function CompositeTemplates({ talent, photos }: CompositeTemplatesProps) 
               </div>
 
               <footer class="composite-footer">
-                  ${talent.name || 'Nome do Talento'}
+                  <h2>${talent.fullName || 'Nome do Talento'}</h2>
+                  ${talent.dna?.height ? `<p>Altura: ${talent.dna.height}</p>` : ''}
+                  ${talent.dna?.weight ? `<p>Peso: ${talent.dna.weight}</p>` : ''}
               </footer>
           </div>
       </body>
