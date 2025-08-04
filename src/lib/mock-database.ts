@@ -1,0 +1,547 @@
+import { TalentData, ProducerData, TalentDNAData, FileData } from '@/types/talent'
+
+const mockTalents: TalentData[] = [
+  // Talento para teste da API Autentique
+  {
+    id: "talent_test_api",
+    producerId: "producer_1",
+    fullName: "Seu Nome Teste", // Substitua pelo seu nome real
+    email: "teste@email.com",
+    phone: "11049908369",
+    postalcode: "01310-100",
+    street: "Avenida Paulista",
+    neighborhood: "Bela Vista",
+    city: "São Paulo",
+    numberAddress: "1000",
+    complement: "Apto 101",
+    uf: "SP",
+    document: "123.456.789-00",
+    birthDate: new Date("1990-01-01"),
+    age: 34,
+    gender: "Masculino",
+    inviteSent: false,
+    status: true,
+    dnaStatus: "UNDEFINED",
+    inviteSentAt: null,
+    inviteToken: null,
+    clerkInviteId: null,
+    updatedAt: new Date("2024-01-15T10:00:00Z"),
+    createdAt: new Date("2024-01-15T10:00:00Z")
+  },
+  {
+    id: "talent_1",
+    producerId: "producer_1",
+    fullName: "Ana Clara Santos",
+    email: "ana.clara@email.com",
+    phone: "11999887766",
+    postalcode: "01310-100",
+    street: "Avenida Paulista",
+    neighborhood: "Bela Vista",
+    city: "São Paulo",
+    numberAddress: "1000",
+    complement: "Apto 101",
+    uf: "SP",
+    document: "123.456.789-01",
+    birthDate: new Date("1995-03-15"),
+    age: 29,
+    gender: "Feminino",
+    inviteSent: false,
+    status: true,
+    dnaStatus: "COMPLETE",
+    inviteSentAt: null,
+    inviteToken: null,
+    clerkInviteId: null,
+    updatedAt: new Date("2024-01-15T10:00:00Z"),
+    createdAt: new Date("2024-01-15T10:00:00Z")
+  },
+  {
+    id: "talent_2",
+    producerId: "producer_2",
+    fullName: "Bruno Silva",
+    email: "bruno.silva@email.com",
+    phone: "11888776655",
+    postalcode: "04038-001",
+    street: "Rua Augusta",
+    neighborhood: "Consolação",
+    city: "São Paulo",
+    numberAddress: "500",
+    complement: null,
+    uf: "SP",
+    document: "987.654.321-02",
+    birthDate: new Date("1988-07-22"),
+    age: 36,
+    gender: "Masculino",
+    inviteSent: true,
+    status: true,
+    dnaStatus: "PARTIAL",
+    inviteSentAt: new Date("2024-01-10T14:30:00Z"),
+    inviteToken: "token_bruno",
+    clerkInviteId: "clerk_bruno",
+    updatedAt: new Date("2024-01-15T10:00:00Z"),
+    createdAt: new Date("2024-01-10T09:00:00Z")
+  },
+  {
+    id: "talent_3",
+    producerId: "producer_1",
+    fullName: "Carla Mendes",
+    email: "carla.mendes@email.com",
+    phone: "11777665544",
+    postalcode: "22071-900",
+    street: "Avenida Copacabana",
+    neighborhood: "Copacabana",
+    city: "Rio de Janeiro",
+    numberAddress: "200",
+    complement: "Cobertura",
+    uf: "RJ",
+    document: "456.789.123-03",
+    birthDate: new Date("1992-11-08"),
+    age: 32,
+    gender: "Feminino",
+    inviteSent: false,
+    status: true,
+    dnaStatus: "UNDEFINED",
+    inviteSentAt: null,
+    inviteToken: null,
+    clerkInviteId: null,
+    updatedAt: new Date("2024-01-15T10:00:00Z"),
+    createdAt: new Date("2024-01-12T16:20:00Z")
+  },
+  {
+    id: "talent_4",
+    producerId: "producer_3",
+    fullName: "Diego Costa",
+    email: "diego.costa@email.com",
+    phone: "11666554433",
+    postalcode: "80010-000",
+    street: "Rua XV de Novembro",
+    neighborhood: "Centro",
+    city: "Curitiba",
+    numberAddress: "300",
+    complement: null,
+    uf: "PR",
+    document: "789.123.456-04",
+    birthDate: new Date("1985-05-30"),
+    age: 39,
+    gender: "Masculino",
+    inviteSent: true,
+    status: false,
+    dnaStatus: "COMPLETE",
+    inviteSentAt: new Date("2024-01-08T11:15:00Z"),
+    inviteToken: "token_diego",
+    clerkInviteId: "clerk_diego",
+    updatedAt: new Date("2024-01-15T10:00:00Z"),
+    createdAt: new Date("2024-01-08T08:45:00Z")
+  },
+  {
+    id: "talent_5",
+    producerId: "producer_2",
+    fullName: "Elena Rodriguez",
+    email: "elena.rodriguez@email.com",
+    phone: "11555443322",
+    postalcode: "90010-150",
+    street: "Rua dos Andradas",
+    neighborhood: "Centro Histórico",
+    city: "Porto Alegre",
+    numberAddress: "150",
+    complement: "Sala 205",
+    uf: "RS",
+    document: "321.654.987-05",
+    birthDate: new Date("1993-09-12"),
+    age: 31,
+    gender: "Feminino",
+    inviteSent: false,
+    status: true,
+    dnaStatus: "PARTIAL",
+    inviteSentAt: null,
+    inviteToken: null,
+    clerkInviteId: null,
+    updatedAt: new Date("2024-01-15T10:00:00Z"),
+    createdAt: new Date("2024-01-14T13:30:00Z")
+  },
+  {
+    id: "talent_6",
+    producerId: "producer_1",
+    fullName: "Felipe Santos",
+    email: "felipe.santos@email.com",
+    phone: "11444332211",
+    postalcode: "30112-000",
+    street: "Avenida Afonso Pena",
+    neighborhood: "Centro",
+    city: "Belo Horizonte",
+    numberAddress: "800",
+    complement: null,
+    uf: "MG",
+    document: "654.321.987-06",
+    birthDate: new Date("1987-12-03"),
+    age: 37,
+    gender: "Masculino",
+    inviteSent: true,
+    status: true,
+    dnaStatus: "COMPLETE",
+    inviteSentAt: new Date("2024-01-05T09:20:00Z"),
+    inviteToken: "token_felipe",
+    clerkInviteId: "clerk_felipe",
+    updatedAt: new Date("2024-01-15T10:00:00Z"),
+    createdAt: new Date("2024-01-05T07:10:00Z")
+  }
+]
+
+const mockProducers: ProducerData[] = [
+  {
+    id: "producer_1",
+    first_name: "Ricardo",
+    last_name: "Santos",
+    email: "ricardo.santos@email.com",
+    code: "PROD001"
+  },
+  {
+    id: "producer_2",
+    first_name: "Mariana",
+    last_name: "Oliveira",
+    email: "mariana.oliveira@email.com",
+    code: "PROD002"
+  },
+  {
+    id: "producer_3",
+    first_name: "Fernando",
+    last_name: "Alves",
+    email: "fernando.alves@email.com",
+    code: "PROD003"
+  }
+]
+
+const mockDNA: TalentDNAData[] = [
+  {
+    id: "dna_1",
+    talentId: "talent_1",
+    height: "175cm",
+    weight: "70kg",
+    hairColor: "Castanho",
+    hairType: "Ondulado",
+    hairLength: "Médio",
+    eyeColor: "Verde",
+    skinTone: "Morena",
+    chestSize: "95cm",
+    waistSize: "80cm",
+    hipSize: "100cm",
+    shoeSize: "40",
+    dressSize: "M",
+    pantsSize: "40",
+    shirtSize: "M",
+    jacketSize: "50",
+    faceShape: "Oval",
+    ethnicFeatures: "Traços latinos",
+    bodyType: "Atlético",
+    specialFeatures: "Tatuagem no braço",
+    accent: "Paulista",
+    languages: "Português, Inglês",
+    intellectualDisability: null,
+    physicalDisability: null,
+    religion: "Católico",
+    travelAvailability: true,
+    visualDisability: null,
+    createdAt: new Date("2024-01-15T10:00:00Z"),
+    updatedAt: new Date("2024-01-15T10:00:00Z")
+  },
+  {
+    id: "dna_2",
+    talentId: "talent_2",
+    height: "180cm",
+    weight: "80kg",
+    hairColor: "Preto",
+    hairType: "Liso",
+    hairLength: "Curto",
+    eyeColor: "Castanho",
+    skinTone: "Parda",
+    chestSize: "100cm",
+    waistSize: "85cm",
+    hipSize: "105cm",
+    shoeSize: "42",
+    dressSize: null,
+    pantsSize: "42",
+    shirtSize: "L",
+    jacketSize: "52",
+    faceShape: "Quadrada",
+    ethnicFeatures: "Traços orientais",
+    bodyType: "Musculoso",
+    specialFeatures: null,
+    accent: "Carioca",
+    languages: "Português, Espanhol",
+    intellectualDisability: null,
+    physicalDisability: null,
+    religion: "Ateu",
+    travelAvailability: false,
+    visualDisability: null,
+    createdAt: new Date("2024-01-15T10:00:00Z"),
+    updatedAt: new Date("2024-01-15T10:00:00Z")
+  },
+  {
+    id: "dna_3",
+    talentId: "talent_3",
+    height: "165cm",
+    weight: "60kg",
+    hairColor: "Loiro",
+    hairType: "Cacheado",
+    hairLength: "Longo",
+    eyeColor: "Azul",
+    skinTone: "Branca",
+    chestSize: "90cm",
+    waistSize: "70cm",
+    hipSize: "95cm",
+    shoeSize: "36",
+    dressSize: "P",
+    pantsSize: "36",
+    shirtSize: "P",
+    jacketSize: "46",
+    faceShape: "Redonda",
+    ethnicFeatures: "Traços europeus",
+    bodyType: "Magra",
+    specialFeatures: "Sardas",
+    accent: "Mineiro",
+    languages: "Português, Francês",
+    intellectualDisability: null,
+    physicalDisability: null,
+    religion: "Espírita",
+    travelAvailability: true,
+    visualDisability: null,
+    createdAt: new Date("2024-01-15T10:00:00Z"),
+    updatedAt: new Date("2024-01-15T10:00:00Z")
+  },
+  {
+    id: "dna_4",
+    talentId: "talent_4",
+    height: "190cm",
+    weight: "90kg",
+    hairColor: "Ruivo",
+    hairType: "Liso",
+    hairLength: "Curto",
+    eyeColor: "Castanho",
+    skinTone: "Parda",
+    chestSize: "105cm",
+    waistSize: "90cm",
+    hipSize: "110cm",
+    shoeSize: "44",
+    dressSize: null,
+    pantsSize: "44",
+    shirtSize: "GG",
+    jacketSize: "54",
+    faceShape: "Triangular",
+    ethnicFeatures: "Traços indígenas",
+    bodyType: "Forte",
+    specialFeatures: "Cicatriz no rosto",
+    accent: "Baiano",
+    languages: "Português",
+    intellectualDisability: null,
+    physicalDisability: null,
+    religion: "Umbandista",
+    travelAvailability: false,
+    visualDisability: null,
+    createdAt: new Date("2024-01-15T10:00:00Z"),
+    updatedAt: new Date("2024-01-15T10:00:00Z")
+  },
+  {
+    id: "dna_5",
+    talentId: "talent_5",
+    height: "170cm",
+    weight: "65kg",
+    hairColor: "Castanho Claro",
+    hairType: "Ondulado",
+    hairLength: "Médio",
+    eyeColor: "Verde",
+    skinTone: "Morena Clara",
+    chestSize: "92cm",
+    waistSize: "75cm",
+    hipSize: "98cm",
+    shoeSize: "38",
+    dressSize: "M",
+    pantsSize: "38",
+    shirtSize: "M",
+    jacketSize: "48",
+    faceShape: "Oval",
+    ethnicFeatures: "Traços espanhóis",
+    bodyType: "Esbelta",
+    specialFeatures: null,
+    accent: "Gaúcho",
+    languages: "Português, Inglês, Espanhol",
+    intellectualDisability: null,
+    physicalDisability: null,
+    religion: "Católica",
+    travelAvailability: true,
+    visualDisability: null,
+    createdAt: new Date("2024-01-15T10:00:00Z"),
+    updatedAt: new Date("2024-01-15T10:00:00Z")
+  },
+  {
+    id: "dna_6",
+    talentId: "talent_6",
+    height: "185cm",
+    weight: "85kg",
+    hairColor: "Castanho Escuro",
+    hairType: "Liso",
+    hairLength: "Curto",
+    eyeColor: "Castanho Escuro",
+    skinTone: "Parda",
+    chestSize: "102cm",
+    waistSize: "88cm",
+    hipSize: "107cm",
+    shoeSize: "43",
+    dressSize: null,
+    pantsSize: "42",
+    shirtSize: "G",
+    jacketSize: "52",
+    faceShape: "Quadrada",
+    ethnicFeatures: "Traços africanos",
+    bodyType: "Forte",
+    specialFeatures: "Barba",
+    accent: "Paulista",
+    languages: "Português, Inglês",
+    intellectualDisability: null,
+    physicalDisability: null,
+    religion: "Evangélica",
+    travelAvailability: true,
+    visualDisability: null,
+    createdAt: new Date("2024-01-15T10:00:00Z"),
+    updatedAt: new Date("2024-01-15T10:00:00Z")
+  }
+]
+
+const mockFiles: FileData[] = [
+  {
+    id: "file_1",
+    url: "https://example.com/file1.jpg",
+    type: "PHOTO",
+    talentId: "talent_1",
+    projectId: null,
+    uploadedAt: new Date("2024-01-15T10:00:00Z"),
+    fileName: "file1.jpg",
+    mimeType: "image/jpeg"
+  },
+  {
+    id: "file_2",
+    url: "https://example.com/file2.mp4",
+    type: "VIDEO",
+    talentId: "talent_1",
+    projectId: null,
+    uploadedAt: new Date("2024-01-15T10:00:00Z"),
+    fileName: "file2.mp4",
+    mimeType: "video/mp4"
+  },
+  {
+    id: "file_3",
+    url: "https://example.com/file3.pdf",
+    type: "DOCUMENT",
+    talentId: "talent_2",
+    projectId: null,
+    uploadedAt: new Date("2024-01-15T10:00:00Z"),
+    fileName: "file3.pdf",
+    mimeType: "application/pdf"
+  },
+  {
+    id: "file_4",
+    url: "https://example.com/file4.jpg",
+    type: "PHOTO",
+    talentId: "talent_3",
+    projectId: null,
+    uploadedAt: new Date("2024-01-15T10:00:00Z"),
+    fileName: "file4.jpg",
+    mimeType: "image/jpeg"
+  },
+  {
+    id: "file_5",
+    url: "https://example.com/file5.mp4",
+    type: "VIDEO",
+    talentId: "talent_4",
+    projectId: null,
+    uploadedAt: new Date("2024-01-15T10:00:00Z"),
+    fileName: "file5.mp4",
+    mimeType: "video/mp4"
+  },
+  {
+    id: "file_6",
+    url: "https://example.com/file6.pdf",
+    type: "DOCUMENT",
+    talentId: "talent_5",
+    projectId: null,
+    uploadedAt: new Date("2024-01-15T10:00:00Z"),
+    fileName: "file6.pdf",
+    mimeType: "application/pdf"
+  },
+  {
+    id: "file_7",
+    url: "https://example.com/file7.jpg",
+    type: "PHOTO",
+    talentId: "talent_6",
+    projectId: null,
+    uploadedAt: new Date("2024-01-15T10:00:00Z"),
+    fileName: "file7.jpg",
+    mimeType: "image/jpeg"
+  }
+]
+
+// Function to retrieve mock talents
+export const getMockTalents = (): TalentData[] => {
+  return mockTalents
+}
+
+// Function to save mock talents
+export const saveMockTalents = (talents: TalentData[]): void => {
+  mockTalents.length = 0 // Clear the array
+  talents.forEach(talent => mockTalents.push(talent)) // Push each talent to the array
+}
+
+// Function to retrieve mock producers
+export const getMockProducers = (): ProducerData[] => {
+  return mockProducers
+}
+
+// Function to retrieve mock DNA data
+export const getMockDNA = (): TalentDNAData[] => {
+  return mockDNA
+}
+
+// Function to save mock DNA data
+export const saveMockDNA = (dna: TalentDNAData[]): void => {
+  mockDNA.length = 0 // Clear the array
+  dna.forEach(item => mockDNA.push(item)) // Push each item to the array
+}
+
+// Function to retrieve mock files
+export const getMockFiles = (): FileData[] => {
+  return mockFiles
+}
+
+// Function to save mock files
+export const saveMockFiles = (files: FileData[]): void => {
+  mockFiles.length = 0 // Clear the array
+  files.forEach(file => mockFiles.push(file)) // Push each file to the array
+}
+
+// Function to retrieve mock users (for user-service.ts compatibility)
+export const getMockUsers = () => {
+  return [
+    {
+      id: "producer_1",
+      first_name: "Ricardo",
+      last_name: "Santos", 
+      email: "ricardo.santos@email.com",
+      code: "PROD001",
+      role: "PRODUCER"
+    },
+    {
+      id: "producer_2", 
+      first_name: "Mariana",
+      last_name: "Oliveira",
+      email: "mariana.oliveira@email.com", 
+      code: "PROD002",
+      role: "PRODUCER"
+    },
+    {
+      id: "producer_3",
+      first_name: "Fernando", 
+      last_name: "Alves",
+      email: "fernando.alves@email.com",
+      code: "PROD003", 
+      role: "PRODUCER"
+    }
+  ]
+}

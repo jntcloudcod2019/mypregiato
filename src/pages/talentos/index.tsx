@@ -1,117 +1,105 @@
-import { useState, useEffect, useMemo } from "react"
-import { useNavigate } from "react-router-dom"
-import { Plus, Search, Filter, Eye, MoreHorizontal, UserPlus, Clock, CheckCircle2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Separator } from "@/components/ui/separator"
-import { Skeleton } from "@/components/ui/skeleton"
+import { useState, useEffect, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Button } from '@/components/ui/button'
+import { Card, CardHeader, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Badge } from '@/components/ui/badge'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { Skeleton } from '@/components/ui/skeleton'
+import { AdvancedFilters } from '@/components/advanced-filters'
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination'
+import { AutoComplete } from 'primereact/autocomplete'
 import { getTalents } from '@/lib/talent-service'
-import { TalentData } from "@/types/talent"
-import { useToast } from "@/hooks/use-toast"
-import { AdvancedFilters, AdvancedFilters as AdvancedFiltersType } from "@/components/advanced-filters"
+import { TalentData } from '@/types/talent'
+import { usePagination } from '@/hooks/usePagination'
+import { MoreVertical, Plus, Search, Filter } from 'lucide-react'
 
-const TalentCard = ({ talent, navigate }: { talent: TalentData; navigate: any }) => {
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(word => word[0])
-      .slice(0, 2)
-      .join('')
-      .toUpperCase()
-  }
+interface TalentCardProps {
+  talent: TalentData
+  navigate: any
+}
 
-  const getStatusBadge = () => {
-    if (!talent.status) {
-      return <Badge variant="secondary">Inativo</Badge>
-    }
-    return <Badge variant="outline">Ativo</Badge>
-  }
-
-  const getDNAStatus = () => {
-    switch (talent.dnaStatus) {
-      case 'COMPLETE':
-        return <Badge variant="default" className="bg-blue-500">DNA Completo</Badge>
-      case 'PARTIAL':
-        return <Badge variant="secondary">DNA Parcial</Badge>
-      default:
-        return <Badge variant="outline">DNA Pendente</Badge>
-    }
-  }
-
-  const profileImage = talent.files?.[0]?.url || "/placeholder.svg"
-
+function TalentCard({ talent, navigate }: TalentCardProps) {
   return (
-    <Card className="group hover:shadow-lg transition-all duration-300 border-primary/20 hover:border-primary/40 bg-card/50 backdrop-blur-sm">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center space-x-3">
-            <Avatar className="h-12 w-12 ring-2 ring-primary/20">
-              <AvatarImage src={profileImage} alt={talent.fullName} />
-              <AvatarFallback className="bg-primary/10 text-primary">
-                {getInitials(talent.fullName)}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                {talent.fullName}
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                {talent.age} anos • {talent.gender}
-              </p>
+    <Card className="relative overflow-hidden transition-all duration-200 hover:shadow-lg cursor-pointer" onClick={() => navigate(`/talentos/perfil/${talent.id}`)}>
+      <div className="aspect-[3/4] relative overflow-hidden bg-muted">
+        {talent.files?.[0]?.url ? (
+          <img 
+            src={talent.files[0].url} 
+            alt={talent.fullName}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
+            <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center">
+              <span className="text-2xl font-bold text-primary">
+                {talent.fullName.split(' ').map(n => n[0]).join('')}
+              </span>
             </div>
           </div>
+        )}
+        
+        <div className="absolute top-2 right-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <MoreHorizontal className="h-4 w-4" />
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-8 w-8 p-0 bg-white/90 hover:bg-white"
+                onClick={(e) => e.stopPropagation()} // Impede que o clique no dropdown acione o card
+              >
+                <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Ações</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate(`/talentos/perfil/${talent.id}`)}>
-                <Eye className="mr-2 h-4 w-4" />
-                Ver Perfil
+              <DropdownMenuItem 
+                onClick={() => navigate(`/talentos/perfil/${talent.id}`)}
+              >
+                Ver perfil
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-      </CardHeader>
-      <CardContent className="pt-0">
-        <div className="space-y-3">
-          <div className="flex flex-col space-y-1">
-            <span className="text-xs text-muted-foreground">Contato</span>
-            <p className="text-sm">{talent.email || 'Email não informado'}</p>
-            <p className="text-sm">{talent.phone || 'Telefone não informado'}</p>
-          </div>
+      </div>
+
+      <CardContent className="p-4">
+        <div className="space-y-2">
+          <h3 className="font-semibold text-base leading-tight">{talent.fullName}</h3>
           
-          <div className="flex flex-col space-y-1">
-            <span className="text-xs text-muted-foreground">Localização</span>
-            <p className="text-sm">
-              {talent.city && talent.uf ? `${talent.city}, ${talent.uf}` : 'Não informado'}
-            </p>
+          <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+            <span>{talent.age} anos</span>
+            {talent.gender && (
+              <>
+                <span>•</span>
+                <span>{talent.gender}</span>
+              </>
+            )}
           </div>
 
-          <div className="flex flex-wrap gap-2 pt-2">
-            {getStatusBadge()}
-            {getDNAStatus()}
-          </div>
-
-          <div className="flex justify-end pt-2">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => navigate(`/talentos/perfil/${talent.id}`)}
-              className="group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+          {talent.email && (
+            <p className="text-sm text-muted-foreground truncate">{talent.email}</p>
+          )}
+          
+          <div className="flex items-center justify-between pt-2">
+            <Badge 
+              variant={talent.status ? "default" : "secondary"}
+              className="text-xs"
             >
-              Ver mais
-            </Button>
+              {talent.status ? "Ativo" : "Inativo"}
+            </Badge>
+            
+            <Badge 
+              variant={
+                talent.dnaStatus === 'COMPLETE' ? "default" : 
+                talent.dnaStatus === 'PARTIAL' ? "secondary" : 
+                "outline"
+              }
+              className="text-xs"
+            >
+              DNA {talent.dnaStatus === 'COMPLETE' ? "Completo" : 
+                   talent.dnaStatus === 'PARTIAL' ? "Parcial" : "Pendente"}
+            </Badge>
           </div>
         </div>
       </CardContent>
@@ -121,13 +109,13 @@ const TalentCard = ({ talent, navigate }: { talent: TalentData; navigate: any })
 
 export default function TalentosPage() {
   const navigate = useNavigate()
-  const { toast } = useToast()
   const [talents, setTalents] = useState<TalentData[]>([])
   const [loading, setLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [filterStatus, setFilterStatus] = useState("all")
-  const [filterDNA, setFilterDNA] = useState("all")
-  const [advancedFilters, setAdvancedFilters] = useState<AdvancedFiltersType>({})
+  const [searchTerm, setSearchTerm] = useState('')
+  const [searchSuggestions, setSearchSuggestions] = useState<string[]>([])
+  const [statusFilter, setStatusFilter] = useState<string>('')
+  const [dnaFilter, setDnaFilter] = useState<string>('')
+  const [advancedFilters, setAdvancedFilters] = useState<any>({})
 
   useEffect(() => {
     loadTalents()
@@ -140,238 +128,292 @@ export default function TalentosPage() {
       setTalents(data)
     } catch (error) {
       console.error('Erro ao carregar talentos:', error)
-      toast({
-        title: "Erro",
-        description: "Erro ao carregar talentos",
-        variant: "destructive"
-      })
     } finally {
       setLoading(false)
     }
   }
 
+  // Memoized filtered talents
   const filteredTalents = useMemo(() => {
     return talents.filter(talent => {
-      const matchesSearch = talent.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           (talent.email && talent.email.toLowerCase().includes(searchTerm.toLowerCase()))
+      // Search filter
+      const matchesSearch = !searchTerm || 
+        talent.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        talent.email?.toLowerCase().includes(searchTerm.toLowerCase())
       
-      const matchesStatus = filterStatus === "all" || 
-                           (filterStatus === "active" && talent.status) ||
-                           (filterStatus === "inactive" && !talent.status) ||
-                           (filterStatus === "invited" && talent.inviteSent)
+      // Status filter
+      const matchesStatus = !statusFilter || statusFilter === 'all' ||
+        (statusFilter === 'active' && talent.status) ||
+        (statusFilter === 'inactive' && !talent.status)
       
-      const matchesDNA = filterDNA === "all" ||
-                        (filterDNA === "complete" && talent.dnaStatus === 'COMPLETE') ||
-                        (filterDNA === "partial" && talent.dnaStatus === 'PARTIAL') ||
-                        (filterDNA === "pending" && talent.dnaStatus === 'UNDEFINED')
-
+      // DNA filter
+      const matchesDNA = !dnaFilter || dnaFilter === 'all' || talent.dnaStatus === dnaFilter
+      
       // Advanced filters
-      const matchesGender = !advancedFilters.gender || talent.gender === advancedFilters.gender
-      const matchesAge = (!advancedFilters.minAge || talent.age >= advancedFilters.minAge) &&
-                        (!advancedFilters.maxAge || talent.age <= advancedFilters.maxAge)
-      const matchesCity = !advancedFilters.city || 
-                         (talent.city && talent.city.toLowerCase().includes(advancedFilters.city.toLowerCase()))
-      const matchesTravel = advancedFilters.travelAvailable === undefined || 
-                           (talent.dna?.travelAvailability === advancedFilters.travelAvailable)
-      const matchesHairColor = !advancedFilters.hairColor || 
-                              (talent.dna?.hairColor?.toLowerCase() === advancedFilters.hairColor.toLowerCase())
-      const matchesEyeColor = !advancedFilters.eyeColor || 
-                             (talent.dna?.eyeColor?.toLowerCase() === advancedFilters.eyeColor.toLowerCase())
-      const matchesBodyType = !advancedFilters.bodyType || 
-                             (talent.dna?.bodyType?.toLowerCase() === advancedFilters.bodyType.toLowerCase())
+      const matchesAdvanced = Object.keys(advancedFilters).length === 0 || 
+        Object.entries(advancedFilters).every(([key, value]) => {
+          if (!value) return true
+          
+          if (key === 'ageRange' && typeof value === 'object' && value !== null && 'min' in value && 'max' in value) {
+            return talent.age >= (value as any).min && talent.age <= (value as any).max
+          }
+          
+          if (key === 'gender') {
+            return talent.gender === value
+          }
+          
+          if (key === 'location' && typeof value === 'string') {
+            return talent.city?.toLowerCase().includes(value.toLowerCase())
+          }
+          
+          if (key === 'travelAvailability') {
+            return talent.dna?.travelAvailability === value
+          }
+          
+          // DNA specific filters
+          if (talent.dna) {
+            if (key === 'bodyType') return talent.dna.bodyType === value
+            if (key === 'hairColor') return talent.dna.hairColor === value
+            if (key === 'eyeColor') return talent.dna.eyeColor === value
+            if (key === 'disabilities' && Array.isArray(value) && value.length > 0) {
+              return value.some(disability => 
+                talent.dna?.intellectualDisability?.includes(disability) ||
+                talent.dna?.physicalDisability?.includes(disability) ||
+                talent.dna?.visualDisability?.includes(disability)
+              )
+            }
+          }
+          
+          return true
+        })
       
-      return matchesSearch && matchesStatus && matchesDNA && matchesGender && 
-             matchesAge && matchesCity && matchesTravel && matchesHairColor && 
-             matchesEyeColor && matchesBodyType
+      return matchesSearch && matchesStatus && matchesDNA && matchesAdvanced
     })
-  }, [talents, searchTerm, filterStatus, filterDNA, advancedFilters])
+  }, [talents, searchTerm, statusFilter, dnaFilter, advancedFilters])
 
+  // Pagination
+  const {
+    currentItems: currentTalents,
+    currentPage,
+    totalPages,
+    totalItems,
+    goToPage,
+    nextPage,
+    prevPage,
+    canGoNext,
+    canGoPrev,
+    pageNumbers
+  } = usePagination({
+    data: filteredTalents,
+    itemsPerPage: 12
+  })
+
+  // Autocomplete search suggestions
+  const searchTalents = (query: string) => {
+    if (!query) {
+      setSearchSuggestions([])
+      return
+    }
+    
+    const suggestions = talents
+      .filter(talent => 
+        talent.fullName.toLowerCase().includes(query.toLowerCase()) ||
+        talent.email?.toLowerCase().includes(query.toLowerCase())
+      )
+      .slice(0, 10)
+      .map(talent => talent.fullName)
+    
+    setSearchSuggestions(suggestions)
+  }
+
+  // Memoized stats
   const stats = useMemo(() => {
     return {
       total: talents.length,
-      active: talents.filter(t => t.status).length,
-      invited: talents.filter(t => t.inviteSent).length,
-      dnaComplete: talents.filter(t => t.dnaStatus === 'COMPLETE').length
+      active: talents.filter(t => t.status).length
     }
   }, [talents])
 
   if (loading) {
     return (
-      <div className="p-6 space-y-6">
-        <div className="flex justify-between items-center">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-10 w-32" />
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[1, 2, 3, 4].map(i => (
-            <Skeleton key={i} className="h-24" />
-          ))}
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3, 4, 5, 6].map(i => (
-            <Skeleton key={i} className="h-64" />
-          ))}
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Talentos</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-2">
+              Gerencie todos os talentos cadastrados na plataforma
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <Skeleton key={i} className="h-80" />
+            ))}
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
-        <div>
-          <h1 className="text-3xl font-bold text-gradient-primary">
-            Talentos
-          </h1>
-          <p className="text-muted-foreground">
-            Gerencie e acompanhe todos os talentos cadastrados
-          </p>
-        </div>
-        <Button 
-          onClick={() => navigate('/talentos/novo')}
-          className="bg-primary/20 backdrop-blur-sm border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground shadow-elegant hover:shadow-glow transition-all duration-300"
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Novo Talento
-        </Button>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="bg-gradient-subtle border-primary/20">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Talentos</CardTitle>
-            <UserPlus className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-primary">{stats.total}</div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-subtle border-primary/20">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Ativos</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{stats.active}</div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-subtle border-primary/20">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Convites Enviados</CardTitle>
-            <Clock className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{stats.invited}</div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-subtle border-primary/20">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">DNA Completo</CardTitle>
-            <Filter className="h-4 w-4 text-purple-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-purple-600">{stats.dnaComplete}</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Basic Filters */}
-      <Card className="bg-card/50 backdrop-blur-sm border-primary/20">
-        <CardHeader>
-          <CardTitle className="text-lg">Filtros Básicos</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  placeholder="Buscar por nome ou email..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 bg-background/50 border-primary/20 focus:border-primary/40"
-                />
-              </div>
-            </div>
-            
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-full md:w-48 bg-background/50 border-primary/20">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os Status</SelectItem>
-                <SelectItem value="active">Ativos</SelectItem>
-                <SelectItem value="inactive">Inativos</SelectItem>
-                <SelectItem value="invited">Convite Enviado</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <Select value={filterDNA} onValueChange={setFilterDNA}>
-              <SelectTrigger className="w-full md:w-48 bg-background/50 border-primary/20">
-                <SelectValue placeholder="DNA Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos DNA</SelectItem>
-                <SelectItem value="complete">DNA Completo</SelectItem>
-                <SelectItem value="partial">DNA Parcial</SelectItem>
-                <SelectItem value="pending">DNA Pendente</SelectItem>
-              </SelectContent>
-            </Select>
+    <div className="container mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Talentos</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-2">
+              Gerencie todos os talentos cadastrados na plataforma
+            </p>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Advanced Filters */}
-      <AdvancedFilters
-        filters={advancedFilters}
-        onFiltersChange={setAdvancedFilters}
-        onClearFilters={() => setAdvancedFilters({})}
-      />
-
-      {/* Talents Grid */}
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">
-            {filteredTalents.length} {filteredTalents.length === 1 ? 'talento encontrado' : 'talentos encontrados'}
-          </h2>
+          <Button onClick={() => navigate('/talentos/novo')} className="flex items-center gap-2">
+            <Plus className="w-4 h-4" />
+            Novo Talento
+          </Button>
         </div>
 
-        {filteredTalents.length === 0 ? (
-          <Card className="bg-card/50 backdrop-blur-sm border-primary/20">
-            <CardContent className="flex flex-col items-center justify-center py-16">
-              <UserPlus className="h-16 w-16 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Nenhum talento encontrado</h3>
-              <p className="text-muted-foreground text-center mb-6">
-                {searchTerm || filterStatus !== "all" || filterDNA !== "all" 
-                  ? "Tente ajustar os filtros de busca ou adicione um novo talento."
-                  : "Comece adicionando seu primeiro talento ao sistema."
-                }
-              </p>
-              <Button 
-                onClick={() => navigate('/talentos/novo')}
-                className="bg-primary/20 backdrop-blur-sm border border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground shadow-elegant hover:shadow-glow transition-all duration-300"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Adicionar Talento
-              </Button>
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Total de Talentos</p>
+                  <p className="text-2xl font-bold">{stats.total}</p>
+                </div>
+              </div>
             </CardContent>
           </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredTalents.map((talent) => (
-              <TalentCard 
-                key={talent.id} 
-                talent={talent} 
-                navigate={navigate}
+          
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Ativos</p>
+                  <p className="text-2xl font-bold text-green-600">{stats.active}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Filters */}
+        <div className="flex flex-col lg:flex-row gap-4 mb-6">
+          <div className="flex-1">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <AutoComplete
+                value={searchTerm}
+                suggestions={searchSuggestions}
+                completeMethod={(e) => searchTalents(e.query)}
+                onChange={(e) => setSearchTerm(e.value)}
+                placeholder="Buscar por nome ou e-mail..."
+                className="w-full"
+                inputClassName="pl-9 w-full px-3 py-2 border border-input bg-background text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 rounded-md"
               />
-            ))}
+            </div>
+          </div>
+          
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full lg:w-48">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os status</SelectItem>
+              <SelectItem value="active">Ativo</SelectItem>
+              <SelectItem value="inactive">Inativo</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <Select value={dnaFilter} onValueChange={setDnaFilter}>
+            <SelectTrigger className="w-full lg:w-48">
+              <SelectValue placeholder="DNA" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os DNA</SelectItem>
+              <SelectItem value="COMPLETE">Completo</SelectItem>
+              <SelectItem value="PARTIAL">Parcial</SelectItem>
+              <SelectItem value="UNDEFINED">Indefinido</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Advanced Filters */}
+        <AdvancedFilters 
+          filters={advancedFilters}
+          onFiltersChange={setAdvancedFilters}
+          onClearFilters={() => setAdvancedFilters({})}
+        />
+
+        {/* Talents Grid */}
+        {currentTalents.length > 0 ? (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {currentTalents.map((talent) => (
+                <TalentCard key={talent.id} talent={talent} navigate={navigate} />
+              ))}
+            </div>
+            
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex justify-center mt-8">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        onClick={prevPage}
+                        className={!canGoPrev ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                    
+                    {pageNumbers.map((pageNum) => (
+                      <PaginationItem key={pageNum}>
+                        <PaginationLink
+                          onClick={() => goToPage(pageNum)}
+                          isActive={currentPage === pageNum}
+                          className="cursor-pointer"
+                        >
+                          {pageNum}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+                    
+                    <PaginationItem>
+                      <PaginationNext 
+                        onClick={nextPage}
+                        className={!canGoNext ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="text-center py-12">
+            <div className="mx-auto max-w-md">
+              <h3 className="text-lg font-semibold mb-2">Nenhum talento encontrado</h3>
+              <p className="text-muted-foreground mb-4">
+                Não encontramos talentos que correspondam aos filtros aplicados.
+              </p>
+              <div className="flex gap-2 justify-center">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setSearchTerm('')
+                    setStatusFilter('all')
+                    setDnaFilter('all')
+                    setAdvancedFilters({})
+                  }}
+                >
+                  Limpar filtros
+                </Button>
+                <Button onClick={() => navigate('/talentos/novo')}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Adicionar Talento
+                </Button>
+              </div>
+            </div>
           </div>
         )}
       </div>

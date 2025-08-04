@@ -1,11 +1,10 @@
-
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { format, differenceInYears } from "date-fns"
-import { CalendarIcon, AlertTriangle, CheckCircle2, XCircle, Loader2 } from "lucide-react"
+import { CalendarIcon, AlertTriangle, CheckCircle2, XCircle, Loader2, ArrowLeft } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -17,6 +16,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { CustomDatePicker } from "@/components/ui/custom-date-picker"
 import { createTalent, checkTalentExists } from "@/lib/talent-service"
 import { getProducers } from "@/lib/user-service"
 import { sendClerkInvite } from "@/lib/clerk-service"
@@ -66,6 +66,7 @@ const formSchema = z.object({
   birthDate: z.date({
     required_error: "Data de nascimento é obrigatória",
   }),
+  age: z.number().min(0).max(120).optional(),
   gender: z.string().min(1, "Gênero é obrigatório"),
   postalcode: z.string().min(8, "CEP é obrigatório"),
   street: z.string().min(1, "Rua é obrigatória"),
@@ -152,6 +153,7 @@ export default function NovoTalento() {
       document: "",
       email: "",
       phone: "",
+      age: undefined,
       gender: "",
       postalcode: "",
       street: "",
@@ -325,10 +327,20 @@ export default function NovoTalento() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gradient-primary">
-          Novo Talento
-        </h1>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gradient-primary">
+            Novo Talento
+          </h1>
+        </div>
+        <Button
+          variant="outline"
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Voltar
+        </Button>
       </div>
 
       {/* Alert */}
@@ -456,69 +468,67 @@ export default function NovoTalento() {
                   control={form.control}
                   name="birthDate"
                   render={({ field }) => (
-                    <FormItem className="flex flex-col">
+                    <FormItem>
                       <FormLabel>Data de Nascimento *</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, "dd/MM/yyyy")
-                              ) : (
-                                <span>Selecione a data</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            disabled={(date) =>
-                              date > new Date() || date < new Date("1900-01-01")
-                            }
-                            initialFocus
-                            className={cn("p-3 pointer-events-auto")}
-                          />
-                        </PopoverContent>
-                      </Popover>
+                      <FormControl>
+                        <CustomDatePicker
+                          value={field.value}
+                          onChange={field.onChange}
+                          placeholder="Selecione a data de nascimento"
+                          className="w-full"
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                {/* Gênero */}
-                <FormField
-                  control={form.control}
-                  name="gender"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Gênero *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o gênero" />
-                          </SelectTrigger>
-                        </FormControl>
-                         <SelectContent>
-                           <SelectItem value="masculino">Masculino</SelectItem>
-                           <SelectItem value="feminino">Feminino</SelectItem>
-                           <SelectItem value="nao-binario">Não Binário</SelectItem>
-                           <SelectItem value="outros">Outros</SelectItem>
-                         </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                 {/* Idade */}
+                 <FormField
+                   control={form.control}
+                   name="age"
+                   render={({ field }) => (
+                     <FormItem>
+                       <FormLabel>Idade</FormLabel>
+                       <FormControl>
+                         <Input
+                           type="number"
+                           value={field.value || ''}
+                           onChange={(e) => field.onChange(Number(e.target.value) || undefined)}
+                           placeholder="Calculado automaticamente"
+                           readOnly
+                           className="bg-muted"
+                         />
+                       </FormControl>
+                       <FormMessage />
+                     </FormItem>
+                   )}
+                 />
+
+                 {/* Gênero */}
+                 <FormField
+                   control={form.control}
+                   name="gender"
+                   render={({ field }) => (
+                     <FormItem>
+                       <FormLabel>Gênero *</FormLabel>
+                       <Select onValueChange={field.onChange} defaultValue={field.value}>
+                         <FormControl>
+                           <SelectTrigger>
+                             <SelectValue placeholder="Selecione o gênero" />
+                           </SelectTrigger>
+                         </FormControl>
+                          <SelectContent>
+                            <SelectItem value="masculino">Masculino</SelectItem>
+                            <SelectItem value="feminino">Feminino</SelectItem>
+                            <SelectItem value="nao-binario">Não Binário</SelectItem>
+                            <SelectItem value="outros">Outros</SelectItem>
+                          </SelectContent>
+                       </Select>
+                       <FormMessage />
+                     </FormItem>
+                   )}
+                 />
 
                  {/* CEP */}
                  <FormField

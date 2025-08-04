@@ -1,337 +1,501 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Textarea } from '@/components/ui/textarea';
-import { 
-  Search, 
-  Phone, 
-  Camera, 
-  Paperclip, 
-  Send, 
-  Smile, 
-  MoreVertical,
-  Star,
-  Tag
-} from 'lucide-react';
+import { useState } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { MessageSquare, Phone, QrCode, Wifi, WifiOff, User, ChevronDown, Zap, Coffee, Clock } from "lucide-react"
+import { useUser } from "@clerk/clerk-react"
+import { useWhatsAppConnection } from "@/hooks/useWhatsAppConnection"
+import { whatsAppService } from "@/services/whatsapp-service"
+import { TalentChat as TalentChatComponent } from "@/components/whatsapp/talent-chat"
+import { QRCodeModal } from "@/components/whatsapp/qr-code-modal"
+import { AttendanceDashboard } from "@/components/whatsapp/attendance-dashboard"
+import { OperatorsCompactDashboard } from "@/components/whatsapp/operators-compact-dashboard"
+import { useOperatorStatus } from "@/hooks/useOperatorStatus"
+import { TalentData } from "@/types/talent"
+import { cn } from "@/lib/utils"
 
-interface Cliente {
-  id: string;
-  nome: string;
-  telefone: string;
-  foto: string;
-  ultimaMensagem: string;
-  horaUltimaMensagem: string;
-  mensagensNaoLidas: number;
-  online: boolean;
-  etiquetas: string[];
-}
+// Mock data para demonstração
+const mockTalents: TalentData[] = [
+  {
+    id: '1',
+    fullName: 'Ana Clara Silva',
+    phone: '11999887766',
+    email: 'ana.clara@email.com',
+    age: 25,
+    inviteSent: false,
+    status: true,
+    dnaStatus: 'UNDEFINED',
+    updatedAt: new Date(),
+    createdAt: new Date(),
+    producer: null,
+    dna: null,
+    files: []
+  },
+  {
+    id: '2',
+    fullName: 'Maria Santos',
+    phone: '11988776655',
+    email: 'maria.santos@email.com',
+    age: 28,
+    inviteSent: false,
+    status: true,
+    dnaStatus: 'UNDEFINED',
+    updatedAt: new Date(),
+    createdAt: new Date(),
+    producer: null,
+    dna: null,
+    files: []
+  },
+  {
+    id: '3',
+    fullName: 'João Oliveira',
+    phone: '11977665544',
+    email: 'joao.oliveira@email.com',
+    age: 30,
+    inviteSent: false,
+    status: true,
+    dnaStatus: 'UNDEFINED',
+    updatedAt: new Date(),
+    createdAt: new Date(),
+    producer: null,
+    dna: null,
+    files: []
+  },
+  {
+    id: '4',
+    fullName: 'Beatriz Costa',
+    phone: '11966554433',
+    email: 'beatriz.costa@email.com',
+    age: 26,
+    inviteSent: false,
+    status: true,
+    dnaStatus: 'UNDEFINED',
+    updatedAt: new Date(),
+    createdAt: new Date(),
+    producer: null,
+    dna: null,
+    files: []
+  },
+  {
+    id: '5',
+    fullName: 'Pedro Lima',
+    phone: '11955443322',
+    email: 'pedro.lima@email.com',
+    age: 32,
+    inviteSent: false,
+    status: true,
+    dnaStatus: 'UNDEFINED',
+    updatedAt: new Date(),
+    createdAt: new Date(),
+    producer: null,
+    dna: null,
+    files: []
+  },
+  {
+    id: '6',
+    fullName: 'Camila Rodrigues',
+    phone: '11944332211',
+    email: 'camila.rodrigues@email.com',
+    age: 29,
+    inviteSent: false,
+    status: true,
+    dnaStatus: 'UNDEFINED',
+    updatedAt: new Date(),
+    createdAt: new Date(),
+    producer: null,
+    dna: null,
+    files: []
+  }
+]
 
-interface Mensagem {
-  id: string;
-  conteudo: string;
-  tipo: 'texto' | 'imagem' | 'arquivo';
-  remetente: 'operador' | 'cliente';
-  timestamp: string;
-  arquivo?: {
-    nome: string;
-    url: string;
-    tipo: string;
-  };
-}
+export default function AtendimentoPage() {
+  const { user } = useUser()
+  const { connection, generateQR, disconnect, isGeneratingQR } = useWhatsAppConnection()
+  const { currentOperator, updateOperatorStatus } = useOperatorStatus()
+  const [selectedTalent, setSelectedTalent] = useState<string | null>(null)
+  const [showQRModal, setShowQRModal] = useState(false)
+  const [isStatusOpen, setIsStatusOpen] = useState(false)
 
-const AtendimentoPage = () => {
-  const [clientes] = useState<Cliente[]>([
+  const statusOptions = [
     {
-      id: '1',
-      nome: 'Ana Clara Santos',
-      telefone: '(11) 99999-9999',
-      foto: '/src/assets/ana-clara-profile.jpg',
-      ultimaMensagem: 'Gostaria de saber sobre os serviços...',
-      horaUltimaMensagem: '14:30',
-      mensagensNaoLidas: 2,
-      online: true,
-      etiquetas: ['VIP', 'Interessado']
+      value: 'available' as const,
+      label: 'Disponível',
+      color: 'bg-green-500',
+      hoverColor: 'hover:bg-green-600',
+      icon: Zap,
+      description: 'Pronto para atender'
     },
     {
-      id: '2',
-      nome: 'Maria Silva',
-      telefone: '(11) 88888-8888',
-      foto: '/src/assets/ana-clara-beauty.jpg',
-      ultimaMensagem: 'Quando posso agendar?',
-      horaUltimaMensagem: '13:45',
-      mensagensNaoLidas: 0,
-      online: false,
-      etiquetas: ['Agendamento']
-    }
-  ]);
-
-  const [clienteSelecionado, setClienteSelecionado] = useState<Cliente | null>(clientes[0]);
-  const [mensagens, setMensagens] = useState<Mensagem[]>([
-    {
-      id: '1',
-      conteudo: 'Olá! Gostaria de saber mais sobre os serviços de fotografia.',
-      tipo: 'texto',
-      remetente: 'cliente',
-      timestamp: '14:25'
+      value: 'busy' as const,
+      label: 'Ocupado',
+      color: 'bg-yellow-500',
+      hoverColor: 'hover:bg-yellow-600',
+      icon: Clock,
+      description: 'Em atendimento'
     },
     {
-      id: '2',
-      conteudo: 'Olá Ana Clara! Claro, ficarei feliz em ajudar. Temos diversos pacotes disponíveis.',
-      tipo: 'texto',
-      remetente: 'operador',
-      timestamp: '14:26'
+      value: 'away' as const,
+      label: 'Ausente',
+      color: 'bg-red-500',
+      hoverColor: 'hover:bg-red-600',
+      icon: Coffee,
+      description: 'Indisponível'
     }
-  ]);
+  ]
 
-  const [novaMensagem, setNovaMensagem] = useState('');
-  const [busca, setBusca] = useState('');
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const currentStatus = statusOptions.find(opt => opt.value === currentOperator?.status)
+  const StatusIcon = currentStatus?.icon || User
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [mensagens]);
+  const handleStatusChange = (status: 'available' | 'busy' | 'away') => {
+    updateOperatorStatus(status)
+    setIsStatusOpen(false)
+  }
 
-  const enviarMensagem = () => {
-    if (!novaMensagem.trim() || !clienteSelecionado) return;
-
-    const mensagem: Mensagem = {
-      id: Date.now().toString(),
-      conteudo: novaMensagem,
-      tipo: 'texto',
-      remetente: 'operador',
-      timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-    };
-
-    setMensagens(prev => [...prev, mensagem]);
-    setNovaMensagem('');
-  };
-
-  const clientesFiltrados = clientes.filter(cliente =>
-    cliente.nome.toLowerCase().includes(busca.toLowerCase()) ||
-    cliente.telefone.includes(busca)
-  );
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      enviarMensagem();
+  const handleGenerateQR = async () => {
+    try {
+      await generateQR()
+      // Simular conexão real para demo
+      setTimeout(() => {
+        ;(whatsAppService as any).simulateRealConnection?.()
+      }, 8000)
+      setShowQRModal(true)
+    } catch (error) {
+      console.error('Error generating QR:', error)
     }
-  };
+  }
+
+  const handleTalentSelect = (talentId: string, talentName: string, talentPhone: string) => {
+    whatsAppService.initializeConversation(talentId, talentName, talentPhone)
+    setSelectedTalent(talentId)
+  }
+
+  const handleStartAttendance = (talentId: string, talentName: string, talentPhone: string) => {
+    whatsAppService.initializeConversation(talentId, talentName, talentPhone)
+    setSelectedTalent(talentId)
+    
+    setTimeout(() => {
+      const chatElement = document.getElementById('talent-chat')
+      if (chatElement) {
+        chatElement.scrollIntoView({ behavior: 'smooth' })
+      }
+    }, 100)
+  }
+
+  const selectedTalentData = selectedTalent ? mockTalents.find(t => t.id === selectedTalent) : null
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-foreground">
-          Atendimento
-        </h1>
-        <p className="text-muted-foreground mt-1">
-          Central de atendimento para operadores de telemarketing
-        </p>
-      </div>
-
-      <Card className="h-[700px] flex overflow-hidden">
-        <div className="w-80 border-r border-border flex flex-col">
-          <div className="p-4 border-b border-border">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder="Buscar contatos..."
-                value={busca}
-                onChange={(e) => setBusca(e.target.value)}
-                className="pl-10"
-              />
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
+      <div className="p-6 max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8 flex justify-between items-start">
+          <div className="space-y-2">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+              Central de Atendimento
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl">
+              Sistema inteligente de atendimento PREGIATO MANAGEMENT em tempo real
+            </p>
           </div>
-
-          <ScrollArea className="flex-1">
-            {clientesFiltrados.map((cliente) => (
-              <div
-                key={cliente.id}
-                className={`p-4 border-b border-border cursor-pointer hover:bg-muted/50 transition-colors ${
-                  clienteSelecionado?.id === cliente.id ? 'bg-muted' : ''
-                }`}
-                onClick={() => setClienteSelecionado(cliente)}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage src={cliente.foto} alt={cliente.nome} />
-                      <AvatarFallback>{cliente.nome.slice(0, 2).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                    {cliente.online && (
-                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-background"></div>
-                    )}
+          
+          {/* User info com controle de status integrado */}
+          <div className="flex items-center gap-4 bg-gradient-to-r from-card via-card to-muted/30 border border-border/50 rounded-2xl px-6 py-4 shadow-lg backdrop-blur-sm">
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                {user?.imageUrl ? (
+                  <img 
+                    src={user.imageUrl} 
+                    alt={user.fullName || 'Usuário'} 
+                    className="w-10 h-10 rounded-full border-2 border-primary/20 shadow-md"
+                  />
+                ) : (
+                  <div className="w-10 h-10 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center border-2 border-primary/20">
+                    <User className="w-5 h-5 text-primary" />
                   </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-start">
-                      <h3 className="font-medium text-sm truncate">{cliente.nome}</h3>
+                )}
+                {currentOperator && (
+                  <div className={cn(
+                    "absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-card",
+                    currentStatus?.color || 'bg-gray-500'
+                  )} />
+                )}
+              </div>
+              <div>
+                <p className="font-semibold text-foreground">
+                  {user?.fullName || user?.firstName || 'Operador'}
+                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm text-muted-foreground">
+                    {user?.emailAddresses?.[0]?.emailAddress || 'online'}
+                  </p>
+                  {currentOperator && (
+                    <>
+                      <span className="text-muted-foreground">•</span>
                       <div className="flex items-center gap-1">
-                        <span className="text-xs text-muted-foreground">{cliente.horaUltimaMensagem}</span>
-                        {cliente.mensagensNaoLidas > 0 && (
-                          <Badge variant="default" className="bg-green-500 text-white rounded-full min-w-[20px] h-5 text-xs flex items-center justify-center">
-                            {cliente.mensagensNaoLidas}
-                          </Badge>
-                        )}
+                        <StatusIcon className="h-3 w-3" />
+                        <span className="text-xs text-muted-foreground">
+                          {currentStatus?.label || 'Indefinido'}
+                        </span>
                       </div>
-                    </div>
-                    
-                    <p className="text-sm text-muted-foreground truncate mt-1">
-                      {cliente.ultimaMensagem}
-                    </p>
-                    
-                    <div className="flex gap-1 mt-2">
-                      {cliente.etiquetas.map((etiqueta, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
-                          {etiqueta}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
+                    </>
+                  )}
                 </div>
               </div>
-            ))}
-          </ScrollArea>
+            </div>
+            
+            {currentOperator && (
+              <Popover open={isStatusOpen} onOpenChange={setIsStatusOpen}>
+                <PopoverTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="h-8 px-3 border-border/50 hover:border-primary/30"
+                  >
+                    Alterar Status
+                    <ChevronDown className="h-3 w-3 ml-1" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-56 p-2">
+                  <div className="space-y-1">
+                    {statusOptions.map((option) => {
+                      const OptionIcon = option.icon
+                      const isSelected = currentOperator.status === option.value
+                      
+                      return (
+                        <Button
+                          key={option.value}
+                          variant="ghost"
+                          onClick={() => handleStatusChange(option.value)}
+                          className={cn(
+                            "w-full justify-start gap-3 h-auto p-3 transition-all",
+                            isSelected && "bg-primary/10 border border-primary/20"
+                          )}
+                        >
+                          <div className="flex items-center gap-3 flex-1">
+                            <div className={cn(
+                              "w-3 h-3 rounded-full",
+                              option.color
+                            )} />
+                            <div className="text-left flex-1">
+                              <div className="flex items-center gap-2">
+                                <OptionIcon className="h-4 w-4" />
+                                <span className="font-medium">{option.label}</span>
+                              </div>
+                              <p className="text-xs text-muted-foreground">
+                                {option.description}
+                              </p>
+                            </div>
+                          </div>
+                          {isSelected && (
+                            <Badge variant="outline" className="text-xs">
+                              Ativo
+                            </Badge>
+                          )}
+                        </Button>
+                      )
+                    })}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            )}
+            
+            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse shadow-sm shadow-green-500/50" title="Online" />
+          </div>
         </div>
 
-        {clienteSelecionado ? (
-          <div className="flex-1 flex flex-col">
-            <div className="p-4 border-b border-border bg-muted/30">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src={clienteSelecionado.foto} alt={clienteSelecionado.nome} />
-                      <AvatarFallback>{clienteSelecionado.nome.slice(0, 2).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                    {clienteSelecionado.online && (
-                      <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border border-background"></div>
-                    )}
+        {/* Layout reorganizado - Sidebar esquerda com operadores e controle WhatsApp */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-8">
+          {/* Sidebar esquerda */}
+          <div className="lg:col-span-1 space-y-4">
+            {/* Operadores Online */}
+            <OperatorsCompactDashboard />
+            
+            {/* Controle WhatsApp */}
+            <Card className="bg-gradient-to-b from-card to-card/80 border-border/50 shadow-lg backdrop-blur-sm">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-3 text-lg">
+                  <div className="p-2 bg-gradient-to-br from-primary/20 to-primary/10 rounded-lg">
+                    <Phone className="h-5 w-5 text-primary" />
                   </div>
-                  
-                  <div>
-                    <h3 className="font-medium">{clienteSelecionado.nome}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {clienteSelecionado.online ? 'Online' : 'Offline'} • {clienteSelecionado.telefone}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="icon">
-                    <Phone className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()}>
-                    <Camera className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon">
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            <ScrollArea className="flex-1 p-4">
-              <div className="space-y-4">
-                {mensagens.map((mensagem) => (
-                  <div
-                    key={mensagem.id}
-                    className={`flex ${mensagem.remetente === 'operador' ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div
-                      className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                        mensagem.remetente === 'operador'
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted'
-                      }`}
-                    >
-                      <p className="text-sm">{mensagem.conteudo}</p>
-                      <p className={`text-xs mt-1 ${
-                        mensagem.remetente === 'operador' ? 'text-primary-foreground/70' : 'text-muted-foreground'
-                      }`}>
-                        {mensagem.timestamp}
+                  Controle WhatsApp
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Status Connection em tempo real */}
+                <div className={cn(
+                  "flex items-center justify-between p-4 rounded-xl border transition-all duration-300",
+                  connection.isConnected 
+                    ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800" 
+                    : "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800"
+                )}>
+                  <div className="flex items-center gap-3">
+                    <div className={cn(
+                      "p-2 rounded-lg",
+                      connection.isConnected ? "bg-green-500/20" : "bg-red-500/20"
+                    )}>
+                      {connection.isConnected ? (
+                        <Wifi className="h-5 w-5 text-green-600" />
+                      ) : (
+                        <WifiOff className="h-5 w-5 text-red-600" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-foreground">
+                        {connection.isConnected ? 'Conectado' : 'Desconectado'}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {connection.status === 'connected' && 'Em tempo real'}
+                        {connection.status === 'connecting' && 'Conectando...'}
+                        {connection.status === 'qr_ready' && 'QR Code ativo'}
+                        {connection.status === 'disconnected' && 'Offline'}
                       </p>
                     </div>
                   </div>
-                ))}
-                <div ref={messagesEndRef} />
-              </div>
-            </ScrollArea>
+                  <Badge
+                    className={cn(
+                      "shadow-sm",
+                      connection.isConnected 
+                        ? 'bg-green-500 hover:bg-green-600 text-white' 
+                        : 'bg-red-500 hover:bg-red-600 text-white'
+                    )}
+                  >
+                    {connection.isConnected ? 'Ativo' : 'Inativo'}
+                  </Badge>
+                </div>
 
-            <div className="p-4 border-t border-border">
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()}>
-                  <Paperclip className="h-4 w-4" />
-                </Button>
-                
-                <div className="flex-1 relative">
-                  <Textarea
-                    placeholder="Digite sua mensagem..."
-                    value={novaMensagem}
-                    onChange={(e) => setNovaMensagem(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    className="min-h-[40px] max-h-32 resize-none pr-20"
-                    rows={1}
-                  />
-                  
-                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <Smile className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-8 w-8"
-                      onClick={enviarMensagem}
-                      disabled={!novaMensagem.trim()}
+                {/* Action buttons */}
+                <div className="space-y-3">
+                  {!connection.isConnected && (
+                    <Button
+                      onClick={handleGenerateQR}
+                      disabled={isGeneratingQR}
+                      className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300"
                     >
-                      <Send className="h-4 w-4" />
+                      <QrCode className="h-4 w-4 mr-2" />
+                      {isGeneratingQR ? 'Gerando QR...' : 'Conectar WhatsApp'}
                     </Button>
+                  )}
+
+                  {connection.isConnected && (
+                    <Button
+                      onClick={disconnect}
+                      variant="destructive"
+                      className="w-full shadow-lg hover:shadow-xl transition-all duration-300"
+                    >
+                      <WifiOff className="h-4 w-4 mr-2" />
+                      Desconectar
+                    </Button>
+                  )}
+                </div>
+
+                <Separator className="bg-border/50" />
+
+                {/* Lista de contatos */}
+                <div>
+                  <h3 className="font-semibold mb-4 text-foreground flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4" />
+                    Contatos dos Modelos
+                  </h3>
+                  <ScrollArea className="h-80">
+                    <div className="space-y-2">
+                      {mockTalents.map((talent) => {
+                        const conversation = whatsAppService.getConversation(talent.id)
+                        const hasUnread = conversation && conversation.unreadCount > 0
+
+                        return (
+                          <button
+                            key={talent.id}
+                            onClick={() => handleTalentSelect(talent.id, talent.fullName, talent.phone || '')}
+                            className={cn(
+                              "w-full text-left p-3 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg border",
+                              selectedTalent === talent.id 
+                                ? 'border-primary bg-gradient-to-r from-primary/10 to-primary/5 shadow-lg' 
+                                : 'bg-gradient-to-r from-card to-muted/30 border-border/50 hover:border-primary/30'
+                            )}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <Avatar className={cn(
+                                  "h-10 w-10",
+                                  hasUnread && "ring-2 ring-primary/50 ring-offset-2 ring-offset-background animate-pulse"
+                                )}>
+                                  <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary text-xs">
+                                    <User className="h-5 w-5" />
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="min-w-0">
+                                  <p className="font-medium text-foreground truncate">{talent.fullName}</p>
+                                  <p className="text-sm text-muted-foreground">{talent.phone}</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {hasUnread && (
+                                  <Badge className="bg-red-500 hover:bg-red-600 text-white text-xs px-2 py-1 animate-pulse">
+                                    {conversation.unreadCount}
+                                  </Badge>
+                                )}
+                                <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                              </div>
+                            </div>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </ScrollArea>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Dashboard de Atendimentos - ocupa 3 colunas */}
+          <div className="lg:col-span-3">
+            <AttendanceDashboard onStartAttendance={handleStartAttendance} />
+          </div>
+        </div>
+
+        {/* Chat area */}
+        <div className="mt-8" id="talent-chat">
+          {selectedTalent && selectedTalentData ? (
+            <TalentChatComponent 
+              talent={selectedTalentData} 
+              onClose={() => setSelectedTalent(null)} 
+            />
+          ) : (
+            <Card className="h-[600px] bg-gradient-to-br from-card via-muted/30 to-card shadow-2xl border-0 backdrop-blur-sm">
+              <CardContent className="h-full flex items-center justify-center">
+                <div className="text-center text-muted-foreground max-w-md">
+                  <div className="w-32 h-32 bg-gradient-to-br from-primary/10 to-primary/5 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                    <MessageSquare className="h-16 w-16 text-primary/50" />
+                  </div>
+                  <h3 className="text-2xl font-semibold mb-3 text-foreground">Selecione um contato</h3>
+                  <p className="text-muted-foreground leading-relaxed">
+                    Escolha um modelo da lista ao lado ou clique em <strong>"Iniciar Atendimento"</strong> na fila para começar uma conversa
+                  </p>
+                  <div className="mt-6 flex justify-center gap-2">
+                    <div className="w-2 h-2 bg-primary/30 rounded-full animate-bounce" />
+                    <div className="w-2 h-2 bg-primary/30 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+                    <div className="w-2 h-2 bg-primary/30 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
                   </div>
                 </div>
-              </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
 
-              <div className="flex gap-2 mt-2">
-                <Button variant="outline" size="sm" className="text-xs">
-                  👍 Ok
-                </Button>
-                <Button variant="outline" size="sm" className="text-xs">
-                  ❤️ Obrigado
-                </Button>
-                <Button variant="outline" size="sm" className="text-xs">
-                  😊 Perfeito
-                </Button>
-              </div>
-            </div>
-
-            <input
-              ref={fileInputRef}
-              type="file"
-              className="hidden"
-              accept="image/*,application/pdf,.doc,.docx"
-            />
-          </div>
-        ) : (
-          <div className="flex-1 flex items-center justify-center bg-muted/10">
-            <div className="text-center">
-              <div className="w-32 h-32 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                <Search className="h-12 w-12 text-muted-foreground" />
-              </div>
-              <h3 className="text-lg font-medium mb-2">Selecione um contato</h3>
-              <p className="text-muted-foreground">
-                Escolha um cliente da lista para iniciar o atendimento
-              </p>
-            </div>
-          </div>
-        )}
-      </Card>
+        {/* QR Modal */}
+        <QRCodeModal
+          isOpen={showQRModal}
+          onClose={() => setShowQRModal(false)}
+          qrCode={connection.qrCode || ''}
+          status={connection.status}
+          onGenerateQR={handleGenerateQR}
+          onDisconnect={disconnect}
+          isGeneratingQR={isGeneratingQR}
+        />
+      </div>
     </div>
-  );
-};
-
-export default AtendimentoPage;
+  )
+}

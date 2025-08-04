@@ -23,10 +23,10 @@ const menuItems = [
   { title: "Treinamentos", url: "/treinamentos", icon: BookOpen },
   { title: "Ponto Eletrônico", url: "/ponto", icon: Clock },
   { title: "Contratos", url: "/contratos", icon: FileText },
-  { title: "Talentos", url: "/talentos", icon: Star },
+  { title: "Talentos", url: "/talentos", icon: Users },
   { title: "Finanças", url: "/financas", icon: DollarSign },
-  { title: "Usuários", url: "/usuarios", icon: Users },
-  { title: "Configurações", url: "/configuracoes", icon: Settings },
+  { title: "Usuários", url: "/usuarios", icon: Settings },
+  { title: "Configurações", url: "/configuracoes", icon: Star },
 ]
 
 export function AppSidebar() {
@@ -41,7 +41,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar
-      className={`${collapsed ? "w-14" : "w-64"} border-r border-border transition-all duration-300 light-wire light-wire-border-right`}
+      className={`${collapsed ? "w-14" : "w-64"} border-r border-border transition-all duration-300`}
       collapsible="icon"
     >
       <SidebarContent className="bg-card">

@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,6 +10,12 @@ import { useNavigate } from "react-router-dom"
 import { LoadingSpinner } from "@/components/contratos/loading-spinner"
 import { ContractAlert } from "@/components/contratos/contract-alert"
 import { PaymentFields } from "@/components/contratos/payment-fields"
+import { PDFPreviewModal } from "@/components/contratos/pdf-preview-modal"
+import { generateContractPDF } from "@/services/contract-generator"
+import { sendContractToAutentique } from "@/services/autentique-service"
+import { getTalents } from "@/lib/talent-service"
+import { TalentData } from "@/types/talent"
+import { ContractData } from "@/types/contract"
 
 // Mock data - Em produção viria do banco
 const mockProdutores = [
@@ -18,10 +24,68 @@ const mockProdutores = [
   { id: "3", name: "Carlos Oliveira", email: "carlos@example.com" }
 ]
 
+// Mock modelos para teste
 const mockModelos = [
-  { id: "1", fullName: "Maria Silva", document: "123.456.789-00", email: "maria@example.com" },
-  { id: "2", fullName: "Pedro Lima", document: "987.654.321-00", email: "pedro@example.com" },
-  { id: "3", fullName: "Laura Santos", document: "456.789.123-00", email: "laura@example.com" }
+  {
+    id: "mock_1",
+    fullName: "Ana Silva",
+    email: "ana.silva@email.com",
+    phone: "(11) 99999-1111",
+    document: "123.456.789-01",
+    postalcode: "01310-100",
+    street: "Avenida Paulista",
+    neighborhood: "Bela Vista",
+    city: "São Paulo",
+    numberAddress: "1000",
+    complement: "Apto 101",
+    uf: "SP",
+    age: 25
+  },
+  {
+    id: "mock_2", 
+    fullName: "Marina Costa",
+    email: "marina.costa@email.com",
+    phone: "(11) 99999-2222",
+    document: "987.654.321-01",
+    postalcode: "04038-001",
+    street: "Rua Augusta",
+    neighborhood: "Consolação",
+    city: "São Paulo",
+    numberAddress: "500",
+    complement: null,
+    uf: "SP",
+    age: 28
+  },
+  {
+    id: "mock_3",
+    fullName: "Beatriz Santos",
+    email: "beatriz.santos@email.com", 
+    phone: "(11) 99999-3333",
+    document: "456.789.123-01",
+    postalcode: "22071-900",
+    street: "Avenida Copacabana",
+    neighborhood: "Copacabana",
+    city: "Rio de Janeiro",
+    numberAddress: "200",
+    complement: "Cobertura",
+    uf: "RJ",
+    age: 24
+  },
+  {
+    id: "mock_4",
+    fullName: "Camila Oliveira",
+    email: "camila.oliveira@email.com",
+    phone: "(11) 99999-4444",
+    document: "789.123.456-01",
+    postalcode: "80010-000", 
+    street: "Rua XV de Novembro",
+    neighborhood: "Centro",
+    city: "Curitiba",
+    numberAddress: "300",
+    complement: null,
+    uf: "PR",
+    age: 26
+  }
 ]
 
 const metodosPagemento = [
@@ -38,11 +102,52 @@ const mesesPorExtenso = [
   "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"
 ]
 
+// Mock modelo para teste quando digitado um nome
+const createMockModel = (name: string): TalentData => ({
+  id: `mock_${Date.now()}`,
+  fullName: name,
+  email: `${name.toLowerCase().replace(/\s+/g, '.')}@email.com`,
+  phone: "(11) 99999-9999",
+  document: "123.456.789-00",
+  postalcode: "01310-200",
+  street: "Avenida Paulista",
+  neighborhood: "Cerqueira César", 
+  city: "São Paulo",
+  numberAddress: "1636",
+  complement: "Sala 1105",
+  uf: "SP",
+  age: 25,
+  inviteSent: false,
+  status: true,
+  dnaStatus: 'UNDEFINED' as const,
+  updatedAt: new Date(),
+  createdAt: new Date(),
+  producer: null,
+  dna: null,
+  files: []
+})
+
+interface PaymentData {
+  valor?: string;
+  [key: string]: any;
+}
+
 export default function NovoContratoSuperFotos() {
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
+  const [talents, setTalents] = useState<TalentData[]>([])
+  const [loadingTalents, setLoadingTalents] = useState(false)
+  const [pdfPreview, setPdfPreview] = useState<{
+    show: boolean
+    pdfBase64: string
+    contractData: ContractData | null
+  }>({
+    show: false,
+    pdfBase64: '',
+    contractData: null
+  })
   const [alert, setAlert] = useState<{
-    type: "success" | "warning"
+    type: "success" | "warning" | "error"
     title: string
     message: string
     show: boolean
@@ -58,76 +163,265 @@ export default function NovoContratoSuperFotos() {
     modeloId: "",
     modeloSearch: "",
     metodoPagamento: [] as string[],
-    paymentData: {}
+    paymentData: {} as PaymentData
+  })
+
+  // Combinar talentos reais com mock models para teste
+  const allModelos = [...talents, ...mockModelos.map(mock => ({
+    ...mock,
+    producerId: null,
+    inviteSent: false,
+    status: true,
+    dnaStatus: 'UNDEFINED' as const,
+    inviteSentAt: null,
+    inviteToken: null,
+    clerkInviteId: null,
+    updatedAt: new Date(),
+    createdAt: new Date(),
+    producer: null,
+    dna: null,
+    files: []
+  }))]
+
+  // Filtrar modelos baseado na busca
+  const filteredModelos = allModelos.filter(talent => {
+    if (!formData.modeloSearch) return true
+    return talent.fullName.toLowerCase().includes(formData.modeloSearch.toLowerCase()) ||
+      (talent.document && talent.document.includes(formData.modeloSearch)) ||
+      (talent.email && talent.email.toLowerCase().includes(formData.modeloSearch.toLowerCase()))
   })
 
   const handleMetodoPagamentoChange = (metodo: string) => {
+    console.log('[FORM] Método de pagamento alterado:', metodo)
     setFormData(prev => {
       const metodos = prev.metodoPagamento.includes(metodo)
         ? prev.metodoPagamento.filter(m => m !== metodo)
         : [...prev.metodoPagamento, metodo]
       
+      console.log('[FORM] Novos métodos de pagamento:', metodos)
       return { ...prev, metodoPagamento: metodos }
     })
   }
 
-  const filteredModelos = mockModelos.filter(modelo =>
-    modelo.fullName.toLowerCase().includes(formData.modeloSearch.toLowerCase()) ||
-    modelo.document.includes(formData.modeloSearch) ||
-    modelo.email.toLowerCase().includes(formData.modeloSearch.toLowerCase())
-  )
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log('[CONTRACT] Iniciando submit do formulário...')
+    console.log('[CONTRACT] Form data atual:', formData)
+    
     setIsLoading(true)
     
     try {
-      // Simular verificação de contrato existente
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      // Validações básicas
+      console.log('[CONTRACT] Validando campos obrigatórios...')
       
-      // Simular resposta da API
-      const existeContrato = Math.random() > 0.7 // 30% chance de existir contrato
-      
-      if (existeContrato) {
+      if (!formData.cidade || !formData.uf || !formData.dia || !formData.mes) {
+        console.log('[CONTRACT] Erro: Campos básicos obrigatórios não preenchidos')
         setAlert({
-          type: "warning",
-          title: "Contrato Existente",
-          message: "Existe um contrato para este modelo. Para gerar outro é necessário excluir o anterior",
+          type: "error",
+          title: "Campos Obrigatórios",
+          message: "Por favor, preencha todos os campos obrigatórios (cidade, UF, dia, mês).",
           show: true
         })
-      } else {
-        const selectedModelo = mockModelos.find(m => m.id === formData.modeloId)
-        setAlert({
-          type: "success", 
-          title: "Contrato Gerado com Sucesso",
-          message: `Contrato de Super Fotos para modelo ${selectedModelo?.fullName} gerado com sucesso.`,
-          show: true
-        })
+        return
       }
+
+      if (!formData.modeloId && !formData.modeloSearch) {
+        console.log('[CONTRACT] Erro: Modelo não selecionado/digitado')
+        setAlert({
+          type: "error",
+          title: "Modelo Obrigatório",
+          message: "Por favor, selecione ou digite o nome de um modelo.",
+          show: true
+        })
+        return
+      }
+
+      if (formData.metodoPagamento.length === 0) {
+        console.log('[CONTRACT] Erro: Método de pagamento não selecionado')
+        setAlert({
+          type: "error",
+          title: "Método de Pagamento",
+          message: "Por favor, selecione pelo menos um método de pagamento.",
+          show: true
+        })
+        return
+      }
+
+      console.log('[CONTRACT] Validações passaram, buscando dados do modelo...')
+
+      // Buscar dados do modelo selecionado ou criar mock
+      let selectedModelo: TalentData
+      
+      if (formData.modeloId) {
+        console.log('[CONTRACT] Buscando modelo por ID:', formData.modeloId)
+        const found = allModelos.find(t => t.id === formData.modeloId)
+        if (!found) {
+          console.log('[CONTRACT] Erro: Modelo não encontrado')
+          throw new Error('Modelo selecionado não encontrado')
+        }
+        selectedModelo = found
+        console.log('[CONTRACT] Modelo encontrado:', selectedModelo.fullName)
+      } else if (formData.modeloSearch) {
+        console.log('[CONTRACT] Criando modelo mock para:', formData.modeloSearch)
+        selectedModelo = createMockModel(formData.modeloSearch)
+      } else {
+        throw new Error('Nenhum modelo selecionado ou digitado')
+      }
+
+      // Preparar dados do contrato
+      console.log('[CONTRACT] Preparando dados do contrato...')
+      const contractData: ContractData = {
+        cidade: formData.cidade,
+        uf: formData.uf,
+        dia: formData.dia,
+        mes: formData.mes,
+        ano: new Date().getFullYear().toString(),
+        duracaoContrato: formData.duracaoContrato,
+        modelo: {
+          id: selectedModelo.id,
+          fullName: selectedModelo.fullName,
+          document: selectedModelo.document || '123.456.789-00',
+          email: selectedModelo.email || `${selectedModelo.fullName.toLowerCase().replace(/\s+/g, '.')}@email.com`,
+          phone: selectedModelo.phone || '(11) 99999-9999',
+          postalcode: selectedModelo.postalcode || '01310-200',
+          street: selectedModelo.street || 'Avenida Paulista',
+          neighborhood: selectedModelo.neighborhood || 'Cerqueira César',
+          city: selectedModelo.city || 'São Paulo',
+          numberAddress: selectedModelo.numberAddress || '1636',
+          complement: selectedModelo.complement || 'Sala 1105'
+        },
+        valorContrato: formData.paymentData.valor || '0,00',
+        metodoPagamento: formData.metodoPagamento,
+        paymentData: formData.paymentData
+      }
+
+      console.log('[CONTRACT] Dados do contrato preparados:', contractData)
+
+      // Gerar PDF
+      console.log('[CONTRACT] Iniciando geração do PDF...')
+      const pdfBase64 = await generateContractPDF(contractData, 'super-fotos')
+      
+      if (!pdfBase64) {
+        console.log('[CONTRACT] Erro: PDF não foi gerado')
+        throw new Error('Falha ao gerar PDF')
+      }
+
+      console.log('[CONTRACT] PDF gerado com sucesso, tamanho:', pdfBase64.length)
+
+      // Mostrar preview
+      setPdfPreview({
+        show: true,
+        pdfBase64,
+        contractData
+      })
+
+      console.log('[CONTRACT] Preview modal configurado')
+
     } catch (error) {
-      console.error("Erro ao gerar contrato:", error)
+      console.error("[CONTRACT] Erro ao gerar contrato:", error)
+      setAlert({
+        type: "error",
+        title: "Erro ao Gerar Contrato",
+        message: error instanceof Error ? error.message : "Erro desconhecido ao processar contrato",
+        show: true
+      })
     } finally {
+      console.log('[CONTRACT] Finalizando processo, setando loading para false')
       setIsLoading(false)
     }
   }
 
+  const handleSendContract = async () => {
+    if (!pdfPreview.contractData) return
+
+    try {
+      const contractName = `Contrato_SuperFotos_${pdfPreview.contractData.modelo.fullName.replace(/\s+/g, '_')}_${new Date().getTime()}`
+      
+      const result = await sendContractToAutentique(
+        pdfPreview.pdfBase64,
+        contractName,
+        pdfPreview.contractData.modelo.phone,
+        pdfPreview.contractData.modelo.fullName
+      )
+
+      if (result.success) {
+        setPdfPreview({ show: false, pdfBase64: '', contractData: null })
+        setAlert({
+          type: "success",
+          title: "Contrato Enviado com Sucesso",
+          message: `${result.message}. O contrato foi enviado via WhatsApp para ${pdfPreview.contractData.modelo.fullName}.`,
+          show: true
+        })
+        
+        // Limpar formulário
+        setFormData({
+          cidade: "",
+          uf: "",
+          dia: "",
+          mes: "",
+          duracaoContrato: "",
+          produtorId: "",
+          modeloId: "",
+          modeloSearch: "",
+          metodoPagamento: [],
+          paymentData: {} as PaymentData
+        })
+      } else {
+        setAlert({
+          type: "error",
+          title: "Erro ao Enviar Contrato",
+          message: result.message,
+          show: true
+        })
+      }
+    } catch (error) {
+      console.error("Erro ao enviar contrato:", error)
+      setAlert({
+        type: "error",
+        title: "Erro ao Enviar Contrato",
+        message: error instanceof Error ? error.message : "Erro desconhecido ao enviar contrato",
+        show: true
+      })
+    }
+  }
+
+  const handleDeleteContract = () => {
+    setPdfPreview({ show: false, pdfBase64: '', contractData: null })
+  }
+
   const handleDeleteExistingContract = () => {
     setAlert({ ...alert, show: false })
-    // Aqui faria a chamada para deletar o contrato existente
     console.log("Deletando contrato existente...")
   }
 
   const handleKeepBothContracts = () => {
     setAlert({ ...alert, show: false })
-    // Aqui prosseguiria com a geração do novo contrato
     console.log("Mantendo ambos os contratos...")
   }
 
   const handleViewDocument = () => {
     setAlert({ ...alert, show: false })
-    // Aqui abriria o documento gerado
     console.log("Abrindo documento...")
   }
+
+  const isFormValid = Boolean(
+    formData.cidade && 
+    formData.uf && 
+    formData.dia && 
+    formData.mes && 
+    (formData.modeloId || formData.modeloSearch) && 
+    formData.metodoPagamento.length > 0
+  )
+
+  console.log('[CONTRACT] Form validation:', {
+    cidade: !!formData.cidade,
+    uf: !!formData.uf,
+    dia: !!formData.dia,
+    mes: !!formData.mes,
+    modelo: !!(formData.modeloId || formData.modeloSearch),
+    pagamento: formData.metodoPagamento.length > 0,
+    isValid: isFormValid
+  })
 
   return (
     <div className="p-6 space-y-6">
@@ -152,7 +446,7 @@ export default function NovoContratoSuperFotos() {
       {alert.show && (
         <div className="mb-6">
           <ContractAlert
-            type={alert.type}
+            type={alert.type as "success" | "warning"}
             title={alert.title}
             message={alert.message}
             onAction={alert.type === "warning" ? handleDeleteExistingContract : handleViewDocument}
@@ -164,7 +458,7 @@ export default function NovoContratoSuperFotos() {
       )}
 
       {isLoading ? (
-        <LoadingSpinner message="Gerando contrato..." />
+        <LoadingSpinner message="Gerando e enviando contrato..." />
       ) : (
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Dados Básicos */}
@@ -279,35 +573,59 @@ export default function NovoContratoSuperFotos() {
 
                 <div className="space-y-2">
                   <Label>Selecionar Modelo *</Label>
-                  <div className="relative">
-                    <Input
-                      placeholder="Busque por nome, documento ou email"
-                      value={formData.modeloSearch}
-                      onChange={(e) => setFormData(prev => ({ ...prev, modeloSearch: e.target.value }))}
-                      className="bg-background border-border pr-10"
-                    />
-                    <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <div className="space-y-2">
+                    <div className="relative">
+                      <Input
+                        placeholder="Digite o nome do modelo (ex: Ana Silva)"
+                        value={formData.modeloSearch}
+                        onChange={(e) => {
+                          const value = e.target.value
+                          setFormData(prev => ({ 
+                            ...prev, 
+                            modeloSearch: value,
+                            modeloId: "" // Limpar seleção quando digitar
+                          }))
+                        }}
+                        className="bg-background border-border pr-10"
+                      />
+                      <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    </div>
+                    
+                    {/* Seletor de modelos existentes (opcional) */}
+                    {allModelos.length > 0 && (
+                      <Select 
+                        value={formData.modeloId} 
+                        onValueChange={(value) => {
+                          const selectedTalent = allModelos.find(t => t.id === value)
+                          setFormData(prev => ({ 
+                            ...prev, 
+                            modeloId: value,
+                            modeloSearch: selectedTalent?.fullName || "" // Preencher campo de busca
+                          }))
+                        }}
+                      >
+                        <SelectTrigger className="bg-background border-border">
+                          <SelectValue placeholder="Ou selecione um modelo da lista" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {filteredModelos.map((modelo) => (
+                            <SelectItem key={modelo.id} value={modelo.id}>
+                              <div className="flex flex-col">
+                                <span className="font-medium">{modelo.fullName}</span>
+                                <span className="text-xs text-muted-foreground">
+                                  {modelo.document || 'Mock'} • {modelo.email || 'Sem email'}
+                                </span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                    
+                    <p className="text-xs text-muted-foreground">
+                      Digite o nome do modelo ou selecione um da lista. Modelos mock estão disponíveis para teste.
+                    </p>
                   </div>
-                  <Select 
-                    value={formData.modeloId} 
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, modeloId: value }))}
-                  >
-                    <SelectTrigger className="bg-background border-border">
-                      <SelectValue placeholder="Selecione um modelo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {filteredModelos.map((modelo) => (
-                        <SelectItem key={modelo.id} value={modelo.id}>
-                          <div className="flex flex-col">
-                            <span className="font-medium">{modelo.fullName}</span>
-                            <span className="text-xs text-muted-foreground">
-                              {modelo.document} • {modelo.email}
-                            </span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </div>
               </div>
             </CardContent>
@@ -368,12 +686,18 @@ export default function NovoContratoSuperFotos() {
             <Button 
               type="submit" 
               className="bg-primary hover:bg-primary/90 min-w-[140px]"
-              disabled={isLoading || formData.metodoPagamento.length === 0}
+              disabled={isLoading || !isFormValid}
+              onClick={(e) => {
+                console.log('[CONTRACT] Botão Gerar Contrato clicado!')
+                console.log('[CONTRACT] Form válido:', isFormValid)
+                console.log('[CONTRACT] Loading:', isLoading)
+                // Não prevenir o default aqui, deixar o form submit acontecer
+              }}
             >
               {isLoading ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Gerando...
+                  Processando...
                 </div>
               ) : (
                 "Gerar Contrato"
@@ -382,6 +706,16 @@ export default function NovoContratoSuperFotos() {
           </div>
         </form>
       )}
+
+      {/* PDF Preview Modal */}
+      <PDFPreviewModal
+        isOpen={pdfPreview.show}
+        onClose={() => setPdfPreview({ show: false, pdfBase64: '', contractData: null })}
+        pdfBase64={pdfPreview.pdfBase64}
+        contractName="Contrato Super Fotos"
+        onSend={handleSendContract}
+        onDelete={handleDeleteContract}
+      />
     </div>
   )
 }
