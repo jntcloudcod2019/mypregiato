@@ -47,6 +47,7 @@ export default function NovoContratoSuperFotos() {
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
   const [talents, setTalents] = useState<TalentData[]>([])
+  const [loadingTalents, setLoadingTalents] = useState(true)
   const [pdfPreview, setPdfPreview] = useState<{
     show: boolean
     pdfBase64: string
@@ -81,11 +82,20 @@ export default function NovoContratoSuperFotos() {
     const loadTalents = async () => {
       try {
         console.log('[CONTRATO] Carregando talentos...')
+        setLoadingTalents(true)
         const talentsData = await getTalents()
         console.log('[CONTRATO] Talentos carregados:', talentsData.length)
         setTalents(talentsData)
       } catch (error) {
         console.error("[CONTRATO] Erro ao carregar talentos:", error)
+        setAlert({
+          type: "error",
+          title: "Erro ao Carregar Talentos",
+          message: "Não foi possível carregar a lista de talentos. Tente recarregar a página.",
+          show: true
+        })
+      } finally {
+        setLoadingTalents(false)
       }
     }
     loadTalents()
@@ -302,6 +312,7 @@ export default function NovoContratoSuperFotos() {
 
   console.log('[CONTRATO] Form válido:', isFormValid)
   console.log('[CONTRATO] Talentos disponíveis:', talents.length)
+  console.log('[CONTRATO] Loading talentos:', loadingTalents)
 
   return (
     <div className="p-6 space-y-6">
@@ -459,29 +470,48 @@ export default function NovoContratoSuperFotos() {
                       value={formData.modeloSearch}
                       onChange={(e) => setFormData(prev => ({ ...prev, modeloSearch: e.target.value }))}
                       className="bg-background border-border pr-10"
+                      disabled={loadingTalents}
                     />
                     <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   </div>
                   <Select 
                     value={formData.modeloId} 
                     onValueChange={(value) => setFormData(prev => ({ ...prev, modeloId: value }))}
+                    disabled={loadingTalents}
                   >
                     <SelectTrigger className="bg-background border-border">
-                      <SelectValue placeholder="Selecione um modelo" />
+                      <SelectValue placeholder={
+                        loadingTalents 
+                          ? "Carregando modelos..." 
+                          : talents.length === 0 
+                            ? "Nenhum modelo encontrado" 
+                            : "Selecione um modelo"
+                      } />
                     </SelectTrigger>
                     <SelectContent>
-                      {filteredModelos.map((modelo) => (
-                        <SelectItem key={modelo.id} value={modelo.id}>
-                          <div className="flex flex-col">
-                            <span className="font-medium">{modelo.fullName}</span>
-                            <span className="text-xs text-muted-foreground">
-                              {modelo.document} • {modelo.email}
-                            </span>
-                          </div>
-                        </SelectItem>
-                      ))}
+                      {filteredModelos.length === 0 && !loadingTalents ? (
+                        <div className="px-4 py-2 text-sm text-muted-foreground">
+                          {formData.modeloSearch ? 'Nenhum modelo encontrado com essa busca' : 'Nenhum modelo cadastrado'}
+                        </div>
+                      ) : (
+                        filteredModelos.map((modelo) => (
+                          <SelectItem key={modelo.id} value={modelo.id}>
+                            <div className="flex flex-col">
+                              <span className="font-medium">{modelo.fullName}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {modelo.document} • {modelo.email}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
+                  {loadingTalents && (
+                    <p className="text-xs text-muted-foreground">
+                      Carregando lista de modelos...
+                    </p>
+                  )}
                 </div>
               </div>
             </CardContent>
