@@ -1,3 +1,4 @@
+
 export const getContractTemplate = (data: any) => `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -67,22 +68,38 @@ margin: 15px auto;
 padding-top: 15px;
 }
 
-.signature-img {
-width: 120px;
-height: auto;
-display: block;
+.digital-signature-contratante {
+background-color: #e3f2fd;
+border: 1px solid #90caf9;
+border-radius: 4px;
+padding: 10px;
 margin: 10px auto;
-object-fit: contain;
+text-align: left;
+width: 300px;
+font-size: 11px;
+}
+
+.digital-signature-contratante .signature-icon {
+color: #1976d2;
+font-weight: bold;
+margin-right: 5px;
+}
+
+.digital-signature-contratante .signature-name {
+color: #1976d2;
+font-weight: bold;
+margin-bottom: 2px;
+}
+
+.digital-signature-contratante .signature-details {
+color: #666;
+font-size: 9px;
 }
 
 .company-signature {
-border: 2px solid #333;
-padding: 20px;
+text-align: center;
 margin: 30px auto;
 width: 400px;
-background-color: #f9f9f9;
-text-align: center;
-font-family: Arial, sans-serif;
 }
 
 .company-title {
@@ -92,37 +109,15 @@ margin-bottom: 15px;
 text-transform: uppercase;
 }
 
-.company-info {
-font-size: 12px;
-margin-bottom: 20px;
-}
-
-.digital-signature-area {
-background-color: #e3f2fd;
-border: 1px solid #90caf9;
-border-radius: 4px;
-padding: 15px;
-margin: 15px 0;
-text-align: center;
-}
-
-.digital-signature-text {
-color: #1976d2;
-font-size: 12px;
-font-weight: bold;
-margin-bottom: 5px;
-}
-
-.signature-timestamp {
-font-size: 10px;
-color: #666;
-margin-bottom: 3px;
-}
-
-.signature-hash {
-font-size: 9px;
-color: #999;
-font-family: monospace;
+.company-signature-img {
+width: 300px;
+height: auto;
+display: block;
+margin: 10px auto;
+object-fit: contain;
+border: 1px solid #ccc;
+padding: 5px;
+background-color: #f9f9f9;
 }
 
 .signature-line-simple {
@@ -210,19 +205,25 @@ margin-left: 10px;
 
 <div class="signature">
 <p>Nome: ${data.modelo.fullName}</p>
+
+<div class="digital-signature-contratante">
+<div class="signature-name">
+<span class="signature-icon">📄</span>${data.modelo.fullName}
+</div>
+<div class="signature-details">Data 01/08/2025 13:10</div>
+<div class="signature-details">4a1:1ba:11:5ce:91:f1b:0af:a4:2311:0c8:d0c</div>
+</div>
+
 <div class="signature-line"></div>
 <p>Assinatura do Contratante</p>
 </div>
 
 <div class="company-signature">
 <div class="company-title">SUPER FOTOS FOTOGRAFIAS LTDA</div>
-<div class="company-info">CNPJ: 13.310.215/0001-50</div>
 
-<div class="digital-signature-area">
-<div class="digital-signature-text">📄 Super Fotos Fotografias Ltda</div>
-<div class="signature-timestamp">Data 01/08/2025 12:11</div>
-<div class="signature-hash">4a:1ba:11:5ce:91:f1b:0af:a4:2311:0c8:d0c</div>
-</div>
+<img src="/lovable-uploads/179cf6ea-af3d-4ea8-90be-51d2c4bbe054.png" 
+     alt="Assinatura Super Fotos" 
+     class="company-signature-img" />
 
 <div class="signature-line-simple">
 Assinatura: <span class="signature-underline"></span>
