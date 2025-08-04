@@ -1,10 +1,12 @@
+
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { MessageSquare, Phone, QrCode, Wifi, WifiOff } from "lucide-react"
+import { MessageSquare, Phone, QrCode, Wifi, WifiOff, User } from "lucide-react"
+import { useUser } from "@clerk/clerk-react"
 import { useWhatsAppConnection } from "@/hooks/useWhatsAppConnection"
 import { whatsAppService } from "@/services/whatsapp-service"
 import { TalentChat as TalentChatComponent } from "@/components/whatsapp/talent-chat"
@@ -108,6 +110,7 @@ const mockTalents: TalentData[] = [
 ]
 
 export default function AtendimentoPage() {
+  const { user } = useUser()
   const { connection, generateQR, disconnect, isGeneratingQR } = useWhatsAppConnection()
   const [selectedTalent, setSelectedTalent] = useState<string | null>(null)
   const [showQRModal, setShowQRModal] = useState(false)
@@ -144,13 +147,42 @@ export default function AtendimentoPage() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto bg-background min-h-screen">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-foreground mb-2">
-          Central de Atendimento WhatsApp
-        </h1>
-        <p className="text-muted-foreground">
-          Sistema inteligente de atendimento PREGIATO MANAGEMENT com controle de operadores
-        </p>
+      {/* Header com nome do usuário */}
+      <div className="mb-6 flex justify-between items-start">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground mb-2">
+            Central de Atendimento WhatsApp
+          </h1>
+          <p className="text-muted-foreground">
+            Sistema inteligente de atendimento PREGIATO MANAGEMENT com controle de operadores
+          </p>
+        </div>
+        
+        {/* Exibição do usuário logado */}
+        <div className="flex items-center gap-3 bg-card border border-border rounded-lg px-4 py-3 shadow-sm">
+          <div className="flex items-center gap-2">
+            {user?.imageUrl ? (
+              <img 
+                src={user.imageUrl} 
+                alt={user.fullName || 'Usuário'} 
+                className="w-8 h-8 rounded-full border border-border"
+              />
+            ) : (
+              <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                <User className="w-4 h-4 text-primary" />
+              </div>
+            )}
+            <div className="text-right">
+              <p className="text-sm font-medium text-foreground">
+                {user?.fullName || user?.firstName || 'Operador'}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {user?.emailAddresses?.[0]?.emailAddress || 'online'}
+              </p>
+            </div>
+          </div>
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" title="Online" />
+        </div>
       </div>
 
       {/* Layout em Grid Responsivo */}
