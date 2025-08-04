@@ -21,6 +21,41 @@ interface PaymentFieldsProps {
 export function PaymentFields({ paymentMethods, paymentData, onPaymentDataChange }: PaymentFieldsProps) {
   const [fileBase64, setFileBase64] = useState("")
 
+  // Função para formatar valor monetário
+  const formatCurrency = (value: string): string => {
+    // Remove tudo que não é dígito
+    const numbers = value.replace(/\D/g, '')
+    
+    if (!numbers) return ''
+    
+    // Converte para número e divide por 100 para ter centavos
+    const amount = parseInt(numbers) / 100
+    
+    // Formata no padrão brasileiro
+    return amount.toLocaleString('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })
+  }
+
+  // Função para converter valor formatado para número
+  const parseCurrency = (value: string): number => {
+    const numbers = value.replace(/\D/g, '')
+    return parseInt(numbers || '0') / 100
+  }
+
+  // Handler para mudanças nos campos de valor monetário
+  const handleCurrencyChange = (value: string, paymentType: string, field: string) => {
+    const formattedValue = formatCurrency(value)
+    onPaymentDataChange({
+      ...paymentData,
+      [paymentType]: { 
+        ...paymentData[paymentType], 
+        [field]: formattedValue
+      }
+    })
+  }
+
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
@@ -97,17 +132,19 @@ export function PaymentFields({ paymentMethods, paymentData, onPaymentDataChange
               </div>
               <div className="space-y-2">
                 <Label htmlFor="cartao-valor">Valor *</Label>
-                <Input 
-                  id="cartao-valor"
-                  value={paymentData.cartao?.valor || ""}
-                  onChange={(e) => onPaymentDataChange({
-                    ...paymentData,
-                    cartao: { ...paymentData.cartao, valor: e.target.value }
-                  })}
-                  className="bg-background border-border"
-                  placeholder="Ex: R$ 2.500,00"
-                  required
-                />
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+                    R$
+                  </span>
+                  <Input 
+                    id="cartao-valor"
+                    value={paymentData.cartao?.valor || ""}
+                    onChange={(e) => handleCurrencyChange(e.target.value, 'cartao', 'valor')}
+                    className="bg-background border-border pl-10"
+                    placeholder="0,00"
+                    required
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>Status do Pagamento *</Label>
@@ -246,17 +283,19 @@ export function PaymentFields({ paymentMethods, paymentData, onPaymentDataChange
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="pix-valor">Valor *</Label>
-                <Input 
-                  id="pix-valor"
-                  value={paymentData.pix?.valor || ""}
-                  onChange={(e) => onPaymentDataChange({
-                    ...paymentData,
-                    pix: { ...paymentData.pix, valor: e.target.value }
-                  })}
-                  className="bg-background border-border"
-                  placeholder="Ex: R$ 500,00"
-                  required
-                />
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+                    R$
+                  </span>
+                  <Input 
+                    id="pix-valor"
+                    value={paymentData.pix?.valor || ""}
+                    onChange={(e) => handleCurrencyChange(e.target.value, 'pix', 'valor')}
+                    className="bg-background border-border pl-10"
+                    placeholder="0,00"
+                    required
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>Data do Pagamento *</Label>
@@ -343,17 +382,19 @@ export function PaymentFields({ paymentMethods, paymentData, onPaymentDataChange
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="dinheiro-valor">Valor *</Label>
-                <Input 
-                  id="dinheiro-valor"
-                  value={paymentData.dinheiro?.valor || ""}
-                  onChange={(e) => onPaymentDataChange({
-                    ...paymentData,
-                    dinheiro: { ...paymentData.dinheiro, valor: e.target.value }
-                  })}
-                  className="bg-background border-border"
-                  placeholder="Ex: R$ 300,00"
-                  required
-                />
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+                    R$
+                  </span>
+                  <Input 
+                    id="dinheiro-valor"
+                    value={paymentData.dinheiro?.valor || ""}
+                    onChange={(e) => handleCurrencyChange(e.target.value, 'dinheiro', 'valor')}
+                    className="bg-background border-border pl-10"
+                    placeholder="0,00"
+                    required
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>Data do Pagamento *</Label>
@@ -423,17 +464,19 @@ export function PaymentFields({ paymentMethods, paymentData, onPaymentDataChange
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="debito-valor">Valor *</Label>
-                <Input 
-                  id="debito-valor"
-                  value={paymentData.debito?.valor || ""}
-                  onChange={(e) => onPaymentDataChange({
-                    ...paymentData,
-                    debito: { ...paymentData.debito, valor: e.target.value }
-                  })}
-                  className="bg-background border-border"
-                  placeholder="Ex: R$ 800,00"
-                  required
-                />
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+                    R$
+                  </span>
+                  <Input 
+                    id="debito-valor"
+                    value={paymentData.debito?.valor || ""}
+                    onChange={(e) => handleCurrencyChange(e.target.value, 'debito', 'valor')}
+                    className="bg-background border-border pl-10"
+                    placeholder="0,00"
+                    required
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>Status do Pagamento *</Label>
@@ -521,17 +564,19 @@ export function PaymentFields({ paymentMethods, paymentData, onPaymentDataChange
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="link-valor">Valor *</Label>
-                <Input 
-                  id="link-valor"
-                  value={paymentData.link?.valor || ""}
-                  onChange={(e) => onPaymentDataChange({
-                    ...paymentData,
-                    link: { ...paymentData.link, valor: e.target.value }
-                  })}
-                  className="bg-background border-border"
-                  placeholder="Ex: R$ 1.200,00"
-                  required
-                />
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+                    R$
+                  </span>
+                  <Input 
+                    id="link-valor"
+                    value={paymentData.link?.valor || ""}
+                    onChange={(e) => handleCurrencyChange(e.target.value, 'link', 'valor')}
+                    className="bg-background border-border pl-10"
+                    placeholder="0,00"
+                    required
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>Data do Pagamento *</Label>
