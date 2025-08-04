@@ -68,62 +68,103 @@ padding-top: 15px;
 }
 
 .signature-img {
-width: 150px;
+width: 120px;
 height: auto;
 display: block;
-margin: 15px auto;
+margin: 10px auto;
 object-fit: contain;
-border: 1px solid #ddd;
-padding: 5px;
-background-color: white;
 }
 
 .company-signature {
 border: 2px solid #333;
-padding: 25px;
+padding: 20px;
 margin: 30px auto;
-width: 400px;
+width: 380px;
 background-color: #f9f9f9;
-text-align: center;
+text-align: left;
+font-family: Arial, sans-serif;
 }
 
 .company-title {
-font-size: 18px;
+font-size: 16px;
 font-weight: bold;
-margin-bottom: 20px;
+margin-bottom: 8px;
 text-transform: uppercase;
+text-align: center;
+}
+
+.company-info {
+font-size: 12px;
+margin-bottom: 15px;
+text-align: center;
 }
 
 .signature-label {
 font-size: 14px;
 font-weight: bold;
-margin-bottom: 10px;
+margin-bottom: 8px;
+text-align: left;
 }
 
-.company-info {
+.digital-signature-area {
+background-color: #e3f2fd;
+border: 1px solid #90caf9;
+border-radius: 4px;
+padding: 12px;
 margin: 10px 0;
-font-size: 12px;
-}
-
-.signature-timestamp {
-font-size: 11px;
-color: #666;
-margin-top: 5px;
-}
-
-.digital-signature {
-background-color: #e8f4fd;
-border: 1px solid #4a9eff;
-border-radius: 5px;
-padding: 10px;
-margin: 15px 0;
-display: inline-block;
+text-align: center;
+min-height: 60px;
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
 }
 
 .digital-signature-text {
-color: #4a9eff;
+color: #1976d2;
 font-size: 12px;
 font-weight: bold;
+margin-bottom: 5px;
+}
+
+.signature-timestamp {
+font-size: 10px;
+color: #666;
+margin-bottom: 3px;
+}
+
+.signature-hash {
+font-size: 9px;
+color: #999;
+font-family: monospace;
+}
+
+.digital-seal {
+background-color: #1976d2;
+color: white;
+border-radius: 50%;
+width: 25px;
+height: 25px;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 10px;
+font-weight: bold;
+margin: 8px auto;
+}
+
+.signature-image-container {
+text-align: center;
+margin: 15px 0;
+}
+
+.representative-label {
+text-align: center;
+font-size: 12px;
+font-weight: bold;
+margin-top: 10px;
+border-top: 1px solid #333;
+padding-top: 5px;
 }
 </style>
 </head>
@@ -205,20 +246,26 @@ font-weight: bold;
 <div class="company-signature">
 <div class="company-title">SUPER FOTOS FOTOGRAFIAS LTDA</div>
 <div class="company-info">CNPJ: 13.310.215/0001-50</div>
-<div style="margin: 20px 0;">
+
 <div class="signature-label">Assinatura:</div>
-<div class="digital-signature">
+<div class="digital-signature-area">
 <div class="digital-signature-text">📄 Super Fotos Fotografias Ltda</div>
 <div class="signature-timestamp">Data 01/08/2025 12:11</div>
-<div style="font-size: 10px; color: #666;">4a:1ba:11:5ce:91:f1b:0af:a4:2311:0c8:d0c</div>
+<div class="signature-hash">4a:1ba:11:5ce:91:f1b:0af:a4:2311:0c8:d0c</div>
 </div>
-</div>
+
+<div class="digital-seal">🔒</div>
+
+<div class="signature-image-container">
 <img src="/lovable-uploads/f5ad4329-0123-4568-b84c-14389033fc2d.png" alt="Assinatura Super Fotos" class="signature-img" />
-<div class="signature-line"></div>
-<p style="margin-top: 10px; font-size: 14px; font-weight: bold;">Representante Legal</p>
+</div>
+
+<div class="representative-label">Representante Legal</div>
 </div>
 
 </div>
 
 </body>
 </html>`;
+
+</initial_code>
