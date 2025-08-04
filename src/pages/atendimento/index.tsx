@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -6,7 +5,8 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
-import { MessageSquare, Phone, QrCode, Wifi, WifiOff, User } from "lucide-react"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { MessageSquare, Phone, QrCode, Wifi, WifiOff, User, ChevronDown, Zap, Coffee, Clock } from "lucide-react"
 import { useUser } from "@clerk/clerk-react"
 import { useWhatsAppConnection } from "@/hooks/useWhatsAppConnection"
 import { whatsAppService } from "@/services/whatsapp-service"
@@ -14,7 +14,7 @@ import { TalentChat as TalentChatComponent } from "@/components/whatsapp/talent-
 import { QRCodeModal } from "@/components/whatsapp/qr-code-modal"
 import { AttendanceDashboard } from "@/components/whatsapp/attendance-dashboard"
 import { OperatorsCompactDashboard } from "@/components/whatsapp/operators-compact-dashboard"
-import { OperatorStatusControl } from "@/components/whatsapp/operator-status-control"
+import { useOperatorStatus } from "@/hooks/useOperatorStatus"
 import { TalentData } from "@/types/talent"
 import { cn } from "@/lib/utils"
 
@@ -115,8 +115,45 @@ const mockTalents: TalentData[] = [
 export default function AtendimentoPage() {
   const { user } = useUser()
   const { connection, generateQR, disconnect, isGeneratingQR } = useWhatsAppConnection()
+  const { currentOperator, updateOperatorStatus } = useOperatorStatus()
   const [selectedTalent, setSelectedTalent] = useState<string | null>(null)
   const [showQRModal, setShowQRModal] = useState(false)
+  const [isStatusOpen, setIsStatusOpen] = useState(false)
+
+  const statusOptions = [
+    {
+      value: 'available' as const,
+      label: 'Disponível',
+      color: 'bg-green-500',
+      hoverColor: 'hover:bg-green-600',
+      icon: Zap,
+      description: 'Pronto para atender'
+    },
+    {
+      value: 'busy' as const,
+      label: 'Ocupado',
+      color: 'bg-yellow-500',
+      hoverColor: 'hover:bg-yellow-600',
+      icon: Clock,
+      description: 'Em atendimento'
+    },
+    {
+      value: 'away' as const,
+      label: 'Ausente',
+      color: 'bg-red-500',
+      hoverColor: 'hover:bg-red-600',
+      icon: Coffee,
+      description: 'Indisponível'
+    }
+  ]
+
+  const currentStatus = statusOptions.find(opt => opt.value === currentOperator?.status)
+  const StatusIcon = currentStatus?.icon || User
+
+  const handleStatusChange = (status: 'available' | 'busy' | 'away') => {
+    updateOperatorStatus(status)
+    setIsStatusOpen(false)
+  }
 
   const handleGenerateQR = async () => {
     try {
@@ -164,40 +201,115 @@ export default function AtendimentoPage() {
             </p>
           </div>
           
-          {/* User info */}
+          {/* User info com controle de status integrado */}
           <div className="flex items-center gap-4 bg-gradient-to-r from-card via-card to-muted/30 border border-border/50 rounded-2xl px-6 py-4 shadow-lg backdrop-blur-sm">
             <div className="flex items-center gap-3">
-              {user?.imageUrl ? (
-                <img 
-                  src={user.imageUrl} 
-                  alt={user.fullName || 'Usuário'} 
-                  className="w-10 h-10 rounded-full border-2 border-primary/20 shadow-md"
-                />
-              ) : (
-                <div className="w-10 h-10 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center border-2 border-primary/20">
-                  <User className="w-5 h-5 text-primary" />
-                </div>
-              )}
+              <div className="relative">
+                {user?.imageUrl ? (
+                  <img 
+                    src={user.imageUrl} 
+                    alt={user.fullName || 'Usuário'} 
+                    className="w-10 h-10 rounded-full border-2 border-primary/20 shadow-md"
+                  />
+                ) : (
+                  <div className="w-10 h-10 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center border-2 border-primary/20">
+                    <User className="w-5 h-5 text-primary" />
+                  </div>
+                )}
+                {currentOperator && (
+                  <div className={cn(
+                    "absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-card",
+                    currentStatus?.color || 'bg-gray-500'
+                  )} />
+                )}
+              </div>
               <div>
                 <p className="font-semibold text-foreground">
                   {user?.fullName || user?.firstName || 'Operador'}
                 </p>
-                <p className="text-sm text-muted-foreground">
-                  {user?.emailAddresses?.[0]?.emailAddress || 'online'}
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm text-muted-foreground">
+                    {user?.emailAddresses?.[0]?.emailAddress || 'online'}
+                  </p>
+                  {currentOperator && (
+                    <>
+                      <span className="text-muted-foreground">•</span>
+                      <div className="flex items-center gap-1">
+                        <StatusIcon className="h-3 w-3" />
+                        <span className="text-xs text-muted-foreground">
+                          {currentStatus?.label || 'Indefinido'}
+                        </span>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
+            
+            {currentOperator && (
+              <Popover open={isStatusOpen} onOpenChange={setIsStatusOpen}>
+                <PopoverTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="h-8 px-3 border-border/50 hover:border-primary/30"
+                  >
+                    Alterar Status
+                    <ChevronDown className="h-3 w-3 ml-1" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-56 p-2">
+                  <div className="space-y-1">
+                    {statusOptions.map((option) => {
+                      const OptionIcon = option.icon
+                      const isSelected = currentOperator.status === option.value
+                      
+                      return (
+                        <Button
+                          key={option.value}
+                          variant="ghost"
+                          onClick={() => handleStatusChange(option.value)}
+                          className={cn(
+                            "w-full justify-start gap-3 h-auto p-3 transition-all",
+                            isSelected && "bg-primary/10 border border-primary/20"
+                          )}
+                        >
+                          <div className="flex items-center gap-3 flex-1">
+                            <div className={cn(
+                              "w-3 h-3 rounded-full",
+                              option.color
+                            )} />
+                            <div className="text-left flex-1">
+                              <div className="flex items-center gap-2">
+                                <OptionIcon className="h-4 w-4" />
+                                <span className="font-medium">{option.label}</span>
+                              </div>
+                              <p className="text-xs text-muted-foreground">
+                                {option.description}
+                              </p>
+                            </div>
+                          </div>
+                          {isSelected && (
+                            <Badge variant="outline" className="text-xs">
+                              Ativo
+                            </Badge>
+                          )}
+                        </Button>
+                      )
+                    })}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            )}
+            
             <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse shadow-sm shadow-green-500/50" title="Online" />
           </div>
         </div>
 
-        {/* Layout reorganizado - Sidebar esquerda com controle de status, operadores e controle WhatsApp */}
+        {/* Layout reorganizado - Sidebar esquerda com operadores e controle WhatsApp */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-8">
           {/* Sidebar esquerda */}
           <div className="lg:col-span-1 space-y-4">
-            {/* Controle de Status do Operador */}
-            <OperatorStatusControl />
-            
             {/* Operadores Online */}
             <OperatorsCompactDashboard />
             
