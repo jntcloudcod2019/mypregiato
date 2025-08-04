@@ -1,4 +1,3 @@
-
 import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -38,6 +37,11 @@ const mesesPorExtenso = [
   "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"
 ]
 
+interface PaymentData {
+  valor?: string;
+  [key: string]: any;
+}
+
 export default function NovoContratoSuperFotos() {
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
@@ -59,7 +63,7 @@ export default function NovoContratoSuperFotos() {
     modeloId: "",
     modeloSearch: "",
     metodoPagamento: [] as string[],
-    paymentData: {}
+    paymentData: {} as PaymentData
   })
 
   // Carregar talentos na inicialização
@@ -176,7 +180,7 @@ export default function NovoContratoSuperFotos() {
           modeloId: "",
           modeloSearch: "",
           metodoPagamento: [],
-          paymentData: {}
+          paymentData: {} as PaymentData
         })
       } else {
         setAlert({
