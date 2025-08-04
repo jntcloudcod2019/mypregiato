@@ -1,137 +1,127 @@
 
-// Mock file service for frontend-only environment
-export interface FileData {
-  id: string
-  filename: string
-  url: string
-  talentId: string
-  type: 'photo' | 'document'
-  createdAt: Date
-}
-
-// Mock storage for files
-const mockFiles: Record<string, FileData[]> = {
-  '1': [
-    {
-      id: '1',
-      filename: 'ana-clara-profile.jpg',
-      url: '/src/assets/ana-clara-profile.jpg',
-      talentId: '1',
-      type: 'photo',
-      createdAt: new Date()
-    },
-    {
-      id: '2',
-      filename: 'ana-clara-fashion1.jpg',
-      url: '/src/assets/ana-clara-fashion1.jpg',
-      talentId: '1',
-      type: 'photo',
-      createdAt: new Date()
-    }
-  ]
-}
+import { prisma } from './prisma'
+import { FileData } from '@/types/talent'
 
 export const getTalentPhotos = async (talentId: string): Promise<FileData[]> => {
-  await new Promise(resolve => setTimeout(resolve, 200))
-  
-  const files = mockFiles[talentId] || []
-  return files.filter(f => f.type === 'photo')
+  try {
+    const photos = await prisma.file.findMany({
+      where: {
+        talentId,
+        type: 'PHOTO'
+      },
+      orderBy: {
+        uploadedAt: 'desc'
+      }
+    })
+    
+    return photos.map(photo => ({
+      ...photo,
+      type: photo.type as 'PHOTO' | 'VIDEO' | 'DOCUMENT' | 'COMPOSITE'
+    }))
+  } catch (error) {
+    console.error('Error fetching talent photos:', error)
+    return []
+  }
 }
 
-export const getTalentFiles = async (talentId: string, type?: 'photo' | 'document'): Promise<FileData[]> => {
-  await new Promise(resolve => setTimeout(resolve, 200))
-  
-  const files = mockFiles[talentId] || []
-  return type ? files.filter(f => f.type === type) : files
+export const getTalentFiles = async (talentId: string, type?: 'PHOTO' | 'DOCUMENT'): Promise<FileData[]> => {
+  try {
+    const files = await prisma.file.findMany({
+      where: {
+        talentId,
+        ...(type && { type })
+      },
+      orderBy: {
+        uploadedAt: 'desc'
+      }
+    })
+    
+    return files.map(file => ({
+      ...file,
+      type: file.type as 'PHOTO' | 'VIDEO' | 'DOCUMENT' | 'COMPOSITE'
+    }))
+  } catch (error) {
+    console.error('Error fetching talent files:', error)
+    return []
+  }
 }
 
-export const uploadPhoto = async (
-  talentId: string, 
-  file: File
-): Promise<FileData> => {
-  await new Promise(resolve => setTimeout(resolve, 1000))
-  
-  // In a real implementation, this would upload to a file storage service
-  const url = URL.createObjectURL(file)
-  
-  const newFile: FileData = {
-    id: Date.now().toString(),
-    filename: file.name,
-    url,
-    talentId,
-    type: 'photo',
-    createdAt: new Date()
+export const uploadPhoto = async (talentId: string, file: File): Promise<FileData> => {
+  try {
+    // In a real app, you would upload to cloud storage first
+    // For now, we'll create a placeholder URL
+    const url = URL.createObjectURL(file)
+    
+    const newFile = await prisma.file.create({
+      data: {
+        url,
+        type: 'PHOTO',
+        talentId,
+        fileName: file.name,
+        mimeType: file.type
+      }
+    })
+    
+    return {
+      ...newFile,
+      type: newFile.type as 'PHOTO' | 'VIDEO' | 'DOCUMENT' | 'COMPOSITE'
+    }
+  } catch (error) {
+    console.error('Error uploading photo:', error)
+    throw new Error('Failed to upload photo')
   }
-  
-  if (!mockFiles[talentId]) {
-    mockFiles[talentId] = []
-  }
-  mockFiles[talentId].push(newFile)
-  
-  return newFile
 }
 
 export const uploadTalentFile = async (
   talentId: string, 
   file: File, 
-  type: 'photo' | 'document'
+  type: 'PHOTO' | 'DOCUMENT'
 ): Promise<FileData> => {
-  await new Promise(resolve => setTimeout(resolve, 1000))
-  
-  // In a real implementation, this would upload to a file storage service
-  const url = URL.createObjectURL(file)
-  
-  const newFile: FileData = {
-    id: Date.now().toString(),
-    filename: file.name,
-    url,
-    talentId,
-    type,
-    createdAt: new Date()
+  try {
+    const url = URL.createObjectURL(file)
+    
+    const newFile = await prisma.file.create({
+      data: {
+        url,
+        type,
+        talentId,
+        fileName: file.name,
+        mimeType: file.type
+      }
+    })
+    
+    return {
+      ...newFile,
+      type: newFile.type as 'PHOTO' | 'VIDEO' | 'DOCUMENT' | 'COMPOSITE'
+    }
+  } catch (error) {
+    console.error('Error uploading file:', error)
+    throw new Error('Failed to upload file')
   }
-  
-  if (!mockFiles[talentId]) {
-    mockFiles[talentId] = []
-  }
-  mockFiles[talentId].push(newFile)
-  
-  return newFile
 }
 
 export const deletePhoto = async (fileId: string): Promise<boolean> => {
-  await new Promise(resolve => setTimeout(resolve, 300))
-  
-  for (const talentId in mockFiles) {
-    const index = mockFiles[talentId].findIndex(f => f.id === fileId)
-    if (index > -1) {
-      const file = mockFiles[talentId][index]
-      // Revoke the blob URL to free memory
-      if (file.url.startsWith('blob:')) {
-        URL.revokeObjectURL(file.url)
-      }
-      mockFiles[talentId].splice(index, 1)
-      return true
-    }
+  try {
+    await prisma.file.delete({
+      where: { id: fileId }
+    })
+    
+    return true
+  } catch (error) {
+    console.error('Error deleting photo:', error)
+    return false
   }
-  
-  return false
 }
 
 export const deleteTalentFile = async (fileId: string): Promise<boolean> => {
-  await new Promise(resolve => setTimeout(resolve, 300))
-  
-  for (const talentId in mockFiles) {
-    const index = mockFiles[talentId].findIndex(f => f.id === fileId)
-    if (index > -1) {
-      const file = mockFiles[talentId][index]
-      // Revoke the blob URL to free memory
-      if (file.url.startsWith('blob:')) {
-        URL.revokeObjectURL(file.url)
-      }
-      mockFiles[talentId].splice(index, 1)
-      return true
-    }
+  try {
+    await prisma.file.delete({
+      where: { id: fileId }
+    })
+    
+    return true
+  } catch (error) {
+    console.error('Error deleting file:', error)
+    return false
   }
-  
-  return false
 }

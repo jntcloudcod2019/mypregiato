@@ -376,12 +376,6 @@ export default function TalentProfile() {
                     {talent.status ? "Ativo" : "Inativo"}
                   </Badge>
                   <Badge 
-                    variant={inviteStatus === "Ativo" ? "default" : inviteStatus === "Pendente" ? "secondary" : "outline"}
-                    className="block"
-                  >
-                    Convite: {inviteStatus}
-                  </Badge>
-                  <Badge 
                     variant={talent.dnaStatus === 'COMPLETE' ? "default" : talent.dnaStatus === 'PARTIAL' ? "secondary" : "outline"}
                     className="block"
                   >

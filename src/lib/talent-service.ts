@@ -1,100 +1,177 @@
 
-import { TalentData, ProducerData } from '@/types/talent'
-
-// Mock data for development - replace with actual API calls
-const mockTalents: TalentData[] = [
-  {
-    id: '1',
-    fullName: 'Ana Clara Santos',
-    email: 'ana.clara@email.com',
-    phone: '(11) 99999-9999',
-    document: '123.456.789-00',
-    birthDate: new Date('1995-06-15'),
-    age: 28,
-    gender: 'feminino',
-    postalcode: '01310-100',
-    street: 'Av. Paulista',
-    neighborhood: 'Bela Vista',
-    city: 'São Paulo',
-    uf: 'SP',
-    numberAddress: '1578',
-    complement: 'Conjunto 1405',
-    producerId: '1',
-    inviteSent: false,
-    status: true,
-    dnaStatus: 'UNDEFINED',
-    createdAt: new Date(),
-    updatedAt: new Date()
-  }
-]
-
-const mockProducers: ProducerData[] = [
-  {
-    id: '1',
-    first_name: 'João',
-    last_name: 'Silva',
-    code: 'PM-001',
-    email: 'joao@pregiato.com'
-  },
-  {
-    id: '2',
-    first_name: 'Maria',
-    last_name: 'Santos',
-    code: 'PM-002',
-    email: 'maria@pregiato.com'
-  }
-]
+import { prisma } from './prisma'
+import { TalentData, ProducerData, CreateTalentData } from '@/types/talent'
 
 export const getTalents = async (): Promise<TalentData[]> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 500))
-  return mockTalents
+  try {
+    const talents = await prisma.talent.findMany({
+      include: {
+        producer: true,
+        dna: true,
+        files: {
+          where: {
+            type: 'PHOTO'
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    })
+
+    return talents.map(talent => ({
+      ...talent,
+      producer: talent.producer ? {
+        id: talent.producer.id,
+        first_name: talent.producer.first_name,
+        last_name: talent.producer.last_name,
+        email: talent.producer.email
+      } : null
+    }))
+  } catch (error) {
+    console.error('Error fetching talents:', error)
+    throw new Error('Failed to fetch talents')
+  }
 }
 
 export const getTalentById = async (id: string): Promise<TalentData | null> => {
-  await new Promise(resolve => setTimeout(resolve, 300))
-  return mockTalents.find(t => t.id === id) || null
+  try {
+    const talent = await prisma.talent.findUnique({
+      where: { id },
+      include: {
+        producer: true,
+        dna: true,
+        files: {
+          where: {
+            type: 'PHOTO'
+          }
+        }
+      }
+    })
+
+    if (!talent) return null
+
+    return {
+      ...talent,
+      producer: talent.producer ? {
+        id: talent.producer.id,
+        first_name: talent.producer.first_name,
+        last_name: talent.producer.last_name,
+        email: talent.producer.email
+      } : null
+    }
+  } catch (error) {
+    console.error('Error fetching talent:', error)
+    throw new Error('Failed to fetch talent')
+  }
 }
 
-export const createTalent = async (data: Omit<TalentData, 'id' | 'createdAt' | 'updatedAt'>): Promise<TalentData> => {
-  await new Promise(resolve => setTimeout(resolve, 800))
-  
-  const newTalent: TalentData = {
-    ...data,
-    id: Date.now().toString(),
-    createdAt: new Date(),
-    updatedAt: new Date()
+export const createTalent = async (data: CreateTalentData): Promise<TalentData> => {
+  try {
+    const talent = await prisma.talent.create({
+      data: {
+        ...data,
+        inviteSent: false,
+        status: true,
+        dnaStatus: 'UNDEFINED'
+      },
+      include: {
+        producer: true,
+        dna: true,
+        files: {
+          where: {
+            type: 'PHOTO'
+          }
+        }
+      }
+    })
+
+    return {
+      ...talent,
+      producer: talent.producer ? {
+        id: talent.producer.id,
+        first_name: talent.producer.first_name,
+        last_name: talent.producer.last_name,
+        email: talent.producer.email
+      } : null
+    }
+  } catch (error) {
+    console.error('Error creating talent:', error)
+    throw new Error('Failed to create talent')
   }
-  
-  mockTalents.push(newTalent)
-  return newTalent
 }
 
 export const updateTalent = async (id: string, data: Partial<TalentData>): Promise<TalentData | null> => {
-  await new Promise(resolve => setTimeout(resolve, 600))
-  
-  const index = mockTalents.findIndex(t => t.id === id)
-  if (index === -1) return null
-  
-  mockTalents[index] = {
-    ...mockTalents[index],
-    ...data,
-    updatedAt: new Date()
+  try {
+    const talent = await prisma.talent.update({
+      where: { id },
+      data: {
+        ...data,
+        updatedAt: new Date()
+      },
+      include: {
+        producer: true,
+        dna: true,
+        files: {
+          where: {
+            type: 'PHOTO'
+          }
+        }
+      }
+    })
+
+    return {
+      ...talent,
+      producer: talent.producer ? {
+        id: talent.producer.id,
+        first_name: talent.producer.first_name,
+        last_name: talent.producer.last_name,
+        email: talent.producer.email
+      } : null
+    }
+  } catch (error) {
+    console.error('Error updating talent:', error)
+    throw new Error('Failed to update talent')
   }
-  
-  return mockTalents[index]
 }
 
 export const checkTalentExists = async (email?: string, document?: string): Promise<boolean> => {
-  await new Promise(resolve => setTimeout(resolve, 300))
-  
-  return mockTalents.some(t => 
-    (email && t.email === email) || 
-    (document && t.document === document)
-  )
+  try {
+    const existing = await prisma.talent.findFirst({
+      where: {
+        OR: [
+          ...(email ? [{ email }] : []),
+          ...(document ? [{ document }] : [])
+        ]
+      }
+    })
+    
+    return !!existing
+  } catch (error) {
+    console.error('Error checking talent existence:', error)
+    return false
+  }
 }
 
 export const getProducers = async (): Promise<ProducerData[]> => {
-  await new Promise(resolve => setTimeout(resolve, 200))
-  return mockProducers
+  try {
+    const users = await prisma.user.findMany({
+      where: {
+        role: {
+          in: ['PRODUCER', 'ADMIN']
+        }
+      }
+    })
+
+    return users.map(user => ({
+      id: user.id,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      email: user.email,
+      code: `PM-${user.id.slice(-3)}`
+    }))
+  } catch (error) {
+    console.error('Error fetching producers:', error)
+    return []
+  }
 }

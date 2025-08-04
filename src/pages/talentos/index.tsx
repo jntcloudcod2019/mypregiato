@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { getTalents } from '@/lib/talent-service'
 import { TalentData } from "@/types/talent"
 import { useToast } from "@/hooks/use-toast"
+import { AdvancedFilters, AdvancedFilters as AdvancedFiltersType } from "@/components/advanced-filters"
 
 const TalentCard = ({ talent, navigate }: { talent: TalentData; navigate: any }) => {
   const getInitials = (name: string) => {
@@ -29,9 +30,6 @@ const TalentCard = ({ talent, navigate }: { talent: TalentData; navigate: any })
     if (!talent.status) {
       return <Badge variant="secondary">Inativo</Badge>
     }
-    if (talent.inviteSent) {
-      return <Badge variant="default" className="bg-green-500">Convite Enviado</Badge>
-    }
     return <Badge variant="outline">Ativo</Badge>
   }
 
@@ -46,13 +44,15 @@ const TalentCard = ({ talent, navigate }: { talent: TalentData; navigate: any })
     }
   }
 
+  const profileImage = talent.files?.[0]?.url || "/placeholder.svg"
+
   return (
     <Card className="group hover:shadow-lg transition-all duration-300 border-primary/20 hover:border-primary/40 bg-card/50 backdrop-blur-sm">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-3">
             <Avatar className="h-12 w-12 ring-2 ring-primary/20">
-              <AvatarImage src="" alt={talent.fullName} />
+              <AvatarImage src={profileImage} alt={talent.fullName} />
               <AvatarFallback className="bg-primary/10 text-primary">
                 {getInitials(talent.fullName)}
               </AvatarFallback>
@@ -102,6 +102,17 @@ const TalentCard = ({ talent, navigate }: { talent: TalentData; navigate: any })
             {getStatusBadge()}
             {getDNAStatus()}
           </div>
+
+          <div className="flex justify-end pt-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => navigate(`/talentos/perfil/${talent.id}`)}
+              className="group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+            >
+              Ver mais
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>
@@ -116,6 +127,7 @@ export default function TalentosPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [filterStatus, setFilterStatus] = useState("all")
   const [filterDNA, setFilterDNA] = useState("all")
+  const [advancedFilters, setAdvancedFilters] = useState<AdvancedFiltersType>({})
 
   useEffect(() => {
     loadTalents()
@@ -152,10 +164,27 @@ export default function TalentosPage() {
                         (filterDNA === "complete" && talent.dnaStatus === 'COMPLETE') ||
                         (filterDNA === "partial" && talent.dnaStatus === 'PARTIAL') ||
                         (filterDNA === "pending" && talent.dnaStatus === 'UNDEFINED')
+
+      // Advanced filters
+      const matchesGender = !advancedFilters.gender || talent.gender === advancedFilters.gender
+      const matchesAge = (!advancedFilters.minAge || talent.age >= advancedFilters.minAge) &&
+                        (!advancedFilters.maxAge || talent.age <= advancedFilters.maxAge)
+      const matchesCity = !advancedFilters.city || 
+                         (talent.city && talent.city.toLowerCase().includes(advancedFilters.city.toLowerCase()))
+      const matchesTravel = advancedFilters.travelAvailable === undefined || 
+                           (talent.dna?.travelAvailability === advancedFilters.travelAvailable)
+      const matchesHairColor = !advancedFilters.hairColor || 
+                              (talent.dna?.hairColor?.toLowerCase() === advancedFilters.hairColor.toLowerCase())
+      const matchesEyeColor = !advancedFilters.eyeColor || 
+                             (talent.dna?.eyeColor?.toLowerCase() === advancedFilters.eyeColor.toLowerCase())
+      const matchesBodyType = !advancedFilters.bodyType || 
+                             (talent.dna?.bodyType?.toLowerCase() === advancedFilters.bodyType.toLowerCase())
       
-      return matchesSearch && matchesStatus && matchesDNA
+      return matchesSearch && matchesStatus && matchesDNA && matchesGender && 
+             matchesAge && matchesCity && matchesTravel && matchesHairColor && 
+             matchesEyeColor && matchesBodyType
     })
-  }, [talents, searchTerm, filterStatus, filterDNA])
+  }, [talents, searchTerm, filterStatus, filterDNA, advancedFilters])
 
   const stats = useMemo(() => {
     return {
@@ -253,10 +282,10 @@ export default function TalentosPage() {
         </Card>
       </div>
 
-      {/* Filters */}
+      {/* Basic Filters */}
       <Card className="bg-card/50 backdrop-blur-sm border-primary/20">
         <CardHeader>
-          <CardTitle className="text-lg">Filtros</CardTitle>
+          <CardTitle className="text-lg">Filtros Básicos</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-4">
@@ -298,6 +327,13 @@ export default function TalentosPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Advanced Filters */}
+      <AdvancedFilters
+        filters={advancedFilters}
+        onFiltersChange={setAdvancedFilters}
+        onClearFilters={() => setAdvancedFilters({})}
+      />
 
       {/* Talents Grid */}
       <div className="space-y-6">
