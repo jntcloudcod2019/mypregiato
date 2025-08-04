@@ -120,9 +120,35 @@ const AtendimentoPage = () => {
   const [isLoadingTalents, setIsLoadingTalents] = useState(false);
   const [hasAccess, setHasAccess] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
+  const [serverInfo, setServerInfo] = useState<any>(null);
+  const [newContactAlerts, setNewContactAlerts] = useState<any[]>([]);
 
   const { connection, generateQR, disconnect, isGeneratingQR } = useWhatsAppConnection();
   const { toast } = useToast();
+
+  // Listen for new contact alerts
+  useEffect(() => {
+    const handleNewContactAlert = (contactData: any) => {
+      setNewContactAlerts(prev => [contactData, ...prev].slice(0, 10)); // Keep only last 10
+      toast({
+        title: "Novo Contato!",
+        description: `${contactData.name} entrou em contato: "${contactData.message.substring(0, 50)}..."`,
+        duration: 5000,
+      });
+    };
+
+    const handleClientReady = (data: any) => {
+      setServerInfo(data.businessInfo);
+    };
+
+    whatsAppService.on('new_contact_alert', handleNewContactAlert);
+    whatsAppService.on('client_ready', handleClientReady);
+
+    return () => {
+      whatsAppService.off('new_contact_alert', handleNewContactAlert);
+      whatsAppService.off('client_ready', handleClientReady);
+    };
+  }, [toast]);
 
   // Load current user and check permissions
   useEffect(() => {
@@ -283,10 +309,10 @@ const AtendimentoPage = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-foreground">
-              Atendimento
+              Sistema de Atendimento WhatsApp
             </h1>
             <p className="text-muted-foreground mt-1">
-              Central de atendimento para operadores de telemarketing
+              Central de atendimento PREGIATO MANAGEMENT - Gestão completa de comunicação
             </p>
           </div>
           
@@ -302,6 +328,48 @@ const AtendimentoPage = () => {
             </div>
           )}
         </div>
+
+        {/* Server Status and New Contact Alerts */}
+        {connection.isConnected && serverInfo && (
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card className="p-4">
+              <div className="flex items-center gap-3">
+                <Avatar className="h-12 w-12">
+                  <AvatarImage src={serverInfo.profilePicture} alt="PREGIATO MANAGEMENT" />
+                  <AvatarFallback>PM</AvatarFallback>
+                </Avatar>
+                <div>
+                  <h3 className="font-semibold">{serverInfo.businessName}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Servidor Online • {serverInfo.number || 'Carregando...'}
+                  </p>
+                </div>
+                <div className="ml-auto">
+                  <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-medium">Novos Contatos</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {newContactAlerts.length} alertas hoje
+                  </p>
+                </div>
+                <Badge variant="secondary" className="bg-blue-500 text-white">
+                  {newContactAlerts.length}
+                </Badge>
+              </div>
+              {newContactAlerts.length > 0 && (
+                <div className="mt-2 text-xs text-muted-foreground">
+                  Último: {new Date(newContactAlerts[0]?.timestamp).toLocaleTimeString('pt-BR')}
+                </div>
+              )}
+            </Card>
+          </div>
+        )}
       </div>
 
       <Tabs defaultValue="clientes" className="space-y-4">
@@ -312,7 +380,7 @@ const AtendimentoPage = () => {
           </TabsTrigger>
           <TabsTrigger value="grupos" className="flex items-center gap-2" disabled={!hasAccess}>
             <Users className="w-4 h-4" />
-            Grupos
+            Modelos WhatsApp
           </TabsTrigger>
         </TabsList>
 
@@ -523,9 +591,12 @@ const AtendimentoPage = () => {
                 <div className="flex items-center gap-3">
                   <div className={`w-3 h-3 rounded-full ${connection.isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
                   <div>
-                    <h3 className="font-medium">Status WhatsApp</h3>
+                    <h3 className="font-medium">Status Servidor WhatsApp</h3>
                     <p className="text-sm text-muted-foreground">
-                      {connection.isConnected ? 'Conectado e pronto para uso' : 'Desconectado'}
+                      {connection.isConnected 
+                        ? 'PREGIATO MANAGEMENT conectado e operacional' 
+                        : 'Servidor desconectado'
+                      }
                     </p>
                   </div>
                 </div>
@@ -535,7 +606,7 @@ const AtendimentoPage = () => {
                   className="flex items-center gap-2"
                 >
                   {connection.isConnected ? <WifiOff className="w-4 h-4" /> : <Wifi className="w-4 h-4" />}
-                  {connection.isConnected ? 'Desconectar' : 'Conectar WhatsApp'}
+                  {connection.isConnected ? 'Desconectar' : 'Conectar Servidor'}
                 </Button>
               </div>
             </Card>
@@ -544,89 +615,107 @@ const AtendimentoPage = () => {
               <TabsList>
                 <TabsTrigger value="modelos" className="flex items-center gap-2">
                   <UserCheck className="w-4 h-4" />
-                  Modelos
+                  Modelos Cadastrados
                 </TabsTrigger>
               </TabsList>
 
               <TabsContent value="modelos">
                 <Card className="h-[650px] flex overflow-hidden">
-                  {/* Talents List */}
-                  <div className="w-80 border-r border-border flex flex-col">
-                    <div className="p-4 border-b border-border">
+                  {/* Talents List with proper scroll */}
+                  <div className="w-80 border-r border-border flex flex-col bg-muted/20">
+                    <div className="p-4 border-b border-border bg-background">
                       <div className="relative">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                         <Input
-                          placeholder="Buscar modelos..."
+                          placeholder="Buscar modelos cadastrados..."
                           value={talentSearch}
                           onChange={(e) => setTalentSearch(e.target.value)}
                           className="pl-10"
                         />
                       </div>
+                      <div className="mt-2 text-xs text-muted-foreground text-center">
+                        {talentsFiltrados.length} de {talents.length} modelos
+                      </div>
                     </div>
 
-                    <ScrollArea className="flex-1">
-                      {isLoadingTalents ? (
-                        <div className="p-4 text-center">
-                          <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2"></div>
-                          <p className="text-sm text-muted-foreground">Carregando modelos...</p>
-                        </div>
-                      ) : (
-                        talentsFiltrados.map((talent) => {
-                          const conversation = whatsAppService.getConversation(talent.id);
-                          return (
-                            <div
-                              key={talent.id}
-                              className={`p-4 border-b border-border cursor-pointer hover:bg-muted/50 transition-colors ${
-                                selectedTalent?.id === talent.id ? 'bg-muted' : ''
-                              }`}
-                              onClick={() => setSelectedTalent(talent)}
-                            >
-                              <div className="flex items-center gap-3">
-                                <div className="relative">
-                                  <Avatar className="h-12 w-12">
-                                    <AvatarImage src={`https://api.dicebear.com/7.x/personas/svg?seed=${talent.fullName}`} />
-                                    <AvatarFallback>{talent.fullName.slice(0, 2).toUpperCase()}</AvatarFallback>
-                                  </Avatar>
-                                  {conversation?.isOnline && (
-                                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-background"></div>
-                                  )}
-                                </div>
-                                
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex justify-between items-start">
-                                    <h3 className="font-medium text-sm truncate">{talent.fullName}</h3>
-                                    <div className="flex items-center gap-1">
-                                      {conversation?.lastMessage && (
-                                        <span className="text-xs text-muted-foreground">
-                                          {new Date(conversation.lastMessage.timestamp).toLocaleTimeString('pt-BR', {
-                                            hour: '2-digit',
-                                            minute: '2-digit'
-                                          })}
-                                        </span>
-                                      )}
-                                      {conversation && conversation.unreadCount > 0 && (
-                                        <Badge variant="default" className="bg-green-500 text-white rounded-full min-w-[20px] h-5 text-xs flex items-center justify-center">
-                                          {conversation.unreadCount}
-                                        </Badge>
-                                      )}
-                                    </div>
+                    <ScrollArea className="flex-1 h-0">
+                      <div className="p-2 space-y-1">
+                        {isLoadingTalents ? (
+                          <div className="p-8 text-center">
+                            <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2"></div>
+                            <p className="text-sm text-muted-foreground">Carregando modelos...</p>
+                          </div>
+                        ) : talentsFiltrados.length === 0 ? (
+                          <div className="p-8 text-center">
+                            <UserCheck className="w-12 h-12 text-muted-foreground mx-auto mb-2 opacity-50" />
+                            <p className="text-sm text-muted-foreground">
+                              {talentSearch ? 'Nenhum modelo encontrado' : 'Nenhum modelo cadastrado'}
+                            </p>
+                          </div>
+                        ) : (
+                          talentsFiltrados.map((talent) => {
+                            const conversation = whatsAppService.getConversation(talent.id);
+                            return (
+                              <div
+                                key={talent.id}
+                                className={`p-3 rounded-lg cursor-pointer hover:bg-muted/80 transition-all duration-200 border ${
+                                  selectedTalent?.id === talent.id 
+                                    ? 'bg-primary/10 border-primary/30 shadow-sm' 
+                                    : 'bg-background border-border hover:border-border/60'
+                                }`}
+                                onClick={() => setSelectedTalent(talent)}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className="relative">
+                                    <Avatar className="h-11 w-11">
+                                      <AvatarImage src={`https://api.dicebear.com/7.x/personas/svg?seed=${talent.fullName}`} />
+                                      <AvatarFallback className="text-xs font-semibold">
+                                        {talent.fullName.slice(0, 2).toUpperCase()}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    {conversation?.isOnline && (
+                                      <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-background"></div>
+                                    )}
                                   </div>
                                   
-                                  <p className="text-sm text-muted-foreground truncate mt-1">
-                                    {talent.phone || 'Telefone não informado'}
-                                  </p>
-                                  
-                                  {conversation?.lastMessage && (
-                                    <p className="text-xs text-muted-foreground truncate mt-1">
-                                      {conversation.lastMessage.content}
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex justify-between items-start gap-1">
+                                      <h3 className="font-medium text-sm truncate leading-tight">
+                                        {talent.fullName}
+                                      </h3>
+                                      <div className="flex items-center gap-1 flex-shrink-0">
+                                        {conversation?.lastMessage && (
+                                          <span className="text-xs text-muted-foreground">
+                                            {new Date(conversation.lastMessage.timestamp).toLocaleTimeString('pt-BR', {
+                                              hour: '2-digit',
+                                              minute: '2-digit'
+                                            })}
+                                          </span>
+                                        )}
+                                        {conversation && conversation.unreadCount > 0 && (
+                                          <Badge variant="default" className="bg-green-500 text-white rounded-full min-w-[18px] h-4 text-xs flex items-center justify-center px-1.5">
+                                            {conversation.unreadCount}
+                                          </Badge>
+                                        )}
+                                      </div>
+                                    </div>
+                                    
+                                    <p className="text-xs text-muted-foreground truncate mt-0.5">
+                                      {talent.phone || 'Telefone não informado'}
                                     </p>
-                                  )}
+                                    
+                                    {conversation?.lastMessage && (
+                                      <p className="text-xs text-muted-foreground truncate mt-1 bg-muted/50 px-2 py-1 rounded">
+                                        {conversation.lastMessage.content}
+                                      </p>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          );
-                        })
-                      )}
+                            );
+                          })
+                        )}
+                      </div>
                     </ScrollArea>
                   </div>
 
@@ -642,12 +731,13 @@ const AtendimentoPage = () => {
                         <div className="flex-1 flex items-center justify-center bg-muted/10">
                           <div className="text-center">
                             <WifiOff className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                            <h3 className="text-lg font-medium mb-2">WhatsApp Desconectado</h3>
-                            <p className="text-muted-foreground mb-4">
-                              Conecte-se ao WhatsApp para começar a conversar com os modelos
+                            <h3 className="text-lg font-medium mb-2">Servidor Desconectado</h3>
+                            <p className="text-muted-foreground mb-4 max-w-md">
+                              Conecte o servidor PREGIATO MANAGEMENT ao WhatsApp para iniciar conversas com os modelos
                             </p>
                             <Button onClick={handleConnectWhatsApp}>
-                              Conectar WhatsApp
+                              <Wifi className="w-4 h-4 mr-2" />
+                              Conectar Servidor
                             </Button>
                           </div>
                         </div>
@@ -657,9 +747,9 @@ const AtendimentoPage = () => {
                     <div className="flex-1 flex items-center justify-center bg-muted/10">
                       <div className="text-center">
                         <UserCheck className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                        <h3 className="text-lg font-medium mb-2">Selecione um modelo</h3>
-                        <p className="text-muted-foreground">
-                          Escolha um modelo da lista para iniciar uma conversa no WhatsApp
+                        <h3 className="text-lg font-medium mb-2">Selecione um Modelo</h3>
+                        <p className="text-muted-foreground max-w-md">
+                          Escolha um modelo da lista para iniciar ou continuar uma conversa via WhatsApp Business
                         </p>
                       </div>
                     </div>

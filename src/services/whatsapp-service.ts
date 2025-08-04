@@ -9,8 +9,16 @@ let connectionState: WhatsAppConnection = {
 // Conversations storage
 const conversations = new Map<string, TalentChat>()
 
-// Simulate WhatsApp Web client info
-let clientInfo: { number?: string; name?: string } = {}
+// Simulate WhatsApp Web client info with server profile
+let clientInfo: { 
+  number?: string; 
+  name?: string; 
+  profilePicture?: string;
+  businessName?: string;
+} = {
+  businessName: 'PREGIATO MANAGEMENT',
+  profilePicture: '/lovable-uploads/fd1ff296-4ed8-4d20-b200-27e4872b8e24.png'
+}
 
 export class WhatsAppService {
   private static instance: WhatsAppService
@@ -18,6 +26,7 @@ export class WhatsAppService {
   private reconnectAttempts: number = 0
   private maxReconnectAttempts: number = 3
   private qrRetryCount: number = 0
+  private contactNotifications: Set<string> = new Set()
 
   private constructor() {
     this.initializeClientSimulation()
@@ -57,11 +66,14 @@ export class WhatsAppService {
 
   // Initialize WhatsApp client simulation
   private initializeClientSimulation() {
-    console.log('🚀 Inicializando cliente WhatsApp...')
+    console.log('🚀 Inicializando servidor WhatsApp PREGIATO MANAGEMENT...')
     
     // Simulate client initialization
     setTimeout(() => {
-      this.emit('client_ready', { message: 'Cliente WhatsApp inicializado' })
+      this.emit('client_ready', { 
+        message: 'Servidor WhatsApp PREGIATO MANAGEMENT inicializado',
+        businessInfo: clientInfo
+      })
     }, 1000)
   }
 
@@ -159,7 +171,7 @@ export class WhatsAppService {
 
   // Simulate QR scan and connection
   private async simulateQRScan() {
-    console.log('📱 QR Code escaneado! Conectando...')
+    console.log('📱 QR Code escaneado! Conectando servidor PREGIATO MANAGEMENT...')
     
     connectionState = {
       isConnected: false,
@@ -170,10 +182,11 @@ export class WhatsAppService {
     // Simulate connection process
     await new Promise(resolve => setTimeout(resolve, 2000))
 
-    // Simulate successful connection
+    // Simulate successful connection with business info
     clientInfo = {
-      number: '5511999999999',
-      name: 'Operador WhatsApp'
+      ...clientInfo,
+      number: '5511999887766',
+      name: 'PREGIATO MANAGEMENT - Atendimento'
     }
 
     connectionState = {
@@ -183,10 +196,46 @@ export class WhatsAppService {
     }
 
     this.emit('connection_update', connectionState)
-    console.log('✅ WhatsApp conectado com sucesso!')
+    console.log('✅ Servidor WhatsApp PREGIATO MANAGEMENT conectado com sucesso!')
 
-    // Start message listeners
+    // Start message handlers and contact monitoring
     this.startMessageHandling()
+    this.startContactMonitoring()
+  }
+
+  // Monitor new contacts trying to reach the server
+  private startContactMonitoring() {
+    console.log('👥 Monitorando novos contatos...')
+    
+    // Simulate new contacts reaching out
+    const simulateNewContact = () => {
+      if (!connectionState.isConnected) return
+
+      // Simulate random new contacts
+      if (Math.random() > 0.85) { // 15% chance every interval
+        const newContactNumber = `5511${Math.floor(Math.random() * 900000000 + 100000000)}`
+        const newContactName = `Novo Contato ${Math.floor(Math.random() * 1000)}`
+        
+        if (!this.contactNotifications.has(newContactNumber)) {
+          this.contactNotifications.add(newContactNumber)
+          
+          this.emit('new_contact_alert', {
+            number: newContactNumber,
+            name: newContactName,
+            message: 'Olá! Vi vocês nas redes sociais e gostaria de saber mais sobre os serviços.',
+            timestamp: new Date().toISOString()
+          })
+          
+          console.log(`🔔 Novo contato detectado: ${newContactName} (${newContactNumber})`)
+        }
+      }
+
+      // Schedule next check
+      setTimeout(simulateNewContact, Math.random() * 45000 + 15000) // 15-60 seconds
+    }
+
+    // Start monitoring after connection
+    setTimeout(simulateNewContact, 10000)
   }
 
   // Start handling incoming messages
@@ -239,10 +288,10 @@ export class WhatsAppService {
   // Send message to talent
   async sendMessage(talentId: string, content: string, type: 'text' | 'image' | 'audio' | 'file' = 'text', file?: any): Promise<WhatsAppMessage> {
     if (!connectionState.isConnected) {
-      throw new Error('WhatsApp não está conectado')
+      throw new Error('Servidor WhatsApp PREGIATO MANAGEMENT não está conectado')
     }
 
-    console.log(`📤 Enviando mensagem para ${talentId}:`, content)
+    console.log(`📤 PREGIATO MANAGEMENT enviando mensagem para ${talentId}:`, content)
 
     const message: WhatsAppMessage = {
       id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -281,12 +330,12 @@ export class WhatsAppService {
     // Simulate WhatsApp message delivery process
     try {
       // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 500))
+      await new Promise(resolve => setTimeout(resolve, 800))
       
       message.status = 'sent'
       this.emit('message_status_update', { talentId, message })
       
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      await new Promise(resolve => setTimeout(resolve, 1500))
       message.status = 'delivered'
       this.emit('message_status_update', { talentId, message })
       
@@ -295,13 +344,13 @@ export class WhatsAppService {
         setTimeout(() => {
           message.status = 'read'
           this.emit('message_status_update', { talentId, message })
-        }, Math.random() * 5000 + 2000)
+        }, Math.random() * 8000 + 3000)
       }
 
-      console.log(`✅ Mensagem enviada com sucesso para ${talentId}`)
+      console.log(`✅ Mensagem do PREGIATO MANAGEMENT enviada com sucesso para ${talentId}`)
       
     } catch (error) {
-      console.error(`❌ Erro ao enviar mensagem para ${talentId}:`, error)
+      console.error(`❌ Erro ao enviar mensagem do PREGIATO MANAGEMENT para ${talentId}:`, error)
       message.status = 'failed'
       this.emit('message_status_update', { talentId, message })
       throw error
@@ -338,7 +387,7 @@ export class WhatsAppService {
     return { ...connectionState }
   }
 
-  // Get client info
+  // Get client info with business details
   getClientInfo() {
     return { ...clientInfo }
   }
