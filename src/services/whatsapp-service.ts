@@ -1,3 +1,4 @@
+
 import { WhatsAppConnection, WhatsAppMessage, TalentChat } from '@/types/whatsapp'
 import { ActiveAttendance } from '@/hooks/useActiveAttendance'
 import QRCode from 'qrcode'
@@ -33,6 +34,8 @@ export class WhatsAppService {
   private eventListeners: Map<string, Function[]> = new Map()
   private connectionCheckInterval: NodeJS.Timeout | null = null
   private isRealConnection: boolean = false
+  private reconnectAttempts: number = 0
+  private maxReconnectAttempts: number = 3
 
   private constructor() {
     this.initializeRealTimeSystem()
@@ -98,6 +101,7 @@ export class WhatsAppService {
       if (hasRealConnection) {
         connectionState.lastActivity = new Date().toISOString()
         clientInfo.lastActivity = connectionState.lastActivity
+        this.reconnectAttempts = 0 // Reset reconnect attempts on successful connection
       }
 
       console.log(`📱 Status WhatsApp: ${hasRealConnection ? 'Conectado' : 'Desconectado'}`)
@@ -109,6 +113,13 @@ export class WhatsAppService {
       clientInfo.lastActivity = new Date().toISOString()
       connectionState.lastActivity = clientInfo.lastActivity
     }
+  }
+
+  private checkForRestorableSession() {
+    console.log('🔍 Verificando sessão restaurável...')
+    // Em produção, isso verificaria se há uma sessão salva que pode ser restaurada
+    // Por enquanto, apenas tenta reconectar
+    this.checkRealConnection()
   }
 
   async generateQRCode(): Promise<string> {
@@ -254,6 +265,11 @@ export class WhatsAppService {
       result += chars.charAt(Math.floor(Math.random() * chars.length))
     }
     return result
+  }
+
+  // Método para obter todas as conversas (adicionado para corrigir o erro)
+  getAllConversations(): TalentChat[] {
+    return Array.from(conversations.values())
   }
 
   async sendMessage(talentId: string, content: string, type: 'text' | 'image' | 'audio' | 'file' = 'text', file?: any): Promise<WhatsAppMessage> {
