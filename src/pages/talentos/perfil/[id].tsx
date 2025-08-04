@@ -13,239 +13,248 @@ import { Switch } from "@/components/ui/switch"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { CheckCircle, Edit, Plus, Trash2, Upload, Calendar as CalendarIcon, ArrowLeft, User, Mail, Phone, MapPin, CreditCard, Users, Plane, Camera, Home } from "lucide-react"
-import { format } from "date-fns"
+import { CheckCircle, Edit, Plus, Trash2, Upload, Calendar as CalendarIcon, ArrowLeft, User, Mail, Phone, MapPin, CreditCard, Users, Plane, Camera, Home, Loader2 } from "lucide-react"
+import { format, differenceInYears } from "date-fns"
 import { cn } from "@/lib/utils"
 import { CompositeTemplates } from "@/components/composite-templates"
-
-// Mock data - replace with Supabase queries
-const mockTalent = {
-  id: "1",
-  name: "Ana Clara Silva",
-  cpf: "123.456.789-00",
-  email: "ana.clara@email.com",
-  whatsapp: "(11) 99999-9999",
-  phone: "(11) 3333-3333",
-  birthDate: new Date("1995-06-15"),
-  gender: "Feminino",
-  cep: "01234-567",
-  street: "Rua das Flores, 123",
-  city: "São Paulo",
-  state: "SP",
-  neighborhood: "Centro",
-  number: "123",
-  complement: "Apto 45",
-  availableForTravel: true,
-  active: true,
-  profileImage: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face",
-  photos: [
-    "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=600&h=800&fit=crop&crop=face",
-    "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=600&h=800&fit=crop&crop=face",
-    "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=600&h=800&fit=crop&crop=face",
-    "https://images.unsplash.com/photo-1567532900872-f4e906cbf06a?w=600&h=800&fit=crop&crop=face",
-    "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=600&h=800&fit=crop&crop=face"
-  ],
-  dna: {
-    physicalCharacteristics: {
-      faceShape: "Oval",
-      height: "1.75",
-      weight: "65",
-      bust: "90",
-      waist: "65",
-      hip: "95",
-      shoeSize: "38",
-      dressSize: "M"
-    },
-    facialCharacteristics: {
-      eyeColor: "Castanho",
-      hairColor: "Castanho",
-      ethnicity: "Pardo",
-      ethnicDetails: "Descendência italiana e africana"
-    },
-    otherCharacteristics: {
-      tattoos: true,
-      tattoosDescription: "Pequena tatuagem no pulso",
-      piercings: false,
-      piercingsDescription: "",
-      skills: "Dança, atuação, yoga"
-    }
-  }
-}
+import { getTalentById, updateTalent } from "@/lib/talent-service"
+import { getTalentDNA, createOrUpdateTalentDNA } from "@/lib/dna-service"
+import { uploadPhoto, getTalentPhotos, deletePhoto } from "@/lib/file-service"
+import { TalentData } from "@/types/talent"
+import { useToast } from "@/hooks/use-toast"
+import { compressImage, validateImageFile, fileToBase64 } from "@/utils/image-compression"
 
 export default function TalentProfile() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const [talent, setTalent] = useState(mockTalent)
+  const { toast } = useToast()
+  const [talent, setTalent] = useState<TalentData | null>(null)
+  const [loading, setLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
-  const [editedTalent, setEditedTalent] = useState(mockTalent)
+  const [editedTalent, setEditedTalent] = useState<any>({})
   const [showAlert, setShowAlert] = useState(false)
   const [activeTab, setActiveTab] = useState("fotos")
   const [showDNADialog, setShowDNADialog] = useState(false)
   const [activeDNATab, setActiveDNATab] = useState("physical")
   const [selectedDate, setSelectedDate] = useState<Date>()
+  const [uploadingPhoto, setUploadingPhoto] = useState(false)
+  const [loadingPhotos, setLoadingPhotos] = useState(false)
+  const [dnaData, setDnaData] = useState<any>({})
+  const [savingDNA, setSavingDNA] = useState(false)
 
-  // Commented out Supabase queries - Uncomment when Supabase is connected
-  /*
+  // Fetch talent data on component mount
   useEffect(() => {
-    const fetchTalent = async () => {
-      const { data, error } = await supabase
-        .from('talents')
-        .select(`
-          *,
-          talent_photos(id, url, is_profile),
-          talent_dna(*)
-        `)
-        .eq('id', id)
-        .single()
+    const fetchTalentData = async () => {
+      if (!id) return
       
-      if (error) {
-        console.error('Error fetching talent:', error)
-        return
+      try {
+        setLoading(true)
+        const talentData = await getTalentById(id)
+        
+        if (!talentData) {
+          toast({
+            title: "Erro",
+            description: "Talento não encontrado",
+            variant: "destructive"
+          })
+          navigate('/talentos')
+          return
+        }
+
+        setTalent(talentData)
+        setEditedTalent({
+          fullName: talentData.fullName,
+          email: talentData.email || '',
+          phone: talentData.phone || '',
+          document: talentData.document || '',
+          birthDate: talentData.birthDate ? new Date(talentData.birthDate) : undefined,
+          gender: talentData.gender || '',
+          postalcode: talentData.postalcode || '',
+          street: talentData.street || '',
+          city: talentData.city || '',
+          uf: talentData.uf || '',
+          neighborhood: talentData.neighborhood || '',
+          numberAddress: talentData.numberAddress || '',
+          complement: talentData.complement || '',
+          status: talentData.status
+        })
+
+        // Load DNA data if exists
+        if (talentData.dna) {
+          setDnaData(talentData.dna)
+        }
+        
+      } catch (error) {
+        console.error('Erro ao carregar talento:', error)
+        toast({
+          title: "Erro",
+          description: "Erro ao carregar dados do talento",
+          variant: "destructive"
+        })
+      } finally {
+        setLoading(false)
       }
-      
-      setTalent(data)
-      setEditedTalent(data)
     }
     
-    fetchTalent()
+    fetchTalentData()
   }, [id])
 
-  const updateTalent = async (updatedData: any) => {
-    // API route: PUT /api/talents/:id
-    // Parameters to send: { full_name, cpf_cnpj, email, whatsapp, phone, birth_date, gender, cep, street, city, state, neighborhood, number, complement, available_for_travel, is_active, updated_at }
-    const { error } = await supabase
-      .from('talents')
-      .update({
-        full_name: updatedData.name,
-        cpf_cnpj: updatedData.cpf,
-        email: updatedData.email,
-        whatsapp: updatedData.whatsapp,
-        phone: updatedData.phone,
-        birth_date: updatedData.birthDate,
-        gender: updatedData.gender,
-        cep: updatedData.cep,
-        street: updatedData.street,
-        city: updatedData.city,
-        state: updatedData.state,
-        neighborhood: updatedData.neighborhood,
-        number: updatedData.number,
-        complement: updatedData.complement,
-        available_for_travel: updatedData.availableForTravel,
-        is_active: updatedData.active,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', id)
-    
-    if (error) {
-      console.error('Error updating talent:', error)
-      return false
-    }
-    
-    return true
-  }
-
-  const saveDNA = async (dnaData: any) => {
-    // API route: POST/PUT /api/talents/:id/dna
-    // Parameters to send: { talent_id, physical_characteristics, facial_characteristics, other_characteristics }
-    const { error } = await supabase
-      .from('talent_dna')
-      .upsert({ talent_id: id, ...dnaData })
-    
-    if (error) {
-      console.error('Error saving DNA:', error)
-      return false
-    }
-    
-    return true
-  }
-
-  const uploadPhoto = async (file: File) => {
-    // API route: POST /api/talents/:id/photos
-    // Parameters to send: FormData with file and metadata
-    const formData = new FormData()
-    formData.append('photo', file)
-    formData.append('talent_id', id)
-    
-    const { data, error } = await supabase.storage
-      .from('talent-photos')
-      .upload(`${id}/${Date.now()}-${file.name}`, file)
-    
-    if (error) {
-      console.error('Error uploading photo:', error)
-      return false
-    }
-    
-    // Save photo reference in database
-    const { error: dbError } = await supabase
-      .from('talent_photos')
-      .insert({
-        talent_id: id,
-        url: data.path,
-        is_profile: false
-      })
-    
-    return !dbError
-  }
-
-  const deletePhoto = async (photoId: string) => {
-    // API route: DELETE /api/talents/:id/photos/:photoId
-    const { error } = await supabase
-      .from('talent_photos')
-      .delete()
-      .eq('id', photoId)
-    
-    if (error) {
-      console.error('Error deleting photo:', error)
-      return false
-    }
-    
-    return true
-  }
-  */
-
   const handleSave = async () => {
-    // Simulate API call
-    setTimeout(() => {
-      setTalent(editedTalent)
+    if (!talent || !id) return
+    
+    try {
+      // Calculate age if birthDate changed
+      let age = talent.age
+      if (editedTalent.birthDate) {
+        age = differenceInYears(new Date(), editedTalent.birthDate)
+      }
+
+      const updateData = {
+        fullName: editedTalent.fullName,
+        email: editedTalent.email || undefined,
+        phone: editedTalent.phone,
+        document: editedTalent.document,
+        birthDate: editedTalent.birthDate,
+        age,
+        gender: editedTalent.gender,
+        postalcode: editedTalent.postalcode,
+        street: editedTalent.street,
+        city: editedTalent.city,
+        uf: editedTalent.uf,
+        neighborhood: editedTalent.neighborhood,
+        numberAddress: editedTalent.numberAddress,
+        complement: editedTalent.complement
+      }
+
+      const updatedTalent = await updateTalent(id, updateData)
+      setTalent(updatedTalent)
       setIsEditing(false)
       setShowAlert(true)
       setTimeout(() => setShowAlert(false), 3000)
-    }, 500)
-  }
-
-  const handleDNASave = async () => {
-    // Simulate API call
-    setTimeout(() => {
-      setShowDNADialog(false)
-      setShowAlert(true)
-      setTimeout(() => setShowAlert(false), 3000)
-    }, 500)
-  }
-
-  // Handle photo upload simulation
-  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files
-    if (files && files.length > 0) {
-      // Simulate photo upload
-      console.log('Uploading photos:', Array.from(files).map(f => f.name))
-      // In real implementation, call uploadPhoto for each file
+      
+      toast({
+        title: "Sucesso",
+        description: "Informações atualizadas com sucesso",
+      })
+    } catch (error) {
+      console.error('Erro ao atualizar talento:', error)
+      toast({
+        title: "Erro",
+        description: "Erro ao atualizar informações",
+        variant: "destructive"
+      })
     }
   }
 
-  // Handle photo deletion simulation  
-  const handlePhotoDelete = (photoIndex: number) => {
-    const updatedPhotos = talent.photos.filter((_, index) => index !== photoIndex)
-    setTalent({ ...talent, photos: updatedPhotos })
-    // In real implementation, call deletePhoto API
+  const handleDNASave = async () => {
+    if (!id) return
+    
+    try {
+      setSavingDNA(true)
+      await createOrUpdateTalentDNA(id, dnaData)
+      setShowDNADialog(false)
+      
+      // Refresh talent data to get updated DNA status
+      const updatedTalent = await getTalentById(id)
+      if (updatedTalent) {
+        setTalent(updatedTalent)
+      }
+      
+      toast({
+        title: "Sucesso",
+        description: "DNA atualizado com sucesso",
+      })
+    } catch (error) {
+      console.error('Erro ao salvar DNA:', error)
+      toast({
+        title: "Erro",
+        description: "Erro ao salvar DNA",
+        variant: "destructive"
+      })
+    } finally {
+      setSavingDNA(false)
+    }
   }
 
-  const formatCPF = (value: string) => {
-    return value
-      .replace(/\D/g, '')
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d{1,2})/, '$1-$2')
-      .replace(/(-\d{2})\d+?$/, '$1')
+  // Handle photo upload
+  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files
+    if (!files || files.length === 0 || !id) return
+    
+    try {
+      setUploadingPhoto(true)
+      
+      for (const file of Array.from(files)) {
+        // Validate file
+        validateImageFile(file)
+        
+        // Compress image
+        const compressedFile = await compressImage(file)
+        
+        // Upload photo
+        await uploadPhoto(compressedFile, id)
+      }
+      
+      // Refresh talent data to show new photos
+      const updatedTalent = await getTalentById(id)
+      if (updatedTalent) {
+        setTalent(updatedTalent)
+      }
+      
+      toast({
+        title: "Sucesso",
+        description: `${files.length} foto(s) carregada(s) com sucesso`,
+      })
+      
+    } catch (error: any) {
+      console.error('Erro ao fazer upload:', error)
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao fazer upload da foto",
+        variant: "destructive"
+      })
+    } finally {
+      setUploadingPhoto(false)
+    }
+    
+    // Reset input
+    event.target.value = ''
+  }
+
+  // Handle photo deletion
+  const handlePhotoDelete = async (photoId: string) => {
+    if (!id) return
+    
+    try {
+      await deletePhoto(photoId)
+      
+      // Refresh talent data
+      const updatedTalent = await getTalentById(id)
+      if (updatedTalent) {
+        setTalent(updatedTalent)
+      }
+      
+      toast({
+        title: "Sucesso",
+        description: "Foto excluída com sucesso",
+      })
+    } catch (error) {
+      console.error('Erro ao deletar foto:', error)
+      toast({
+        title: "Erro",
+        description: "Erro ao excluir foto",
+        variant: "destructive"
+      })
+    }
+  }
+
+  const formatDocument = (value: string) => {
+    const numbers = value.replace(/\D/g, '')
+    if (numbers.length <= 11) {
+      return numbers.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4")
+    } else {
+      return numbers.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5")
+    }
   }
 
   const formatPhone = (value: string) => {
@@ -260,6 +269,29 @@ export default function TalentProfile() {
       .replace(/\D/g, '')
       .replace(/(\d{5})(\d)/, '$1-$2')
   }
+
+  if (loading) {
+    return (
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin" />
+          <span className="ml-2">Carregando perfil do talento...</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (!talent) {
+    return (
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="flex items-center justify-center h-64">
+          <p>Talento não encontrado</p>
+        </div>
+      </div>
+    )
+  }
+
+  const inviteStatus = talent.inviteSent ? (talent.clerkInviteId ? "Ativo" : "Pendente") : "Não Enviado"
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -287,7 +319,7 @@ export default function TalentProfile() {
           </Button>
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary-variant))] bg-clip-text text-transparent">
-              Perfil do Talento
+              {talent.fullName}
             </h1>
             <p className="text-muted-foreground">
               Visualize e edite as informações do talento
@@ -309,7 +341,7 @@ export default function TalentProfile() {
           <Card className="shadow-card">
             <CardHeader>
               <CardTitle>
-                {talent.name}
+                {talent.fullName}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -318,8 +350,8 @@ export default function TalentProfile() {
                 <div className="relative group">
                   <div className="w-32 h-32 rounded-xl overflow-hidden border-4 border-primary/20 shadow-lg">
                     <img
-                      src="/src/assets/ana-clara-profile.jpg"
-                      alt={talent.name}
+                      src={talent.files?.[0]?.url || "/placeholder.svg"}
+                      alt={talent.fullName}
                       className="w-full h-full object-cover"
                     />
                   </div>
@@ -338,9 +370,21 @@ export default function TalentProfile() {
                     </Button>
                   </div>
                 </div>
-                <div className="text-center">
-                  <Badge variant={talent.active ? "default" : "secondary"} className="mt-1">
-                    {talent.active ? "Ativo" : "Inativo"}
+                <div className="text-center space-y-2">
+                  <Badge variant={talent.status ? "default" : "secondary"} className="mt-1">
+                    {talent.status ? "Ativo" : "Inativo"}
+                  </Badge>
+                  <Badge 
+                    variant={inviteStatus === "Ativo" ? "default" : inviteStatus === "Pendente" ? "secondary" : "outline"}
+                    className="block"
+                  >
+                    Convite: {inviteStatus}
+                  </Badge>
+                  <Badge 
+                    variant={talent.dnaStatus === 'COMPLETE' ? "default" : talent.dnaStatus === 'PARTIAL' ? "secondary" : "outline"}
+                    className="block"
+                  >
+                    DNA: {talent.dnaStatus === 'COMPLETE' ? 'Completo' : talent.dnaStatus === 'PARTIAL' ? 'Parcial' : 'Indefinido'}
                   </Badge>
                 </div>
               </div>
@@ -353,12 +397,12 @@ export default function TalentProfile() {
                     <Label className="text-xs text-muted-foreground">Nome Completo</Label>
                     {isEditing ? (
                       <Input
-                        value={editedTalent.name}
-                        onChange={(e) => setEditedTalent({...editedTalent, name: e.target.value})}
+                        value={editedTalent.fullName}
+                        onChange={(e) => setEditedTalent({...editedTalent, fullName: e.target.value})}
                         className="mt-1"
                       />
                     ) : (
-                      <p className="text-sm font-medium truncate">{talent.name}</p>
+                      <p className="text-sm font-medium truncate">{talent.fullName}</p>
                     )}
                   </div>
                 </div>
@@ -366,16 +410,15 @@ export default function TalentProfile() {
                 <div className="flex items-center space-x-3 p-3 bg-muted/30 rounded-lg">
                   <CreditCard className="h-4 w-4 text-muted-foreground" />
                   <div className="flex-1 min-w-0">
-                    <Label className="text-xs text-muted-foreground">CPF</Label>
+                    <Label className="text-xs text-muted-foreground">CPF/CNPJ</Label>
                     {isEditing ? (
                       <Input
-                        value={editedTalent.cpf}
-                        onChange={(e) => setEditedTalent({...editedTalent, cpf: formatCPF(e.target.value)})}
-                        maxLength={14}
+                        value={editedTalent.document}
+                        onChange={(e) => setEditedTalent({...editedTalent, document: formatDocument(e.target.value)})}
                         className="mt-1"
                       />
                     ) : (
-                      <p className="text-sm font-medium">{talent.cpf}</p>
+                      <p className="text-sm font-medium">{talent.document || "Não informado"}</p>
                     )}
                   </div>
                 </div>
@@ -392,42 +435,24 @@ export default function TalentProfile() {
                         className="mt-1"
                       />
                     ) : (
-                      <p className="text-sm font-medium truncate">{talent.email}</p>
+                      <p className="text-sm font-medium truncate">{talent.email || "Não informado"}</p>
                     )}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="flex items-center space-x-2 p-3 bg-muted/30 rounded-lg">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <div className="flex-1 min-w-0">
-                      <Label className="text-xs text-muted-foreground">WhatsApp</Label>
-                      {isEditing ? (
-                        <Input
-                          value={editedTalent.whatsapp}
-                          onChange={(e) => setEditedTalent({...editedTalent, whatsapp: formatPhone(e.target.value)})}
-                          className="mt-1"
-                        />
-                      ) : (
-                        <p className="text-sm font-medium">{talent.whatsapp}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-2 p-3 bg-muted/30 rounded-lg">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <div className="flex-1 min-w-0">
-                      <Label className="text-xs text-muted-foreground">Telefone</Label>
-                      {isEditing ? (
-                        <Input
-                          value={editedTalent.phone}
-                          onChange={(e) => setEditedTalent({...editedTalent, phone: formatPhone(e.target.value)})}
-                          className="mt-1"
-                        />
-                      ) : (
-                        <p className="text-sm font-medium">{talent.phone}</p>
-                      )}
-                    </div>
+                <div className="flex items-center space-x-3 p-3 bg-muted/30 rounded-lg">
+                  <Phone className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex-1 min-w-0">
+                    <Label className="text-xs text-muted-foreground">Telefone</Label>
+                    {isEditing ? (
+                      <Input
+                        value={editedTalent.phone}
+                        onChange={(e) => setEditedTalent({...editedTalent, phone: formatPhone(e.target.value)})}
+                        className="mt-1"
+                      />
+                    ) : (
+                      <p className="text-sm font-medium">{talent.phone || "Não informado"}</p>
+                    )}
                   </div>
                 </div>
 
@@ -455,7 +480,7 @@ export default function TalentProfile() {
                         </Popover>
                       ) : (
                         <p className="text-sm font-medium">
-                          {format(talent.birthDate, "dd/MM/yyyy")}
+                          {talent.birthDate ? format(new Date(talent.birthDate), "dd/MM/yyyy") : "Não informado"} ({talent.age} anos)
                         </p>
                       )}
                     </div>

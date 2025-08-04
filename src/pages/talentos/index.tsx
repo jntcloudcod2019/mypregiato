@@ -1,6 +1,6 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import { Search, Filter, ChevronLeft, ChevronRight, Eye, Plus } from "lucide-react"
+import { Search, Filter, ChevronLeft, ChevronRight, Eye, Plus, Loader2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -11,134 +11,50 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
+import { Skeleton } from "@/components/ui/skeleton"
+import { getAllTalents } from "@/lib/talent-service"
+import { TalentData } from "@/types/talent"
+import { useToast } from "@/hooks/use-toast"
 
-// Mock data - Replace with actual Supabase queries
-const mockTalents = [
-  {
-    id: 1,
-    name: "Ana Silva",
-    age: 25,
-    email: "ana.silva@email.com",
-    photo: "https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=400",
-    gender: "Feminino",
-    bodyType: "Fitness",
-    city: "São Paulo",
-    availableForTravel: true,
-    hairColor: "Castanho",
-    eyeColor: "Castanho",
-    ethnicity: "Parda",
-    height: "1.75",
-    expressiveness: "Alta"
-  },
-  {
-    id: 2,
-    name: "Carlos Oliveira",
-    age: 28,
-    email: "carlos.oliveira@email.com",
-    photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400",
-    gender: "Masculino",
-    bodyType: "Atlético",
-    city: "Rio de Janeiro",
-    availableForTravel: false,
-    hairColor: "Preto",
-    eyeColor: "Azul",
-    ethnicity: "Branco",
-    height: "1.82",
-    expressiveness: "Média"
-  },
-  {
-    id: 3,
-    name: "Mariana Costa",
-    age: 22,
-    email: "mariana.costa@email.com",
-    photo: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400",
-    gender: "Feminino",
-    bodyType: "Magro",
-    city: "Belo Horizonte",
-    availableForTravel: true,
-    hairColor: "Loiro",
-    eyeColor: "Verde",
-    ethnicity: "Branco",
-    height: "1.68",
-    expressiveness: "Alta"
-  },
-  {
-    id: 4,
-    name: "Roberto Santos",
-    age: 30,
-    email: "roberto.santos@email.com",
-    photo: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400",
-    gender: "Masculino",
-    bodyType: "Plus Size",
-    city: "Salvador",
-    availableForTravel: true,
-    hairColor: "Preto",
-    eyeColor: "Castanho",
-    ethnicity: "Negro",
-    height: "1.78",
-    expressiveness: "Média"
-  },
-  {
-    id: 5,
-    name: "Sofia Mendes",
-    age: 26,
-    email: "sofia.mendes@email.com",
-    photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400",
-    gender: "Feminino",
-    bodyType: "Fitness",
-    city: "Recife",
-    availableForTravel: false,
-    hairColor: "Ruivo",
-    eyeColor: "Verde",
-    ethnicity: "Branco",
-    height: "1.70",
-    expressiveness: "Alta"
-  },
-  {
-    id: 6,
-    name: "Lucas Ferreira",
-    age: 24,
-    email: "lucas.ferreira@email.com",
-    photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400",
-    gender: "Masculino",
-    bodyType: "Magro",
-    city: "Porto Alegre",
-    availableForTravel: true,
-    hairColor: "Castanho",
-    eyeColor: "Castanho",
-    ethnicity: "Pardo",
-    height: "1.76",
-    expressiveness: "Baixa"
-  }
-]
-
-const TalentCard = ({ talent, navigate }: { talent: any; navigate: any }) => {
+const TalentCard = ({ talent, navigate }: { talent: TalentData; navigate: any }) => {
+  const photo = talent.files?.[0]?.url || "/placeholder.svg"
+  const inviteStatus = talent.inviteSent ? (talent.clerkInviteId ? "Ativo" : "Pendente") : "Não Enviado"
+  
   return (
     <Card className="w-full h-96 overflow-hidden group hover-lift hover-glow shadow-card bg-gradient-card border-border/50">
       <div className="relative h-64 overflow-hidden">
         <img 
-          src={talent.photo} 
-          alt={talent.name}
+          src={photo} 
+          alt={talent.fullName}
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ease-out"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
         <div className="absolute bottom-4 left-4 text-white">
-          <h3 className="font-semibold text-lg mb-1">{talent.name}</h3>
+          <h3 className="font-semibold text-lg mb-1">{talent.fullName}</h3>
           <p className="text-sm opacity-90">{talent.age} anos</p>
         </div>
-        <div className="absolute top-4 right-4">
-          {talent.availableForTravel && (
+        <div className="absolute top-4 right-4 flex flex-col gap-1">
+          {talent.dna?.travelAvailability && (
             <Badge className="bg-primary/20 text-primary border border-primary/30 backdrop-blur-sm">
               Viagens
             </Badge>
           )}
+          <Badge 
+            variant={inviteStatus === "Ativo" ? "default" : inviteStatus === "Pendente" ? "secondary" : "outline"}
+            className="text-xs backdrop-blur-sm"
+          >
+            {inviteStatus}
+          </Badge>
         </div>
       </div>
       <CardContent className="p-4 space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex gap-2">
             <Badge variant="secondary" className="text-xs bg-secondary/20 text-secondary-foreground border border-secondary/30">
-              {talent.city}
+              {talent.city || "Não informado"}
+            </Badge>
+            <Badge variant="outline" className={`text-xs ${talent.dnaStatus === 'COMPLETE' ? 'text-green-600' : talent.dnaStatus === 'PARTIAL' ? 'text-yellow-600' : 'text-gray-600'}`}>
+              DNA: {talent.dnaStatus === 'COMPLETE' ? 'Completo' : talent.dnaStatus === 'PARTIAL' ? 'Parcial' : 'Indefinido'}
             </Badge>
           </div>
           <Button 
@@ -159,12 +75,34 @@ const TalentCard = ({ talent, navigate }: { talent: any; navigate: any }) => {
   )
 }
 
+const TalentSkeleton = () => (
+  <Card className="w-full h-96 overflow-hidden">
+    <div className="relative h-64">
+      <Skeleton className="w-full h-full" />
+    </div>
+    <CardContent className="p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="flex gap-2">
+          <Skeleton className="h-5 w-16" />
+          <Skeleton className="h-5 w-20" />
+        </div>
+        <Skeleton className="h-8 w-20" />
+      </div>
+    </CardContent>
+  </Card>
+)
+
 export default function Talentos() {
   const navigate = useNavigate()
+  const { toast } = useToast()
   const [searchTerm, setSearchTerm] = useState("")
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 6
+  const [loading, setLoading] = useState(true)
+  const [talents, setTalents] = useState<TalentData[]>([])
+  const [totalPages, setTotalPages] = useState(0)
+  const [total, setTotal] = useState(0)
+  const itemsPerPage = 12
 
   // Filters state
   const [selectedGender, setSelectedGender] = useState<string[]>([])
@@ -172,10 +110,10 @@ export default function Talentos() {
   const [ageMin, setAgeMin] = useState("")
   const [ageMax, setAgeMax] = useState("")
   const [selectedCity, setSelectedCity] = useState("")
-  const [availableForTravel, setAvailableForTravel] = useState<string>("")
+  const [availableForTravel, setAvailableForTravel] = useState<boolean | undefined>(undefined)
 
   // Filter options
-  const genderOptions = ["Masculino", "Feminino", "Não Binário", "Outros"]
+  const genderOptions = ["masculino", "feminino", "nao-binario", "outros"]
   const bodyTypeOptions = ["Magro", "Plus Size", "Fitness", "Atlético"]
   const hairColorOptions = ["Loiro", "Castanho", "Preto", "Ruivo", "Outro"]
   const eyeColorOptions = ["Azul", "Verde", "Castanho", "Preto", "Outro"]
@@ -183,110 +121,70 @@ export default function Talentos() {
   const expressivenessOptions = ["Baixa", "Média", "Alta"]
   const disabilityOptions = ["Nenhuma", "Visual", "Auditiva", "Física", "Intelectual", "Múltipla"]
 
-  // Commented out Supabase queries - Uncomment when Supabase is connected
-  /*
+  // Fetch talents from database
   const fetchTalents = async () => {
-    const { data, error } = await supabase
-      .from('talents')
-      .select('*')
-      .range((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage - 1)
-    
-    if (error) {
-      console.error('Error fetching talents:', error)
-      return
+    try {
+      setLoading(true)
+      const filters = {
+        gender: selectedGender.length > 0 ? selectedGender[0] : undefined,
+        bodyType: selectedBodyType.length > 0 ? selectedBodyType[0] : undefined,
+        ageMin: ageMin ? parseInt(ageMin) : undefined,
+        ageMax: ageMax ? parseInt(ageMax) : undefined,
+        city: selectedCity || undefined,
+        travelAvailability: availableForTravel
+      }
+      
+      const result = await getAllTalents(currentPage, itemsPerPage, searchTerm, filters)
+      setTalents(result.talents)
+      setTotal(result.total)
+      setTotalPages(result.totalPages)
+    } catch (error) {
+      console.error('Erro ao buscar talentos:', error)
+      toast({
+        title: "Erro",
+        description: "Erro ao carregar talentos",
+        variant: "destructive"
+      })
+    } finally {
+      setLoading(false)
     }
-    
-    setTalents(data || [])
   }
 
-  const searchTalents = async (query: string) => {
-    const { data, error } = await supabase
-      .from('talents')
-      .select('*')
-      .or(`name.ilike.%${query}%,email.ilike.%${query}%`)
-    
-    if (error) {
-      console.error('Error searching talents:', error)
-      return
-    }
-    
-    setTalents(data || [])
-  }
+  // Effect to fetch talents when filters change
+  useEffect(() => {
+    fetchTalents()
+  }, [currentPage, searchTerm, selectedGender, selectedBodyType, ageMin, ageMax, selectedCity, availableForTravel])
 
-  const filterTalents = async (filters: any) => {
-    let query = supabase.from('talents').select('*')
-    
-    if (filters.gender?.length > 0) {
-      query = query.in('gender', filters.gender)
+  // Reset to first page when filters change
+  useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1)
     }
-    
-    if (filters.bodyType?.length > 0) {
-      query = query.in('body_type', filters.bodyType)
-    }
-    
-    if (filters.ageMin) {
-      query = query.gte('age', filters.ageMin)
-    }
-    
-    if (filters.ageMax) {
-      query = query.lte('age', filters.ageMax)
-    }
-    
-    if (filters.city) {
-      query = query.eq('city', filters.city)
-    }
-    
-    if (filters.availableForTravel !== '') {
-      query = query.eq('available_for_travel', filters.availableForTravel === 'sim')
-    }
-    
-    const { data, error } = await query
-    
-    if (error) {
-      console.error('Error filtering talents:', error)
-      return
-    }
-    
-    setTalents(data || [])
-  }
-  */
-
-  // Filter talents based on current filters (using mock data)
-  const filteredTalents = mockTalents.filter(talent => {
-    const matchesSearch = talent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         talent.email.toLowerCase().includes(searchTerm.toLowerCase())
-    
-    const matchesGender = selectedGender.length === 0 || selectedGender.includes(talent.gender)
-    const matchesBodyType = selectedBodyType.length === 0 || selectedBodyType.includes(talent.bodyType)
-    const matchesAgeMin = !ageMin || talent.age >= parseInt(ageMin)
-    const matchesAgeMax = !ageMax || talent.age <= parseInt(ageMax)
-    const matchesCity = !selectedCity || talent.city.toLowerCase().includes(selectedCity.toLowerCase())
-    const matchesTravel = !availableForTravel || 
-                         (availableForTravel === "sim" ? talent.availableForTravel : !talent.availableForTravel)
-    
-    return matchesSearch && matchesGender && matchesBodyType && matchesAgeMin && 
-           matchesAgeMax && matchesCity && matchesTravel
-  })
-
-  // Pagination logic
-  const totalPages = Math.ceil(filteredTalents.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const paginatedTalents = filteredTalents.slice(startIndex, startIndex + itemsPerPage)
+  }, [searchTerm, selectedGender, selectedBodyType, ageMin, ageMax, selectedCity, availableForTravel])
 
   const handleGenderChange = (gender: string, checked: boolean) => {
     if (checked) {
-      setSelectedGender([...selectedGender, gender])
+      setSelectedGender([gender])
     } else {
-      setSelectedGender(selectedGender.filter(g => g !== gender))
+      setSelectedGender([])
     }
   }
 
   const handleBodyTypeChange = (bodyType: string, checked: boolean) => {
     if (checked) {
-      setSelectedBodyType([...selectedBodyType, bodyType])
+      setSelectedBodyType([bodyType])
     } else {
-      setSelectedBodyType(selectedBodyType.filter(bt => bt !== bodyType))
+      setSelectedBodyType([])
     }
+  }
+
+  const clearAllFilters = () => {
+    setSelectedGender([])
+    setSelectedBodyType([])
+    setAgeMin("")
+    setAgeMax("")
+    setSelectedCity("")
+    setAvailableForTravel(undefined)
   }
 
   return (
@@ -298,7 +196,7 @@ export default function Talentos() {
             Gestão de Talentos
           </h1>
           <p className="text-muted-foreground">
-            Gerencie o banco de talentos da agência, adicione novos perfis e acompanhe os cadastros.
+            Gerencie o banco de talentos da agência, adicione novos perfis e acompanhe os cadastros. ({total} talentos)
           </p>
         </div>
         <Button 
@@ -343,21 +241,14 @@ export default function Talentos() {
                   {[selectedGender.length, selectedBodyType.length, ageMin ? 1 : 0, ageMax ? 1 : 0, selectedCity ? 1 : 0, availableForTravel ? 1 : 0]
                     .reduce((a, b) => a + b, 0)} filtros ativos
                 </Badge>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setSelectedGender([])
-                    setSelectedBodyType([])
-                    setAgeMin("")
-                    setAgeMax("")
-                    setSelectedCity("")
-                    setAvailableForTravel("")
-                  }}
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  Limpar filtros
-                </Button>
+                 <Button
+                   variant="ghost"
+                   size="sm"
+                   onClick={clearAllFilters}
+                   className="text-muted-foreground hover:text-foreground"
+                 >
+                   Limpar filtros
+                 </Button>
               </>
             )}
           </div>
@@ -370,25 +261,27 @@ export default function Talentos() {
                 <TabsTrigger value="body">Corpo</TabsTrigger>
                 <TabsTrigger value="age">Idade</TabsTrigger>
                 <TabsTrigger value="location">Local</TabsTrigger>
-                <TabsTrigger value="travel">Viagem</TabsTrigger>
-                <TabsTrigger value="disability">Deficiências</TabsTrigger>
-                <TabsTrigger value="features">Características</TabsTrigger>
+                 <TabsTrigger value="travel">Viagem</TabsTrigger>
               </TabsList>
 
               <TabsContent value="gender" className="space-y-3">
                 <h4 className="font-medium">Gênero</h4>
-                <div className="grid grid-cols-2 gap-3">
-                  {genderOptions.map((gender) => (
-                    <div key={gender} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={gender}
-                        checked={selectedGender.includes(gender)}
-                        onCheckedChange={(checked) => handleGenderChange(gender, checked as boolean)}
-                      />
-                      <Label htmlFor={gender}>{gender}</Label>
-                    </div>
-                  ))}
-                </div>
+                 <div className="grid grid-cols-2 gap-3">
+                   {genderOptions.map((gender) => (
+                     <div key={gender} className="flex items-center space-x-2">
+                       <Checkbox
+                         id={gender}
+                         checked={selectedGender.includes(gender)}
+                         onCheckedChange={(checked) => handleGenderChange(gender, checked as boolean)}
+                       />
+                       <Label htmlFor={gender}>
+                         {gender === 'masculino' ? 'Masculino' : 
+                          gender === 'feminino' ? 'Feminino' : 
+                          gender === 'nao-binario' ? 'Não Binário' : 'Outros'}
+                       </Label>
+                     </div>
+                   ))}
+                 </div>
               </TabsContent>
 
               <TabsContent value="body" className="space-y-3">
@@ -442,32 +335,6 @@ export default function Talentos() {
                 />
               </TabsContent>
 
-        
-              <TabsContent value="disability" className="space-y-3">
-                <h4 className="font-medium">Deficiências</h4>
-                <div className="grid grid-cols-2 gap-3">
-                  {disabilityOptions.map((disability) => (
-                    <div key={disability} className="flex items-center space-x-2">
-                      <Checkbox id={disability} />
-                      <Label htmlFor={disability}>{disability}</Label>
-                    </div>
-                  ))}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="features" className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-3">
-                    <h4 className="font-medium">Cor do Cabelo</h4>
-                    <div className="space-y-2">
-                      {hairColorOptions.map((color) => (
-                        <div key={color} className="flex items-center space-x-2">
-                          <Checkbox id={`hair-${color}`} />
-                          <Label htmlFor={`hair-${color}`}>{color}</Label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
 
                   <div className="space-y-3">
                     <h4 className="font-medium">Cor dos Olhos</h4>

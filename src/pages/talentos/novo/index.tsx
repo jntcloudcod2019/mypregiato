@@ -1,10 +1,10 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { format } from "date-fns"
-import { CalendarIcon, AlertTriangle, CheckCircle2, XCircle } from "lucide-react"
+import { format, differenceInYears } from "date-fns"
+import { CalendarIcon, AlertTriangle, CheckCircle2, XCircle, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,6 +16,11 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { createTalent, checkTalentExists } from "@/lib/talent-service"
+import { getProducers } from "@/lib/user-service"
+import { sendClerkInvite } from "@/lib/clerk-service"
+import { ProducerData } from "@/types/talent"
+import { useToast } from "@/hooks/use-toast"
 
 // CEP validation
 const validateCEP = async (cep: string) => {
@@ -54,23 +59,21 @@ const getAddressFromCEP = async (cep: string) => {
 // Form validation schema
 const formSchema = z.object({
   fullName: z.string().min(2, "Nome completo é obrigatório"),
-  cpfCnpj: z.string().min(11, "CPF/CNPJ é obrigatório"),
-  email: z.string().email("Email inválido"),
-  whatsapp: z.string().min(10, "WhatsApp é obrigatório"),
+  document: z.string().min(11, "CPF/CNPJ é obrigatório"),
+  email: z.string().email("Email inválido").optional().or(z.literal("")),
   phone: z.string().min(10, "Telefone é obrigatório"),
   birthDate: z.date({
     required_error: "Data de nascimento é obrigatória",
   }),
   gender: z.string().min(1, "Gênero é obrigatório"),
-  cep: z.string().min(8, "CEP é obrigatório"),
+  postalcode: z.string().min(8, "CEP é obrigatório"),
   street: z.string().min(1, "Rua é obrigatória"),
   city: z.string().min(1, "Cidade é obrigatória"),
-  state: z.string().min(1, "UF é obrigatório"),
+  uf: z.string().min(1, "UF é obrigatório"),
   neighborhood: z.string().min(1, "Bairro é obrigatório"),
-  number: z.string().min(1, "Número é obrigatório"),
+  numberAddress: z.string().min(1, "Número é obrigatório"),
   complement: z.string().optional(),
-  availableForTravel: z.boolean().default(false),
-  isActive: z.boolean().default(true),
+  producerId: z.string().min(1, "Produtor é obrigatório"),
 })
 
 type FormData = z.infer<typeof formSchema>
@@ -126,7 +129,11 @@ const AlertMessage = ({
 
 export default function NovoTalento() {
   const navigate = useNavigate()
+  const { toast } = useToast()
   const [isLoadingCEP, setIsLoadingCEP] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [producers, setProducers] = useState<ProducerData[]>([])
+  const [loadingProducers, setLoadingProducers] = useState(true)
   const [alert, setAlert] = useState<{
     type: 'success' | 'warning' | 'error'
     message: string
@@ -139,13 +146,31 @@ export default function NovoTalento() {
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      isActive: true,
-    },
+    defaultValues: {},
   })
 
+  // Load producers on component mount
+  useEffect(() => {
+    const loadProducers = async () => {
+      try {
+        const producersData = await getProducers()
+        setProducers(producersData)
+      } catch (error) {
+        console.error('Erro ao carregar produtores:', error)
+        toast({
+          title: "Erro",
+          description: "Erro ao carregar lista de produtores",
+          variant: "destructive"
+        })
+      } finally {
+        setLoadingProducers(false)
+      }
+    }
+    loadProducers()
+  }, [])
+
   // Format CPF/CNPJ
-  const formatCpfCnpj = (value: string) => {
+  const formatDocument = (value: string) => {
     const numbers = value.replace(/\D/g, "")
     if (numbers.length <= 11) {
       return numbers.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4")
@@ -182,7 +207,7 @@ export default function NovoTalento() {
         if (address) {
           form.setValue("street", address.street)
           form.setValue("city", address.city)
-          form.setValue("state", address.state)
+          form.setValue("uf", address.state)
           form.setValue("neighborhood", address.neighborhood)
         }
       }
@@ -190,88 +215,89 @@ export default function NovoTalento() {
     }
   }
 
-  // Mock data for talent check - Replace with actual Supabase query
-  const mockExistingTalents = [
-    { name: "Ana Silva", email: "ana.silva@email.com" },
-    { name: "Carlos Oliveira", email: "carlos.oliveira@email.com" }
-  ]
-
-  // Check if talent exists
-  const checkTalentExists = (name: string, email: string) => {
-    return mockExistingTalents.some(
-      talent => talent.name.toLowerCase() === name.toLowerCase() || 
-                talent.email.toLowerCase() === email.toLowerCase()
-    )
-  }
 
   const onSubmit = async (data: FormData) => {
     try {
+      setIsSubmitting(true)
+      
       // Check if talent already exists
-      const exists = checkTalentExists(data.fullName, data.email)
+      const emailToCheck = data.email || undefined
+      const exists = await checkTalentExists(emailToCheck, data.document)
       
       if (exists) {
         setAlert({
           type: 'warning',
-          message: `Talento ${data.fullName} já existe.`,
+          message: `Já existe um talento com este email ou documento.`,
           isVisible: true
         })
         return
       }
 
-      // Commented out Supabase insert - Uncomment when Supabase is connected
-      /*
-      const { error } = await supabase
-        .from('talents')
-        .insert([
-          {
-            full_name: data.fullName,
-            cpf_cnpj: data.cpfCnpj,
-            email: data.email,
-            whatsapp: data.whatsapp,
-            phone: data.phone,
-            birth_date: data.birthDate,
-            gender: data.gender,
-            cep: data.cep,
-            street: data.street,
-            city: data.city,
-            state: data.state,
-            neighborhood: data.neighborhood,
-            number: data.number,
-            complement: data.complement,
-            is_active: data.isActive,
-            created_at: new Date().toISOString()
-          }
-        ])
+      // Calculate age from birth date
+      const age = differenceInYears(new Date(), data.birthDate)
 
-      if (error) {
-        setAlert({
-          type: 'error',
-          message: 'Erro ao criar talento',
-          isVisible: true
-        })
-        return
+      // Create talent data
+      const talentData = {
+        producerId: data.producerId,
+        fullName: data.fullName,
+        email: data.email || undefined,
+        phone: data.phone,
+        postalcode: data.postalcode,
+        street: data.street,
+        neighborhood: data.neighborhood,
+        city: data.city,
+        numberAddress: data.numberAddress,
+        complement: data.complement,
+        uf: data.uf,
+        document: data.document,
+        birthDate: data.birthDate,
+        age,
+        gender: data.gender
       }
-      */
 
-      // Success message
-      setAlert({
-        type: 'success',
-        message: `Talento ${data.fullName} criado com sucesso.`,
-        isVisible: true
-      })
+      // Create talent
+      const newTalent = await createTalent(talentData)
 
-      // Reset form after success
-      setTimeout(() => {
-        form.reset()
-        navigate('/talentos')
-      }, 2000)
+      // Send Clerk invitation if email is provided
+      if (data.email) {
+        try {
+          const nameParts = data.fullName.split(' ')
+          const firstName = nameParts[0]
+          const lastName = nameParts.slice(1).join(' ') || '-'
+          
+          await sendClerkInvite(data.email, firstName, lastName, newTalent.id)
+          
+          toast({
+            title: "Sucesso",
+            description: `Talento ${data.fullName} criado com sucesso e convite enviado!`,
+          })
+        } catch (inviteError) {
+          console.error('Erro ao enviar convite:', inviteError)
+          toast({
+            title: "Talento criado",
+            description: `Talento ${data.fullName} criado, mas houve erro ao enviar o convite.`,
+            variant: "destructive"
+          })
+        }
+      } else {
+        toast({
+          title: "Sucesso",
+          description: `Talento ${data.fullName} criado com sucesso!`,
+        })
+      }
 
-    } catch (error) {
+      // Navigate to talent profile
+      navigate(`/talentos/perfil/${newTalent.id}`)
+
+    } catch (error: any) {
+      console.error('Erro ao criar talento:', error)
       setAlert({
         type: 'error',
-        message: 'Erro ao criar talento',
+        message: error.message || 'Erro ao criar talento',
         isVisible: true
       })
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -320,86 +346,93 @@ export default function NovoTalento() {
                   )}
                 />
 
-                {/* CPF/CNPJ */}
-                <FormField
-                  control={form.control}
-                  name="cpfCnpj"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>CPF/CNPJ *</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="000.000.000-00" 
-                          {...field}
-                          onChange={(e) => {
-                            const formatted = formatCpfCnpj(e.target.value)
-                            field.onChange(formatted)
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                 {/* Produtor */}
+                 <FormField
+                   control={form.control}
+                   name="producerId"
+                   render={({ field }) => (
+                     <FormItem>
+                       <FormLabel>Produtor Responsável *</FormLabel>
+                       <Select onValueChange={field.onChange} defaultValue={field.value} disabled={loadingProducers}>
+                         <FormControl>
+                           <SelectTrigger>
+                             <SelectValue placeholder={loadingProducers ? "Carregando..." : "Selecione o produtor"} />
+                           </SelectTrigger>
+                         </FormControl>
+                         <SelectContent>
+                           {producers.map((producer) => (
+                             <SelectItem key={producer.id} value={producer.id}>
+                               {producer.first_name} {producer.last_name} - {producer.code}
+                             </SelectItem>
+                           ))}
+                         </SelectContent>
+                       </Select>
+                       <FormMessage />
+                     </FormItem>
+                   )}
+                 />
 
-                {/* Email */}
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email *</FormLabel>
-                      <FormControl>
-                        <Input placeholder="email@exemplo.com" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                 {/* CPF/CNPJ */}
+                 <FormField
+                   control={form.control}
+                   name="document"
+                   render={({ field }) => (
+                     <FormItem>
+                       <FormLabel>CPF/CNPJ *</FormLabel>
+                       <FormControl>
+                         <Input 
+                           placeholder="000.000.000-00" 
+                           {...field}
+                           onChange={(e) => {
+                             const formatted = formatDocument(e.target.value)
+                             field.onChange(formatted)
+                           }}
+                         />
+                       </FormControl>
+                       <FormMessage />
+                     </FormItem>
+                   )}
+                 />
 
-                {/* WhatsApp */}
-                <FormField
-                  control={form.control}
-                  name="whatsapp"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>WhatsApp *</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="(11) 99999-9999" 
-                          {...field}
-                          onChange={(e) => {
-                            const formatted = formatPhone(e.target.value)
-                            field.onChange(formatted)
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                 {/* Email */}
+                 <FormField
+                   control={form.control}
+                   name="email"
+                   render={({ field }) => (
+                     <FormItem>
+                       <FormLabel>Email (opcional)</FormLabel>
+                       <FormControl>
+                         <Input placeholder="email@exemplo.com" {...field} />
+                       </FormControl>
+                       <FormDescription>
+                         Se fornecido, será enviado um convite para acesso à plataforma
+                       </FormDescription>
+                       <FormMessage />
+                     </FormItem>
+                   )}
+                 />
 
-                {/* Telefone */}
-                <FormField
-                  control={form.control}
-                  name="phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Telefone *</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="(11) 3333-3333" 
-                          {...field}
-                          onChange={(e) => {
-                            const formatted = formatPhone(e.target.value)
-                            field.onChange(formatted)
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                 {/* Telefone */}
+                 <FormField
+                   control={form.control}
+                   name="phone"
+                   render={({ field }) => (
+                     <FormItem>
+                       <FormLabel>Telefone *</FormLabel>
+                       <FormControl>
+                         <Input 
+                           placeholder="(11) 99999-9999" 
+                           {...field}
+                           onChange={(e) => {
+                             const formatted = formatPhone(e.target.value)
+                             field.onChange(formatted)
+                           }}
+                         />
+                       </FormControl>
+                       <FormMessage />
+                     </FormItem>
+                   )}
+                 />
 
                 {/* Data de Nascimento */}
                 <FormField
@@ -458,44 +491,44 @@ export default function NovoTalento() {
                             <SelectValue placeholder="Selecione o gênero" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent>
-                          <SelectItem value="masculino">Masculino</SelectItem>
-                          <SelectItem value="feminino">Feminino</SelectItem>
-                          <SelectItem value="nao-binario">Não Binário</SelectItem>
-                          <SelectItem value="outros">Outros</SelectItem>
-                        </SelectContent>
+                         <SelectContent>
+                           <SelectItem value="masculino">Masculino</SelectItem>
+                           <SelectItem value="feminino">Feminino</SelectItem>
+                           <SelectItem value="nao-binario">Não Binário</SelectItem>
+                           <SelectItem value="outros">Outros</SelectItem>
+                         </SelectContent>
                       </Select>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                {/* CEP */}
-                <FormField
-                  control={form.control}
-                  name="cep"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>CEP *</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="00000-000" 
-                          {...field}
-                          onChange={(e) => {
-                            const formatted = formatCEP(e.target.value)
-                            field.onChange(formatted)
-                            handleCEPChange(formatted)
-                          }}
-                          disabled={isLoadingCEP}
-                        />
-                      </FormControl>
-                      {isLoadingCEP && (
-                        <FormDescription>Buscando endereço...</FormDescription>
-                      )}
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                 {/* CEP */}
+                 <FormField
+                   control={form.control}
+                   name="postalcode"
+                   render={({ field }) => (
+                     <FormItem>
+                       <FormLabel>CEP *</FormLabel>
+                       <FormControl>
+                         <Input 
+                           placeholder="00000-000" 
+                           {...field}
+                           onChange={(e) => {
+                             const formatted = formatCEP(e.target.value)
+                             field.onChange(formatted)
+                             handleCEPChange(formatted)
+                           }}
+                           disabled={isLoadingCEP}
+                         />
+                       </FormControl>
+                       {isLoadingCEP && (
+                         <FormDescription>Buscando endereço...</FormDescription>
+                       )}
+                       <FormMessage />
+                     </FormItem>
+                   )}
+                 />
               </div>
 
               {/* Address Fields */}
