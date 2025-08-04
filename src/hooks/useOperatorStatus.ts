@@ -14,17 +14,26 @@ export interface OperatorInfo {
   lastActivity: string
 }
 
+// Sistema real de presença - armazena operadores online
+const onlineOperators = new Map<string, OperatorInfo>()
+const operatorListeners = new Set<() => void>()
+
+// Broadcast de mudanças para todos os componentes
+const notifyOperatorChange = () => {
+  operatorListeners.forEach(listener => listener())
+}
+
 export const useOperatorStatus = () => {
   const { user } = useUser()
   const [operators, setOperators] = useState<OperatorInfo[]>([])
   const [currentOperator, setCurrentOperator] = useState<OperatorInfo | null>(null)
 
+  // Registrar operador atual quando user estiver disponível
   useEffect(() => {
-    // Initialize current operator from Clerk user
     if (user) {
       const operator: OperatorInfo = {
         id: user.id,
-        name: user.fullName || user.emailAddresses[0]?.emailAddress || 'Operador',
+        name: user.fullName || user.firstName || 'Operador',
         email: user.emailAddresses[0]?.emailAddress || '',
         status: 'available',
         avatar: user.imageUrl,
@@ -33,79 +42,88 @@ export const useOperatorStatus = () => {
         averageResponseTime: 0,
         lastActivity: new Date().toISOString()
       }
+
+      // Adicionar/atualizar operador na lista global
+      onlineOperators.set(user.id, operator)
       setCurrentOperator(operator)
+      
+      console.log(`✅ Operador ${operator.name} conectado`)
+      notifyOperatorChange()
+
+      // Heartbeat para manter presença ativa
+      const heartbeatInterval = setInterval(() => {
+        const updatedOperator = onlineOperators.get(user.id)
+        if (updatedOperator) {
+          updatedOperator.lastActivity = new Date().toISOString()
+          onlineOperators.set(user.id, updatedOperator)
+          notifyOperatorChange()
+        }
+      }, 30000) // A cada 30 segundos
+
+      // Cleanup ao desmontar
+      return () => {
+        clearInterval(heartbeatInterval)
+        onlineOperators.delete(user.id)
+        console.log(`❌ Operador ${operator.name} desconectado`)
+        notifyOperatorChange()
+      }
     }
   }, [user])
 
+  // Listener para mudanças na lista de operadores
   useEffect(() => {
-    // Simulate other operators for demo
-    const mockOperators: OperatorInfo[] = [
-      {
-        id: 'op_1',
-        name: 'João Silva',
-        email: 'joao@pregiato.com',
-        status: 'available',
-        activeAttendances: 2,
-        totalAttendancesToday: 15,
-        averageResponseTime: 45,
-        lastActivity: new Date().toISOString()
-      },
-      {
-        id: 'op_2',
-        name: 'Maria Santos',
-        email: 'maria@pregiato.com',
-        status: 'busy',
-        activeAttendances: 3,
-        totalAttendancesToday: 22,
-        averageResponseTime: 32,
-        lastActivity: new Date(Date.now() - 300000).toISOString() // 5 minutes ago
-      },
-      {
-        id: 'op_3',
-        name: 'Ana Costa',
-        email: 'ana@pregiato.com',
-        status: 'away',
-        activeAttendances: 0,
-        totalAttendancesToday: 8,
-        averageResponseTime: 60,
-        lastActivity: new Date(Date.now() - 1800000).toISOString() // 30 minutes ago
-      }
-    ]
+    const updateOperatorList = () => {
+      const now = Date.now()
+      const activeOperators = Array.from(onlineOperators.values())
+        .filter(operator => {
+          const lastActivity = new Date(operator.lastActivity).getTime()
+          const timeSinceActivity = now - lastActivity
+          // Considerar offline após 5 minutos de inatividade
+          return timeSinceActivity < 300000
+        })
+        .sort((a, b) => {
+          // Operador atual primeiro
+          if (a.id === user?.id) return -1
+          if (b.id === user?.id) return 1
+          return a.name.localeCompare(b.name)
+        })
 
-    // Add current operator to the list if not already there
-    if (currentOperator) {
-      const updatedOperators = [...mockOperators]
-      const existingIndex = updatedOperators.findIndex(op => op.id === currentOperator.id)
-      if (existingIndex === -1) {
-        updatedOperators.unshift(currentOperator)
-      } else {
-        updatedOperators[existingIndex] = currentOperator
-      }
-      setOperators(updatedOperators)
-    } else {
-      setOperators(mockOperators)
+      setOperators(activeOperators)
     }
 
-    // Update operator status periodically
-    const interval = setInterval(() => {
-      setOperators(prev => prev.map(op => ({
-        ...op,
-        lastActivity: op.id === currentOperator?.id ? new Date().toISOString() : op.lastActivity
-      })))
-    }, 30000) // Update every 30 seconds
+    // Atualização inicial
+    updateOperatorList()
 
-    return () => clearInterval(interval)
-  }, [currentOperator])
+    // Registrar listener
+    operatorListeners.add(updateOperatorList)
+
+    // Atualizar a cada 10 segundos
+    const interval = setInterval(updateOperatorList, 10000)
+
+    return () => {
+      operatorListeners.delete(updateOperatorList)
+      clearInterval(interval)
+    }
+  }, [user])
 
   const updateOperatorStatus = (status: 'available' | 'busy' | 'away') => {
-    if (currentOperator) {
-      const updated = { ...currentOperator, status, lastActivity: new Date().toISOString() }
+    if (currentOperator && user) {
+      const updated = { 
+        ...currentOperator, 
+        status, 
+        lastActivity: new Date().toISOString() 
+      }
+      
+      onlineOperators.set(user.id, updated)
       setCurrentOperator(updated)
+      notifyOperatorChange()
+      
+      console.log(`🔄 Status do operador ${updated.name} atualizado para: ${status}`)
     }
   }
 
   const incrementActiveAttendances = () => {
-    if (currentOperator) {
+    if (currentOperator && user) {
       const updated = {
         ...currentOperator,
         activeAttendances: currentOperator.activeAttendances + 1,
@@ -113,12 +131,15 @@ export const useOperatorStatus = () => {
         status: 'busy' as const,
         lastActivity: new Date().toISOString()
       }
+      
+      onlineOperators.set(user.id, updated)
       setCurrentOperator(updated)
+      notifyOperatorChange()
     }
   }
 
   const decrementActiveAttendances = () => {
-    if (currentOperator) {
+    if (currentOperator && user) {
       const newCount = Math.max(0, currentOperator.activeAttendances - 1)
       const updated = {
         ...currentOperator,
@@ -126,7 +147,10 @@ export const useOperatorStatus = () => {
         status: newCount === 0 ? 'available' as const : 'busy' as const,
         lastActivity: new Date().toISOString()
       }
+      
+      onlineOperators.set(user.id, updated)
       setCurrentOperator(updated)
+      notifyOperatorChange()
     }
   }
 

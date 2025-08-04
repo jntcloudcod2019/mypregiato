@@ -26,12 +26,21 @@ export const OperatorsCompactDashboard = () => {
     }
   }
 
+  const formatLastActivity = (lastActivity: string) => {
+    const diff = Date.now() - new Date(lastActivity).getTime()
+    const minutes = Math.floor(diff / 60000)
+    
+    if (minutes < 1) return 'Agora'
+    if (minutes < 5) return `${minutes}min`
+    return 'Offline'
+  }
+
   return (
     <Card className="bg-card border-border">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-card-foreground">
           <Users className="h-4 w-4" />
-          Operadores ({operators.length})
+          Operadores Online ({operators.length})
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-0">
@@ -68,9 +77,14 @@ export const OperatorsCompactDashboard = () => {
                     </Badge>
                   )}
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  {getStatusText(operator.status)}
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-xs text-muted-foreground">
+                    {getStatusText(operator.status)}
+                  </p>
+                  <span className="text-xs text-muted-foreground">
+                    • {formatLastActivity(operator.lastActivity)}
+                  </span>
+                </div>
               </div>
 
               <div className="text-right">
@@ -87,6 +101,7 @@ export const OperatorsCompactDashboard = () => {
           <div className="text-center py-6 text-muted-foreground">
             <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
             <p className="text-sm">Nenhum operador online</p>
+            <p className="text-xs">Faça login para aparecer na lista</p>
           </div>
         )}
       </CardContent>
