@@ -11,15 +11,100 @@ import { whatsAppService } from "@/services/whatsapp-service"
 import { TalentChat as TalentChatComponent } from "@/components/whatsapp/talent-chat"
 import { QRCodeModal } from "@/components/whatsapp/qr-code-modal"
 import { AttendanceQueueDashboard } from "@/components/whatsapp/attendance-queue-dashboard"
+import { TalentData } from "@/types/talent"
 
-// Mock data para demonstração - talentos cadastrados
-const mockTalents = [
-  { id: '1', name: 'Ana Clara Silva', phone: '11999887766', fullName: 'Ana Clara Silva' },
-  { id: '2', name: 'Maria Santos', phone: '11988776655', fullName: 'Maria Santos' },
-  { id: '3', name: 'João Oliveira', phone: '11977665544', fullName: 'João Oliveira' },
-  { id: '4', name: 'Beatriz Costa', phone: '11966554433', fullName: 'Beatriz Costa' },
-  { id: '5', name: 'Pedro Lima', phone: '11955443322', fullName: 'Pedro Lima' },
-  { id: '6', name: 'Camila Rodrigues', phone: '11944332211', fullName: 'Camila Rodrigues' },
+// Mock data para demonstração - talentos cadastrados com todas as propriedades necessárias
+const mockTalents: TalentData[] = [
+  {
+    id: '1',
+    fullName: 'Ana Clara Silva',
+    phone: '11999887766',
+    email: 'ana.clara@email.com',
+    age: 25,
+    inviteSent: false,
+    status: true,
+    dnaStatus: 'UNDEFINED',
+    updatedAt: new Date(),
+    createdAt: new Date(),
+    producer: null,
+    dna: null,
+    files: []
+  },
+  {
+    id: '2',
+    fullName: 'Maria Santos',
+    phone: '11988776655',
+    email: 'maria.santos@email.com',
+    age: 28,
+    inviteSent: false,
+    status: true,
+    dnaStatus: 'UNDEFINED',
+    updatedAt: new Date(),
+    createdAt: new Date(),
+    producer: null,
+    dna: null,
+    files: []
+  },
+  {
+    id: '3',
+    fullName: 'João Oliveira',
+    phone: '11977665544',
+    email: 'joao.oliveira@email.com',
+    age: 30,
+    inviteSent: false,
+    status: true,
+    dnaStatus: 'UNDEFINED',
+    updatedAt: new Date(),
+    createdAt: new Date(),
+    producer: null,
+    dna: null,
+    files: []
+  },
+  {
+    id: '4',
+    fullName: 'Beatriz Costa',
+    phone: '11966554433',
+    email: 'beatriz.costa@email.com',
+    age: 26,
+    inviteSent: false,
+    status: true,
+    dnaStatus: 'UNDEFINED',
+    updatedAt: new Date(),
+    createdAt: new Date(),
+    producer: null,
+    dna: null,
+    files: []
+  },
+  {
+    id: '5',
+    fullName: 'Pedro Lima',
+    phone: '11955443322',
+    email: 'pedro.lima@email.com',
+    age: 32,
+    inviteSent: false,
+    status: true,
+    dnaStatus: 'UNDEFINED',
+    updatedAt: new Date(),
+    createdAt: new Date(),
+    producer: null,
+    dna: null,
+    files: []
+  },
+  {
+    id: '6',
+    fullName: 'Camila Rodrigues',
+    phone: '11944332211',
+    email: 'camila.rodrigues@email.com',
+    age: 29,
+    inviteSent: false,
+    status: true,
+    dnaStatus: 'UNDEFINED',
+    updatedAt: new Date(),
+    createdAt: new Date(),
+    producer: null,
+    dna: null,
+    files: []
+  }
 ]
 
 export default function AtendimentoPage() {
@@ -130,14 +215,14 @@ export default function AtendimentoPage() {
                     return (
                       <button
                         key={talent.id}
-                        onClick={() => handleTalentSelect(talent.id, talent.name, talent.phone)}
+                        onClick={() => handleTalentSelect(talent.id, talent.fullName, talent.phone || '')}
                         className={`w-full text-left p-3 border rounded-lg transition-colors hover:bg-gray-50 ${
                           selectedTalent === talent.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
                         }`}
                       >
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="font-medium text-gray-900">{talent.name}</p>
+                            <p className="font-medium text-gray-900">{talent.fullName}</p>
                             <p className="text-sm text-gray-500">{talent.phone}</p>
                           </div>
                           <div className="flex items-center gap-2">
