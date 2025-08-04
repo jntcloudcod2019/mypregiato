@@ -192,32 +192,41 @@ export default function NovoContratoSuperFotos() {
   })
 
   const handleMetodoPagamentoChange = (metodo: string) => {
+    console.log('[FORM] Método de pagamento alterado:', metodo)
     setFormData(prev => {
       const metodos = prev.metodoPagamento.includes(metodo)
         ? prev.metodoPagamento.filter(m => m !== metodo)
         : [...prev.metodoPagamento, metodo]
       
+      console.log('[FORM] Novos métodos de pagamento:', metodos)
       return { ...prev, metodoPagamento: metodos }
     })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log('[CONTRACT] Iniciando submit do formulário...')
+    console.log('[CONTRACT] Form data atual:', formData)
+    
     setIsLoading(true)
     
     try {
       // Validações básicas
+      console.log('[CONTRACT] Validando campos obrigatórios...')
+      
       if (!formData.cidade || !formData.uf || !formData.dia || !formData.mes) {
+        console.log('[CONTRACT] Erro: Campos básicos obrigatórios não preenchidos')
         setAlert({
           type: "error",
           title: "Campos Obrigatórios",
-          message: "Por favor, preencha todos os campos obrigatórios.",
+          message: "Por favor, preencha todos os campos obrigatórios (cidade, UF, dia, mês).",
           show: true
         })
         return
       }
 
       if (!formData.modeloId && !formData.modeloSearch) {
+        console.log('[CONTRACT] Erro: Modelo não selecionado/digitado')
         setAlert({
           type: "error",
           title: "Modelo Obrigatório",
@@ -228,6 +237,7 @@ export default function NovoContratoSuperFotos() {
       }
 
       if (formData.metodoPagamento.length === 0) {
+        console.log('[CONTRACT] Erro: Método de pagamento não selecionado')
         setAlert({
           type: "error",
           title: "Método de Pagamento",
@@ -237,23 +247,29 @@ export default function NovoContratoSuperFotos() {
         return
       }
 
+      console.log('[CONTRACT] Validações passaram, buscando dados do modelo...')
+
       // Buscar dados do modelo selecionado ou criar mock
       let selectedModelo: TalentData
       
       if (formData.modeloId) {
+        console.log('[CONTRACT] Buscando modelo por ID:', formData.modeloId)
         const found = allModelos.find(t => t.id === formData.modeloId)
         if (!found) {
+          console.log('[CONTRACT] Erro: Modelo não encontrado')
           throw new Error('Modelo selecionado não encontrado')
         }
         selectedModelo = found
+        console.log('[CONTRACT] Modelo encontrado:', selectedModelo.fullName)
       } else if (formData.modeloSearch) {
-        // Criar modelo mock baseado no nome digitado
+        console.log('[CONTRACT] Criando modelo mock para:', formData.modeloSearch)
         selectedModelo = createMockModel(formData.modeloSearch)
       } else {
         throw new Error('Nenhum modelo selecionado ou digitado')
       }
 
       // Preparar dados do contrato
+      console.log('[CONTRACT] Preparando dados do contrato...')
       const contractData: ContractData = {
         cidade: formData.cidade,
         uf: formData.uf,
@@ -279,12 +295,18 @@ export default function NovoContratoSuperFotos() {
         paymentData: formData.paymentData
       }
 
+      console.log('[CONTRACT] Dados do contrato preparados:', contractData)
+
       // Gerar PDF
+      console.log('[CONTRACT] Iniciando geração do PDF...')
       const pdfBase64 = await generateContractPDF(contractData, 'super-fotos')
       
       if (!pdfBase64) {
+        console.log('[CONTRACT] Erro: PDF não foi gerado')
         throw new Error('Falha ao gerar PDF')
       }
+
+      console.log('[CONTRACT] PDF gerado com sucesso, tamanho:', pdfBase64.length)
 
       // Mostrar preview
       setPdfPreview({
@@ -293,8 +315,10 @@ export default function NovoContratoSuperFotos() {
         contractData
       })
 
+      console.log('[CONTRACT] Preview modal configurado')
+
     } catch (error) {
-      console.error("Erro ao gerar contrato:", error)
+      console.error("[CONTRACT] Erro ao gerar contrato:", error)
       setAlert({
         type: "error",
         title: "Erro ao Gerar Contrato",
@@ -302,6 +326,7 @@ export default function NovoContratoSuperFotos() {
         show: true
       })
     } finally {
+      console.log('[CONTRACT] Finalizando processo, setando loading para false')
       setIsLoading(false)
     }
   }
@@ -379,12 +404,24 @@ export default function NovoContratoSuperFotos() {
     console.log("Abrindo documento...")
   }
 
-  const isFormValid = formData.cidade && 
+  const isFormValid = Boolean(
+    formData.cidade && 
     formData.uf && 
     formData.dia && 
     formData.mes && 
     (formData.modeloId || formData.modeloSearch) && 
     formData.metodoPagamento.length > 0
+  )
+
+  console.log('[CONTRACT] Form validation:', {
+    cidade: !!formData.cidade,
+    uf: !!formData.uf,
+    dia: !!formData.dia,
+    mes: !!formData.mes,
+    modelo: !!(formData.modeloId || formData.modeloSearch),
+    pagamento: formData.metodoPagamento.length > 0,
+    isValid: isFormValid
+  })
 
   return (
     <div className="p-6 space-y-6">
@@ -650,6 +687,12 @@ export default function NovoContratoSuperFotos() {
               type="submit" 
               className="bg-primary hover:bg-primary/90 min-w-[140px]"
               disabled={isLoading || !isFormValid}
+              onClick={(e) => {
+                console.log('[CONTRACT] Botão Gerar Contrato clicado!')
+                console.log('[CONTRACT] Form válido:', isFormValid)
+                console.log('[CONTRACT] Loading:', isLoading)
+                // Não prevenir o default aqui, deixar o form submit acontecer
+              }}
             >
               {isLoading ? (
                 <div className="flex items-center gap-2">
