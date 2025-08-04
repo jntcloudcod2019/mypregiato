@@ -1,4 +1,5 @@
-import { useState } from "react"
+
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,56 +10,50 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu"
-import { Search, Plus, Filter, FileText, Eye, Download } from "lucide-react"
+import { Search, Plus, Filter, FileText, Eye, Download, ExternalLink } from "lucide-react"
 import { useNavigate } from "react-router-dom"
-
-// Mock data - Em produção, isso viria do banco via API
-const mockContratos = [
-  {
-    id: "1",
-    tipo: "Super Fotos",
-    cliente: "Maria Silva",
-    produtor: "João Santos",
-    data: "2024-08-01",
-    status: "Ativo",
-    valor: "R$ 2.500,00"
-  },
-  {
-    id: "2",
-    tipo: "Agenciamento",
-    cliente: "Pedro Lima",
-    produtor: "Ana Costa",
-    data: "2024-07-28",
-    status: "Pendente",
-    valor: "R$ 5.000,00"
-  },
-  {
-    id: "3",
-    tipo: "Super Fotos",
-    cliente: "Laura Santos",
-    produtor: "Carlos Oliveira",
-    data: "2024-07-25",
-    status: "Concluído",
-    valor: "R$ 1.800,00"
-  }
-]
+import { ContractsService, ContractRecord } from "@/services/contracts-service"
 
 export default function Contratos() {
+  const [contratos, setContratos] = useState<ContractRecord[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const navigate = useNavigate()
 
-  const filteredContratos = mockContratos.filter(contrato =>
+  useEffect(() => {
+    loadContratos()
+  }, [])
+
+  const loadContratos = () => {
+    const savedContratos = ContractsService.getAll()
+    setContratos(savedContratos)
+  }
+
+  const filteredContratos = contratos.filter(contrato =>
     contrato.cliente.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    contrato.tipo.toLowerCase().includes(searchTerm.toLowerCase())
+    contrato.tipo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    contrato.produtor.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, string> = {
       "Ativo": "bg-green-500/20 text-green-300",
       "Pendente": "bg-yellow-500/20 text-yellow-300",
-      "Concluído": "bg-blue-500/20 text-blue-300"
+      "Concluído": "bg-blue-500/20 text-blue-300",
+      "Enviado": "bg-purple-500/20 text-purple-300"
     }
     return variants[status] || "bg-gray-500/20 text-gray-300"
+  }
+
+  const handleWhatsAppOpen = (whatsappLink: string) => {
+    window.open(whatsappLink, '_blank')
+  }
+
+  const formatDate = (dateString: string) => {
+    try {
+      return new Date(dateString).toLocaleDateString('pt-BR')
+    } catch {
+      return dateString
+    }
   }
 
   return (
@@ -124,7 +119,7 @@ export default function Contratos() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
-            placeholder="Buscar contratos por cliente ou tipo..."
+            placeholder="Buscar contratos por cliente, tipo ou produtor..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10 bg-card border-border"
@@ -143,7 +138,9 @@ export default function Contratos() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
-                  <CardTitle className="text-lg">{contrato.tipo}</CardTitle>
+                  <CardTitle className="text-lg">
+                    {ContractsService.getContractTypeDisplayName(contrato.tipo)}
+                  </CardTitle>
                   <CardDescription>
                     Cliente: {contrato.cliente} • Produtor: {contrato.produtor}
                   </CardDescription>
@@ -156,8 +153,15 @@ export default function Contratos() {
             <CardContent>
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Data: {contrato.data}</p>
+                  <p className="text-sm text-muted-foreground">
+                    Data: {formatDate(contrato.data)}
+                  </p>
                   <p className="font-semibold text-lg">{contrato.valor}</p>
+                  {contrato.createdAt && (
+                    <p className="text-xs text-muted-foreground">
+                      Criado em: {formatDate(contrato.createdAt)}
+                    </p>
+                  )}
                 </div>
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" className="border-border">
@@ -166,6 +170,16 @@ export default function Contratos() {
                   <Button variant="outline" size="sm" className="border-border">
                     <Download className="h-4 w-4" />
                   </Button>
+                  {contrato.whatsappLink && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="border-border text-green-600 hover:text-green-700"
+                      onClick={() => handleWhatsAppOpen(contrato.whatsappLink!)}
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               </div>
             </CardContent>
