@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { FileText, Users, Calendar, TrendingUp } from "lucide-react"
-import AttendanceFlowWidget from "@/components/dashboard/attendance-flow-widget"
+import { AttendanceDashboard } from "@/components/whatsapp/attendance-dashboard"
 
 export default function Dashboard() {
   const stats = [
@@ -35,6 +35,11 @@ export default function Dashboard() {
     }
   ]
 
+  const handleStartAttendance = (talentId: string, talentName: string, talentPhone: string) => {
+    console.log(`Iniciando atendimento para ${talentName} (${talentPhone})`)
+    // Aqui você pode adicionar lógica adicional se necessário
+  }
+
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -65,15 +70,9 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Fluxo de Atendimento em Tempo Real */}
+      {/* Central de Atendimento Integrada */}
       <div className="space-y-4">
-        <div className="space-y-2">
-          <h2 className="text-2xl font-bold tracking-tight">Fluxo de Atendimento</h2>
-          <p className="text-muted-foreground">
-            Acompanhe o atendimento ao cliente em tempo real
-          </p>
-        </div>
-        <AttendanceFlowWidget />
+        <AttendanceDashboard onStartAttendance={handleStartAttendance} />
       </div>
 
       {/* Recent Activity */}
