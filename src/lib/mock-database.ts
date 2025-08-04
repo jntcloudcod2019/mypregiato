@@ -1,5 +1,43 @@
 import { TalentData, TalentDNAData, FileData, ProducerData } from '@/types/talent'
 
+// Mock User Interface
+export interface MockUser {
+  id: string
+  first_name: string
+  last_name: string
+  email: string
+  role: 'PRODUCER' | 'ADMIN' | 'USER'
+  code: string
+}
+
+// Mock Users (including Producers)
+export const mockUsers: MockUser[] = [
+  {
+    id: '1',
+    first_name: 'Maria',
+    last_name: 'Silva',
+    email: 'maria.silva@pregiato.com',
+    role: 'PRODUCER',
+    code: 'PM-001'
+  },
+  {
+    id: '2', 
+    first_name: 'João',
+    last_name: 'Santos',
+    email: 'joao.santos@pregiato.com',
+    role: 'PRODUCER',
+    code: 'PM-002'
+  },
+  {
+    id: '3',
+    first_name: 'Ana',
+    last_name: 'Costa',
+    email: 'ana.costa@pregiato.com',
+    role: 'PRODUCER',
+    code: 'PM-003'
+  }
+]
+
 // Mock Producers
 export const mockProducers: ProducerData[] = [
   {
@@ -281,7 +319,8 @@ export const STORAGE_KEYS = {
   TALENTS: 'mockTalents',
   DNA: 'mockDNA',
   FILES: 'mockFiles',
-  PRODUCERS: 'mockProducers'
+  PRODUCERS: 'mockProducers',
+  USERS: 'mockUsers'
 }
 
 // Initialize mock data in localStorage if not exists
@@ -297,6 +336,9 @@ export const initializeMockData = () => {
   }
   if (!localStorage.getItem(STORAGE_KEYS.PRODUCERS)) {
     localStorage.setItem(STORAGE_KEYS.PRODUCERS, JSON.stringify(mockProducers))
+  }
+  if (!localStorage.getItem(STORAGE_KEYS.USERS)) {
+    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(mockUsers))
   }
 }
 
@@ -319,6 +361,11 @@ export const getMockFiles = (): FileData[] => {
 export const getMockProducers = (): ProducerData[] => {
   const data = localStorage.getItem(STORAGE_KEYS.PRODUCERS)
   return data ? JSON.parse(data) : mockProducers
+}
+
+export const getMockUsers = (): MockUser[] => {
+  const data = localStorage.getItem(STORAGE_KEYS.USERS)
+  return data ? JSON.parse(data) : mockUsers
 }
 
 // Helper functions to save data to localStorage
