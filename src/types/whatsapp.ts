@@ -5,7 +5,7 @@ export interface WhatsAppMessage {
   type: 'text' | 'image' | 'audio' | 'file'
   sender: 'operator' | 'talent'
   timestamp: string
-  status: 'sending' | 'sent' | 'delivered' | 'read'
+  status: 'sending' | 'sent' | 'delivered' | 'read' | 'failed'
   file?: {
     name: string
     url: string

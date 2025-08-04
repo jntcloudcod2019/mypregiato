@@ -1,4 +1,3 @@
-
 import { WhatsAppConnection, WhatsAppMessage, TalentChat } from '@/types/whatsapp'
 
 // WhatsApp connection state
