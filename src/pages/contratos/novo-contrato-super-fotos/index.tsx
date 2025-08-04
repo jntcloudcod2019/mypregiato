@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -77,17 +77,19 @@ export default function NovoContratoSuperFotos() {
   })
 
   // Carregar talentos na inicialização
-  useState(() => {
+  useEffect(() => {
     const loadTalents = async () => {
       try {
+        console.log('[CONTRATO] Carregando talentos...')
         const talentsData = await getTalents()
+        console.log('[CONTRATO] Talentos carregados:', talentsData.length)
         setTalents(talentsData)
       } catch (error) {
-        console.error("Erro ao carregar talentos:", error)
+        console.error("[CONTRATO] Erro ao carregar talentos:", error)
       }
     }
     loadTalents()
-  })
+  }, [])
 
   const handleMetodoPagamentoChange = (metodo: string) => {
     setFormData(prev => {
@@ -107,19 +109,49 @@ export default function NovoContratoSuperFotos() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log('[CONTRATO] Botão clicado - iniciando validação...')
+    console.log('[CONTRATO] Form data:', formData)
+    
     setIsLoading(true)
     
     try {
+      // Validações básicas
+      if (!formData.cidade || !formData.uf || !formData.dia || !formData.mes || !formData.modeloId) {
+        console.log('[CONTRATO] Erro: Campos obrigatórios faltando')
+        setAlert({
+          type: "error",
+          title: "Campos Obrigatórios",
+          message: "Por favor, preencha todos os campos obrigatórios.",
+          show: true
+        })
+        return
+      }
+
+      if (formData.metodoPagamento.length === 0) {
+        console.log('[CONTRATO] Erro: Método de pagamento não selecionado')
+        setAlert({
+          type: "error",
+          title: "Método de Pagamento",
+          message: "Por favor, selecione pelo menos um método de pagamento.",
+          show: true
+        })
+        return
+      }
+
       console.log('[CONTRATO] Iniciando processo de geração...')
       
       // Buscar dados do modelo selecionado
       const selectedModelo = talents.find(t => t.id === formData.modeloId)
       if (!selectedModelo) {
+        console.log('[CONTRATO] Erro: Modelo não encontrado')
         throw new Error('Modelo não encontrado')
       }
 
+      console.log('[CONTRATO] Modelo selecionado:', selectedModelo)
+
       // Verificar se o modelo tem telefone
       if (!selectedModelo.phone) {
+        console.log('[CONTRATO] Erro: Telefone não cadastrado')
         setAlert({
           type: "error",
           title: "Dados Incompletos",
@@ -136,6 +168,7 @@ export default function NovoContratoSuperFotos() {
         dia: formData.dia,
         mes: formData.mes,
         ano: new Date().getFullYear().toString(),
+        duracaoContrato: formData.duracaoContrato,
         modelo: {
           id: selectedModelo.id,
           fullName: selectedModelo.fullName,
@@ -159,8 +192,14 @@ export default function NovoContratoSuperFotos() {
       // Gerar PDF
       console.log('[CONTRATO] Gerando PDF...')
       const pdfBase64 = await generateContractPDF(contractData, 'super-fotos')
+      console.log('[CONTRATO] PDF gerado, tamanho:', pdfBase64?.length || 0)
       
+      if (!pdfBase64) {
+        throw new Error('Falha ao gerar PDF - resultado vazio')
+      }
+
       // Mostrar preview
+      console.log('[CONTRATO] Mostrando preview...')
       setPdfPreview({
         show: true,
         pdfBase64,
@@ -168,7 +207,7 @@ export default function NovoContratoSuperFotos() {
       })
 
     } catch (error) {
-      console.error("Erro ao gerar contrato:", error)
+      console.error("[CONTRATO] Erro ao gerar contrato:", error)
       setAlert({
         type: "error",
         title: "Erro ao Gerar Contrato",
@@ -253,6 +292,16 @@ export default function NovoContratoSuperFotos() {
     setAlert({ ...alert, show: false })
     console.log("Abrindo documento...")
   }
+
+  const isFormValid = formData.cidade && 
+    formData.uf && 
+    formData.dia && 
+    formData.mes && 
+    formData.modeloId && 
+    formData.metodoPagamento.length > 0
+
+  console.log('[CONTRATO] Form válido:', isFormValid)
+  console.log('[CONTRATO] Talentos disponíveis:', talents.length)
 
   return (
     <div className="p-6 space-y-6">
@@ -493,7 +542,7 @@ export default function NovoContratoSuperFotos() {
             <Button 
               type="submit" 
               className="bg-primary hover:bg-primary/90 min-w-[140px]"
-              disabled={isLoading || formData.metodoPagamento.length === 0 || !formData.cidade || !formData.uf || !formData.dia || !formData.mes || !formData.modeloId}
+              disabled={isLoading || !isFormValid}
             >
               {isLoading ? (
                 <div className="flex items-center gap-2">
