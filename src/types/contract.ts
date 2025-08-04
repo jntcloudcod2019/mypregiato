@@ -5,6 +5,7 @@ export interface ContractData {
   dia: string
   mes: string
   ano: string
+  duracaoContrato?: string
   modelo: {
     id: string
     fullName: string
