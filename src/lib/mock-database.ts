@@ -1,70 +1,5 @@
 import { TalentData, TalentDNAData, FileData, ProducerData } from '@/types/talent'
 
-// Mock User interface for the User table
-export interface MockUser {
-  id: string
-  clerk_id: string
-  email: string
-  first_name: string
-  last_name: string
-  image_url?: string | null
-  role: 'ADMIN' | 'PRODUCER' | 'BOOKER' | 'ASSISTANT' | 'TALENT'
-  createdAt: Date
-  updatedAt: Date
-  code?: string
-}
-
-// Mock Users (including producers)
-export const mockUsers: MockUser[] = [
-  {
-    id: '1',
-    clerk_id: 'clerk_user_1',
-    email: 'maria.silva@pregiato.com',
-    first_name: 'Maria',
-    last_name: 'Silva',
-    image_url: null,
-    role: 'PRODUCER',
-    createdAt: new Date('2024-01-10'),
-    updatedAt: new Date('2024-01-15'),
-    code: 'PM-3445'
-  },
-  {
-    id: '2', 
-    clerk_id: 'clerk_user_2',
-    email: 'joao.santos@pregiato.com',
-    first_name: 'João',
-    last_name: 'Santos',
-    image_url: null,
-    role: 'PRODUCER',
-    createdAt: new Date('2024-01-11'),
-    updatedAt: new Date('2024-01-16'),
-    code: 'PM-7892'
-  },
-  {
-    id: '3',
-    clerk_id: 'clerk_user_3',
-    email: 'ana.costa@pregiato.com',
-    first_name: 'Ana',
-    last_name: 'Costa',
-    image_url: null,
-    role: 'PRODUCER',
-    createdAt: new Date('2024-01-12'),
-    updatedAt: new Date('2024-01-17'),
-    code: 'PM-1234'
-  },
-  {
-    id: '4',
-    clerk_id: 'clerk_user_4',
-    email: 'carlos.admin@pregiato.com',
-    first_name: 'Carlos',
-    last_name: 'Admin',
-    image_url: null,
-    role: 'ADMIN',
-    createdAt: new Date('2024-01-08'),
-    updatedAt: new Date('2024-01-18')
-  }
-]
-
 // Mock Producers
 export const mockProducers: ProducerData[] = [
   {
@@ -72,21 +7,21 @@ export const mockProducers: ProducerData[] = [
     first_name: 'Maria',
     last_name: 'Silva',
     email: 'maria.silva@pregiato.com',
-    code: 'PM-3445'
+    code: 'PM-001'
   },
   {
     id: '2', 
     first_name: 'João',
     last_name: 'Santos',
     email: 'joao.santos@pregiato.com',
-    code: 'PM-7892'
+    code: 'PM-002'
   },
   {
     id: '3',
     first_name: 'Ana',
     last_name: 'Costa',
     email: 'ana.costa@pregiato.com', 
-    code: 'PM-1234'
+    code: 'PM-003'
   }
 ]
 
@@ -346,8 +281,7 @@ export const STORAGE_KEYS = {
   TALENTS: 'mockTalents',
   DNA: 'mockDNA',
   FILES: 'mockFiles',
-  PRODUCERS: 'mockProducers',
-  USERS: 'mockUsers'
+  PRODUCERS: 'mockProducers'
 }
 
 // Initialize mock data in localStorage if not exists
@@ -363,9 +297,6 @@ export const initializeMockData = () => {
   }
   if (!localStorage.getItem(STORAGE_KEYS.PRODUCERS)) {
     localStorage.setItem(STORAGE_KEYS.PRODUCERS, JSON.stringify(mockProducers))
-  }
-  if (!localStorage.getItem(STORAGE_KEYS.USERS)) {
-    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(mockUsers))
   }
 }
 
@@ -388,11 +319,6 @@ export const getMockFiles = (): FileData[] => {
 export const getMockProducers = (): ProducerData[] => {
   const data = localStorage.getItem(STORAGE_KEYS.PRODUCERS)
   return data ? JSON.parse(data) : mockProducers
-}
-
-export const getMockUsers = (): MockUser[] => {
-  const data = localStorage.getItem(STORAGE_KEYS.USERS)
-  return data ? JSON.parse(data) : mockUsers
 }
 
 // Helper functions to save data to localStorage
