@@ -48,6 +48,7 @@ export default function NovoContratoSuperFotos() {
   const [isLoading, setIsLoading] = useState(false)
   const [talents, setTalents] = useState<TalentData[]>([])
   const [loadingTalents, setLoadingTalents] = useState(true)
+  const [debugInfo, setDebugInfo] = useState<string>('Iniciando...')
   const [pdfPreview, setPdfPreview] = useState<{
     show: boolean
     pdfBase64: string
@@ -77,29 +78,84 @@ export default function NovoContratoSuperFotos() {
     paymentData: {} as PaymentData
   })
 
-  // Carregar talentos na inicialização
+  // Carregar talentos na inicialização com debug detalhado
   useEffect(() => {
     const loadTalents = async () => {
       try {
-        console.log('[CONTRATO] Carregando talentos...')
+        console.log('🔄 [DEBUG] Iniciando carregamento de talentos...')
+        setDebugInfo('Carregando talentos...')
         setLoadingTalents(true)
+        
+        console.log('🔄 [DEBUG] Chamando getTalents()...')
         const talentsData = await getTalents()
-        console.log('[CONTRATO] Talentos carregados:', talentsData.length)
+        
+        console.log('✅ [DEBUG] getTalents() retornou:', talentsData)
+        console.log('✅ [DEBUG] Número de talentos:', talentsData?.length || 0)
+        console.log('✅ [DEBUG] Primeiro talento:', talentsData?.[0])
+        
+        if (!talentsData) {
+          console.error('❌ [DEBUG] getTalents() retornou null/undefined')
+          setDebugInfo('Erro: getTalents() retornou dados vazios')
+          return
+        }
+        
+        if (talentsData.length === 0) {
+          console.warn('⚠️ [DEBUG] getTalents() retornou array vazio')
+          setDebugInfo('Aviso: Nenhum talento encontrado no banco mock')
+          setTalents([])
+          return
+        }
+        
         setTalents(talentsData)
+        setDebugInfo(`✅ ${talentsData.length} talentos carregados com sucesso`)
+        console.log('✅ [DEBUG] Estado talents atualizado com:', talentsData.length, 'talentos')
+        
+        // Debug dos talentos individualmente
+        talentsData.forEach((talent, index) => {
+          console.log(`🔍 [DEBUG] Talento ${index + 1}:`, {
+            id: talent.id,
+            fullName: talent.fullName,
+            email: talent.email,
+            document: talent.document
+          })
+        })
+        
       } catch (error) {
-        console.error("[CONTRATO] Erro ao carregar talentos:", error)
+        console.error("❌ [DEBUG] Erro ao carregar talentos:", error)
+        console.error("❌ [DEBUG] Stack trace:", error instanceof Error ? error.stack : 'Sem stack trace')
+        setDebugInfo(`❌ Erro: ${error instanceof Error ? error.message : 'Erro desconhecido'}`)
         setAlert({
           type: "error",
           title: "Erro ao Carregar Talentos",
-          message: "Não foi possível carregar a lista de talentos. Tente recarregar a página.",
+          message: `Não foi possível carregar a lista de talentos. Erro: ${error instanceof Error ? error.message : 'Desconhecido'}`,
           show: true
         })
       } finally {
         setLoadingTalents(false)
+        console.log('🏁 [DEBUG] Carregamento finalizado. Loading state:', false)
       }
     }
     loadTalents()
   }, [])
+
+  // Debug do filtro de modelos
+  const filteredModelos = talents.filter(talent => {
+    const matchesSearch = !formData.modeloSearch || 
+      talent.fullName.toLowerCase().includes(formData.modeloSearch.toLowerCase()) ||
+      (talent.document && talent.document.includes(formData.modeloSearch)) ||
+      (talent.email && talent.email.toLowerCase().includes(formData.modeloSearch.toLowerCase()))
+    
+    console.log('🔍 [FILTER] Talento:', talent.fullName, 'Busca:', formData.modeloSearch, 'Match:', matchesSearch)
+    return matchesSearch
+  })
+
+  console.log('📊 [DEBUG] Estados atuais:', {
+    talentsTotal: talents.length,
+    filteredTotal: filteredModelos.length,
+    loadingTalents,
+    searchTerm: formData.modeloSearch,
+    debugInfo
+  })
 
   const handleMetodoPagamentoChange = (metodo: string) => {
     setFormData(prev => {
@@ -110,12 +166,6 @@ export default function NovoContratoSuperFotos() {
       return { ...prev, metodoPagamento: metodos }
     })
   }
-
-  const filteredModelos = talents.filter(talent =>
-    talent.fullName.toLowerCase().includes(formData.modeloSearch.toLowerCase()) ||
-    (talent.document && talent.document.includes(formData.modeloSearch)) ||
-    (talent.email && talent.email.toLowerCase().includes(formData.modeloSearch.toLowerCase()))
-  )
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -333,6 +383,32 @@ export default function NovoContratoSuperFotos() {
         </div>
       </div>
 
+      {/* Debug Info Card - Temporário para debug */}
+      <Card className="bg-yellow-50 border-yellow-200">
+        <CardHeader>
+          <CardTitle className="text-yellow-800">🔧 DEBUG INFO (Temporário)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2 text-sm">
+            <p><strong>Status:</strong> {debugInfo}</p>
+            <p><strong>Loading:</strong> {loadingTalents ? 'Sim' : 'Não'}</p>
+            <p><strong>Talentos carregados:</strong> {talents.length}</p>
+            <p><strong>Modelos filtrados:</strong> {filteredModelos.length}</p>
+            <p><strong>Busca atual:</strong> "{formData.modeloSearch}"</p>
+            {talents.length > 0 && (
+              <div>
+                <strong>Primeiros 3 talentos:</strong>
+                <ul className="ml-4">
+                  {talents.slice(0, 3).map(talent => (
+                    <li key={talent.id}>• {talent.fullName} ({talent.email})</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Alert */}
       {alert.show && (
         <div className="mb-6">
@@ -468,7 +544,11 @@ export default function NovoContratoSuperFotos() {
                     <Input
                       placeholder="Busque por nome, documento ou email"
                       value={formData.modeloSearch}
-                      onChange={(e) => setFormData(prev => ({ ...prev, modeloSearch: e.target.value }))}
+                      onChange={(e) => {
+                        const value = e.target.value
+                        console.log('🔍 [SEARCH] Nova busca:', value)
+                        setFormData(prev => ({ ...prev, modeloSearch: value }))
+                      }}
                       className="bg-background border-border pr-10"
                       disabled={loadingTalents}
                     />
@@ -476,7 +556,12 @@ export default function NovoContratoSuperFotos() {
                   </div>
                   <Select 
                     value={formData.modeloId} 
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, modeloId: value }))}
+                    onValueChange={(value) => {
+                      console.log('✅ [SELECT] Modelo selecionado:', value)
+                      const selectedTalent = talents.find(t => t.id === value)
+                      console.log('✅ [SELECT] Dados do talento selecionado:', selectedTalent)
+                      setFormData(prev => ({ ...prev, modeloId: value }))
+                    }}
                     disabled={loadingTalents}
                   >
                     <SelectTrigger className="bg-background border-border">
@@ -485,33 +570,56 @@ export default function NovoContratoSuperFotos() {
                           ? "Carregando modelos..." 
                           : talents.length === 0 
                             ? "Nenhum modelo encontrado" 
-                            : "Selecione um modelo"
+                            : filteredModelos.length === 0
+                              ? "Nenhum modelo encontrado com essa busca"
+                              : "Selecione um modelo"
                       } />
                     </SelectTrigger>
                     <SelectContent>
-                      {filteredModelos.length === 0 && !loadingTalents ? (
+                      {loadingTalents ? (
                         <div className="px-4 py-2 text-sm text-muted-foreground">
-                          {formData.modeloSearch ? 'Nenhum modelo encontrado com essa busca' : 'Nenhum modelo cadastrado'}
+                          Carregando modelos...
+                        </div>
+                      ) : talents.length === 0 ? (
+                        <div className="px-4 py-2 text-sm text-muted-foreground">
+                          Nenhum modelo cadastrado no sistema
+                        </div>
+                      ) : filteredModelos.length === 0 ? (
+                        <div className="px-4 py-2 text-sm text-muted-foreground">
+                          Nenhum modelo encontrado com essa busca
                         </div>
                       ) : (
-                        filteredModelos.map((modelo) => (
-                          <SelectItem key={modelo.id} value={modelo.id}>
-                            <div className="flex flex-col">
-                              <span className="font-medium">{modelo.fullName}</span>
-                              <span className="text-xs text-muted-foreground">
-                                {modelo.document} • {modelo.email}
-                              </span>
-                            </div>
-                          </SelectItem>
-                        ))
+                        filteredModelos.map((modelo) => {
+                          console.log('📋 [RENDER] Renderizando modelo no select:', modelo.fullName)
+                          return (
+                            <SelectItem key={modelo.id} value={modelo.id}>
+                              <div className="flex flex-col">
+                                <span className="font-medium">{modelo.fullName}</span>
+                                <span className="text-xs text-muted-foreground">
+                                  {modelo.document || 'Sem documento'} • {modelo.email || 'Sem email'}
+                                </span>
+                              </div>
+                            </SelectItem>
+                          )
+                        })
                       )}
                     </SelectContent>
                   </Select>
-                  {loadingTalents && (
-                    <p className="text-xs text-muted-foreground">
-                      Carregando lista de modelos...
-                    </p>
-                  )}
+                  
+                  {/* Informações de debug para o usuário */}
+                  <div className="text-xs text-muted-foreground space-y-1">
+                    {loadingTalents && (
+                      <p>⏳ Carregando lista de modelos...</p>
+                    )}
+                    {!loadingTalents && (
+                      <p>
+                        📊 {talents.length} modelo{talents.length !== 1 ? 's' : ''} total
+                        {formData.modeloSearch && (
+                          <span> • {filteredModelos.length} encontrado{filteredModelos.length !== 1 ? 's' : ''} na busca</span>
+                        )}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
             </CardContent>
