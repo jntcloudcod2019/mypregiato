@@ -8,18 +8,18 @@ import { ArrowLeft, Search } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { LoadingSpinner } from "@/components/contratos/loading-spinner"
 import { ContractAlert } from "@/components/contratos/contract-alert"
+import { PDFPreviewModal } from "@/components/contratos/pdf-preview-modal"
+import { generateContractPDF } from "@/services/contract-generator"
+import { sendContractToAutentique } from "@/services/autentique-service"
+import { getTalents } from "@/lib/talent-service"
+import { TalentData } from "@/types/talent"
+import { ContractData } from "@/types/contract"
 
 // Mock data - Em produção viria do banco
 const mockProdutores = [
   { id: "1", name: "João Santos", email: "joao@example.com" },
   { id: "2", name: "Ana Costa", email: "ana@example.com" },
   { id: "3", name: "Carlos Oliveira", email: "carlos@example.com" }
-]
-
-const mockModelos = [
-  { id: "1", fullName: "Maria Silva", document: "123.456.789-00", email: "maria@example.com" },
-  { id: "2", fullName: "Pedro Lima", document: "987.654.321-00", email: "pedro@example.com" },
-  { id: "3", fullName: "Laura Santos", document: "456.789.123-00", email: "laura@example.com" }
 ]
 
 const mesesPorExtenso = [
@@ -30,8 +30,18 @@ const mesesPorExtenso = [
 export default function NovoContratoAgenciamento() {
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
+  const [talents, setTalents] = useState<TalentData[]>([])
+  const [pdfPreview, setPdfPreview] = useState<{
+    show: boolean
+    pdfBase64: string
+    contractData: ContractData | null
+  }>({
+    show: false,
+    pdfBase64: '',
+    contractData: null
+  })
   const [alert, setAlert] = useState<{
-    type: "success" | "warning"
+    type: "success" | "warning" | "error"
     title: string
     message: string
     show: boolean
@@ -48,44 +58,150 @@ export default function NovoContratoAgenciamento() {
     modeloSearch: ""
   })
 
-  const filteredModelos = mockModelos.filter(modelo =>
-    modelo.fullName.toLowerCase().includes(formData.modeloSearch.toLowerCase()) ||
-    modelo.document.includes(formData.modeloSearch) ||
-    modelo.email.toLowerCase().includes(formData.modeloSearch.toLowerCase())
-  )
+  // Load talents on initialization
+  useState(() => {
+    const loadTalents = async () => {
+      try {
+        const talentsData = await getTalents()
+        setTalents(talentsData)
+      } catch (error) {
+        console.error("Erro ao carregar talentos:", error)
+      }
+    }
+    loadTalents()
+  })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     
     try {
-      // Simular verificação de contrato existente
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      console.log('[CONTRATO] Iniciando processo de geração...')
       
-      // Simular resposta da API
-      const existeContrato = Math.random() > 0.7 // 30% chance de existir contrato
-      
-      if (existeContrato) {
+      // Buscar dados do modelo selecionado
+      const selectedModelo = talents.find(t => t.id === formData.modeloId)
+      if (!selectedModelo) {
+        throw new Error('Modelo não encontrado')
+      }
+
+      // Verificar se o modelo tem telefone
+      if (!selectedModelo.phone) {
         setAlert({
-          type: "warning",
-          title: "Contrato Existente",
-          message: "Existe um contrato para este modelo. Para gerar outro é necessário excluir o anterior",
+          type: "error",
+          title: "Dados Incompletos",
+          message: "O modelo selecionado não possui telefone cadastrado. É necessário para envio via WhatsApp.",
           show: true
         })
-      } else {
-        const selectedModelo = mockModelos.find(m => m.id === formData.modeloId)
+        return
+      }
+
+      // Preparar dados do contrato
+      const contractData: ContractData = {
+        cidade: formData.cidade,
+        uf: formData.uf,
+        dia: formData.dia,
+        mes: formData.mes,
+        ano: new Date().getFullYear().toString(),
+        duracaoContrato: formData.duracaoContrato,
+        modelo: {
+          id: selectedModelo.id,
+          fullName: selectedModelo.fullName,
+          document: selectedModelo.document || '',
+          email: selectedModelo.email || '',
+          phone: selectedModelo.phone,
+          postalcode: selectedModelo.postalcode || '',
+          street: selectedModelo.street || '',
+          neighborhood: selectedModelo.neighborhood || '',
+          city: selectedModelo.city || '',
+          numberAddress: selectedModelo.numberAddress || '',
+          complement: selectedModelo.complement || ''
+        },
+        valorContrato: '0,00',
+        metodoPagamento: [],
+        paymentData: {}
+      }
+
+      console.log('[CONTRATO] Dados preparados:', contractData)
+
+      // Gerar PDF
+      console.log('[CONTRATO] Gerando PDF...')
+      const pdfBase64 = await generateContractPDF(contractData, 'agenciamento')
+      
+      // Mostrar preview
+      setPdfPreview({
+        show: true,
+        pdfBase64,
+        contractData
+      })
+
+    } catch (error) {
+      console.error("Erro ao gerar contrato:", error)
+      setAlert({
+        type: "error",
+        title: "Erro ao Gerar Contrato",
+        message: error instanceof Error ? error.message : "Erro desconhecido ao processar contrato",
+        show: true
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleSendContract = async () => {
+    if (!pdfPreview.contractData) return
+
+    try {
+      console.log('[CONTRATO] Enviando para Autentique...')
+      const contractName = `Contrato_Agenciamento_${pdfPreview.contractData.modelo.fullName.replace(/\s+/g, '_')}_${new Date().getTime()}`
+      
+      const result = await sendContractToAutentique(
+        pdfPreview.pdfBase64,
+        contractName,
+        pdfPreview.contractData.modelo.phone,
+        pdfPreview.contractData.modelo.fullName
+      )
+
+      if (result.success) {
+        setPdfPreview({ show: false, pdfBase64: '', contractData: null })
         setAlert({
-          type: "success", 
-          title: "Contrato Gerado com Sucesso",
-          message: `Contrato de Agenciamento para modelo ${selectedModelo?.fullName} gerado com sucesso.`,
+          type: "success",
+          title: "Contrato Enviado com Sucesso",
+          message: `${result.message}. O contrato foi enviado via WhatsApp para ${pdfPreview.contractData.modelo.fullName}.`,
+          show: true
+        })
+        
+        // Limpar formulário
+        setFormData({
+          cidade: "",
+          uf: "",
+          dia: "",
+          mes: "",
+          duracaoContrato: "",
+          produtorId: "",
+          modeloId: "",
+          modeloSearch: ""
+        })
+      } else {
+        setAlert({
+          type: "error",
+          title: "Erro ao Enviar Contrato",
+          message: result.message,
           show: true
         })
       }
     } catch (error) {
-      console.error("Erro ao gerar contrato:", error)
-    } finally {
-      setIsLoading(false)
+      console.error("Erro ao enviar contrato:", error)
+      setAlert({
+        type: "error",
+        title: "Erro ao Enviar Contrato",
+        message: error instanceof Error ? error.message : "Erro desconhecido ao enviar contrato",
+        show: true
+      })
     }
+  }
+
+  const handleDeleteContract = () => {
+    setPdfPreview({ show: false, pdfBase64: '', contractData: null })
   }
 
   const handleDeleteExistingContract = () => {
@@ -102,6 +218,12 @@ export default function NovoContratoAgenciamento() {
     setAlert({ ...alert, show: false })
     console.log("Abrindo documento...")
   }
+
+  const filteredModelos = talents.filter(talent =>
+    talent.fullName.toLowerCase().includes(formData.modeloSearch.toLowerCase()) ||
+    (talent.document && talent.document.includes(formData.modeloSearch)) ||
+    (talent.email && talent.email.toLowerCase().includes(formData.modeloSearch.toLowerCase()))
+  )
 
   return (
     <div className="p-6 space-y-6">
@@ -126,7 +248,7 @@ export default function NovoContratoAgenciamento() {
       {alert.show && (
         <div className="mb-6">
           <ContractAlert
-            type={alert.type}
+            type={alert.type as "success" | "warning"}
             title={alert.title}
             message={alert.message}
             onAction={alert.type === "warning" ? handleDeleteExistingContract : handleViewDocument}
@@ -315,6 +437,16 @@ export default function NovoContratoAgenciamento() {
           </div>
         </form>
       )}
+      
+      {/* PDF Preview Modal */}
+      <PDFPreviewModal
+        isOpen={pdfPreview.show}
+        onClose={() => setPdfPreview({ show: false, pdfBase64: '', contractData: null })}
+        pdfBase64={pdfPreview.pdfBase64}
+        contractName="Contrato de Agenciamento"
+        onSend={handleSendContract}
+        onDelete={handleDeleteContract}
+      />
     </div>
   )
 }

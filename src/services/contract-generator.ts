@@ -1,18 +1,62 @@
-
 import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
 import { ContractData } from '@/types/contract'
 import { getContractTemplate } from '@/templates/super-fotos-contract'
+import { getAgenciamentoContractTemplate } from '@/templates/agenciamento-contract'
+import { getComprometimentoContractTemplate } from '@/templates/comprometimento-contract'
+import { getSuperFotosMenorContractTemplate } from '@/templates/super-fotos-menor-contract'
+import { getAgenciamentoMenorContractTemplate } from '@/templates/agenciamento-menor-contract'
 
-export const generateContractPDF = async (contractData: ContractData): Promise<string> => {
+export type ContractType = 
+  | 'super-fotos' 
+  | 'agenciamento' 
+  | 'comprometimento' 
+  | 'super-fotos-menor' 
+  | 'agenciamento-menor'
+
+export const generateContractPDF = async (
+  contractData: ContractData, 
+  contractType: ContractType = 'super-fotos'
+): Promise<string> => {
   try {
-    console.log('[CONTRACT] Iniciando geração do PDF...')
+    console.log('[CONTRACT] Iniciando geração do PDF...', contractType)
     
-    // Criar o HTML do contrato
-    const htmlContent = getContractTemplate({
-      ...contractData,
-      ano: new Date().getFullYear().toString()
-    })
+    // Selecionar o template correto baseado no tipo
+    let htmlContent: string
+    
+    switch (contractType) {
+      case 'agenciamento':
+        htmlContent = getAgenciamentoContractTemplate({
+          ...contractData,
+          ano: new Date().getFullYear().toString()
+        })
+        break
+      case 'comprometimento':
+        htmlContent = getComprometimentoContractTemplate({
+          ...contractData,
+          ano: new Date().getFullYear().toString()
+        })
+        break
+      case 'super-fotos-menor':
+        htmlContent = getSuperFotosMenorContractTemplate({
+          ...contractData,
+          ano: new Date().getFullYear().toString()
+        })
+        break
+      case 'agenciamento-menor':
+        htmlContent = getAgenciamentoMenorContractTemplate({
+          ...contractData,
+          ano: new Date().getFullYear().toString()
+        })
+        break
+      case 'super-fotos':
+      default:
+        htmlContent = getContractTemplate({
+          ...contractData,
+          ano: new Date().getFullYear().toString()
+        })
+        break
+    }
     
     // Criar elemento temporário para renderizar o HTML
     const tempDiv = document.createElement('div')

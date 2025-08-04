@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom"
 import { LoadingSpinner } from "@/components/contratos/loading-spinner"
 import { ContractAlert } from "@/components/contratos/contract-alert"
 import { PaymentFields } from "@/components/contratos/payment-fields"
+import { PDFPreviewModal } from "@/components/contratos/pdf-preview-modal"
 import { generateContractPDF } from "@/services/contract-generator"
 import { sendContractToAutentique } from "@/services/autentique-service"
 import { getTalents } from "@/lib/talent-service"
@@ -46,6 +47,15 @@ export default function NovoContratoSuperFotos() {
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
   const [talents, setTalents] = useState<TalentData[]>([])
+  const [pdfPreview, setPdfPreview] = useState<{
+    show: boolean
+    pdfBase64: string
+    contractData: ContractData | null
+  }>({
+    show: false,
+    pdfBase64: '',
+    contractData: null
+  })
   const [alert, setAlert] = useState<{
     type: "success" | "warning" | "error"
     title: string
@@ -148,24 +158,48 @@ export default function NovoContratoSuperFotos() {
 
       // Gerar PDF
       console.log('[CONTRATO] Gerando PDF...')
-      const pdfBase64 = await generateContractPDF(contractData)
+      const pdfBase64 = await generateContractPDF(contractData, 'super-fotos')
       
-      // Enviar para Autentique
+      // Mostrar preview
+      setPdfPreview({
+        show: true,
+        pdfBase64,
+        contractData
+      })
+
+    } catch (error) {
+      console.error("Erro ao gerar contrato:", error)
+      setAlert({
+        type: "error",
+        title: "Erro ao Gerar Contrato",
+        message: error instanceof Error ? error.message : "Erro desconhecido ao processar contrato",
+        show: true
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleSendContract = async () => {
+    if (!pdfPreview.contractData) return
+
+    try {
       console.log('[CONTRATO] Enviando para Autentique...')
-      const contractName = `Contrato_SuperFotos_${selectedModelo.fullName.replace(/\s+/g, '_')}_${new Date().getTime()}`
+      const contractName = `Contrato_SuperFotos_${pdfPreview.contractData.modelo.fullName.replace(/\s+/g, '_')}_${new Date().getTime()}`
       
       const result = await sendContractToAutentique(
-        pdfBase64,
+        pdfPreview.pdfBase64,
         contractName,
-        selectedModelo.phone,
-        selectedModelo.fullName
+        pdfPreview.contractData.modelo.phone,
+        pdfPreview.contractData.modelo.fullName
       )
 
       if (result.success) {
+        setPdfPreview({ show: false, pdfBase64: '', contractData: null })
         setAlert({
           type: "success",
           title: "Contrato Enviado com Sucesso",
-          message: `${result.message}. O contrato foi enviado via WhatsApp para ${selectedModelo.fullName}.`,
+          message: `${result.message}. O contrato foi enviado via WhatsApp para ${pdfPreview.contractData.modelo.fullName}.`,
           show: true
         })
         
@@ -190,18 +224,19 @@ export default function NovoContratoSuperFotos() {
           show: true
         })
       }
-
     } catch (error) {
-      console.error("Erro ao gerar contrato:", error)
+      console.error("Erro ao enviar contrato:", error)
       setAlert({
         type: "error",
-        title: "Erro ao Gerar Contrato",
-        message: error instanceof Error ? error.message : "Erro desconhecido ao processar contrato",
+        title: "Erro ao Enviar Contrato",
+        message: error instanceof Error ? error.message : "Erro desconhecido ao enviar contrato",
         show: true
       })
-    } finally {
-      setIsLoading(false)
     }
+  }
+
+  const handleDeleteContract = () => {
+    setPdfPreview({ show: false, pdfBase64: '', contractData: null })
   }
 
   const handleDeleteExistingContract = () => {
@@ -472,6 +507,16 @@ export default function NovoContratoSuperFotos() {
           </div>
         </form>
       )}
+
+      {/* PDF Preview Modal */}
+      <PDFPreviewModal
+        isOpen={pdfPreview.show}
+        onClose={() => setPdfPreview({ show: false, pdfBase64: '', contractData: null })}
+        pdfBase64={pdfPreview.pdfBase64}
+        contractName="Contrato Super Fotos"
+        onSend={handleSendContract}
+        onDelete={handleDeleteContract}
+      />
     </div>
   )
 }
