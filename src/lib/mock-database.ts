@@ -509,3 +509,39 @@ export const saveMockDNA = (dna: TalentDNAData[]): void => {
 export const getMockFiles = (): FileData[] => {
   return mockFiles
 }
+
+// Function to save mock files
+export const saveMockFiles = (files: FileData[]): void => {
+  mockFiles.length = 0 // Clear the array
+  files.forEach(file => mockFiles.push(file)) // Push each file to the array
+}
+
+// Function to retrieve mock users (for user-service.ts compatibility)
+export const getMockUsers = () => {
+  return [
+    {
+      id: "producer_1",
+      first_name: "Ricardo",
+      last_name: "Santos", 
+      email: "ricardo.santos@email.com",
+      code: "PROD001",
+      role: "PRODUCER"
+    },
+    {
+      id: "producer_2", 
+      first_name: "Mariana",
+      last_name: "Oliveira",
+      email: "mariana.oliveira@email.com", 
+      code: "PROD002",
+      role: "PRODUCER"
+    },
+    {
+      id: "producer_3",
+      first_name: "Fernando", 
+      last_name: "Alves",
+      email: "fernando.alves@email.com",
+      code: "PROD003", 
+      role: "PRODUCER"
+    }
+  ]
+}
