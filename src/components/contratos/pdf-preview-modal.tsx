@@ -2,7 +2,7 @@
 import { useState } from "react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { X, Send, Trash2, AlertCircle, RefreshCw } from "lucide-react"
+import { X, Send, Trash2, AlertCircle, RefreshCw, Download } from "lucide-react"
 
 interface PDFPreviewModalProps {
   isOpen: boolean
@@ -46,6 +46,31 @@ export function PDFPreviewModal({
     setRetryCount(prev => prev + 1)
   }
 
+  const handleDownload = () => {
+    if (!pdfBase64) return
+    
+    try {
+      const byteCharacters = atob(pdfBase64)
+      const byteNumbers = new Array(byteCharacters.length)
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i)
+      }
+      const byteArray = new Uint8Array(byteNumbers)
+      const blob = new Blob([byteArray], { type: 'application/pdf' })
+      
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${contractName}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Erro ao fazer download:', error)
+    }
+  }
+
   // Criar URL do PDF de forma mais robusta
   const pdfUrl = pdfBase64 ? `data:application/pdf;base64,${pdfBase64}` : ''
 
@@ -80,6 +105,15 @@ export function PDFPreviewModal({
         {/* Botões de Ação */}
         <div className="px-6 py-3 border-b border-border bg-muted/30">
           <div className="flex gap-3 justify-center">
+            <Button
+              onClick={handleDownload}
+              disabled={isLoading || !pdfBase64}
+              variant="outline"
+              className="px-6"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Download PDF
+            </Button>
             <Button
               onClick={handleSend}
               disabled={isSending || isLoading || !pdfBase64}
@@ -123,19 +157,28 @@ export function PDFPreviewModal({
               <div className="text-center max-w-md">
                 <AlertCircle className="w-16 h-16 text-orange-500 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Erro ao carregar PDF
+                  Erro ao carregar PDF no navegador
                 </h3>
                 <p className="text-gray-600 mb-4">
-                  Não foi possível exibir a pré-visualização do PDF. Você ainda pode enviar o contrato.
+                  O navegador bloqueou a visualização. Use o botão "Download PDF" para visualizar o arquivo ou envie diretamente via WhatsApp.
                 </p>
-                <Button
-                  onClick={handleRetryPdf}
-                  variant="outline"
-                  className="mr-2"
-                >
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Tentar Novamente
-                </Button>
+                <div className="flex gap-2 justify-center">
+                  <Button
+                    onClick={handleDownload}
+                    variant="outline"
+                    className="mr-2"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Download PDF
+                  </Button>
+                  <Button
+                    onClick={handleRetryPdf}
+                    variant="outline"
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Tentar Novamente
+                  </Button>
+                </div>
               </div>
             </div>
           ) : (

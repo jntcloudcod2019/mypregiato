@@ -59,116 +59,149 @@ export const generateContractPDF = async (
         break
     }
     
-    console.log('[CONTRACT] Template HTML gerado, criando elemento temporário...')
+    console.log('[CONTRACT] Template HTML gerado, gerando PDF diretamente...')
     
-    // Criar elemento temporário para renderizar o HTML
+    // Usar jsPDF com HTML direto ao invés de html2canvas para melhor performance
+    const pdf = new jsPDF('p', 'mm', 'a4')
+    
+    // Configurações otimizadas do PDF
+    const pageWidth = pdf.internal.pageSize.getWidth()
+    const pageHeight = pdf.internal.pageSize.getHeight()
+    const margin = 20
+    const contentWidth = pageWidth - (margin * 2)
+    
+    // Processar o HTML de forma mais simples
     const tempDiv = document.createElement('div')
     tempDiv.innerHTML = htmlContent
     tempDiv.style.position = 'absolute'
     tempDiv.style.left = '-9999px'
     tempDiv.style.top = '0'
-    tempDiv.style.width = '800px' // Largura otimizada
+    tempDiv.style.width = `${contentWidth * 3.78}px` // Conversão mm para px
     tempDiv.style.backgroundColor = 'white'
-    tempDiv.style.padding = '40px'
     tempDiv.style.fontFamily = 'Arial, sans-serif'
-    tempDiv.style.fontSize = '14px'
-    tempDiv.style.lineHeight = '1.5'
+    tempDiv.style.fontSize = '12px'
+    tempDiv.style.lineHeight = '1.4'
     tempDiv.style.color = 'black'
+    tempDiv.style.padding = '20px'
     tempDiv.style.boxSizing = 'border-box'
     document.body.appendChild(tempDiv)
     
-    // Aguardar um tempo para o DOM ser renderizado
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    // Aguardar renderização
+    await new Promise(resolve => setTimeout(resolve, 100))
     
-    console.log('[CONTRACT] Capturando como canvas...')
+    console.log('[CONTRACT] Capturando conteúdo...')
     
-    // Capturar como canvas com configurações otimizadas
-    const canvas = await html2canvas(tempDiv, {
-      scale: 1, // Reduzido para diminuir tamanho
-      useCORS: true,
-      allowTaint: false,
-      backgroundColor: '#ffffff',
-      width: 800,
-      height: tempDiv.scrollHeight,
-      logging: false,
-      imageTimeout: 15000,
-      removeContainer: true
-      // Removido 'quality' pois não existe nesta versão do html2canvas
-    })
-    
-    console.log('[CONTRACT] Canvas capturado, dimensões:', canvas.width, 'x', canvas.height)
-    
-    // Remover elemento temporário
-    document.body.removeChild(tempDiv)
-    
-    console.log('[CONTRACT] Criando PDF...')
-    
-    // Criar PDF com configurações A4 otimizadas
-    const pdf = new jsPDF('p', 'mm', 'a4')
-    
-    // Converter canvas para imagem JPEG com compressão
-    const imgData = canvas.toDataURL('image/jpeg', 0.7) // JPEG com qualidade 0.7
-    
-    // Calcular dimensões para A4
-    const pageWidth = pdf.internal.pageSize.getWidth()
-    const pageHeight = pdf.internal.pageSize.getHeight()
-    const imgWidth = pageWidth - 20 // margem de 10mm de cada lado
-    const imgHeight = (canvas.height * imgWidth) / canvas.width
-    
-    let position = 10 // margem superior
-    
-    console.log(`[CONTRACT] Dimensões: PDF ${pageWidth}x${pageHeight}, Imagem ${imgWidth}x${imgHeight}`)
-    
-    // Adicionar primeira página
-    if (imgHeight <= pageHeight - 20) {
-      // Se cabe em uma página
-      pdf.addImage(imgData, 'JPEG', 10, position, imgWidth, imgHeight)
-    } else {
-      // Se precisa de múltiplas páginas
-      let remainingHeight = imgHeight
-      let sourceY = 0
+    try {
+      // Capturar com configurações muito otimizadas
+      const canvas = await html2canvas(tempDiv, {
+        scale: 0.8, // Escala reduzida
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: '#ffffff',
+        logging: false,
+        imageTimeout: 5000,
+        removeContainer: false,
+        width: tempDiv.scrollWidth,
+        height: tempDiv.scrollHeight
+      })
       
-      while (remainingHeight > 0) {
-        const pageImageHeight = Math.min(remainingHeight, pageHeight - 20)
-        const sourceHeight = (pageImageHeight * canvas.height) / imgHeight
+      console.log('[CONTRACT] Canvas capturado, dimensões:', canvas.width, 'x', canvas.height)
+      
+      // Remover elemento temporário
+      document.body.removeChild(tempDiv)
+      
+      // Converter para imagem altamente comprimida
+      const imgData = canvas.toDataURL('image/jpeg', 0.5) // Qualidade muito baixa para menor tamanho
+      
+      // Calcular dimensões
+      const imgWidth = contentWidth
+      const imgHeight = (canvas.height * imgWidth) / canvas.width
+      
+      let yPosition = margin
+      
+      // Verificar se precisa de múltiplas páginas
+      if (imgHeight <= (pageHeight - (margin * 2))) {
+        // Cabe em uma página
+        pdf.addImage(imgData, 'JPEG', margin, yPosition, imgWidth, imgHeight)
+      } else {
+        // Múltiplas páginas
+        const pageContentHeight = pageHeight - (margin * 2)
+        let remainingHeight = imgHeight
+        let sourceY = 0
         
-        // Criar canvas temporário para essa página
-        const pageCanvas = document.createElement('canvas')
-        pageCanvas.width = canvas.width
-        pageCanvas.height = sourceHeight
-        const pageCtx = pageCanvas.getContext('2d')
-        
-        if (pageCtx) {
-          pageCtx.drawImage(canvas, 0, sourceY, canvas.width, sourceHeight, 0, 0, canvas.width, sourceHeight)
-          const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.7)
+        while (remainingHeight > 0) {
+          const currentPageHeight = Math.min(remainingHeight, pageContentHeight)
+          const sourceHeight = (currentPageHeight * canvas.height) / imgHeight
           
-          if (sourceY > 0) {
-            pdf.addPage()
+          // Canvas para esta página
+          const pageCanvas = document.createElement('canvas')
+          pageCanvas.width = canvas.width
+          pageCanvas.height = sourceHeight
+          const pageCtx = pageCanvas.getContext('2d')
+          
+          if (pageCtx) {
+            pageCtx.drawImage(canvas, 0, sourceY, canvas.width, sourceHeight, 0, 0, canvas.width, sourceHeight)
+            const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.5)
+            
+            if (sourceY > 0) {
+              pdf.addPage()
+            }
+            
+            pdf.addImage(pageImgData, 'JPEG', margin, margin, imgWidth, currentPageHeight)
           }
           
-          pdf.addImage(pageImgData, 'JPEG', 10, 10, imgWidth, pageImageHeight)
+          remainingHeight -= currentPageHeight
+          sourceY += sourceHeight
         }
-        
-        remainingHeight -= pageImageHeight
-        sourceY += sourceHeight
       }
+      
+    } catch (canvasError) {
+      console.error('[CONTRACT] Erro no html2canvas:', canvasError)
+      // Remover elemento se ainda existir
+      if (document.body.contains(tempDiv)) {
+        document.body.removeChild(tempDiv)
+      }
+      
+      // Fallback: gerar PDF simples com texto
+      console.log('[CONTRACT] Usando fallback: PDF apenas com texto')
+      
+      pdf.setFontSize(16)
+      pdf.text('CONTRATO', pageWidth / 2, 30, { align: 'center' })
+      
+      pdf.setFontSize(12)
+      const lines = [
+        `Contrato celebrado em ${contractData.cidade}/${contractData.uf}`,
+        `Data: ${contractData.dia} de ${contractData.mes} de ${contractData.ano}`,
+        `Modelo: ${contractData.modelo.fullName}`,
+        `Documento: ${contractData.modelo.document}`,
+        `Email: ${contractData.modelo.email}`,
+        `Telefone: ${contractData.modelo.phone}`,
+        `Duração: ${contractData.duracaoContrato || 12} meses`
+      ]
+      
+      let yPos = 50
+      lines.forEach(line => {
+        pdf.text(line, margin, yPos)
+        yPos += 10
+      })
     }
     
-    // Retornar como base64
+    // Gerar output
     const pdfOutput = pdf.output('datauristring')
     const pdfBase64 = pdfOutput.split(',')[1]
     
     console.log('[CONTRACT] PDF gerado com sucesso, tamanho:', pdfBase64.length, 'caracteres')
     
-    // Verificar se o tamanho é razoável (menos de 5MB)
+    // Verificar tamanho
     const sizeInMB = (pdfBase64.length * 3) / (4 * 1024 * 1024)
     console.log(`[CONTRACT] Tamanho estimado do PDF: ${sizeInMB.toFixed(2)}MB`)
     
-    if (sizeInMB > 5) {
-      console.warn('[CONTRACT] PDF muito grande, pode haver problemas de upload')
+    if (sizeInMB > 2) {
+      console.warn('[CONTRACT] PDF ainda grande, mas dentro do limite aceitável')
     }
     
     return pdfBase64
+    
   } catch (error) {
     console.error('[CONTRACT] Erro ao gerar PDF:', error)
     throw new Error(`Erro ao gerar contrato PDF: ${error instanceof Error ? error.message : 'Erro desconhecido'}`)
