@@ -14,11 +14,16 @@ export const sendContractToAutentique = async (
   try {
     console.log('[AUTENTIQUE] Iniciando envio do contrato...')
     
-    // Verificar tamanho do PDF
-    const sizeInMB = (pdfBase64.length * 3) / (4 * 1024 * 1024)
-    console.log(`[AUTENTIQUE] Tamanho do PDF: ${sizeInMB.toFixed(2)}MB`)
+    // Verificar se o PDF está em base64
+    if (!pdfBase64 || typeof pdfBase64 !== 'string') {
+      throw new Error('PDF base64 inválido ou vazio')
+    }
     
-    if (sizeInMB > 25) { // Limite da API do Autentique
+    // Verificar tamanho do PDF em base64
+    const sizeInMB = (pdfBase64.length * 3) / (4 * 1024 * 1024)
+    console.log(`[AUTENTIQUE] Tamanho do PDF em base64: ${sizeInMB.toFixed(2)}MB`)
+    
+    if (sizeInMB > 24) { // Limite um pouco abaixo dos 25MB para margem de segurança
       throw new Error(`PDF muito grande (${sizeInMB.toFixed(2)}MB). Limite máximo: 25MB`)
     }
     
@@ -63,29 +68,33 @@ export const sendContractToAutentique = async (
     formData.append('operations', JSON.stringify(operations))
     formData.append('map', JSON.stringify(map))
     
-    // Converter base64 para blob de forma mais eficiente
+    // Converter base64 para blob de forma otimizada
     try {
-      const byteCharacters = atob(pdfBase64)
-      const byteNumbers = new Array(byteCharacters.length)
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i)
-      }
-      const byteArray = new Uint8Array(byteNumbers)
-      const pdfBlob = new Blob([byteArray], { type: 'application/pdf' })
+      console.log('[AUTENTIQUE] Convertendo base64 para blob...')
       
-      console.log(`[AUTENTIQUE] Blob criado, tamanho: ${pdfBlob.size} bytes`)
+      // Decodificar base64 de forma mais eficiente
+      const binaryString = atob(pdfBase64)
+      const bytes = new Uint8Array(binaryString.length)
+      
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i)
+      }
+      
+      const pdfBlob = new Blob([bytes], { type: 'application/pdf' })
+      
+      console.log(`[AUTENTIQUE] Blob criado com sucesso, tamanho: ${(pdfBlob.size / (1024 * 1024)).toFixed(2)}MB`)
       formData.append('file', pdfBlob, `${contractName}.pdf`)
       
     } catch (blobError) {
       console.error('[AUTENTIQUE] Erro ao converter base64 para blob:', blobError)
-      throw new Error('Erro ao processar o arquivo PDF')
+      throw new Error('Erro ao processar o arquivo PDF em base64')
     }
     
     console.log(`[AUTENTIQUE] Enviando contrato via WhatsApp para ${modelName} - ${validatedPhone}`)
     
-    // Fazer a requisição com timeout aumentado
+    // Fazer a requisição com timeout otimizado
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 60000) // 60 segundos
+    const timeoutId = setTimeout(() => controller.abort(), 90000) // 90 segundos para arquivos maiores
     
     try {
       const response = await fetch(AUTENTIQUE_API_URL, {
@@ -106,13 +115,15 @@ export const sendContractToAutentique = async (
         
         // Tratar erros específicos
         if (response.status === 413) {
-          throw new Error('Arquivo muito grande para upload')
+          throw new Error('Arquivo muito grande para upload. Tente reduzir o tamanho do PDF.')
         } else if (response.status === 422) {
-          throw new Error('Dados inválidos no contrato')
+          throw new Error('Dados inválidos no contrato. Verifique as informações.')
         } else if (response.status === 401) {
           throw new Error('Token de autenticação inválido')
+        } else if (response.status >= 500) {
+          throw new Error('Erro no servidor do Autentique. Tente novamente em alguns minutos.')
         } else {
-          throw new Error(`Erro na API do Autentique: ${response.status}`)
+          throw new Error(`Erro na API do Autentique: ${response.status} - ${errorText}`)
         }
       }
       
@@ -120,7 +131,8 @@ export const sendContractToAutentique = async (
       
       if (result.errors) {
         console.error('[AUTENTIQUE] Erros GraphQL:', result.errors)
-        throw new Error(`Erro GraphQL: ${result.errors[0]?.message || 'Erro desconhecido'}`)
+        const errorMessage = result.errors[0]?.message || 'Erro desconhecido na API'
+        throw new Error(`Erro GraphQL: ${errorMessage}`)
       }
       
       if (!result.data?.createDocument) {
@@ -133,7 +145,7 @@ export const sendContractToAutentique = async (
       
       console.log(`[AUTENTIQUE] Documento criado com ID: ${document.id}`)
       console.log(`[AUTENTIQUE] Link do WhatsApp: ${whatsappLink}`)
-      console.log(`[AUTENTIQUE] Contrato de ${contractName} gerado para ${modelName} com sucesso`)
+      console.log(`[AUTENTIQUE] Contrato de ${contractName} enviado com sucesso para ${modelName}`)
       
       return {
         success: true,
@@ -146,7 +158,7 @@ export const sendContractToAutentique = async (
       clearTimeout(timeoutId)
       
       if (fetchError.name === 'AbortError') {
-        throw new Error('Timeout na requisição. Tente novamente.')
+        throw new Error('Timeout na requisição. O arquivo pode estar muito grande. Tente novamente.')
       }
       
       throw fetchError
