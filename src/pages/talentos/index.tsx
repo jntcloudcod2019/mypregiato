@@ -22,7 +22,7 @@ interface TalentCardProps {
 
 function TalentCard({ talent, navigate }: TalentCardProps) {
   return (
-    <Card className="relative overflow-hidden transition-all duration-200 hover:shadow-lg">
+    <Card className="relative overflow-hidden transition-all duration-200 hover:shadow-lg cursor-pointer" onClick={() => navigate(`/talentos/perfil/${talent.id}`)}>
       <div className="aspect-[3/4] relative overflow-hidden bg-muted">
         {talent.files?.[0]?.url ? (
           <img 
@@ -43,7 +43,12 @@ function TalentCard({ talent, navigate }: TalentCardProps) {
         <div className="absolute top-2 right-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 bg-white/90 hover:bg-white">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-8 w-8 p-0 bg-white/90 hover:bg-white"
+                onClick={(e) => e.stopPropagation()} // Impede que o clique no dropdown acione o card
+              >
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
