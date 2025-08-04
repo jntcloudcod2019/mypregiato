@@ -1,9 +1,11 @@
+
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { MessageSquare, Phone, QrCode, Wifi, WifiOff, User } from "lucide-react"
 import { useUser } from "@clerk/clerk-react"
 import { useWhatsAppConnection } from "@/hooks/useWhatsAppConnection"
