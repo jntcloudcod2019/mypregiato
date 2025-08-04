@@ -218,9 +218,6 @@ margin-left: 10px;
 <p>Assinatura do Contratante</p>
 </div>
 
-<div class="company-signature">
-<div class="company-title">SUPER FOTOS FOTOGRAFIAS LTDA</div>
-
 <img src="/lovable-uploads/179cf6ea-af3d-4ea8-90be-51d2c4bbe054.png" 
      alt="Assinatura Super Fotos" 
      class="company-signature-img" />
