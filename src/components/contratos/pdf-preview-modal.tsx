@@ -39,17 +39,26 @@ export function PDFPreviewModal({
     onClose()
   }
 
+  // Criar URL do PDF de forma mais robusta
+  const pdfUrl = pdfBase64 ? `data:application/pdf;base64,${pdfBase64}` : ''
+
+  console.log('[PDF_PREVIEW] Modal aberto:', isOpen)
+  console.log('[PDF_PREVIEW] PDF Base64 length:', pdfBase64?.length || 0)
+  console.log('[PDF_PREVIEW] PDF URL criada:', pdfUrl ? 'Sim' : 'Não')
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+      <DialogContent className="max-w-5xl max-h-[95vh] p-0">
         <DialogHeader className="px-6 py-4 border-b border-border">
           <div className="flex items-center justify-between">
-            <DialogTitle>Pré-visualização do Contrato</DialogTitle>
+            <DialogTitle className="text-lg font-semibold">
+              Pré-visualização do Contrato - {contractName}
+            </DialogTitle>
             <Button
               variant="ghost"
               size="icon"
               onClick={onClose}
-              className="h-6 w-6"
+              className="h-8 w-8"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -90,13 +99,24 @@ export function PDFPreviewModal({
 
         {/* Visualização do PDF */}
         <div className="flex-1 overflow-hidden">
-          <div className="h-[600px] w-full">
-            <iframe
-              src={`data:application/pdf;base64,${pdfBase64}`}
-              className="w-full h-full border-0"
-              title={`Pré-visualização - ${contractName}`}
-            />
-          </div>
+          {pdfBase64 && pdfUrl ? (
+            <div className="h-[70vh] w-full">
+              <iframe
+                src={pdfUrl}
+                className="w-full h-full border-0"
+                title={`Pré-visualização - ${contractName}`}
+                onLoad={() => console.log('[PDF_PREVIEW] Iframe carregado')}
+                onError={(e) => console.error('[PDF_PREVIEW] Erro no iframe:', e)}
+              />
+            </div>
+          ) : (
+            <div className="h-[70vh] w-full flex items-center justify-center bg-gray-50">
+              <div className="text-center">
+                <div className="w-16 h-16 border-4 border-gray-300 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="text-gray-600">Carregando pré-visualização do PDF...</p>
+              </div>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

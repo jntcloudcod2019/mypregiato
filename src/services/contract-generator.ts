@@ -1,3 +1,4 @@
+
 import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
 import { ContractData } from '@/types/contract'
@@ -19,7 +20,7 @@ export const generateContractPDF = async (
   contractType: ContractType = 'super-fotos'
 ): Promise<string> => {
   try {
-    console.log('[CONTRACT] Iniciando geração do PDF...', contractType)
+    console.log('[CONTRACT] Iniciando geração do PDF...', contractType, contractData)
     
     // Selecionar o template correto baseado no tipo
     let htmlContent: string
@@ -58,6 +59,8 @@ export const generateContractPDF = async (
         break
     }
     
+    console.log('[CONTRACT] Template HTML gerado, criando elemento temporário...')
+    
     // Criar elemento temporário para renderizar o HTML
     const tempDiv = document.createElement('div')
     tempDiv.innerHTML = htmlContent
@@ -66,27 +69,41 @@ export const generateContractPDF = async (
     tempDiv.style.top = '0'
     tempDiv.style.width = '800px'
     tempDiv.style.backgroundColor = 'white'
-    tempDiv.style.padding = '20px'
+    tempDiv.style.padding = '40px'
+    tempDiv.style.fontFamily = 'Arial, sans-serif'
+    tempDiv.style.fontSize = '14px'
+    tempDiv.style.lineHeight = '1.6'
+    tempDiv.style.color = 'black'
     document.body.appendChild(tempDiv)
     
     // Aguardar um tempo para o DOM ser renderizado
-    await new Promise(resolve => setTimeout(resolve, 100))
+    await new Promise(resolve => setTimeout(resolve, 300))
     
-    // Capturar como canvas
+    console.log('[CONTRACT] Capturando como canvas...')
+    
+    // Capturar como canvas com configurações otimizadas
     const canvas = await html2canvas(tempDiv, {
       scale: 2,
       useCORS: true,
+      allowTaint: false,
       backgroundColor: '#ffffff',
       width: 800,
-      height: tempDiv.scrollHeight
+      height: tempDiv.scrollHeight,
+      logging: false,
+      imageTimeout: 15000,
+      removeContainer: true
     })
+    
+    console.log('[CONTRACT] Canvas capturado, removendo elemento temporário...')
     
     // Remover elemento temporário
     document.body.removeChild(tempDiv)
     
-    // Criar PDF
+    console.log('[CONTRACT] Criando PDF...')
+    
+    // Criar PDF com configurações A4
     const pdf = new jsPDF('p', 'mm', 'a4')
-    const imgData = canvas.toDataURL('image/png')
+    const imgData = canvas.toDataURL('image/png', 1.0)
     
     // Calcular dimensões para A4
     const pageWidth = pdf.internal.pageSize.getWidth()
@@ -97,8 +114,10 @@ export const generateContractPDF = async (
     let position = 10 // margem superior
     let remainingHeight = imgHeight
     
+    console.log(`[CONTRACT] Dimensões: PDF ${pageWidth}x${pageHeight}, Imagem ${imgWidth}x${imgHeight}`)
+    
     // Adicionar primeira página
-    pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight > pageHeight - 20 ? pageHeight - 20 : imgHeight)
+    pdf.addImage(imgData, 'PNG', 10, position, imgWidth, Math.min(imgHeight, pageHeight - 20))
     
     // Se a imagem for maior que uma página, adicionar páginas extras
     if (imgHeight > pageHeight - 20) {
@@ -107,7 +126,7 @@ export const generateContractPDF = async (
       
       while (remainingHeight > 0) {
         pdf.addPage()
-        const heightToAdd = remainingHeight > pageHeight - 20 ? pageHeight - 20 : remainingHeight
+        const heightToAdd = Math.min(remainingHeight, pageHeight - 20)
         pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight)
         remainingHeight -= heightToAdd
         position -= heightToAdd
@@ -115,13 +134,15 @@ export const generateContractPDF = async (
     }
     
     // Retornar como base64
-    const pdfBase64 = pdf.output('datauristring').split(',')[1]
-    console.log('[CONTRACT] PDF gerado com sucesso')
+    const pdfOutput = pdf.output('datauristring')
+    const pdfBase64 = pdfOutput.split(',')[1]
+    
+    console.log('[CONTRACT] PDF gerado com sucesso, tamanho:', pdfBase64.length)
     
     return pdfBase64
   } catch (error) {
     console.error('[CONTRACT] Erro ao gerar PDF:', error)
-    throw new Error('Erro ao gerar contrato PDF')
+    throw new Error(`Erro ao gerar contrato PDF: ${error instanceof Error ? error.message : 'Erro desconhecido'}`)
   }
 }
 
