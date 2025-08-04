@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { ChevronDown, User, Zap, Coffee, Busy } from "lucide-react"
+import { ChevronDown, User, Zap, Coffee, Clock } from "lucide-react"
 import { useUser } from "@clerk/clerk-react"
 import { useOperatorStatus } from "@/hooks/useOperatorStatus"
 import { cn } from "@/lib/utils"
@@ -29,7 +29,7 @@ export const OperatorStatusControl = () => {
       label: 'Ocupado',
       color: 'bg-yellow-500',
       hoverColor: 'hover:bg-yellow-600',
-      icon: Busy,
+      icon: Clock,
       description: 'Em atendimento'
     },
     {
