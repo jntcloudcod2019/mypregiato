@@ -26,16 +26,26 @@ export const useAttendanceQueue = () => {
       // Create queue items from conversations with unread messages
       const queueItems = conversations
         .filter(conv => conv.unreadCount > 0)
-        .map(conv => ({
-          id: conv.talentId,
-          talentName: conv.talentName,
-          talentPhone: conv.talentPhone,
-          waitingTime: conv.lastMessage ? 
-            Math.floor((Date.now() - new Date(conv.lastMessage.timestamp).getTime()) / 60000) : 0,
-          priority: conv.unreadCount > 5 ? 'urgent' : conv.unreadCount > 2 ? 'high' : 'normal',
-          lastMessage: conv.lastMessage?.content,
-          timestamp: conv.lastMessage?.timestamp || new Date().toISOString()
-        }))
+        .map(conv => {
+          // Determine priority based on unread count and ensure it's a valid type
+          let priority: 'normal' | 'high' | 'urgent' = 'normal'
+          if (conv.unreadCount > 5) {
+            priority = 'urgent'
+          } else if (conv.unreadCount > 2) {
+            priority = 'high'
+          }
+
+          return {
+            id: conv.talentId,
+            talentName: conv.talentName,
+            talentPhone: conv.talentPhone,
+            waitingTime: conv.lastMessage ? 
+              Math.floor((Date.now() - new Date(conv.lastMessage.timestamp).getTime()) / 60000) : 0,
+            priority,
+            lastMessage: conv.lastMessage?.content,
+            timestamp: conv.lastMessage?.timestamp || new Date().toISOString()
+          } as QueueItem
+        })
         .sort((a, b) => {
           // Sort by priority first, then by waiting time
           const priorityOrder = { urgent: 3, high: 2, normal: 1 }

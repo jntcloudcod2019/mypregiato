@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { MessageSquare, Phone, QrCode, Wifi, WifiOff } from "lucide-react"
 import { useWhatsAppConnection } from "@/hooks/useWhatsAppConnection"
-import { useTalentChat } from "@/hooks/useTalentChat"
 import { whatsAppService } from "@/services/whatsapp-service"
 import { TalentChat as TalentChatComponent } from "@/components/whatsapp/talent-chat"
 import { QRCodeModal } from "@/components/whatsapp/qr-code-modal"
@@ -15,12 +14,12 @@ import { AttendanceQueueDashboard } from "@/components/whatsapp/attendance-queue
 
 // Mock data para demonstração - talentos cadastrados
 const mockTalents = [
-  { id: '1', name: 'Ana Clara Silva', phone: '11999887766' },
-  { id: '2', name: 'Maria Santos', phone: '11988776655' },
-  { id: '3', name: 'João Oliveira', phone: '11977665544' },
-  { id: '4', name: 'Beatriz Costa', phone: '11966554433' },
-  { id: '5', name: 'Pedro Lima', phone: '11955443322' },
-  { id: '6', name: 'Camila Rodrigues', phone: '11944332211' },
+  { id: '1', name: 'Ana Clara Silva', phone: '11999887766', fullName: 'Ana Clara Silva' },
+  { id: '2', name: 'Maria Santos', phone: '11988776655', fullName: 'Maria Santos' },
+  { id: '3', name: 'João Oliveira', phone: '11977665544', fullName: 'João Oliveira' },
+  { id: '4', name: 'Beatriz Costa', phone: '11966554433', fullName: 'Beatriz Costa' },
+  { id: '5', name: 'Pedro Lima', phone: '11955443322', fullName: 'Pedro Lima' },
+  { id: '6', name: 'Camila Rodrigues', phone: '11944332211', fullName: 'Camila Rodrigues' },
 ]
 
 export default function AtendimentoPage() {
@@ -42,6 +41,8 @@ export default function AtendimentoPage() {
     whatsAppService.initializeConversation(talentId, talentName, talentPhone)
     setSelectedTalent(talentId)
   }
+
+  const selectedTalentData = selectedTalent ? mockTalents.find(t => t.id === selectedTalent) : null
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -159,8 +160,11 @@ export default function AtendimentoPage() {
 
         {/* Área de Chat */}
         <div className="lg:col-span-2">
-          {selectedTalent ? (
-            <TalentChatComponent talentId={selectedTalent} />
+          {selectedTalent && selectedTalentData ? (
+            <TalentChatComponent 
+              talent={selectedTalentData} 
+              onClose={() => setSelectedTalent(null)} 
+            />
           ) : (
             <Card className="h-[600px]">
               <CardContent className="h-full flex items-center justify-center">
@@ -179,8 +183,11 @@ export default function AtendimentoPage() {
       <QRCodeModal
         isOpen={showQRModal}
         onClose={() => setShowQRModal(false)}
-        qrCode={connection.qrCode}
+        qrCode={connection.qrCode || ''}
         status={connection.status}
+        onGenerateQR={handleGenerateQR}
+        onDisconnect={disconnect}
+        isGeneratingQR={isGeneratingQR}
       />
     </div>
   )
