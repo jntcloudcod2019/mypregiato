@@ -5,10 +5,13 @@ namespace Pregiato.Application.Interfaces
     public interface IWhatsAppService
     {
         Task<ContactDto> CreateContactAsync(CreateContactDto dto);
+        Task<ContactDto> GetOrCreateContactAsync(string phone);
         Task<ConversationDto> CreateConversationAsync(CreateConversationDto dto);
+        Task<ConversationDto> GetOrCreateConversationAsync(Guid contactId);
         Task<MessageDto> CreateMessageAsync(CreateMessageDto dto);
         Task<ConversationDto?> AssignConversationToOperatorAsync(Guid conversationId, Guid operatorId);
         Task<QueueMetricsDto> GetQueueMetricsAsync();
+        Task<List<ConversationDto>> GetQueueConversationsAsync();
         Task<ConversationDto?> GetConversationByIdAsync(Guid id);
     }
 } 

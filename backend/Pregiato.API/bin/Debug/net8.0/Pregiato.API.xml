@@ -114,6 +114,11 @@
             Obtém itens da fila
             </summary>
         </member>
+        <member name="M:Pregiato.API.Controllers.WhatsAppController.GetQueueConversations">
+            <summary>
+            Obtém conversas na fila de atendimento
+            </summary>
+        </member>
         <member name="M:Pregiato.API.Controllers.WhatsAppController.ProcessWebhookMessage(Pregiato.Application.DTOs.WhatsAppMessageDto)">
             <summary>
             Processa mensagem recebida do WhatsApp Gateway

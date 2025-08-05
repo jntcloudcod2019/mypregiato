@@ -111,6 +111,33 @@ async function startWhatsApp() {
         // Emit to Socket.IO
         io.emit('message:received', messageData);
         logger.info('Message received:', messageData.body);
+
+        // Send to .NET API webhook
+        try {
+          const webhookData = {
+            id: messageData.id,
+            from: msg.key.remoteJid,
+            content: messageData.body,
+            type: messageData.type,
+            timestamp: new Date().toISOString()
+          };
+
+          const response = await fetch('http://localhost:5000/api/whatsapp/webhook/message', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(webhookData)
+          });
+
+          if (response.ok) {
+            logger.info('Message sent to .NET API webhook successfully');
+          } else {
+            logger.error('Failed to send message to .NET API webhook:', response.status);
+          }
+        } catch (error) {
+          logger.error('Error sending message to .NET API webhook:', error);
+        }
       }
     });
 

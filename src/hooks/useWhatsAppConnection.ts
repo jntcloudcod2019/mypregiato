@@ -1,8 +1,11 @@
 
 import { useState, useEffect } from 'react'
-import { api, connectSignalR, disconnectSignalR, getSocket } from '@/services/whatsapp-api'
+import { connectSignalR, disconnectSignalR, getSocket } from '@/services/whatsapp-api'
+import axios from 'axios'
 
 type ConnectionStatus = 'disconnected' | 'qr_ready' | 'connecting' | 'connected'
+
+const WHATSAPP_GATEWAY_URL = import.meta.env.VITE_WHATSAPP_GATEWAY_URL || 'http://localhost:3001'
 
 export const useWhatsAppConnection = () => {
   const [connection, setConnection] = useState({
@@ -14,18 +17,46 @@ export const useWhatsAppConnection = () => {
 
   useEffect(() => {
     const socket = connectSignalR()
+    
+    // Escutar eventos do WhatsApp Gateway
     socket.on('session:status', (data: any) => {
-      setConnection(data)
+      console.log('Received session status:', data)
+      setConnection({
+        isConnected: data.isConnected,
+        status: data.status as ConnectionStatus,
+        qrCode: data.qrCode || ''
+      })
     })
+    
     socket.on('session:qr', (data: any) => {
-      setConnection((prev) => ({ ...prev, status: 'qr_ready' as ConnectionStatus, qrCode: data.qrCode }))
+      console.log('Received QR code:', data)
+      setConnection((prev) => ({ 
+        ...prev, 
+        status: 'qr_ready' as ConnectionStatus, 
+        qrCode: data.qrCode 
+      }))
     })
+    
     socket.on('session:connected', () => {
-      setConnection((prev) => ({ ...prev, isConnected: true, status: 'connected' as ConnectionStatus, qrCode: '' }))
+      console.log('WhatsApp connected')
+      setConnection((prev) => ({ 
+        ...prev, 
+        isConnected: true, 
+        status: 'connected' as ConnectionStatus, 
+        qrCode: '' 
+      }))
     })
+    
     socket.on('session:disconnected', () => {
-      setConnection((prev) => ({ ...prev, isConnected: false, status: 'disconnected' as ConnectionStatus, qrCode: '' }))
+      console.log('WhatsApp disconnected')
+      setConnection((prev) => ({ 
+        ...prev, 
+        isConnected: false, 
+        status: 'disconnected' as ConnectionStatus, 
+        qrCode: '' 
+      }))
     })
+
     return () => {
       disconnectSignalR()
     }
@@ -34,14 +65,14 @@ export const useWhatsAppConnection = () => {
   const generateQR = async () => {
     setIsGeneratingQR(true)
     try {
-      await api.post('/session/connect')
+      await axios.post(`${WHATSAPP_GATEWAY_URL}/session/connect`)
     } finally {
       setIsGeneratingQR(false)
     }
   }
 
   const disconnect = async () => {
-    await api.post('/session/disconnect')
+    await axios.post(`${WHATSAPP_GATEWAY_URL}/session/disconnect`)
   }
 
   return {

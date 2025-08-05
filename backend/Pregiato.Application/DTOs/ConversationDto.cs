@@ -44,16 +44,16 @@ namespace Pregiato.Application.DTOs
         public Guid ConversationId { get; set; }
         public string ContactName { get; set; } = string.Empty;
         public string ContactPhone { get; set; } = string.Empty;
-        public ConversationPriority Priority { get; set; }
+        public string Priority { get; set; } = string.Empty;
         public DateTime QueuedAt { get; set; }
-        public int WaitTimeMinutes { get; set; }
+        public TimeSpan WaitTime { get; set; }
     }
 
     public class QueueMetricsDto
     {
-        public int TotalInQueue { get; set; }
-        public int AttendingCount { get; set; }
-        public double AverageWaitTimeMinutes { get; set; }
+        public int TotalQueued { get; set; }
+        public int TotalAssigned { get; set; }
+        public TimeSpan AverageWaitTime { get; set; }
         public List<QueueItemDto> QueueItems { get; set; } = new();
     }
 } 

@@ -72,6 +72,9 @@ builder.Services.AddCors(options =>
 // Configurar SignalR
 builder.Services.AddSignalR();
 
+// Configurar HttpClient
+builder.Services.AddHttpClient();
+
 // Registrar serviços
 builder.Services.AddScoped<ITalentService, TalentService>();
 builder.Services.AddScoped<ITalentRepository, TalentRepository>();

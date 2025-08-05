@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Pregiato.Application.DTOs;
 using Pregiato.Application.Interfaces;
+using Pregiato.Core.Entities;
 using FluentValidation;
 using System.Text.Json;
 
@@ -209,6 +210,24 @@ namespace Pregiato.API.Controllers
         }
 
         /// <summary>
+        /// Obtém conversas na fila de atendimento
+        /// </summary>
+        [HttpGet("conversations/queue")]
+        public async Task<ActionResult<List<ConversationDto>>> GetQueueConversations()
+        {
+            try
+            {
+                var conversations = await _whatsAppService.GetQueueConversationsAsync();
+                return Ok(conversations);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao buscar conversas na fila");
+                return StatusCode(500, new { error = "Erro interno do servidor" });
+            }
+        }
+
+        /// <summary>
         /// Processa mensagem recebida do WhatsApp Gateway
         /// </summary>
         [HttpPost("webhook/message")]
@@ -216,18 +235,58 @@ namespace Pregiato.API.Controllers
         {
             try
             {
-                // Buscar ou criar contato
-                // Buscar ou criar conversa
-                // Criar mensagem
+                _logger.LogInformation($"📨 Mensagem recebida do WhatsApp: {message.Id} de {message.From}");
+
+                // 1. Buscar ou criar contato
+                var contact = await _whatsAppService.GetOrCreateContactAsync(message.From);
                 
-                _logger.LogInformation($"📨 Mensagem recebida do WhatsApp: {message.Id}");
-                return Ok(new { success = true });
+                // 2. Buscar ou criar conversa
+                var conversation = await _whatsAppService.GetOrCreateConversationAsync(contact.Id);
+                
+                // 3. Criar mensagem
+                var createMessageDto = new CreateMessageDto
+                {
+                    ConversationId = conversation.Id,
+                    Direction = MessageDirection.In,
+                    Type = GetMessageType(message.Type),
+                    Body = message.Content,
+                    MediaUrl = message.MediaUrl,
+                    ClientMessageId = message.Id
+                };
+
+                var createdMessage = await _whatsAppService.CreateMessageAsync(createMessageDto);
+
+                // 4. Se a conversa não tem operador, colocar na fila
+                if (conversation.OperatorId == null && conversation.Status == ConversationStatus.Queued)
+                {
+                    _logger.LogInformation($"📋 Conversa {conversation.Id} colocada na fila de atendimento");
+                }
+
+                return Ok(new { 
+                    success = true, 
+                    messageId = createdMessage.Id,
+                    conversationId = conversation.Id,
+                    contactId = contact.Id
+                });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erro ao processar webhook de mensagem");
                 return StatusCode(500, new { error = "Erro interno do servidor" });
             }
+        }
+
+        private MessageType GetMessageType(string type)
+        {
+            return type.ToLower() switch
+            {
+                "text" => MessageType.Text,
+                "image" => MessageType.Image,
+                "audio" => MessageType.Audio,
+                "document" => MessageType.Document,
+                "video" => MessageType.Video,
+                _ => MessageType.Text
+            };
         }
 
         /// <summary>
