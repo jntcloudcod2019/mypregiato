@@ -1,141 +1,58 @@
 
 import { useState, useEffect } from 'react'
-import { whatsAppService } from '@/services/whatsapp-service'
-import { useOperatorStatus } from './useOperatorStatus'
-import { useActiveAttendance } from './useActiveAttendance'
+import { api, connectSignalR } from '@/services/whatsapp-api'
 
 export interface QueueItem {
-  id: string
-  talentName: string
-  talentPhone: string
-  waitingTime: number
+  conversationId: string
+  contactName: string
+  contactPhone: string
   priority: 'normal' | 'high' | 'urgent'
-  lastMessage?: string
-  timestamp: string
+  queuedAt: string
+  waitTimeMinutes: number
 }
 
 export const useAttendanceQueue = () => {
   const [queue, setQueue] = useState<QueueItem[]>([])
   const [totalInQueue, setTotalInQueue] = useState(0)
   const [averageWaitTime, setAverageWaitTime] = useState(0)
-  
-  const { currentOperator, incrementActiveAttendances } = useOperatorStatus()
-  const { activeAttendances, startAttendance, getAttendanceByTalent } = useActiveAttendance()
+  const [attendingCount, setAttendingCount] = useState(0)
 
   useEffect(() => {
-    const updateQueueMetrics = () => {
-      const conversations = whatsAppService.getAllConversations()
-      
-      // Filter out conversations that are already being attended
-      const unattendedConversations = conversations.filter(conv => {
-        const hasActiveAttendance = getAttendanceByTalent(conv.talentId)
-        return conv.unreadCount > 0 && !hasActiveAttendance
-      })
-      
-      // Create queue items from unattended conversations
-      const queueItems = unattendedConversations
-        .map(conv => {
-          let priority: 'normal' | 'high' | 'urgent' = 'normal'
-          if (conv.unreadCount > 5) {
-            priority = 'urgent'
-          } else if (conv.unreadCount > 2) {
-            priority = 'high'
-          }
-
-          return {
-            id: conv.talentId,
-            talentName: conv.talentName,
-            talentPhone: conv.talentPhone,
-            waitingTime: conv.lastMessage ? 
-              Math.floor((Date.now() - new Date(conv.lastMessage.timestamp).getTime()) / 60000) : 0,
-            priority,
-            lastMessage: conv.lastMessage?.content,
-            timestamp: conv.lastMessage?.timestamp || new Date().toISOString()
-          } as QueueItem
-        })
-        .sort((a, b) => {
-          const priorityOrder = { urgent: 3, high: 2, normal: 1 }
-          if (priorityOrder[a.priority] !== priorityOrder[b.priority]) {
-            return priorityOrder[b.priority] - priorityOrder[a.priority]
-          }
-          return b.waitingTime - a.waitingTime
-        })
-
-      setQueue(queueItems)
-      setTotalInQueue(queueItems.length)
-      
-      // Calculate average wait time
-      if (queueItems.length > 0) {
-        const avgTime = queueItems.reduce((sum, item) => sum + item.waitingTime, 0) / queueItems.length
-        setAverageWaitTime(Math.round(avgTime))
-      } else {
+    const fetchQueue = async () => {
+      try {
+        const res = await api.get('/queue/metrics')
+        setQueue(res.data.queueItems)
+        setTotalInQueue(res.data.totalInQueue)
+        setAverageWaitTime(Math.round(res.data.averageWaitTimeMinutes))
+        setAttendingCount(res.data.attendingCount)
+      } catch {
+        setQueue([])
+        setTotalInQueue(0)
         setAverageWaitTime(0)
+        setAttendingCount(0)
       }
     }
-
-    // Initial load
-    updateQueueMetrics()
-
-    // Update when messages are received or sent
-    const handleMessageUpdate = () => {
-      updateQueueMetrics()
-    }
-
-    const handleAttendanceChange = () => {
-      updateQueueMetrics()
-    }
-
-    whatsAppService.on('message_received', handleMessageUpdate)
-    whatsAppService.on('message_sent', handleMessageUpdate)
-    whatsAppService.on('conversation_read', handleMessageUpdate)
-    whatsAppService.on('attendance_started', handleAttendanceChange)
-    whatsAppService.on('attendance_ended', handleAttendanceChange)
-
-    // Update every 30 seconds
-    const interval = setInterval(updateQueueMetrics, 30000)
-
+    fetchQueue()
+    const socket = connectSignalR()
+    socket.on('queue:updated', (metrics: any) => {
+      setQueue(metrics.queueItems)
+      setTotalInQueue(metrics.totalInQueue)
+      setAverageWaitTime(Math.round(metrics.averageWaitTimeMinutes))
+      setAttendingCount(metrics.attendingCount)
+    })
     return () => {
-      whatsAppService.off('message_received', handleMessageUpdate)
-      whatsAppService.off('message_sent', handleMessageUpdate)
-      whatsAppService.off('conversation_read', handleMessageUpdate)
-      whatsAppService.off('attendance_started', handleAttendanceChange)
-      whatsAppService.off('attendance_ended', handleAttendanceChange)
-      clearInterval(interval)
+      socket.off('queue:updated')
     }
-  }, [getAttendanceByTalent])
+  }, [])
 
-  const takeFromQueue = (talentId: string, talentName: string, talentPhone: string) => {
-    if (!currentOperator) {
-      console.error('Nenhum operador logado')
-      return false
-    }
-
-    // Check if already in attendance
-    const existingAttendance = getAttendanceByTalent(talentId)
-    if (existingAttendance) {
-      console.error('Cliente já está sendo atendido')
-      return false
-    }
-
-    // Start attendance
-    startAttendance(talentId, talentName, talentPhone, currentOperator.id, currentOperator.name)
-    
-    // Update operator status
-    incrementActiveAttendances()
-
-    // Mark conversation as read to remove from queue
-    whatsAppService.markAsRead(talentId)
-
-    console.log(`Operador ${currentOperator.name} assumiu atendimento de ${talentName}`)
-    
-    return true
-  }
+  // Para MVP, takeFromQueue pode apenas retornar true (a lógica real será via API)
+  const takeFromQueue = () => true
 
   return {
     queue,
     totalInQueue,
     averageWaitTime,
-    attendingCount: activeAttendances.length,
+    attendingCount,
     takeFromQueue
   }
 }

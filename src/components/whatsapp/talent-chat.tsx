@@ -23,8 +23,7 @@ import {
   User
 } from 'lucide-react'
 import { TalentData } from '@/types/talent'
-import { WhatsAppMessage } from '@/types/whatsapp'
-import { useTalentChat } from '@/hooks/useTalentChat'
+import { useTalentChat, Message } from '@/hooks/useTalentChat'
 import { cn } from '@/lib/utils'
 
 interface TalentChatProps {
@@ -57,7 +56,7 @@ export const TalentChat: React.FC<TalentChatProps> = ({ talent, onClose }) => {
   useEffect(() => {
     if (conversation?.messages && conversation.messages.length > 0) {
       const lastMessage = conversation.messages[conversation.messages.length - 1]
-      if (lastMessage.sender === 'talent') {
+      if (lastMessage.direction === 'in') {
         setNewMessageAnimation(lastMessage.id)
         setTimeout(() => {
           setNewMessageAnimation(null)
@@ -104,36 +103,30 @@ export const TalentChat: React.FC<TalentChatProps> = ({ talent, onClose }) => {
     if (!file) return
 
     try {
-      const fileType = file.type.startsWith('image/') ? 'image' : 'file'
-      await sendMessage(`Enviou um ${fileType === 'image' ? 'imagem' : 'arquivo'}: ${file.name}`, fileType, file)
+      await sendMessage('', 'file', file)
     } catch (error) {
-      console.error('Error sending file:', error)
-    }
-
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ''
+      console.error('Error uploading file:', error)
     }
   }
 
   const handleAudioCall = () => {
-    setIsCallActive(true)
-    setTimeout(() => {
-      setIsCallActive(false)
-    }, 10000)
+    setIsCallActive(!isCallActive)
   }
 
-  const getMessageStatusIcon = (status: WhatsAppMessage['status']) => {
+  const getMessageStatusIcon = (status: Message['status']) => {
     switch (status) {
       case 'sending':
-        return <Clock className="w-3 h-3 text-muted-foreground animate-spin" />
+        return <Clock className="h-3 w-3 text-muted-foreground" />
       case 'sent':
-        return <Check className="w-3 h-3 text-muted-foreground" />
+        return <Check className="h-3 w-3 text-muted-foreground" />
       case 'delivered':
-        return <CheckCheck className="w-3 h-3 text-muted-foreground" />
+        return <CheckCheck className="h-3 w-3 text-blue-500" />
       case 'read':
-        return <CheckCheck className="w-3 h-3 text-blue-500" />
+        return <CheckCheck className="h-3 w-3 text-green-500" />
+      case 'failed':
+        return <AlertCircle className="h-3 w-3 text-red-500" />
       default:
-        return <AlertCircle className="w-3 h-3 text-red-500" />
+        return null
     }
   }
 
@@ -223,18 +216,18 @@ export const TalentChat: React.FC<TalentChatProps> = ({ talent, onClose }) => {
               key={msg.id}
               className={cn(
                 "flex animate-fade-in",
-                msg.sender === 'operator' ? 'justify-end' : 'justify-start',
-                newMessageAnimation === msg.id && msg.sender === 'talent' && "animate-pulse"
+                msg.direction === 'out' ? 'justify-end' : 'justify-start',
+                newMessageAnimation === msg.id && msg.direction === 'in' && "animate-pulse"
               )}
               style={{ animationDelay: `${index * 50}ms` }}
             >
               <div
                 className={cn(
                   "group relative max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-sm transition-all duration-200 hover:shadow-md",
-                  msg.sender === 'operator'
+                  msg.direction === 'out'
                     ? 'bg-gradient-to-br from-primary to-primary/90 text-primary-foreground rounded-br-md'
                     : 'bg-gradient-to-br from-card to-muted/50 border border-border/50 rounded-bl-md',
-                  newMessageAnimation === msg.id && msg.sender === 'talent' && "ring-2 ring-primary/50 ring-offset-2 ring-offset-background"
+                  newMessageAnimation === msg.id && msg.direction === 'in' && "ring-2 ring-primary/50 ring-offset-2 ring-offset-background"
                 )}
               >
                 {msg.file && (
@@ -265,12 +258,12 @@ export const TalentChat: React.FC<TalentChatProps> = ({ talent, onClose }) => {
                 <div className="flex items-center justify-between mt-2 pt-1">
                   <span className={cn(
                     "text-xs opacity-70",
-                    msg.sender === 'operator' ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                    msg.direction === 'out' ? 'text-primary-foreground/70' : 'text-muted-foreground'
                   )}>
                     {formatTime(msg.timestamp)}
                   </span>
                   
-                  {msg.sender === 'operator' && (
+                  {msg.direction === 'out' && (
                     <div className="ml-2">
                       {getMessageStatusIcon(msg.status)}
                     </div>

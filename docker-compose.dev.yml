@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: pregiato-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: pregiato
+      MYSQL_USER: pregiato
+      MYSQL_PASSWORD: pregiato123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - pregiato-network
+
+  # RabbitMQ
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: pregiato-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin123
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - pregiato-network
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: pregiato-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - pregiato-network
+
+volumes:
+  mysql_data:
+  rabbitmq_data:
+  redis_data:
+
+networks:
+  pregiato-network:
+    driver: bridge

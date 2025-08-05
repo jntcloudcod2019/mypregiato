@@ -145,8 +145,9 @@ export class AutentiqueService {
         },
         signers: [
           {
-            email: contractData.modelo.email,
-            action: "SIGN"
+            email: contractData.modelo.phone,
+            action: "SIGN",
+            delivery_method : "DELIVERY_METHOD_WHATSAPP"
           }
         ],
         file: null

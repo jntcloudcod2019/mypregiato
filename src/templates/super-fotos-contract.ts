@@ -1,3 +1,5 @@
+export const getContractTemplate = (data: any) => {
+  return `
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
@@ -98,56 +100,55 @@
   <h2>CLÁUSULA 2ª - DAS OBRIGAÇÕES DAS PARTES</h2>
   <p><strong>1. Obrigações da CONTRATADA:</strong></p>
   <p>a) Disponibilizar estúdio equipado, equipe especializada e realizar a entrega do material nos prazos acordados.</p>
-  <p>b) Manter a transparência em todos os processos, fornecendo informações claras sobre os serviços executados.</p>
-  <p><strong>2. Obrigações do(a) CONTRATANTE:</strong></p>
-  <p>a) Fornecer todas as informações necessárias para a execução do contrato, como dados pessoais e documentos.</p>
-  <p>b) Comparecer pontualmente às sessões fotográficas agendadas.</p>
-  <p>c) Efetuar os pagamentos nos prazos e condições estabelecidos neste contrato.</p>
+  <p>b) Garantir a qualidade técnica e artística dos serviços prestados.</p>
+  <p>c) Respeitar os prazos estabelecidos para entrega do material.</p>
+  <p>d) Manter sigilo profissional sobre o conteúdo das sessões.</p>
 
-  <h2>CLÁUSULA 3ª - PRODUÇÃO FOTOGRÁFICA</h2>
-  <p>a) Equipamentos profissionais: câmeras de alta resolução e iluminação adequada.</p>
-  <p>b) Equipe especializada: maquiadores e fotógrafos qualificados.</p>
-  <p>c) O material fotográfico será entregue ao(à) CONTRATANTE no prazo de até 05 (cinco) dias úteis após a sessão fotográfica.</p>
+  <p><strong>2. Obrigações da CONTRATANTE:</strong></p>
+  <p>a) Fornecer informações corretas e completas sobre suas expectativas.</p>
+  <p>b) Comparecer nos horários agendados para as sessões fotográficas.</p>
+  <p>c) Respeitar as orientações técnicas fornecidas pela equipe.</p>
+  <p>d) Realizar o pagamento conforme acordado.</p>
 
-  <h2>CLÁUSULA 4ª - PAGAMENTO</h2>
-  <p>Pela prestação dos serviços, o CONTRATANTE pagará à CONTRATADA o valor total de R$ <span class="contract-field">${data.valorContrato || '0,00'}</span>, sendo:</p>
-  <p>a) Método de pagamento: <span class="contract-field">${data.metodoPagamento.join(', ')}</span>.</p>
-  <p>b) Em caso de pagamento via cartão de crédito, débito e PIX, o CONTRATANTE compromete-se a não solicitar chargebacks após a entrega do material, salvo em caso de descumprimento do presente contrato.</p>
-  <p>c) Fica a critério da CONTRATADA a concessão de descontos e facilitação das formas de pagamento.</p>
+  <h2>CLÁUSULA 3ª - VALOR E FORMA DE PAGAMENTO</h2>
+  <p>O valor total dos serviços contratados é de <span class="contract-field">R$ ${data.valorContrato}</span> (${data.valorPorExtenso}), a ser pago da seguinte forma:</p>
+  <p>${data.metodoPagamento.map((metodo: string) => `- ${metodo}`).join('<br>')}</p>
 
-  <h2>CLÁUSULA 5ª - DIREITO DE IMAGEM</h2>
-  <p>O CONTRATANTE cede à CONTRATADA o direito de uso das imagens obtidas nas sessões fotográficas para os seguintes fins:</p>
-  <p>a) Divulgação junto a empresas parceiras.</p>
-  <p>b) Uso nacional e internacional conforme a legislação vigente.</p>
+  <h2>CLÁUSULA 4ª - PRAZO E ENTREGA</h2>
+  <p>O prazo para entrega do material será de até <span class="contract-field">${data.prazoEntrega || '30'} dias</span> após a realização da sessão fotográfica.</p>
 
-  <h2>CLÁUSULA 6ª - ACEITAÇÃO E IRREVOGABILIDADE</h2>
-  <p>a) As partes declaram ciência plena do contrato.</p>
-  <p>b) O CONTRATANTE declara estar ciente de que os materiais são personalizados e exclusivos.</p>
-  <p>c) O material será entregue em pen drive, testado na presença do CONTRATANTE.</p>
-  <p>d) Não serão aceitos cancelamentos após a entrega, salvo vício ou defeito comprovado.</p>
+  <h2>CLÁUSULA 5ª - DIREITOS AUTORAIS</h2>
+  <p>Os direitos autorais das fotografias pertencem à CONTRATADA, que poderá utilizá-las para fins promocionais, desde que não haja prejuízo à imagem da CONTRATANTE.</p>
 
-  <h2>CLÁUSULA 7ª a 10ª</h2>
-  <p>[Demais cláusulas mantidas conforme modelo anterior]</p>
+  <h2>CLÁUSULA 6ª - RESCISÃO</h2>
+  <p>O presente contrato poderá ser rescindido por qualquer das partes, mediante aviso prévio de 48 horas, sem prejuízo das obrigações já assumidas.</p>
 
-  <!-- Assinaturas -->
+  <h2>CLÁUSULA 7ª - FORO</h2>
+  <p>As partes elegem o foro da comarca de <span class="contract-field">${data.cidade}</span> para dirimir quaisquer dúvidas ou litígios decorrentes do presente contrato.</p>
+
   <div class="signature-section">
-    <!-- Contratante -->
-    <div class="digital-signature-contratante">
-      <div class="signature-name">${data.modelo.fullName}</div>
-      <div class="signature-details">Data: 01/08/2025 13:10</div>
-      <div class="signature-details">#aa233e5b6ee911f0bf9a42010a2b600c</div>
-      <div class="signature-details">SIGNATÁRIO</div>
-    </div>
-
-    <!-- Super Fotos -->
-    <div class="digital-signature-contratante">
-      <div class="signature-name">Super Fotos Fotografias Ltda</div>
-      <div class="signature-details">Data: 01/08/2025 12:11</div>
-      <div class="signature-details">#aa1beb156ee911f0bf9a42010a2b600c</div>
-      <div class="signature-details">SIGNATÁRIO</div>
-      <img src="data:image/png;base64,INSIRA_O_BASE64_DA_IMAGEM" alt="Assinatura Digital Super Fotos" class="company-signature-img" />
+    <p>E por estar de acordo com todas as cláusulas e condições estabelecidas, as partes assinam o presente contrato.</p>
+    
+    <p><span class="contract-field">${data.cidade}</span>, ${data.dia} de ${data.mes} de ${data.ano}.</p>
+    
+    <div style="display: flex; justify-content: space-between; margin-top: 50px;">
+      <div style="text-align: center; width: 45%;">
+        <div style="border-bottom: 1px solid #000; height: 40px; margin-bottom: 10px;"></div>
+        <p style="font-weight: bold; margin: 0;">${data.modelo.fullName}</p>
+        <p style="font-size: 12px; margin: 0;">CONTRATANTE</p>
+        <p style="font-size: 10px; margin: 5px 0;">CPF: ${data.modelo.document}</p>
+      </div>
+      
+      <div style="text-align: center; width: 45%;">
+        <div style="border-bottom: 1px solid #000; height: 40px; margin-bottom: 10px;"></div>
+        <p style="font-weight: bold; margin: 0;">SUPER FOTOS FOTOGRAFIAS LTDA</p>
+        <p style="font-size: 12px; margin: 0;">CONTRATADA</p>
+        <p style="font-size: 10px; margin: 5px 0;">CNPJ: 13.310.215/0001-50</p>
+      </div>
     </div>
   </div>
 
 </body>
 </html>
+  `
+} 

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -9,7 +9,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { MessageSquare, Phone, QrCode, Wifi, WifiOff, User, ChevronDown, Zap, Coffee, Clock } from "lucide-react"
 import { useUser } from "@clerk/clerk-react"
 import { useWhatsAppConnection } from "@/hooks/useWhatsAppConnection"
-import { whatsAppService } from "@/services/whatsapp-service"
 import { TalentChat as TalentChatComponent } from "@/components/whatsapp/talent-chat"
 import { QRCodeModal } from "@/components/whatsapp/qr-code-modal"
 import { AttendanceDashboard } from "@/components/whatsapp/attendance-dashboard"
@@ -17,100 +16,7 @@ import { OperatorsCompactDashboard } from "@/components/whatsapp/operators-compa
 import { useOperatorStatus } from "@/hooks/useOperatorStatus"
 import { TalentData } from "@/types/talent"
 import { cn } from "@/lib/utils"
-
-// Mock data para demonstração
-const mockTalents: TalentData[] = [
-  {
-    id: '1',
-    fullName: 'Ana Clara Silva',
-    phone: '11999887766',
-    email: 'ana.clara@email.com',
-    age: 25,
-    inviteSent: false,
-    status: true,
-    dnaStatus: 'UNDEFINED',
-    updatedAt: new Date(),
-    createdAt: new Date(),
-    producer: null,
-    dna: null,
-    files: []
-  },
-  {
-    id: '2',
-    fullName: 'Maria Santos',
-    phone: '11988776655',
-    email: 'maria.santos@email.com',
-    age: 28,
-    inviteSent: false,
-    status: true,
-    dnaStatus: 'UNDEFINED',
-    updatedAt: new Date(),
-    createdAt: new Date(),
-    producer: null,
-    dna: null,
-    files: []
-  },
-  {
-    id: '3',
-    fullName: 'João Oliveira',
-    phone: '11977665544',
-    email: 'joao.oliveira@email.com',
-    age: 30,
-    inviteSent: false,
-    status: true,
-    dnaStatus: 'UNDEFINED',
-    updatedAt: new Date(),
-    createdAt: new Date(),
-    producer: null,
-    dna: null,
-    files: []
-  },
-  {
-    id: '4',
-    fullName: 'Beatriz Costa',
-    phone: '11966554433',
-    email: 'beatriz.costa@email.com',
-    age: 26,
-    inviteSent: false,
-    status: true,
-    dnaStatus: 'UNDEFINED',
-    updatedAt: new Date(),
-    createdAt: new Date(),
-    producer: null,
-    dna: null,
-    files: []
-  },
-  {
-    id: '5',
-    fullName: 'Pedro Lima',
-    phone: '11955443322',
-    email: 'pedro.lima@email.com',
-    age: 32,
-    inviteSent: false,
-    status: true,
-    dnaStatus: 'UNDEFINED',
-    updatedAt: new Date(),
-    createdAt: new Date(),
-    producer: null,
-    dna: null,
-    files: []
-  },
-  {
-    id: '6',
-    fullName: 'Camila Rodrigues',
-    phone: '11944332211',
-    email: 'camila.rodrigues@email.com',
-    age: 29,
-    inviteSent: false,
-    status: true,
-    dnaStatus: 'UNDEFINED',
-    updatedAt: new Date(),
-    createdAt: new Date(),
-    producer: null,
-    dna: null,
-    files: []
-  }
-]
+import { api } from '@/services/whatsapp-api'
 
 export default function AtendimentoPage() {
   const { user } = useUser()
@@ -119,6 +25,11 @@ export default function AtendimentoPage() {
   const [selectedTalent, setSelectedTalent] = useState<string | null>(null)
   const [showQRModal, setShowQRModal] = useState(false)
   const [isStatusOpen, setIsStatusOpen] = useState(false)
+  const [contacts, setContacts] = useState<TalentData[]>([])
+
+  useEffect(() => {
+    api.get('/contacts').then(res => setContacts(res.data)).catch(() => setContacts([]))
+  }, [])
 
   const statusOptions = [
     {
@@ -158,10 +69,6 @@ export default function AtendimentoPage() {
   const handleGenerateQR = async () => {
     try {
       await generateQR()
-      // Simular conexão real para demo
-      setTimeout(() => {
-        ;(whatsAppService as any).simulateRealConnection?.()
-      }, 8000)
       setShowQRModal(true)
     } catch (error) {
       console.error('Error generating QR:', error)
@@ -169,12 +76,10 @@ export default function AtendimentoPage() {
   }
 
   const handleTalentSelect = (talentId: string, talentName: string, talentPhone: string) => {
-    whatsAppService.initializeConversation(talentId, talentName, talentPhone)
     setSelectedTalent(talentId)
   }
 
   const handleStartAttendance = (talentId: string, talentName: string, talentPhone: string) => {
-    whatsAppService.initializeConversation(talentId, talentName, talentPhone)
     setSelectedTalent(talentId)
     
     setTimeout(() => {
@@ -185,7 +90,7 @@ export default function AtendimentoPage() {
     }, 100)
   }
 
-  const selectedTalentData = selectedTalent ? mockTalents.find(t => t.id === selectedTalent) : null
+  const selectedTalentData = selectedTalent ? contacts.find(t => t.id === selectedTalent) : null
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
@@ -401,10 +306,7 @@ export default function AtendimentoPage() {
                   </h3>
                   <ScrollArea className="h-80">
                     <div className="space-y-2">
-                      {mockTalents.map((talent) => {
-                        const conversation = whatsAppService.getConversation(talent.id)
-                        const hasUnread = conversation && conversation.unreadCount > 0
-
+                      {contacts.map((talent) => {
                         return (
                           <button
                             key={talent.id}
@@ -418,10 +320,7 @@ export default function AtendimentoPage() {
                           >
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-3">
-                                <Avatar className={cn(
-                                  "h-10 w-10",
-                                  hasUnread && "ring-2 ring-primary/50 ring-offset-2 ring-offset-background animate-pulse"
-                                )}>
+                                <Avatar className="h-10 w-10">
                                   <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary text-xs">
                                     <User className="h-5 w-5" />
                                   </AvatarFallback>
@@ -432,11 +331,6 @@ export default function AtendimentoPage() {
                                 </div>
                               </div>
                               <div className="flex items-center gap-2">
-                                {hasUnread && (
-                                  <Badge className="bg-red-500 hover:bg-red-600 text-white text-xs px-2 py-1 animate-pulse">
-                                    {conversation.unreadCount}
-                                  </Badge>
-                                )}
                                 <MessageSquare className="h-4 w-4 text-muted-foreground" />
                               </div>
                             </div>
