@@ -1,11 +1,11 @@
 import axios from 'axios'
 import { io, Socket } from 'socket.io-client'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/whatsapp'
-const WHATSAPP_GATEWAY_URL = import.meta.env.VITE_WHATSAPP_GATEWAY_URL || 'http://localhost:3001'
+const API_BASE_URL = 'http://localhost:5001/api';
+const WHATSAPP_GATEWAY_URL = 'http://localhost:3001';
 
 export const api = axios.create({
-  baseURL: API_URL,
+  baseURL: API_BASE_URL,
   withCredentials: false
 })
 
@@ -49,3 +49,25 @@ export function disconnectSignalR() {
 export function getSocket() {
   return socket
 } 
+
+// WhatsApp Gateway endpoints
+export const whatsAppGateway = {
+  connect: () => api.post('/whatsapp/session/connect'),
+  disconnect: () => api.post('/whatsapp/session/disconnect'),
+  getStatus: () => api.get('/whatsapp/session/status'),
+  sendMessage: (data: SendMessageRequest) => api.post('/whatsapp/messages/send', data)
+};
+
+// API endpoints
+export const whatsAppApi = {
+  getContacts: () => api.get('/whatsapp/contacts'),
+  getConversations: (status?: string) => api.get(`/whatsapp/conversations${status ? `?status=${status}` : ''}`),
+  getConversation: (id: string) => api.get(`/whatsapp/conversations/${id}`),
+  getMessages: (conversationId: string) => api.get(`/whatsapp/conversations/${conversationId}/messages`),
+  sendMessage: (conversationId: string, data: SendMessageRequest) => api.post(`/whatsapp/conversations/${conversationId}/messages`, data),
+  assignConversation: (conversationId: string, operatorId: string) => api.post(`/whatsapp/conversations/${conversationId}/assign`, { operatorId }),
+  closeConversation: (conversationId: string, reason?: string) => api.post(`/whatsapp/conversations/${conversationId}/close`, { reason }),
+  getQueueMetrics: () => api.get('/whatsapp/queue/metrics'),
+  getQueueConversations: () => api.get('/whatsapp/queue/conversations'),
+  markAsRead: (conversationId: string) => api.post(`/whatsapp/conversations/${conversationId}/read`)
+}; 

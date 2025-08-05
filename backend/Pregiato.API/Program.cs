@@ -48,9 +48,11 @@ builder.Services.AddSwaggerGen(c =>
     }
 });
 
-// Configurar Entity Framework com SQLite (temporário para teste)
+// Configurar Entity Framework com MySQL
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<PregiatoDbContext>(options =>
-    options.UseSqlite("Data Source=pregiato.db"));
+    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString), 
+        mySqlOptions => mySqlOptions.EnableRetryOnFailure()));
 
 // Configurar AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));

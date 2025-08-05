@@ -45,11 +45,12 @@ public class PregiatoDbContext : DbContext
                 .IsRequired();
             
             entity.Property(e => e.CreatedAt)
+                .HasColumnType("datetime")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
             
             entity.Property(e => e.UpdatedAt)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .ValueGeneratedOnUpdate();
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
         });
 
         // Configuração da entidade Contract
@@ -67,11 +68,12 @@ public class PregiatoDbContext : DbContext
                 .HasMaxLength(50);
             
             entity.Property(e => e.CreatedAt)
+                .HasColumnType("datetime")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
             
             entity.Property(e => e.UpdatedAt)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .ValueGeneratedOnUpdate();
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
         });
 
         // Configuração da entidade ContractTemplate
@@ -115,6 +117,7 @@ public class PregiatoDbContext : DbContext
                 .IsRequired();
             
             entity.Property(e => e.UploadedAt)
+                .HasColumnType("datetime")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
         });
 
@@ -135,11 +138,12 @@ public class PregiatoDbContext : DbContext
             entity.HasIndex(e => e.Email).IsUnique();
             
             entity.Property(e => e.CreatedAt)
+                .HasColumnType("datetime")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
             
             entity.Property(e => e.UpdatedAt)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .ValueGeneratedOnUpdate();
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
         });
 
         // Configuração das entidades WhatsApp
@@ -164,11 +168,12 @@ public class PregiatoDbContext : DbContext
             entity.Property(e => e.BusinessName).HasMaxLength(100);
             
             entity.Property(e => e.CreatedAt)
+                .HasColumnType("datetime")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
             
             entity.Property(e => e.UpdatedAt)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .ValueGeneratedOnUpdate();
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
         });
 
         modelBuilder.Entity<Conversation>(entity =>
@@ -183,11 +188,12 @@ public class PregiatoDbContext : DbContext
             entity.Property(e => e.CloseReason).HasMaxLength(500);
             
             entity.Property(e => e.CreatedAt)
+                .HasColumnType("datetime")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
             
             entity.Property(e => e.UpdatedAt)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .ValueGeneratedOnUpdate();
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
             
             // Relacionamentos
             entity.HasOne(e => e.Contact)
@@ -218,11 +224,12 @@ public class PregiatoDbContext : DbContext
             entity.Property(e => e.InternalNote).HasMaxLength(500);
             
             entity.Property(e => e.CreatedAt)
+                .HasColumnType("datetime")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
             
             entity.Property(e => e.UpdatedAt)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .ValueGeneratedOnUpdate();
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
             
             // Relacionamento
             entity.HasOne(e => e.Conversation)
@@ -240,10 +247,6 @@ public class PregiatoDbContext : DbContext
                 .IsRequired()
                 .HasMaxLength(100);
             
-            entity.Property(e => e.Name)
-                .IsRequired()
-                .HasMaxLength(100);
-            
             entity.Property(e => e.Email)
                 .IsRequired()
                 .HasMaxLength(100);
@@ -255,11 +258,12 @@ public class PregiatoDbContext : DbContext
             entity.Property(e => e.Skills).HasMaxLength(500);
             
             entity.Property(e => e.CreatedAt)
+                .HasColumnType("datetime")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
             
             entity.Property(e => e.UpdatedAt)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .ValueGeneratedOnUpdate();
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
         });
 
         modelBuilder.Entity<QueueEvent>(entity =>
@@ -273,6 +277,7 @@ public class PregiatoDbContext : DbContext
             entity.Property(e => e.TransferredTo).HasMaxLength(100);
             
             entity.Property(e => e.CreatedAt)
+                .HasColumnType("datetime")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
             
             // Relacionamentos

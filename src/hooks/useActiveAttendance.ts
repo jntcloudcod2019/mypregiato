@@ -1,127 +1,71 @@
 
-import { useState, useEffect } from 'react'
-import { api, connectSignalR } from '@/services/whatsapp-api'
+import { useState, useEffect } from 'react';
+import { whatsAppApi } from '../services/whatsapp-api';
 
-export interface ActiveAttendance {
-  id: string
-  talentId: string
-  talentName: string
-  talentPhone: string
-  operatorId: string
-  operatorName: string
-  startTime: string
-  lastMessageTime?: string
-  status: 'active' | 'waiting_client' | 'responding'
-  messageCount: number
-  duration: number // in minutes
+export interface ActiveConversation {
+  id: string;
+  contactName: string;
+  contactPhone: string;
+  status: string;
+  lastMessage: string;
+  lastMessageAt: string;
+  unreadCount: number;
 }
 
 export const useActiveAttendance = () => {
-  const [activeAttendances, setActiveAttendances] = useState<ActiveAttendance[]>([])
-  const [totalActive, setTotalActive] = useState(0)
+  const [conversations, setConversations] = useState<ActiveConversation[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchActiveConversations = async () => {
+    try {
+      setLoading(true);
+      const response = await whatsAppApi.getConversations('assigned');
+      setConversations(response.data);
+      setError(null);
+    } catch (err) {
+      console.error('Erro ao buscar conversas ativas:', err);
+      setError('Erro ao carregar conversas ativas');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const startAttendance = async (conversationId: string, operatorId: string) => {
+    try {
+      await whatsAppApi.assignConversation(conversationId, operatorId);
+      await fetchActiveConversations();
+    } catch (err) {
+      console.error('Erro ao iniciar atendimento:', err);
+      throw err;
+    }
+  };
+
+  const endAttendance = async (conversationId: string, reason?: string) => {
+    try {
+      await whatsAppApi.closeConversation(conversationId, reason);
+      await fetchActiveConversations();
+    } catch (err) {
+      console.error('Erro ao encerrar atendimento:', err);
+      throw err;
+    }
+  };
 
   useEffect(() => {
-    const fetchActiveAttendances = async () => {
-      try {
-        // Buscar conversas ativas (status = assigned)
-        const res = await api.get('/conversations?status=assigned')
-        const attendances = res.data.map((conv: any) => ({
-          id: conv.id,
-          talentId: conv.contactId,
-          talentName: conv.contact?.name || 'Contato',
-          talentPhone: conv.contact?.phone || '',
-          operatorId: conv.operatorId || '',
-          operatorName: conv.operator?.name || 'Operador',
-          startTime: conv.assignedAt || conv.createdAt,
-          status: 'active' as const,
-          messageCount: conv.messages?.length || 0,
-          duration: conv.assignedAt 
-            ? Math.floor((Date.now() - new Date(conv.assignedAt).getTime()) / 60000)
-            : 0
-        }))
-        setActiveAttendances(attendances)
-        setTotalActive(attendances.length)
-      } catch (error) {
-        console.error('Error fetching active attendances:', error)
-        setActiveAttendances([])
-        setTotalActive(0)
-      }
-    }
-
-    fetchActiveAttendances()
-
-    const socket = connectSignalR()
+    fetchActiveConversations();
     
-    const handleConversationAssigned = (data: any) => {
-      // Recarregar atendimentos quando uma conversa for atribuída
-      fetchActiveAttendances()
-    }
-
-    const handleConversationClosed = (data: any) => {
-      // Recarregar atendimentos quando uma conversa for fechada
-      fetchActiveAttendances()
-    }
-
-    socket.on('conversation:assigned', handleConversationAssigned)
-    socket.on('conversation:closed', handleConversationClosed)
-
-    // Update durations every minute
-    const interval = setInterval(() => {
-      setActiveAttendances(prev => 
-        prev.map(attendance => ({
-          ...attendance,
-          duration: Math.floor((Date.now() - new Date(attendance.startTime).getTime()) / 60000)
-        }))
-      )
-    }, 60000)
-
-    return () => {
-      socket.off('conversation:assigned', handleConversationAssigned)
-      socket.off('conversation:closed', handleConversationClosed)
-      clearInterval(interval)
-    }
-  }, [])
-
-  const startAttendance = async (talentId: string, talentName: string, talentPhone: string, operatorId: string, operatorName: string) => {
-    try {
-      // Buscar conversa do talento
-      const res = await api.get(`/conversations?contactId=${talentId}`)
-      if (res.data.length > 0) {
-        const conversation = res.data[0]
-        // Atribuir conversa ao operador
-        await api.post(`/conversations/${conversation.id}/assign`, operatorId)
-      }
-    } catch (error) {
-      console.error('Error starting attendance:', error)
-    }
-  }
-
-  const endAttendance = async (attendanceId: string) => {
-    try {
-      // Fechar conversa
-      await api.put(`/conversations/${attendanceId}`, {
-        status: 'closed',
-        closeReason: 'Atendimento finalizado pelo operador'
-      })
-    } catch (error) {
-      console.error('Error ending attendance:', error)
-    }
-  }
-
-  const getAttendanceByTalent = (talentId: string): ActiveAttendance | null => {
-    return activeAttendances.find(att => att.talentId === talentId) || null
-  }
-
-  const getAttendanceByOperator = (operatorId: string): ActiveAttendance[] => {
-    return activeAttendances.filter(att => att.operatorId === operatorId)
-  }
+    // Atualizar a cada 30 segundos
+    const interval = setInterval(fetchActiveConversations, 30000);
+    
+    return () => clearInterval(interval);
+  }, []);
 
   return {
-    activeAttendances,
-    totalActive,
+    conversations,
+    loading,
+    error,
     startAttendance,
     endAttendance,
-    getAttendanceByTalent,
-    getAttendanceByOperator
-  }
-}
+    refresh: fetchActiveConversations
+  };
+};

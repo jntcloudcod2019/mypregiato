@@ -14,21 +14,20 @@ import { QRCodeModal } from "@/components/whatsapp/qr-code-modal"
 import { AttendanceDashboard } from "@/components/whatsapp/attendance-dashboard"
 import { OperatorsCompactDashboard } from "@/components/whatsapp/operators-compact-dashboard"
 import { useOperatorStatus } from "@/hooks/useOperatorStatus"
-import { TalentData } from "@/types/talent"
 import { cn } from "@/lib/utils"
-import { api } from '@/services/whatsapp-api'
+import { whatsAppApi } from '@/services/whatsapp-api'
 
 export default function AtendimentoPage() {
   const { user } = useUser()
-  const { connection, generateQR, disconnect, isGeneratingQR } = useWhatsAppConnection()
+  const { status, qrCode, error, connect, disconnect, refresh } = useWhatsAppConnection()
   const { currentOperator, updateOperatorStatus } = useOperatorStatus()
-  const [selectedTalent, setSelectedTalent] = useState<string | null>(null)
+  const [selectedConversation, setSelectedConversation] = useState<string | null>(null)
   const [showQRModal, setShowQRModal] = useState(false)
   const [isStatusOpen, setIsStatusOpen] = useState(false)
-  const [contacts, setContacts] = useState<TalentData[]>([])
+  const [contacts, setContacts] = useState<any[]>([])
 
   useEffect(() => {
-    api.get('/contacts').then(res => setContacts(res.data)).catch(() => setContacts([]))
+    whatsAppApi.getContacts().then(res => setContacts(res.data)).catch(() => setContacts([]))
   }, [])
 
   const statusOptions = [
@@ -66,21 +65,21 @@ export default function AtendimentoPage() {
     setIsStatusOpen(false)
   }
 
-  const handleGenerateQR = async () => {
+  const handleConnect = async () => {
     try {
-      await generateQR()
+      await connect()
       setShowQRModal(true)
     } catch (error) {
-      console.error('Error generating QR:', error)
+      console.error('Error connecting WhatsApp:', error)
     }
   }
 
-  const handleTalentSelect = (talentId: string, talentName: string, talentPhone: string) => {
-    setSelectedTalent(talentId)
+  const handleConversationSelect = (conversationId: string) => {
+    setSelectedConversation(conversationId)
   }
 
-  const handleStartAttendance = (talentId: string, talentName: string, talentPhone: string) => {
-    setSelectedTalent(talentId)
+  const handleStartAttendance = (conversationId: string, operatorId: string) => {
+    setSelectedConversation(conversationId)
     
     setTimeout(() => {
       const chatElement = document.getElementById('talent-chat')
@@ -90,7 +89,7 @@ export default function AtendimentoPage() {
     }, 100)
   }
 
-  const selectedTalentData = selectedTalent ? contacts.find(t => t.id === selectedTalent) : null
+  const selectedConversationData = selectedConversation ? contacts.find(c => c.id === selectedConversation) : null
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
@@ -232,16 +231,16 @@ export default function AtendimentoPage() {
                 {/* Status Connection em tempo real */}
                 <div className={cn(
                   "flex items-center justify-between p-4 rounded-xl border transition-all duration-300",
-                  connection.isConnected 
+                  status === 'connected'
                     ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800" 
                     : "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800"
                 )}>
                   <div className="flex items-center gap-3">
                     <div className={cn(
                       "p-2 rounded-lg",
-                      connection.isConnected ? "bg-green-500/20" : "bg-red-500/20"
+                      status === 'connected' ? "bg-green-500/20" : "bg-red-500/20"
                     )}>
-                      {connection.isConnected ? (
+                      {status === 'connected' ? (
                         <Wifi className="h-5 w-5 text-green-600" />
                       ) : (
                         <WifiOff className="h-5 w-5 text-red-600" />
@@ -249,46 +248,46 @@ export default function AtendimentoPage() {
                     </div>
                     <div>
                       <p className="font-semibold text-foreground">
-                        {connection.isConnected ? 'Conectado' : 'Desconectado'}
+                        {status === 'connected' ? 'Conectado' : 'Desconectado'}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {connection.status === 'connected' && 'Em tempo real'}
-                        {connection.status === 'connecting' && 'Conectando...'}
-                        {connection.status === 'qr_ready' && 'QR Code ativo'}
-                        {connection.status === 'disconnected' && 'Offline'}
+                        {status === 'connected' && 'Em tempo real'}
+                        {status === 'connecting' && 'Conectando...'}
+                        {status === 'qr_ready' && 'QR Code ativo'}
+                        {status === 'disconnected' && 'Offline'}
                       </p>
                     </div>
                   </div>
-                  <Badge
+                  <Badge 
                     className={cn(
                       "shadow-sm",
-                      connection.isConnected 
+                      status === 'connected'
                         ? 'bg-green-500 hover:bg-green-600 text-white' 
                         : 'bg-red-500 hover:bg-red-600 text-white'
                     )}
                   >
-                    {connection.isConnected ? 'Ativo' : 'Inativo'}
+                    {status === 'connected' ? 'Ativo' : 'Inativo'}
                   </Badge>
                 </div>
 
                 {/* Action buttons */}
                 <div className="space-y-3">
-                  {!connection.isConnected && (
+                  {status !== 'connected' && (
                     <Button
-                      onClick={handleGenerateQR}
-                      disabled={isGeneratingQR}
+                      onClick={handleConnect}
+                      disabled={status === 'connecting'}
                       className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300"
                     >
                       <QrCode className="h-4 w-4 mr-2" />
-                      {isGeneratingQR ? 'Gerando QR...' : 'Conectar WhatsApp'}
+                      {status === 'connecting' ? 'Gerando QR...' : 'Conectar WhatsApp'}
                     </Button>
                   )}
 
-                  {connection.isConnected && (
+                  {status === 'connected' && (
                     <Button
                       onClick={disconnect}
-                      variant="destructive"
-                      className="w-full shadow-lg hover:shadow-xl transition-all duration-300"
+                      variant="outline"
+                      className="w-full border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
                     >
                       <WifiOff className="h-4 w-4 mr-2" />
                       Desconectar
@@ -310,10 +309,10 @@ export default function AtendimentoPage() {
                         return (
                           <button
                             key={talent.id}
-                            onClick={() => handleTalentSelect(talent.id, talent.fullName, talent.phone || '')}
+                            onClick={() => handleConversationSelect(talent.id)}
                             className={cn(
                               "w-full text-left p-3 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg border",
-                              selectedTalent === talent.id 
+                              selectedConversation === talent.id 
                                 ? 'border-primary bg-gradient-to-r from-primary/10 to-primary/5 shadow-lg' 
                                 : 'bg-gradient-to-r from-card to-muted/30 border-border/50 hover:border-primary/30'
                             )}
@@ -352,10 +351,10 @@ export default function AtendimentoPage() {
 
         {/* Chat area */}
         <div className="mt-8" id="talent-chat">
-          {selectedTalent && selectedTalentData ? (
+          {selectedConversation && selectedConversationData ? (
             <TalentChatComponent 
-              talent={selectedTalentData} 
-              onClose={() => setSelectedTalent(null)} 
+              conversation={selectedConversationData} 
+              onClose={() => setSelectedConversation(null)} 
             />
           ) : (
             <Card className="h-[600px] bg-gradient-to-br from-card via-muted/30 to-card shadow-2xl border-0 backdrop-blur-sm">
@@ -383,11 +382,11 @@ export default function AtendimentoPage() {
         <QRCodeModal
           isOpen={showQRModal}
           onClose={() => setShowQRModal(false)}
-          qrCode={connection.qrCode || ''}
-          status={connection.status}
-          onGenerateQR={handleGenerateQR}
+          qrCode={qrCode || ''}
+          status={status}
+          onGenerateQR={handleConnect}
           onDisconnect={disconnect}
-          isGeneratingQR={isGeneratingQR}
+          isGeneratingQR={status === 'connecting'}
         />
       </div>
     </div>

@@ -306,5 +306,59 @@ namespace Pregiato.API.Controllers
                 return StatusCode(500, new { error = "Erro interno do servidor" });
             }
         }
+
+        [HttpGet("session/status")]
+        public async Task<IActionResult> GetSessionStatus()
+        {
+            try
+            {
+                // Por enquanto, retornar status básico
+                // Em uma implementação real, isso seria verificado no WhatsApp Gateway
+                var status = new
+                {
+                    isConnected = true, // Será verificado via WhatsApp Gateway
+                    status = "connected", // connected, connecting, disconnected, qr_ready
+                    qrCode = (string)null,
+                    lastActivity = DateTime.UtcNow
+                };
+
+                return Ok(status);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao buscar status da sessão do WhatsApp");
+                return StatusCode(500, new { error = "Erro interno do servidor" });
+            }
+        }
+
+        [HttpPost("session/connect")]
+        public async Task<IActionResult> ConnectSession()
+        {
+            try
+            {
+                // Em uma implementação real, isso enviaria comando para o WhatsApp Gateway
+                return Ok(new { success = true, message = "Comando de conexão enviado" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao conectar sessão do WhatsApp");
+                return StatusCode(500, new { error = "Erro interno do servidor" });
+            }
+        }
+
+        [HttpPost("session/disconnect")]
+        public async Task<IActionResult> DisconnectSession()
+        {
+            try
+            {
+                // Em uma implementação real, isso enviaria comando para o WhatsApp Gateway
+                return Ok(new { success = true, message = "Comando de desconexão enviado" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao desconectar sessão do WhatsApp");
+                return StatusCode(500, new { error = "Erro interno do servidor" });
+            }
+        }
     }
 } 
