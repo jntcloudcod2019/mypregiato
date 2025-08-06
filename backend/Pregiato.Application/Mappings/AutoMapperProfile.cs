@@ -33,5 +33,21 @@ public class AutoMapperProfile : Profile
         CreateMap<CreateUserDto, User>();
         CreateMap<UpdateUserDto, User>()
             .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+
+        // CRM mappings
+        CreateMap<Lead, LeadDto>();
+        CreateMap<CreateLeadDto, Lead>();
+        CreateMap<UpdateLeadDto, Lead>()
+            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+
+        CreateMap<LeadInteraction, LeadInteractionDto>();
+        CreateMap<CreateLeadInteractionDto, LeadInteraction>();
+        CreateMap<UpdateLeadInteractionDto, LeadInteraction>()
+            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+
+        CreateMap<CrmTask, TaskDto>();
+        CreateMap<CreateTaskDto, CrmTask>();
+        CreateMap<UpdateTaskDto, CrmTask>()
+            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
     }
 } 

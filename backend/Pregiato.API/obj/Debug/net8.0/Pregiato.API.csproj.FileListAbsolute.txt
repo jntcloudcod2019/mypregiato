@@ -160,3 +160,4 @@
 /Users/worldgames/Documents/PREGIATO/mypregiato/backend/Pregiato.API/bin/Debug/net8.0/System.Net.WebSockets.WebSocketProtocol.dll
 /Users/worldgames/Documents/PREGIATO/mypregiato/backend/Pregiato.API/bin/Debug/net8.0/Pregiato.API.xml
 /Users/worldgames/Documents/PREGIATO/mypregiato/backend/Pregiato.API/obj/Debug/net8.0/Pregiato.API.xml
+/Users/worldgames/Documents/PREGIATO/mypregiato/backend/Pregiato.API/bin/Debug/net8.0/RabbitMQ.Client.dll

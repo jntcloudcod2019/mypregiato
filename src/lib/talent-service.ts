@@ -2,6 +2,47 @@
 import { get, post, put, del } from '@/services/api/api'
 import { TalentData, ProducerData, CreateTalentData, UpdateTalentData } from '@/types/talent'
 
+export interface PaginatedTalentsResponse {
+  data: TalentData[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+  nextPageUrl?: string;
+  previousPageUrl?: string;
+  executionTimeMs: number;
+  recordsReturned: number;
+}
+
+export const getTalentsPaginated = async (
+  page: number = 1,
+  pageSize: number = 20,
+  search?: string,
+  sortBy?: string,
+  sortDescending: boolean = false
+): Promise<PaginatedTalentsResponse> => {
+  try {
+    const params: Record<string, any> = {
+      page,
+      pageSize,
+      sortBy,
+      sortDescending
+    };
+    
+    if (search) {
+      params.search = search;
+    }
+    
+    const data = await get<PaginatedTalentsResponse>('/talents', params)
+    return data
+  } catch (error) {
+    console.error('Error fetching talents:', error)
+    throw new Error('Failed to fetch talents')
+  }
+}
+
 export const getTalents = async (): Promise<TalentData[]> => {
   try {
     const data = await get<TalentData[]>('/talents')

@@ -2,7 +2,7 @@ import axios, { AxiosResponse, AxiosError } from 'axios';
 
 // Configuração da instância principal do axios
 const api = axios.create({
-  baseURL: 'http://localhost:3001/api', // API local
+  baseURL: 'http://localhost:5001/api', // API .NET
   timeout: 10000, // 10 segundos
   headers: {
     'Content-Type': 'application/json',

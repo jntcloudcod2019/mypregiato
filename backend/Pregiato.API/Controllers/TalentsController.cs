@@ -8,7 +8,7 @@ using System.ComponentModel.DataAnnotations;
 namespace Pregiato.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/talents")]
 public class TalentsController : ControllerBase
 {
     private readonly ITalentService _talentService;
@@ -21,15 +21,27 @@ public class TalentsController : ControllerBase
     }
 
     /// <summary>
-    /// Obtém todos os talentos
+    /// Obtém todos os talentos com paginação
     /// </summary>
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<TalentDto>>> GetTalents()
+    public async Task<ActionResult<PaginatedResponseDto<TalentDto>>> GetTalents(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] string? search = null,
+        [FromQuery] string? sortBy = null,
+        [FromQuery] bool sortDescending = false)
     {
         try
         {
-            var talents = await _talentService.GetAllAsync();
-            return Ok(talents);
+            var result = await _talentService.GetAllPaginatedAsync(page, pageSize, search, sortBy, sortDescending);
+            
+            // Adicionar headers de performance
+            Response.Headers.Add("X-Total-Count", result.Total.ToString());
+            Response.Headers.Add("X-Page-Count", result.TotalPages.ToString());
+            Response.Headers.Add("X-Execution-Time", $"{result.ExecutionTimeMs}ms");
+            Response.Headers.Add("X-Records-Returned", result.RecordsReturned.ToString());
+            
+            return Ok(result);
         }
         catch (Exception ex)
         {

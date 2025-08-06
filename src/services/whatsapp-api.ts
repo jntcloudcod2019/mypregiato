@@ -1,73 +1,172 @@
-import axios from 'axios'
-import { io, Socket } from 'socket.io-client'
+import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5001/api';
-const WHATSAPP_GATEWAY_URL = 'http://localhost:3001';
+// Configuração do axios para o backend .NET
+const api = axios.create({
+  baseURL: 'http://localhost:5001/api',
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
-export const api = axios.create({
-  baseURL: API_BASE_URL,
-  withCredentials: false
-})
+// Configuração do axios para o RabbitMQ via backend
+const rabbitMQService = {
+  // Enviar mensagem
+  sendMessage: async (phone: string, message: string, template?: string, data?: any) => {
+    const response = await api.post('/whatsapp/messages/send', {
+      phone,
+      message,
+      template,
+      data
+    });
+    return response.data;
+  },
 
-let socket: Socket | null = null
+  // Obter status do bot
+  getStatus: async () => {
+    const response = await api.get('/whatsapp/status');
+    return response.data;
+  },
 
-export function connectSignalR(token?: string) {
-  if (!socket) {
-    console.log('Connecting to WhatsApp Gateway:', WHATSAPP_GATEWAY_URL)
-    socket = io(WHATSAPP_GATEWAY_URL, {
-      transports: ['websocket', 'polling'],
-      auth: token ? { token } : undefined
-    })
-    
-    socket.on('connect', () => {
-      console.log('✅ Connected to WhatsApp Gateway')
-    })
-    
-    socket.on('disconnect', () => {
-      console.log('❌ Disconnected from WhatsApp Gateway')
-    })
-    
-    socket.on('connect_error', (error) => {
-      console.error('❌ Connection error:', error)
-    })
-    
-    // Log all events for debugging
-    socket.onAny((eventName, ...args) => {
-      console.log('📡 Socket event:', eventName, args)
-    })
+  // Gerar QR code
+  generateQR: async () => {
+    const response = await api.post('/whatsapp/generate-qr');
+    return response.data;
+  },
+
+  // Obter QR code atual
+  getQRCode: async () => {
+    const response = await api.get('/whatsapp/qr-code');
+    return response.data;
+  },
+
+  // Obter métricas da fila
+  getQueueMetrics: async () => {
+    const response = await api.get('/whatsapp/queue/metrics');
+    return response.data;
+  },
+
+  // Obter conversas na fila
+  getQueueConversations: async () => {
+    const response = await api.get('/whatsapp/queue/conversations');
+    return response.data;
+  },
+
+  // Atribuir conversa
+  assignConversation: async (conversationId: string, operatorId: string) => {
+    const response = await api.post(`/whatsapp/conversations/${conversationId}/assign`, operatorId);
+    return response.data;
+  },
+
+  // Fechar conversa
+  closeConversation: async (conversationId: string, reason?: string) => {
+    const response = await api.post(`/whatsapp/conversations/${conversationId}/close`, { reason });
+    return response.data;
   }
-  return socket
-}
-
-export function disconnectSignalR() {
-  if (socket) {
-    socket.disconnect()
-    socket = null
-  }
-}
-
-export function getSocket() {
-  return socket
-} 
-
-// WhatsApp Gateway endpoints
-export const whatsAppGateway = {
-  connect: () => api.post('/whatsapp/session/connect'),
-  disconnect: () => api.post('/whatsapp/session/disconnect'),
-  getStatus: () => api.get('/whatsapp/session/status'),
-  sendMessage: (data: SendMessageRequest) => api.post('/whatsapp/messages/send', data)
 };
 
-// API endpoints
-export const whatsAppApi = {
-  getContacts: () => api.get('/whatsapp/contacts'),
-  getConversations: (status?: string) => api.get(`/whatsapp/conversations${status ? `?status=${status}` : ''}`),
-  getConversation: (id: string) => api.get(`/whatsapp/conversations/${id}`),
-  getMessages: (conversationId: string) => api.get(`/whatsapp/conversations/${conversationId}/messages`),
-  sendMessage: (conversationId: string, data: SendMessageRequest) => api.post(`/whatsapp/conversations/${conversationId}/messages`, data),
-  assignConversation: (conversationId: string, operatorId: string) => api.post(`/whatsapp/conversations/${conversationId}/assign`, { operatorId }),
-  closeConversation: (conversationId: string, reason?: string) => api.post(`/whatsapp/conversations/${conversationId}/close`, { reason }),
-  getQueueMetrics: () => api.get('/whatsapp/queue/metrics'),
-  getQueueConversations: () => api.get('/whatsapp/queue/conversations'),
-  markAsRead: (conversationId: string) => api.post(`/whatsapp/conversations/${conversationId}/read`)
-}; 
+// APIs para talentos
+export const talentsApi = {
+  getAll: async (page = 1, pageSize = 20) => {
+    const response = await api.get(`/talents?page=${page}&pageSize=${pageSize}`);
+    return response.data;
+  },
+
+  getById: async (id: string) => {
+    const response = await api.get(`/talents/${id}`);
+    return response.data;
+  },
+
+  create: async (talent: any) => {
+    const response = await api.post('/talents', talent);
+    return response.data;
+  },
+
+  update: async (id: string, talent: any) => {
+    const response = await api.put(`/talents/${id}`, talent);
+    return response.data;
+  },
+
+  delete: async (id: string) => {
+    const response = await api.delete(`/talents/${id}`);
+    return response.data;
+  }
+};
+
+// APIs para contratos
+export const contractsApi = {
+  getAll: async () => {
+    const response = await api.get('/contracts');
+    return response.data;
+  },
+
+  getById: async (id: string) => {
+    const response = await api.get(`/contracts/${id}`);
+    return response.data;
+  },
+
+  create: async (contract: any) => {
+    const response = await api.post('/contracts', contract);
+    return response.data;
+  },
+
+  update: async (id: string, contract: any) => {
+    const response = await api.put(`/contracts/${id}`, contract);
+    return response.data;
+  },
+
+  delete: async (id: string) => {
+    const response = await api.delete(`/contracts/${id}`);
+    return response.data;
+  }
+};
+
+// APIs para conversas
+export const conversationsApi = {
+  getAll: async (status?: string) => {
+    const url = status ? `/whatsapp/conversations?status=${status}` : '/whatsapp/conversations';
+    const response = await api.get(url);
+    return response.data;
+  },
+
+  getById: async (id: string) => {
+    const response = await api.get(`/whatsapp/conversations/${id}`);
+    return response.data;
+  },
+
+  assign: async (conversationId: string, operatorId: string) => {
+    const response = await api.post(`/whatsapp/conversations/${conversationId}/assign`, operatorId);
+    return response.data;
+  },
+
+  close: async (conversationId: string, reason?: string) => {
+    const response = await api.post(`/whatsapp/conversations/${conversationId}/close`, { reason });
+    return response.data;
+  }
+};
+
+// Interfaces
+export interface SendMessageRequest {
+  phone: string;
+  message?: string;
+  template?: string;
+  data?: any;
+}
+
+export interface WhatsAppStatus {
+  isConnected: boolean;
+  status: 'connected' | 'disconnected' | 'connecting';
+  lastActivity: string;
+  queueMessageCount: number;
+  canGenerateQR?: boolean;
+  hasQRCode?: boolean;
+  error?: string;
+}
+
+export interface QRCodeResponse {
+  qrCode: string;
+  timestamp: string;
+}
+
+export { rabbitMQService };
+export default api; 

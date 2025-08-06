@@ -88,6 +88,10 @@
               "target": "Package",
               "version": "[13.0.2, )"
             },
+            "RabbitMQ.Client": {
+              "target": "Package",
+              "version": "[6.8.1, )"
+            },
             "Serilog.AspNetCore": {
               "target": "Package",
               "version": "[8.0.0, )"
@@ -210,6 +214,10 @@
             "PuppeteerSharp": {
               "target": "Package",
               "version": "[13.0.2, )"
+            },
+            "RabbitMQ.Client": {
+              "target": "Package",
+              "version": "[6.8.1, )"
             }
           },
           "imports": [

@@ -9,9 +9,9 @@ public class PregiatoDbContext : DbContext
     {
     }
 
-    public DbSet<Talent> Talents { get; set; }
-    public DbSet<Contract> Contracts { get; set; }
-            public DbSet<ContractTemplate> ContractTemplates { get; set; }
+            public DbSet<Talent> Talents { get; set; }
+        public DbSet<Contract> Contracts { get; set; }
+        public DbSet<ContractTemplate> ContractTemplates { get; set; }
         public DbSet<FileUpload> FileUploads { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<Contact> Contacts { get; set; }
@@ -19,6 +19,13 @@ public class PregiatoDbContext : DbContext
         public DbSet<Message> Messages { get; set; }
         public DbSet<Operator> Operators { get; set; }
         public DbSet<QueueEvent> QueueEvents { get; set; }
+        
+        // CRM Entities
+        public DbSet<Lead> Leads { get; set; }
+        public DbSet<LeadInteraction> LeadInteractions { get; set; }
+        public DbSet<CrmTask> Tasks { get; set; }
+        public DbSet<MetaIntegration> MetaIntegrations { get; set; }
+        public DbSet<Campaign> Campaigns { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -290,6 +297,203 @@ public class PregiatoDbContext : DbContext
                 .WithMany(u => u.QueueEvents)
                 .HasForeignKey(e => e.OperatorId)
                 .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // Configuração das entidades CRM
+        modelBuilder.Entity<Lead>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(100);
+            
+            entity.Property(e => e.Email)
+                .IsRequired()
+                .HasMaxLength(100);
+            
+            entity.HasIndex(e => e.Email);
+            entity.HasIndex(e => e.MetaLeadId);
+            
+            entity.Property(e => e.Phone)
+                .IsRequired()
+                .HasMaxLength(20);
+            
+            entity.Property(e => e.Company).HasMaxLength(100);
+            entity.Property(e => e.Position).HasMaxLength(100);
+            entity.Property(e => e.Industry).HasMaxLength(50);
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.Source).HasMaxLength(50);
+            entity.Property(e => e.Status).HasMaxLength(50);
+            entity.Property(e => e.AssignedTo).HasMaxLength(100);
+            entity.Property(e => e.Tags).HasMaxLength(500);
+            entity.Property(e => e.Priority).HasMaxLength(50);
+            entity.Property(e => e.MetaLeadId).HasMaxLength(100);
+            entity.Property(e => e.MetaAdId).HasMaxLength(100);
+            entity.Property(e => e.MetaCampaignId).HasMaxLength(100);
+            entity.Property(e => e.MetaFormId).HasMaxLength(100);
+            
+            entity.Property(e => e.EstimatedValue)
+                .HasColumnType("decimal(18,2)");
+            
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+            
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+        });
+
+        modelBuilder.Entity<LeadInteraction>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            
+            entity.Property(e => e.LeadId).IsRequired();
+            entity.Property(e => e.Type)
+                .IsRequired()
+                .HasMaxLength(50);
+            
+            entity.Property(e => e.Subject)
+                .IsRequired()
+                .HasMaxLength(200);
+            
+            entity.Property(e => e.Description).HasMaxLength(2000);
+            entity.Property(e => e.Outcome).HasMaxLength(100);
+            entity.Property(e => e.PerformedBy).HasMaxLength(100);
+            entity.Property(e => e.Status).HasMaxLength(50);
+            entity.Property(e => e.Notes).HasMaxLength(500);
+            entity.Property(e => e.Duration).HasMaxLength(100);
+            entity.Property(e => e.Location).HasMaxLength(100);
+            
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+            
+            // Relacionamento
+            entity.HasOne(e => e.Lead)
+                .WithMany(l => l.Interactions)
+                .HasForeignKey(e => e.LeadId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<CrmTask>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            
+            entity.Property(e => e.Title)
+                .IsRequired()
+                .HasMaxLength(200);
+            
+            entity.Property(e => e.Description).HasMaxLength(2000);
+            entity.Property(e => e.AssignedTo).HasMaxLength(100);
+            entity.Property(e => e.Priority).HasMaxLength(50);
+            entity.Property(e => e.Status).HasMaxLength(50);
+            entity.Property(e => e.Category).HasMaxLength(50);
+            entity.Property(e => e.Notes).HasMaxLength(500);
+            entity.Property(e => e.EstimatedDuration).HasMaxLength(100);
+            entity.Property(e => e.ActualDuration).HasMaxLength(100);
+            entity.Property(e => e.RecurrencePattern).HasMaxLength(50);
+            
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+            
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+            
+            // Relacionamento
+            entity.HasOne(e => e.Lead)
+                .WithMany(l => l.Tasks)
+                .HasForeignKey(e => e.LeadId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<MetaIntegration>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            
+            entity.Property(e => e.Platform)
+                .IsRequired()
+                .HasMaxLength(100);
+            
+            entity.Property(e => e.AccessToken)
+                .IsRequired()
+                .HasMaxLength(200);
+            
+            entity.Property(e => e.PageId).HasMaxLength(100);
+            entity.Property(e => e.BusinessId).HasMaxLength(100);
+            entity.Property(e => e.AppId).HasMaxLength(100);
+            entity.Property(e => e.AppSecret).HasMaxLength(100);
+            entity.Property(e => e.WebhookVerifyToken).HasMaxLength(100);
+            entity.Property(e => e.WebhookUrl).HasMaxLength(500);
+            entity.Property(e => e.LastError).HasMaxLength(500);
+            entity.Property(e => e.Status).HasMaxLength(50);
+            entity.Property(e => e.Permissions).HasMaxLength(1000);
+            entity.Property(e => e.RefreshToken).HasMaxLength(500);
+            
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+            
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+        });
+
+        modelBuilder.Entity<Campaign>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(200);
+            
+            entity.Property(e => e.Description).HasMaxLength(1000);
+            entity.Property(e => e.Type).HasMaxLength(50);
+            entity.Property(e => e.Platform).HasMaxLength(50);
+            entity.Property(e => e.Status).HasMaxLength(50);
+            entity.Property(e => e.AssignedTo).HasMaxLength(100);
+            entity.Property(e => e.TargetAudience).HasMaxLength(500);
+            entity.Property(e => e.Goals).HasMaxLength(500);
+            entity.Property(e => e.KPIs).HasMaxLength(500);
+            entity.Property(e => e.MetaCampaignId).HasMaxLength(100);
+            entity.Property(e => e.MetaAdSetId).HasMaxLength(100);
+            entity.Property(e => e.MetaAdId).HasMaxLength(100);
+            entity.Property(e => e.MetaCreativeUrl).HasMaxLength(500);
+            entity.Property(e => e.MetaCreativeText).HasMaxLength(1000);
+            
+            entity.Property(e => e.Budget)
+                .HasColumnType("decimal(18,2)");
+            
+            entity.Property(e => e.Spent)
+                .HasColumnType("decimal(18,2)");
+            
+            entity.Property(e => e.CTR)
+                .HasColumnType("decimal(5,2)");
+            
+            entity.Property(e => e.CPC)
+                .HasColumnType("decimal(10,2)");
+            
+            entity.Property(e => e.CPM)
+                .HasColumnType("decimal(10,2)");
+            
+            entity.Property(e => e.CPA)
+                .HasColumnType("decimal(10,2)");
+            
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+            
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
         });
     }
 } 

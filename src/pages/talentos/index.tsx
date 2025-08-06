@@ -8,11 +8,11 @@ import { Badge } from '@/components/ui/badge'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
 import { AdvancedFilters } from '@/components/advanced-filters'
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination'
+
 import { AutoComplete } from 'primereact/autocomplete'
-import { getTalents } from '@/lib/talent-service'
+import { getTalentsPaginated, PaginatedTalentsResponse } from '@/lib/talent-service'
 import { TalentData } from '@/types/talent'
-import { usePagination } from '@/hooks/usePagination'
+import { Pagination } from '@/components/ui/pagination'
 import { MoreVertical, Plus, Search, Filter } from 'lucide-react'
 
 interface TalentCardProps {
@@ -116,16 +116,32 @@ export default function TalentosPage() {
   const [statusFilter, setStatusFilter] = useState<string>('')
   const [dnaFilter, setDnaFilter] = useState<string>('')
   const [advancedFilters, setAdvancedFilters] = useState<any>({})
+  
+  // Paginação
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(20)
+  const [totalRecords, setTotalRecords] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const [executionTime, setExecutionTime] = useState<number>(0)
 
   useEffect(() => {
     loadTalents()
-  }, [])
+  }, [currentPage, pageSize, searchTerm])
 
   const loadTalents = async () => {
     try {
       setLoading(true)
-      const data = await getTalents()
-      setTalents(data)
+      const data: PaginatedTalentsResponse = await getTalentsPaginated(
+        currentPage,
+        pageSize,
+        searchTerm || undefined,
+        'created',
+        true
+      )
+      setTalents(data.data)
+      setTotalRecords(data.total)
+      setTotalPages(data.totalPages)
+      setExecutionTime(data.executionTimeMs)
     } catch (error) {
       console.error('Erro ao carregar talentos:', error)
     } finally {
@@ -191,22 +207,15 @@ export default function TalentosPage() {
     })
   }, [talents, searchTerm, statusFilter, dnaFilter, advancedFilters])
 
-  // Pagination
-  const {
-    currentItems: currentTalents,
-    currentPage,
-    totalPages,
-    totalItems,
-    goToPage,
-    nextPage,
-    prevPage,
-    canGoNext,
-    canGoPrev,
-    pageNumbers
-  } = usePagination({
-    data: filteredTalents,
-    itemsPerPage: 12
-  })
+  // Handlers de paginação
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+  }
+
+  const handlePageSizeChange = (newPageSize: number) => {
+    setPageSize(newPageSize)
+    setCurrentPage(1) // Voltar para primeira página
+  }
 
   // Autocomplete search suggestions
   const searchTalents = (query: string) => {
@@ -346,47 +355,26 @@ export default function TalentosPage() {
         />
 
         {/* Talents Grid */}
-        {currentTalents.length > 0 ? (
+        {talents.length > 0 ? (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {currentTalents.map((talent) => (
+              {talents.map((talent) => (
                 <TalentCard key={talent.id} talent={talent} navigate={navigate} />
               ))}
             </div>
             
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex justify-center mt-8">
-                <Pagination>
-                  <PaginationContent>
-                    <PaginationItem>
-                      <PaginationPrevious 
-                        onClick={prevPage}
-                        className={!canGoPrev ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                      />
-                    </PaginationItem>
-                    
-                    {pageNumbers.map((pageNum) => (
-                      <PaginationItem key={pageNum}>
-                        <PaginationLink
-                          onClick={() => goToPage(pageNum)}
-                          isActive={currentPage === pageNum}
-                          className="cursor-pointer"
-                        >
-                          {pageNum}
-                        </PaginationLink>
-                      </PaginationItem>
-                    ))}
-                    
-                    <PaginationItem>
-                      <PaginationNext 
-                        onClick={nextPage}
-                        className={!canGoNext ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                      />
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
-              </div>
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalRecords={totalRecords}
+                pageSize={pageSize}
+                onPageChange={handlePageChange}
+                onPageSizeChange={handlePageSizeChange}
+                isLoading={loading}
+                executionTime={executionTime}
+              />
             )}
           </>
         ) : (

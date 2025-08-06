@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { whatsAppApi } from '../services/whatsapp-api';
+import { conversationsApi, rabbitMQService } from '../services/whatsapp-api';
 
 export interface Message {
   id: string;
@@ -41,8 +41,8 @@ export const useTalentChat = (conversationId: string) => {
   const fetchConversation = async () => {
     try {
       setLoading(true);
-      const response = await whatsAppApi.getConversation(conversationId);
-      setConversation(response.data);
+      const response = await conversationsApi.getById(conversationId);
+      setConversation(response);
       setError(null);
     } catch (err) {
       console.error('Erro ao buscar conversa:', err);
@@ -54,8 +54,9 @@ export const useTalentChat = (conversationId: string) => {
 
   const fetchMessages = async () => {
     try {
-      const response = await whatsAppApi.getMessages(conversationId);
-      setMessages(response.data);
+      // Por enquanto, vamos simular mensagens já que não temos endpoint específico
+      // TODO: Implementar endpoint de mensagens no backend
+      setMessages([]);
     } catch (err) {
       console.error('Erro ao buscar mensagens:', err);
     }
@@ -71,7 +72,8 @@ export const useTalentChat = (conversationId: string) => {
         fileName
       };
       
-      await whatsAppApi.sendMessage(conversationId, messageData);
+      // Usar o rabbitMQService para enviar mensagem
+      await rabbitMQService.sendMessage(conversationId, body);
       await fetchMessages();
     } catch (err) {
       console.error('Erro ao enviar mensagem:', err);
@@ -83,7 +85,7 @@ export const useTalentChat = (conversationId: string) => {
 
   const markAsRead = async () => {
     try {
-      await whatsAppApi.markAsRead(conversationId);
+      // TODO: Implementar endpoint para marcar como lido
       await fetchConversation();
     } catch (err) {
       console.error('Erro ao marcar como lido:', err);

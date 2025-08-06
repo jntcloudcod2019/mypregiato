@@ -1,15 +1,16 @@
 
 import { useState, useEffect } from 'react';
-import { whatsAppApi } from '../services/whatsapp-api';
+import { conversationsApi } from '../services/whatsapp-api';
 
 export interface ActiveConversation {
   id: string;
   contactName: string;
   contactPhone: string;
-  status: string;
   lastMessage: string;
-  lastMessageAt: string;
-  unreadCount: number;
+  lastMessageTime: string;
+  status: 'active' | 'pending' | 'closed';
+  operatorId?: string;
+  operatorName?: string;
 }
 
 export const useActiveAttendance = () => {
@@ -19,9 +20,8 @@ export const useActiveAttendance = () => {
 
   const fetchActiveConversations = async () => {
     try {
-      setLoading(true);
-      const response = await whatsAppApi.getConversations('assigned');
-      setConversations(response.data);
+      const response = await conversationsApi.getAll('assigned');
+      setConversations(response);
       setError(null);
     } catch (err) {
       console.error('Erro ao buscar conversas ativas:', err);
@@ -31,22 +31,22 @@ export const useActiveAttendance = () => {
     }
   };
 
-  const startAttendance = async (conversationId: string, operatorId: string) => {
+  const assignConversation = async (conversationId: string, operatorId: string) => {
     try {
-      await whatsAppApi.assignConversation(conversationId, operatorId);
-      await fetchActiveConversations();
+      await conversationsApi.assign(conversationId, operatorId);
+      await fetchActiveConversations(); // Recarregar lista
     } catch (err) {
-      console.error('Erro ao iniciar atendimento:', err);
+      console.error('Erro ao atribuir conversa:', err);
       throw err;
     }
   };
 
-  const endAttendance = async (conversationId: string, reason?: string) => {
+  const closeConversation = async (conversationId: string, reason?: string) => {
     try {
-      await whatsAppApi.closeConversation(conversationId, reason);
-      await fetchActiveConversations();
+      await conversationsApi.close(conversationId, reason);
+      await fetchActiveConversations(); // Recarregar lista
     } catch (err) {
-      console.error('Erro ao encerrar atendimento:', err);
+      console.error('Erro ao fechar conversa:', err);
       throw err;
     }
   };
@@ -54,8 +54,8 @@ export const useActiveAttendance = () => {
   useEffect(() => {
     fetchActiveConversations();
     
-    // Atualizar a cada 30 segundos
-    const interval = setInterval(fetchActiveConversations, 30000);
+    // Atualizar a cada 10 segundos
+    const interval = setInterval(fetchActiveConversations, 10000);
     
     return () => clearInterval(interval);
   }, []);
@@ -64,8 +64,8 @@ export const useActiveAttendance = () => {
     conversations,
     loading,
     error,
-    startAttendance,
-    endAttendance,
+    assignConversation,
+    closeConversation,
     refresh: fetchActiveConversations
   };
 };

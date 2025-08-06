@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { whatsAppApi } from '../services/whatsapp-api';
+import { rabbitMQService } from '../services/whatsapp-api';
 
 export interface QueueMetrics {
   totalQueued: number;
@@ -31,8 +31,8 @@ export const useAttendanceQueue = () => {
   const fetchQueue = async () => {
     try {
       setLoading(true);
-      const response = await whatsAppApi.getQueueMetrics();
-      setMetrics(response.data);
+      const response = await rabbitMQService.getQueueMetrics();
+      setMetrics(response);
       setError(null);
     } catch (err) {
       console.error('Erro ao buscar métricas da fila:', err);

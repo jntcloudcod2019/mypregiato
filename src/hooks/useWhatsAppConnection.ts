@@ -1,66 +1,152 @@
 
-import { useState, useEffect } from 'react';
-import { whatsAppGateway } from '../services/whatsapp-api';
+import { useState, useEffect, useCallback } from 'react';
+import { rabbitMQService, WhatsAppStatus, QRCodeResponse } from '../services/whatsapp-api';
 
-export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'qr_ready';
+export enum ConnectionStatus {
+  disconnected = 'disconnected',
+  connecting = 'connecting',
+  connected = 'connected',
+  generating = 'generating'
+}
+
+export interface WhatsAppConnectionState {
+  status: ConnectionStatus;
+  isConnected: boolean;
+  lastActivity?: string;
+  error?: string;
+  canGenerateQR?: boolean;
+  hasQRCode?: boolean;
+  qrCode?: string;
+}
 
 export const useWhatsAppConnection = () => {
-  const [status, setStatus] = useState<ConnectionStatus>('disconnected');
-  const [qrCode, setQrCode] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [connectionState, setConnectionState] = useState<WhatsAppConnectionState>({
+    status: ConnectionStatus.disconnected,
+    isConnected: false,
+    canGenerateQR: true
+  });
 
-  const connect = async () => {
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [isGeneratingQR, setIsGeneratingQR] = useState(false);
+
+  const checkStatus = useCallback(async () => {
     try {
-      setStatus('connecting');
-      setError(null);
-      await whatsAppGateway.connect();
-      setStatus('connected');
-    } catch (err) {
-      console.error('Erro ao conectar WhatsApp:', err);
-      setError('Erro ao conectar WhatsApp');
-      setStatus('disconnected');
+      const status: WhatsAppStatus = await rabbitMQService.getStatus();
+      
+      setConnectionState({
+        status: status.isConnected ? ConnectionStatus.connected : ConnectionStatus.disconnected,
+        isConnected: status.isConnected,
+        lastActivity: status.lastActivity,
+        error: status.error,
+        canGenerateQR: status.canGenerateQR ?? !status.isConnected,
+        hasQRCode: status.hasQRCode
+      });
+    } catch (error) {
+      console.error('Erro ao verificar status do WhatsApp:', error);
+      setConnectionState({
+        status: ConnectionStatus.disconnected,
+        isConnected: false,
+        error: 'Erro ao conectar com o servidor',
+        canGenerateQR: true
+      });
     }
-  };
-
-  const disconnect = async () => {
-    try {
-      await whatsAppGateway.disconnect();
-      setStatus('disconnected');
-      setQrCode(null);
-      setError(null);
-    } catch (err) {
-      console.error('Erro ao desconectar WhatsApp:', err);
-      setError('Erro ao desconectar WhatsApp');
-    }
-  };
-
-  const getStatus = async () => {
-    try {
-      const response = await whatsAppGateway.getStatus();
-      const { status: currentStatus, qrCode: currentQrCode } = response.data;
-      setStatus(currentStatus);
-      setQrCode(currentQrCode);
-    } catch (err) {
-      console.error('Erro ao buscar status do WhatsApp:', err);
-      setError('Erro ao buscar status do WhatsApp');
-    }
-  };
-
-  useEffect(() => {
-    getStatus();
-    
-    // Atualizar status a cada 10 segundos
-    const interval = setInterval(getStatus, 10000);
-    
-    return () => clearInterval(interval);
   }, []);
 
+  const getQRCode = useCallback(async () => {
+    try {
+      const qrResponse: QRCodeResponse = await rabbitMQService.getQRCode();
+      console.log('QR Code recebido:', qrResponse.qrCode?.substring(0, 100) + '...');
+      setConnectionState(prev => ({
+        ...prev,
+        qrCode: qrResponse.qrCode,
+        hasQRCode: true
+      }));
+      return qrResponse.qrCode;
+    } catch (error) {
+      console.error('Erro ao obter QR code:', error);
+      return null;
+    }
+  }, []);
+
+  const connect = useCallback(async () => {
+    setIsConnecting(true);
+    try {
+      await checkStatus();
+    } catch (error) {
+      console.error('Erro ao conectar:', error);
+    } finally {
+      setIsConnecting(false);
+    }
+  }, [checkStatus]);
+
+  const disconnect = useCallback(async () => {
+    setConnectionState({
+      status: ConnectionStatus.disconnected,
+      isConnected: false,
+      canGenerateQR: true
+    });
+  }, []);
+
+  const generateQR = useCallback(async () => {
+    if (connectionState.isConnected) {
+      console.log('Bot já está conectado');
+      return;
+    }
+
+    setIsGeneratingQR(true);
+    try {
+      const result = await rabbitMQService.generateQR();
+      console.log('QR Code gerado:', result);
+      
+      setConnectionState(prev => ({
+        ...prev,
+        status: ConnectionStatus.generating
+      }));
+
+      // Aguardar um pouco e verificar se o QR code foi gerado
+      setTimeout(async () => {
+        await checkStatus();
+        // Tentar obter o QR code
+        await getQRCode();
+      }, 3000);
+
+    } catch (error) {
+      console.error('Erro ao gerar QR code:', error);
+      setConnectionState(prev => ({
+        ...prev,
+        error: 'Erro ao gerar QR code'
+      }));
+    } finally {
+      setIsGeneratingQR(false);
+    }
+  }, [connectionState.isConnected, checkStatus, getQRCode]);
+
+  // Verificar status periodicamente
+  useEffect(() => {
+    checkStatus();
+
+    const interval = setInterval(() => {
+      checkStatus();
+    }, 30000); // Verificar a cada 30 segundos
+
+    return () => clearInterval(interval);
+  }, [checkStatus]);
+
+  // Se tem QR code disponível, buscar automaticamente
+  useEffect(() => {
+    if (connectionState.hasQRCode && !connectionState.qrCode) {
+      getQRCode();
+    }
+  }, [connectionState.hasQRCode, connectionState.qrCode, getQRCode]);
+
   return {
-    status,
-    qrCode,
-    error,
+    ...connectionState,
+    isConnecting,
+    isGeneratingQR,
     connect,
     disconnect,
-    refresh: getStatus
+    generateQR,
+    getQRCode,
+    checkStatus
   };
 };

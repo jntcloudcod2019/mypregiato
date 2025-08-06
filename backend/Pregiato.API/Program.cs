@@ -1,64 +1,29 @@
 using Microsoft.EntityFrameworkCore;
-using Pregiato.Infrastructure.Data;
+using Pregiato.API.Controllers;
 using Pregiato.Application.Interfaces;
 using Pregiato.Application.Services;
-using Pregiato.Infrastructure.Repositories;
-using Pregiato.Application.Validators;
-using Pregiato.Core.Interfaces;
+using Pregiato.Infrastructure.Data;
+using Pregiato.Application.Mappings;
 using FluentValidation;
+using Pregiato.Application.Validators;
+using Pregiato.Application.DTOs;
 using Serilog;
-using Pregiato.API.Hubs;
-using Microsoft.OpenApi.Models;
+using Serilog.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Configurar Serilog
 Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
     .WriteTo.Console()
     .WriteTo.File("logs/pregiato-.txt", rollingInterval: RollingInterval.Day)
     .CreateLogger();
 
 builder.Host.UseSerilog();
 
-// Adicionar serviços ao container
+// Add services to the container.
 builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-
-// Configurar Swagger
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo 
-    { 
-        Title = "Pregiato API", 
-        Version = "v1",
-        Description = "API do sistema PREGIATO MANAGEMENT",
-        Contact = new OpenApiContact
-        {
-            Name = "Pregiato Team",
-            Email = "contato@pregiato.com"
-        }
-    });
-    
-    // Incluir comentários XML se existirem
-    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    if (File.Exists(xmlPath))
-    {
-        c.IncludeXmlComments(xmlPath);
-    }
-});
-
-// Configurar Entity Framework com MySQL
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<PregiatoDbContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString), 
-        mySqlOptions => mySqlOptions.EnableRetryOnFailure()));
-
-// Configurar AutoMapper
-builder.Services.AddAutoMapper(typeof(Program));
-
-// Configurar FluentValidation
-builder.Services.AddValidatorsFromAssemblyContaining<CreateTalentDtoValidator>();
 
 // Configurar CORS
 builder.Services.AddCors(options =>
@@ -71,47 +36,62 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Configurar SignalR
-builder.Services.AddSignalR();
+// Configurar DbContext
+builder.Services.AddDbContext<PregiatoDbContext>(options =>
+    options.UseMySql(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
+    ));
 
-// Configurar HttpClient
+// Registrar HttpClient
 builder.Services.AddHttpClient();
 
-// Registrar serviços
+// Registrar AutoMapper
+builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
+
+// Registrar FluentValidation
+builder.Services.AddScoped<IValidator<CreateTalentDto>, CreateTalentDtoValidator>();
+
+// Registrar Services
 builder.Services.AddScoped<ITalentService, TalentService>();
-builder.Services.AddScoped<ITalentRepository, TalentRepository>();
 builder.Services.AddScoped<IContractService, ContractService>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IWhatsAppService, WhatsAppService>();
 
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 var app = builder.Build();
 
-// Configurar pipeline de requisições HTTP
+// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Pregiato API v1");
-        c.RoutePrefix = "swagger";
-        c.DocumentTitle = "Pregiato API Documentation";
-    });
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
+
+// Usar CORS
 app.UseCors("AllowAll");
+
 app.UseAuthorization();
+
 app.MapControllers();
 
-// Configurar SignalR
-app.MapHub<WhatsAppHub>("/hubs/whatsapp");
-
-// Garantir que o banco de dados seja criado
-using (var scope = app.Services.CreateScope())
+// Middleware para logging de requests
+app.Use(async (context, next) =>
 {
-    var context = scope.ServiceProvider.GetRequiredService<PregiatoDbContext>();
-    context.Database.EnsureCreated();
-}
+    var start = DateTime.UtcNow;
+    Log.Information("Request starting {Method} {Path}", context.Request.Method, context.Request.Path);
+    
+    await next();
+    
+    var elapsed = DateTime.UtcNow - start;
+    Log.Information("Request finished {Method} {Path} - {StatusCode} in {Elapsed:0.0000}ms", 
+        context.Request.Method, context.Request.Path, context.Response.StatusCode, elapsed.TotalMilliseconds);
+});
 
 try
 {

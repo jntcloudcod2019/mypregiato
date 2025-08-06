@@ -1,0 +1,9 @@
+{
+  "id": "test123",
+  "from": "5511999999999@c.us",
+  "to": "5511949908369@c.us",
+  "body": "Teste de mensagem",
+  "type": "text",
+  "timestamp": 1754438587446,
+  "isFromMe": false
+} 

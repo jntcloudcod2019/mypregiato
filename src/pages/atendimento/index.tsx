@@ -1,293 +1,242 @@
-import { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { MessageSquare, Phone, QrCode, Wifi, WifiOff, User, ChevronDown, Zap, Coffee, Clock } from "lucide-react"
-import { useUser } from "@clerk/clerk-react"
-import { useWhatsAppConnection } from "@/hooks/useWhatsAppConnection"
-import { TalentChat as TalentChatComponent } from "@/components/whatsapp/talent-chat"
-import { QRCodeModal } from "@/components/whatsapp/qr-code-modal"
-import { AttendanceDashboard } from "@/components/whatsapp/attendance-dashboard"
-import { OperatorsCompactDashboard } from "@/components/whatsapp/operators-compact-dashboard"
-import { useOperatorStatus } from "@/hooks/useOperatorStatus"
-import { cn } from "@/lib/utils"
-import { whatsAppApi } from '@/services/whatsapp-api'
+import React, { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Bot, MessageSquare, Users, Clock, AlertCircle, User, Settings, LogOut, Circle, Wifi, WifiOff, QrCode } from 'lucide-react';
+import { useWhatsAppConnection, ConnectionStatus } from '@/hooks/useWhatsAppConnection';
+import { useOperatorStatus } from '@/hooks/useOperatorStatus';
+import { QRCodeModal } from '@/components/whatsapp/qr-code-modal';
+import { CentralDeAtendimento } from '@/components/attendance/central-de-atendimento';
+import { ChatWindow } from '@/components/attendance/chat-window';
+import { TestMessages } from '@/components/attendance/test-messages';
+import { useAttendanceCenter } from '@/hooks/useAttendanceCenter';
+import { attendanceService } from '@/services/attendance-service';
+import { useUserRole } from '@/services/user-role-service';
+import { ActiveChat } from '@/types/attendance';
 
-export default function AtendimentoPage() {
-  const { user } = useUser()
-  const { status, qrCode, error, connect, disconnect, refresh } = useWhatsAppConnection()
-  const { currentOperator, updateOperatorStatus } = useOperatorStatus()
-  const [selectedConversation, setSelectedConversation] = useState<string | null>(null)
-  const [showQRModal, setShowQRModal] = useState(false)
-  const [isStatusOpen, setIsStatusOpen] = useState(false)
-  const [contacts, setContacts] = useState<any[]>([])
+export default function AttendancePage() {
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [selectedChat, setSelectedChat] = useState<ActiveChat | null>(null);
+  const [showChatWindow, setShowChatWindow] = useState(false);
 
+  // WhatsApp Connection
+  const {
+    status,
+    isConnected,
+    lastActivity,
+    error,
+    isConnecting,
+    isGeneratingQR,
+    canGenerateQR,
+    qrCode,
+    hasQRCode,
+    connect,
+    disconnect,
+    generateQR
+  } = useWhatsAppConnection();
+
+  // Operator Status
+  const { currentOperator, updateOperatorStatus } = useOperatorStatus();
+  const { isAdmin, loading: roleLoading } = useUserRole();
+
+  // Attendance Center
+  const {
+    queue,
+    activeChats,
+    metrics,
+    selectedTab,
+    setSelectedTab,
+    attendRequest,
+    handleNewMessage,
+    closeChat
+  } = useAttendanceCenter();
+
+  // Configurar handler para novas mensagens
   useEffect(() => {
-    whatsAppApi.getContacts().then(res => setContacts(res.data)).catch(() => setContacts([]))
-  }, [])
+    const messageHandler = (message: any) => {
+      handleNewMessage(message);
+    };
 
-  const statusOptions = [
-    {
-      value: 'available' as const,
-      label: 'Disponível',
-      color: 'bg-green-500',
-      hoverColor: 'hover:bg-green-600',
-      icon: Zap,
-      description: 'Pronto para atender'
-    },
-    {
-      value: 'busy' as const,
-      label: 'Ocupado',
-      color: 'bg-yellow-500',
-      hoverColor: 'hover:bg-yellow-600',
-      icon: Clock,
-      description: 'Em atendimento'
-    },
-    {
-      value: 'away' as const,
-      label: 'Ausente',
-      color: 'bg-red-500',
-      hoverColor: 'hover:bg-red-600',
-      icon: Coffee,
-      description: 'Indisponível'
-    }
-  ]
+    attendanceService.onNewMessage(messageHandler);
 
-  const currentStatus = statusOptions.find(opt => opt.value === currentOperator?.status)
-  const StatusIcon = currentStatus?.icon || User
+    // Iniciar consumidor de mensagens da fila
+    attendanceService.startMessageConsumer();
 
-  const handleStatusChange = (status: 'available' | 'busy' | 'away') => {
-    updateOperatorStatus(status)
-    setIsStatusOpen(false)
-  }
-
-  const handleConnect = async () => {
-    try {
-      await connect()
-      setShowQRModal(true)
-    } catch (error) {
-      console.error('Error connecting WhatsApp:', error)
-    }
-  }
-
-  const handleConversationSelect = (conversationId: string) => {
-    setSelectedConversation(conversationId)
-  }
-
-  const handleStartAttendance = (conversationId: string, operatorId: string) => {
-    setSelectedConversation(conversationId)
-    
+    // Simular algumas mensagens para teste
     setTimeout(() => {
-      const chatElement = document.getElementById('talent-chat')
-      if (chatElement) {
-        chatElement.scrollIntoView({ behavior: 'smooth' })
-      }
-    }, 100)
-  }
+      attendanceService.simulateIncomingMessage('11999999999', 'Olá, preciso de ajuda!');
+    }, 2000);
 
-  const selectedConversationData = selectedConversation ? contacts.find(c => c.id === selectedConversation) : null
+    setTimeout(() => {
+      attendanceService.simulateIncomingMessage('11988888888', 'Bom dia, gostaria de informações sobre produtos');
+    }, 4000);
+
+    return () => {
+      attendanceService.removeHandler(messageHandler);
+    };
+  }, [handleNewMessage]);
+
+  const handleAttendRequest = (requestId: string, operatorId: string) => {
+    attendRequest(requestId, operatorId);
+    
+    // Encontrar o chat recém-criad o
+    const operatorChats = activeChats.get(operatorId) || [];
+    const newChat = operatorChats[operatorChats.length - 1];
+    
+    if (newChat) {
+      setSelectedChat(newChat);
+      setShowChatWindow(true);
+    }
+  };
+
+  const handleSendMessage = async (message: string) => {
+    if (!selectedChat) return;
+
+    try {
+      const responseMessage = await attendanceService.sendMessage(selectedChat.phone, message);
+      console.log('Mensagem enviada:', responseMessage);
+    } catch (error) {
+      console.error('Erro ao enviar mensagem:', error);
+    }
+  };
+
+  const handleCloseChat = (chatId: string, operatorId: string) => {
+    closeChat(chatId, operatorId);
+    
+    if (selectedChat?.id === chatId) {
+      setSelectedChat(null);
+      setShowChatWindow(false);
+    }
+  };
+
+  // Helper functions for status display
+  const getStatusColor = (status: ConnectionStatus) => {
+    switch (status) {
+      case ConnectionStatus.connected:
+        return 'bg-green-100 text-green-800 border-green-200';
+      case ConnectionStatus.disconnected:
+        return 'bg-red-100 text-red-800 border-red-200';
+      case ConnectionStatus.connecting:
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case ConnectionStatus.generating:
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const getStatusText = (status: ConnectionStatus) => {
+    switch (status) {
+      case ConnectionStatus.connected:
+        return 'Bot Conectado';
+      case ConnectionStatus.disconnected:
+        return 'Bot Inativo';
+      case ConnectionStatus.connecting:
+        return 'Conectando...';
+      case ConnectionStatus.generating:
+        return 'Gerando QR Code...';
+      default:
+        return 'Status Desconhecido';
+    }
+  };
+
+  const getStatusIcon = (status: ConnectionStatus) => {
+    switch (status) {
+      case ConnectionStatus.connected:
+        return <Wifi className="h-5 w-5 text-green-600" />;
+      case ConnectionStatus.disconnected:
+        return <WifiOff className="h-5 w-5 text-red-600" />;
+      case ConnectionStatus.connecting:
+        return <Wifi className="h-5 w-5 text-yellow-600 animate-pulse" />;
+      case ConnectionStatus.generating:
+        return <QrCode className="h-5 w-5 text-blue-600 animate-pulse" />;
+      default:
+        return <Bot className="h-5 w-5 text-gray-600" />;
+    }
+  };
+
+  const getOperatorStatusColor = (status: string) => {
+    switch (status) {
+      case 'available': return 'bg-green-500';
+      case 'busy': return 'bg-yellow-500';
+      case 'away': return 'bg-red-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
+  const getOperatorStatusText = (status: string) => {
+    switch (status) {
+      case 'available': return 'Disponível';
+      case 'busy': return 'Ocupado';
+      case 'away': return 'Ausente';
+      default: return 'Offline';
+    }
+  };
+
+  const getOperatorStatusIcon = (status: string) => {
+    switch (status) {
+      case 'available': return <Circle className="h-3 w-3 text-green-600" />;
+      case 'busy': return <Circle className="h-3 w-3 text-yellow-600" />;
+      case 'away': return <Circle className="h-3 w-3 text-red-600" />;
+      default: return <Circle className="h-3 w-3 text-gray-600" />;
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
-      <div className="p-6 max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto p-6">
         {/* Header */}
-        <div className="mb-8 flex justify-between items-start">
-          <div className="space-y-2">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-              Central de Atendimento
-            </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl">
-              Sistema inteligente de atendimento PREGIATO MANAGEMENT em tempo real
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Central de Atendimento</h1>
+            <p className="text-gray-600 mt-2">
+              Gerencie mensagens e conversas do WhatsApp
             </p>
-          </div>
-          
-          {/* User info com controle de status integrado */}
-          <div className="flex items-center gap-4 bg-gradient-to-r from-card via-card to-muted/30 border border-border/50 rounded-2xl px-6 py-4 shadow-lg backdrop-blur-sm">
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                {user?.imageUrl ? (
-                  <img 
-                    src={user.imageUrl} 
-                    alt={user.fullName || 'Usuário'} 
-                    className="w-10 h-10 rounded-full border-2 border-primary/20 shadow-md"
-                  />
-                ) : (
-                  <div className="w-10 h-10 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center border-2 border-primary/20">
-                    <User className="w-5 h-5 text-primary" />
-                  </div>
-                )}
-                {currentOperator && (
-                  <div className={cn(
-                    "absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-card",
-                    currentStatus?.color || 'bg-gray-500'
-                  )} />
-                )}
-              </div>
-              <div>
-                <p className="font-semibold text-foreground">
-                  {user?.fullName || user?.firstName || 'Operador'}
-                </p>
-                <div className="flex items-center gap-2">
-                  <p className="text-sm text-muted-foreground">
-                    {user?.emailAddresses?.[0]?.emailAddress || 'online'}
-                  </p>
-                  {currentOperator && (
-                    <>
-                      <span className="text-muted-foreground">•</span>
-                      <div className="flex items-center gap-1">
-                        <StatusIcon className="h-3 w-3" />
-                        <span className="text-xs text-muted-foreground">
-                          {currentStatus?.label || 'Indefinido'}
-                        </span>
-                      </div>
-                    </>
-                  )}
-                </div>
               </div>
             </div>
             
-            {currentOperator && (
-              <Popover open={isStatusOpen} onOpenChange={setIsStatusOpen}>
-                <PopoverTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="h-8 px-3 border-border/50 hover:border-primary/30"
-                  >
-                    Alterar Status
-                    <ChevronDown className="h-3 w-3 ml-1" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-56 p-2">
-                  <div className="space-y-1">
-                    {statusOptions.map((option) => {
-                      const OptionIcon = option.icon
-                      const isSelected = currentOperator.status === option.value
-                      
-                      return (
-                        <Button
-                          key={option.value}
-                          variant="ghost"
-                          onClick={() => handleStatusChange(option.value)}
-                          className={cn(
-                            "w-full justify-start gap-3 h-auto p-3 transition-all",
-                            isSelected && "bg-primary/10 border border-primary/20"
-                          )}
-                        >
-                          <div className="flex items-center gap-3 flex-1">
-                            <div className={cn(
-                              "w-3 h-3 rounded-full",
-                              option.color
-                            )} />
-                            <div className="text-left flex-1">
+        {/* Status Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          {/* Status do Bot */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Status do Chat Bot</CardTitle>
+              {getStatusIcon(status)}
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {/* Status do Bot */}
+                <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <OptionIcon className="h-4 w-4" />
-                                <span className="font-medium">{option.label}</span>
-                              </div>
-                              <p className="text-xs text-muted-foreground">
-                                {option.description}
-                              </p>
-                            </div>
-                          </div>
-                          {isSelected && (
-                            <Badge variant="outline" className="text-xs">
-                              Ativo
+                    <Badge className={getStatusColor(status)}>
+                      {getStatusText(status)}
                             </Badge>
-                          )}
-                        </Button>
-                      )
-                    })}
                   </div>
-                </PopoverContent>
-              </Popover>
-            )}
-            
-            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse shadow-sm shadow-green-500/50" title="Online" />
-          </div>
-        </div>
-
-        {/* Layout reorganizado - Sidebar esquerda com operadores e controle WhatsApp */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-8">
-          {/* Sidebar esquerda */}
-          <div className="lg:col-span-1 space-y-4">
-            {/* Operadores Online */}
-            <OperatorsCompactDashboard />
-            
-            {/* Controle WhatsApp */}
-            <Card className="bg-gradient-to-b from-card to-card/80 border-border/50 shadow-lg backdrop-blur-sm">
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-3 text-lg">
-                  <div className="p-2 bg-gradient-to-br from-primary/20 to-primary/10 rounded-lg">
-                    <Phone className="h-5 w-5 text-primary" />
+                  <div className="text-xs text-muted-foreground">
+                    {lastActivity ? `Última atividade: ${new Date(lastActivity).toLocaleString()}` : 'Nenhuma atividade'}
                   </div>
-                  Controle WhatsApp
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Status Connection em tempo real */}
-                <div className={cn(
-                  "flex items-center justify-between p-4 rounded-xl border transition-all duration-300",
-                  status === 'connected'
-                    ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800" 
-                    : "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800"
-                )}>
-                  <div className="flex items-center gap-3">
-                    <div className={cn(
-                      "p-2 rounded-lg",
-                      status === 'connected' ? "bg-green-500/20" : "bg-red-500/20"
-                    )}>
-                      {status === 'connected' ? (
-                        <Wifi className="h-5 w-5 text-green-600" />
-                      ) : (
-                        <WifiOff className="h-5 w-5 text-red-600" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="font-semibold text-foreground">
-                        {status === 'connected' ? 'Conectado' : 'Desconectado'}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {status === 'connected' && 'Em tempo real'}
-                        {status === 'connecting' && 'Conectando...'}
-                        {status === 'qr_ready' && 'QR Code ativo'}
-                        {status === 'disconnected' && 'Offline'}
-                      </p>
-                    </div>
-                  </div>
-                  <Badge 
-                    className={cn(
-                      "shadow-sm",
-                      status === 'connected'
-                        ? 'bg-green-500 hover:bg-green-600 text-white' 
-                        : 'bg-red-500 hover:bg-red-600 text-white'
-                    )}
-                  >
-                    {status === 'connected' ? 'Ativo' : 'Inativo'}
-                  </Badge>
                 </div>
 
-                {/* Action buttons */}
-                <div className="space-y-3">
-                  {status !== 'connected' && (
+                {/* Botões de Ação */}
+                <div className="space-y-2">
+                  {!isConnected && canGenerateQR && (
                     <Button
-                      onClick={handleConnect}
-                      disabled={status === 'connecting'}
-                      className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300"
+                      onClick={() => setShowQRModal(true)}
+                      disabled={isGeneratingQR}
+                      className="w-full"
+                      variant="outline"
                     >
                       <QrCode className="h-4 w-4 mr-2" />
-                      {status === 'connecting' ? 'Gerando QR...' : 'Conectar WhatsApp'}
+                      {isGeneratingQR ? 'Gerando...' : 'Conectar WhatsApp'}
                     </Button>
                   )}
 
-                  {status === 'connected' && (
+                  {isConnected && (
                     <Button
                       onClick={disconnect}
-                      variant="outline"
-                      className="w-full border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+                      className="w-full"
+                      variant="destructive"
                     >
                       <WifiOff className="h-4 w-4 mr-2" />
                       Desconectar
@@ -295,100 +244,161 @@ export default function AtendimentoPage() {
                   )}
                 </div>
 
-                <Separator className="bg-border/50" />
+                {/* QR Code Status */}
+                {hasQRCode && (
+                  <div className="text-center p-2 bg-blue-50 rounded-md">
+                    <QrCode className="h-4 w-4 mx-auto mb-1 text-blue-600" />
+                    <p className="text-xs text-blue-600">QR Code disponível</p>
+                  </div>
+                )}
 
-                {/* Lista de contatos */}
-                <div>
-                  <h3 className="font-semibold mb-4 text-foreground flex items-center gap-2">
-                    <MessageSquare className="h-4 w-4" />
-                    Contatos dos Modelos
-                  </h3>
-                  <ScrollArea className="h-80">
-                    <div className="space-y-2">
-                      {contacts.map((talent) => {
-                        return (
-                          <button
-                            key={talent.id}
-                            onClick={() => handleConversationSelect(talent.id)}
-                            className={cn(
-                              "w-full text-left p-3 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg border",
-                              selectedConversation === talent.id 
-                                ? 'border-primary bg-gradient-to-r from-primary/10 to-primary/5 shadow-lg' 
-                                : 'bg-gradient-to-r from-card to-muted/30 border-border/50 hover:border-primary/30'
-                            )}
-                          >
-                            <div className="flex items-center justify-between">
+                {/* Error Display */}
+                {error && (
+                  <div className="bg-red-50 border border-red-200 rounded-md p-2">
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="h-4 w-4 text-red-400" />
+                      <p className="text-xs text-red-700">{error}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Status do Operador */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Status do Operador</CardTitle>
+              <User className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              {currentOperator ? (
+                <div className="space-y-3">
+                  {/* Informações do Operador */}
                               <div className="flex items-center gap-3">
-                                <Avatar className="h-10 w-10">
-                                  <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary text-xs">
-                                    <User className="h-5 w-5" />
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={currentOperator.avatar} />
+                      <AvatarFallback>
+                        {currentOperator.name.charAt(0).toUpperCase()}
                                   </AvatarFallback>
                                 </Avatar>
-                                <div className="min-w-0">
-                                  <p className="font-medium text-foreground truncate">{talent.fullName}</p>
-                                  <p className="text-sm text-muted-foreground">{talent.phone}</p>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{currentOperator.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{currentOperator.email}</p>
                                 </div>
                               </div>
+
+                  {/* Status Atual */}
+                  <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <MessageSquare className="h-4 w-4 text-muted-foreground" />
-                              </div>
-                            </div>
-                          </button>
-                        )
-                      })}
+                      {getOperatorStatusIcon(currentOperator.status)}
+                      <span className="text-sm font-medium">{getOperatorStatusText(currentOperator.status)}</span>
                     </div>
-                  </ScrollArea>
+                    <Badge className={getOperatorStatusColor(currentOperator.status)}>
+                      {currentOperator.activeAttendances} atendimentos
+                    </Badge>
+                  </div>
+
+                  {/* Opções de Status */}
+                  <div className="flex gap-1">
+                    <Button
+                      size="sm"
+                      variant={currentOperator.status === 'available' ? 'default' : 'outline'}
+                      onClick={() => updateOperatorStatus('available')}
+                      className="flex-1 text-xs"
+                    >
+                      Disponível
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={currentOperator.status === 'busy' ? 'default' : 'outline'}
+                      onClick={() => updateOperatorStatus('busy')}
+                      className="flex-1 text-xs"
+                    >
+                      Ocupado
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={currentOperator.status === 'away' ? 'default' : 'outline'}
+                      onClick={() => updateOperatorStatus('away')}
+                      className="flex-1 text-xs"
+                    >
+                      Ausente
+                    </Button>
+                  </div>
+
+                  {/* Botão de Desconectar (apenas para admins) */}
+                  {isAdmin && (
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => {
+                        // Implementar lógica de desconexão do bot
+                        console.log('Desconectar bot (apenas admin)');
+                      }}
+                      className="w-full text-xs"
+                    >
+                      <LogOut className="h-3 w-3 mr-1" />
+                      Desconectar Bot
+                    </Button>
+                  )}
                 </div>
+              ) : (
+                <div className="text-center py-4 text-muted-foreground">
+                  <User className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">Operador não identificado</p>
+                </div>
+              )}
               </CardContent>
             </Card>
           </div>
 
-          {/* Dashboard de Atendimentos - ocupa 3 colunas */}
+        {/* Central de Atendimento */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Central de Atendimento */}
           <div className="lg:col-span-3">
-            <AttendanceDashboard onStartAttendance={handleStartAttendance} />
+            <CentralDeAtendimento />
+          </div>
+          
+          {/* Painel de Teste */}
+          <div className="lg:col-span-1">
+            <TestMessages />
           </div>
         </div>
 
-        {/* Chat area */}
-        <div className="mt-8" id="talent-chat">
-          {selectedConversation && selectedConversationData ? (
-            <TalentChatComponent 
-              conversation={selectedConversationData} 
-              onClose={() => setSelectedConversation(null)} 
-            />
-          ) : (
-            <Card className="h-[600px] bg-gradient-to-br from-card via-muted/30 to-card shadow-2xl border-0 backdrop-blur-sm">
-              <CardContent className="h-full flex items-center justify-center">
-                <div className="text-center text-muted-foreground max-w-md">
-                  <div className="w-32 h-32 bg-gradient-to-br from-primary/10 to-primary/5 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                    <MessageSquare className="h-16 w-16 text-primary/50" />
-                  </div>
-                  <h3 className="text-2xl font-semibold mb-3 text-foreground">Selecione um contato</h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    Escolha um modelo da lista ao lado ou clique em <strong>"Iniciar Atendimento"</strong> na fila para começar uma conversa
-                  </p>
-                  <div className="mt-6 flex justify-center gap-2">
-                    <div className="w-2 h-2 bg-primary/30 rounded-full animate-bounce" />
-                    <div className="w-2 h-2 bg-primary/30 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                    <div className="w-2 h-2 bg-primary/30 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+        {/* Chat Window Modal */}
+        {showChatWindow && selectedChat && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="w-full max-w-4xl h-[80vh]">
+              <ChatWindow
+                chat={selectedChat}
+                onClose={() => {
+                  setShowChatWindow(false);
+                  setSelectedChat(null);
+                }}
+                onSendMessage={handleSendMessage}
+              />
                   </div>
                 </div>
-              </CardContent>
-            </Card>
           )}
-        </div>
 
-        {/* QR Modal */}
+        {/* QR Code Modal */}
         <QRCodeModal
           isOpen={showQRModal}
           onClose={() => setShowQRModal(false)}
-          qrCode={qrCode || ''}
           status={status}
-          onGenerateQR={handleConnect}
+          lastActivity={lastActivity}
+          error={error}
+          isConnecting={isConnecting}
+          isGeneratingQR={isGeneratingQR}
+          canGenerateQR={canGenerateQR}
+          qrCode={qrCode}
+          hasQRCode={hasQRCode}
+          onConnect={connect}
           onDisconnect={disconnect}
-          isGeneratingQR={status === 'connecting'}
+          onGenerateQR={generateQR}
         />
       </div>
     </div>
-  )
+  );
 }
