@@ -1,5 +1,0 @@
-/Users/worldgames/Documents/PREGIATO/mypregiato/obj/Debug/net8.0/test-status.GeneratedMSBuildEditorConfig.editorconfig
-/Users/worldgames/Documents/PREGIATO/mypregiato/obj/Debug/net8.0/test-status.AssemblyInfoInputs.cache
-/Users/worldgames/Documents/PREGIATO/mypregiato/obj/Debug/net8.0/test-status.AssemblyInfo.cs
-/Users/worldgames/Documents/PREGIATO/mypregiato/obj/Debug/net8.0/test-status.csproj.CoreCompileInputs.cache
-/Users/worldgames/Documents/PREGIATO/mypregiato/obj/Debug/net8.0/test-status.sourcelink.json

@@ -1,73 +1,102 @@
-# Welcome to your Lovable project
+# Pregiato - Sistema de Comunicação WhatsApp
 
-## Project info
+Sistema integrado para gerenciamento e automação de comunicações via WhatsApp, composto por três componentes principais.
 
-**URL**: https://lovable.dev/projects/870d4e0c-5a9b-4eae-bf3b-32d38af9eced
+## Estrutura do Projeto
 
-## How can I edit this code?
+O projeto é dividido em três partes principais:
 
-There are several ways of editing your application.
+### 1. Back-end (API .NET Core)
 
-**Use Lovable**
+API REST desenvolvida em .NET Core com arquitetura em camadas:
+- `Pregiato.API`: Camada de apresentação e endpoints
+- `Pregiato.Application`: Camada de aplicação e regras de negócio
+- `Pregiato.Core`: Camada de domínio
+- `Pregiato.Infrastructure`: Camada de infraestrutura e acesso a dados
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/870d4e0c-5a9b-4eae-bf3b-32d38af9eced) and start prompting.
+### 2. ZapBot (Servidor WhatsApp)
 
-Changes made via Lovable will be committed automatically to this repo.
+Servidor Node.js para integração com WhatsApp:
+- Utiliza whatsapp-web.js para comunicação
+- Integração com RabbitMQ para mensageria
+- Sistema de QR Code para autenticação
+- Gerenciamento de sessões WhatsApp
 
-**Use your preferred IDE**
+### 3. Front-end (React + Vite)
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+Interface web moderna desenvolvida com:
+- React + TypeScript
+- Vite como bundler
+- NextUI e Radix UI para componentes
+- Tailwind CSS para estilização
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## Requisitos
 
-Follow these steps:
+### Back-end
+- .NET Core SDK 7.0 ou superior
+- SQL Server (ou outro banco configurado)
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### ZapBot
+- Node.js 18.0 ou superior
+- RabbitMQ
+- Chrome/Chromium (para WhatsApp Web)
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### Front-end
+- Node.js 18.0 ou superior
+- NPM ou Yarn
 
-# Step 3: Install the necessary dependencies.
-npm i
+## Configuração e Execução
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+### Back-end
+
+1. Navegue até a pasta `back`
+2. Execute:
+```bash
+dotnet restore
+dotnet run --urls="http://localhost:5000"
 ```
 
-**Edit a file directly in GitHub**
+### ZapBot
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+1. Navegue até a pasta `zap-blaster-projeto`
+2. Execute:
+```bash
+npm install
+BOT_STATUS_PORT=3030 npm run dev
+```
 
-**Use GitHub Codespaces**
+### Front-end
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+1. Navegue até a pasta `front`
+2. Execute:
+```bash
+npm install
+VITE_PORT=8080 npm run dev
+```
 
-## What technologies are used for this project?
+## Portas Padrão
 
-This project is built with:
+- Back-end API: http://localhost:5000
+- ZapBot: http://localhost:3030
+- Front-end: http://localhost:8080
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Funcionalidades Principais
 
-## How can I deploy this project?
+- Envio e recebimento de mensagens WhatsApp
+- Interface administrativa para gerenciamento
+- Sistema de templates de mensagens
+- Integração com RabbitMQ para processamento assíncrono
+- Autenticação via QR Code do WhatsApp
+- Monitoramento de status de conexão
 
-Simply open [Lovable](https://lovable.dev/projects/870d4e0c-5a9b-4eae-bf3b-32d38af9eced) and click on Share -> Publish.
+## Contribuição
 
-## Can I connect a custom domain to my Lovable project?
+1. Faça um fork do projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/nova-feature`)
+3. Commit suas mudanças (`git commit -am 'Adiciona nova feature'`)
+4. Push para a branch (`git push origin feature/nova-feature`)
+5. Crie um Pull Request
 
-Yes, you can!
+## Licença
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.

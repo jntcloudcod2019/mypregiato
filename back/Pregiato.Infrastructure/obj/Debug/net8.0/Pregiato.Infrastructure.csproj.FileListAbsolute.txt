@@ -1,0 +1,32 @@
+/Users/worldgames/Documents/PREGIATO/mypregiato/backend/Pregiato.Infrastructure/bin/Debug/net8.0/Pregiato.Infrastructure.deps.json
+/Users/worldgames/Documents/PREGIATO/mypregiato/backend/Pregiato.Infrastructure/bin/Debug/net8.0/Pregiato.Infrastructure.dll
+/Users/worldgames/Documents/PREGIATO/mypregiato/backend/Pregiato.Infrastructure/bin/Debug/net8.0/Pregiato.Infrastructure.pdb
+/Users/worldgames/Documents/PREGIATO/mypregiato/backend/Pregiato.Infrastructure/bin/Debug/net8.0/Pregiato.Core.dll
+/Users/worldgames/Documents/PREGIATO/mypregiato/backend/Pregiato.Infrastructure/bin/Debug/net8.0/Pregiato.Core.pdb
+/Users/worldgames/Documents/PREGIATO/mypregiato/backend/Pregiato.Infrastructure/obj/Debug/net8.0/Pregiato.Infrastructure.csproj.AssemblyReference.cache
+/Users/worldgames/Documents/PREGIATO/mypregiato/backend/Pregiato.Infrastructure/obj/Debug/net8.0/Pregiato.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+/Users/worldgames/Documents/PREGIATO/mypregiato/backend/Pregiato.Infrastructure/obj/Debug/net8.0/Pregiato.Infrastructure.AssemblyInfoInputs.cache
+/Users/worldgames/Documents/PREGIATO/mypregiato/backend/Pregiato.Infrastructure/obj/Debug/net8.0/Pregiato.Infrastructure.AssemblyInfo.cs
+/Users/worldgames/Documents/PREGIATO/mypregiato/backend/Pregiato.Infrastructure/obj/Debug/net8.0/Pregiato.Infrastructure.csproj.CoreCompileInputs.cache
+/Users/worldgames/Documents/PREGIATO/mypregiato/backend/Pregiato.Infrastructure/obj/Debug/net8.0/Pregiato.Infrastructure.sourcelink.json
+/Users/worldgames/Documents/PREGIATO/mypregiato/backend/Pregiato.Infrastructure/obj/Debug/net8.0/Pregiato.7ACD3066.Up2Date
+/Users/worldgames/Documents/PREGIATO/mypregiato/backend/Pregiato.Infrastructure/obj/Debug/net8.0/Pregiato.Infrastructure.dll
+/Users/worldgames/Documents/PREGIATO/mypregiato/backend/Pregiato.Infrastructure/obj/Debug/net8.0/refint/Pregiato.Infrastructure.dll
+/Users/worldgames/Documents/PREGIATO/mypregiato/backend/Pregiato.Infrastructure/obj/Debug/net8.0/Pregiato.Infrastructure.pdb
+/Users/worldgames/Documents/PREGIATO/mypregiato/backend/Pregiato.Infrastructure/obj/Debug/net8.0/ref/Pregiato.Infrastructure.dll
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Infrastructure/bin/Debug/net8.0/Pregiato.Infrastructure.deps.json
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Infrastructure/bin/Debug/net8.0/Pregiato.Infrastructure.dll
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Infrastructure/bin/Debug/net8.0/Pregiato.Infrastructure.pdb
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Infrastructure/bin/Debug/net8.0/Pregiato.Core.dll
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Infrastructure/bin/Debug/net8.0/Pregiato.Core.pdb
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Infrastructure/obj/Debug/net8.0/Pregiato.Infrastructure.csproj.AssemblyReference.cache
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Infrastructure/obj/Debug/net8.0/Pregiato.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Infrastructure/obj/Debug/net8.0/Pregiato.Infrastructure.AssemblyInfoInputs.cache
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Infrastructure/obj/Debug/net8.0/Pregiato.Infrastructure.AssemblyInfo.cs
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Infrastructure/obj/Debug/net8.0/Pregiato.Infrastructure.csproj.CoreCompileInputs.cache
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Infrastructure/obj/Debug/net8.0/Pregiato.Infrastructure.sourcelink.json
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Infrastructure/obj/Debug/net8.0/Pregiato.7ACD3066.Up2Date
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Infrastructure/obj/Debug/net8.0/Pregiato.Infrastructure.dll
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Infrastructure/obj/Debug/net8.0/refint/Pregiato.Infrastructure.dll
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Infrastructure/obj/Debug/net8.0/Pregiato.Infrastructure.pdb
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Infrastructure/obj/Debug/net8.0/ref/Pregiato.Infrastructure.dll
