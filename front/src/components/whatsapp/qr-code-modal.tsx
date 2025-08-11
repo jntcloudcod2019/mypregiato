@@ -132,6 +132,7 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({
 
   const handleImageError = () => {
     console.error('Erro ao carregar imagem do QR code');
+    console.error('QR Code recebido:', qrCode);
     setImageError(true);
   };
 
@@ -139,6 +140,15 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({
     console.log('Imagem do QR code carregada com sucesso');
     setImageError(false);
   };
+
+  // Log do QR code quando mudar
+  React.useEffect(() => {
+    if (qrCode) {
+      console.log('QR Code recebido:', qrCode.substring(0, 50));
+      console.log('QR Code começa com data:?', qrCode.startsWith('data:'));
+      console.log('Tamanho do QR Code:', qrCode.length);
+    }
+  }, [qrCode]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -196,21 +206,33 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({
               </CardHeader>
               <CardContent>
                 <div className="text-center">
-                  <div className="bg-white p-4 rounded-lg inline-block">
+                  <div className="bg-white rounded-xl inline-block shadow-lg">
                     {/* QR Code como imagem */}
-                    <div className="relative">
-                      <img
-                        src={qrCode}
-                        alt="QR Code para conectar WhatsApp"
-                        className="w-48 h-48 mx-auto border border-gray-200 rounded-lg"
-                        onError={handleImageError}
-                        onLoad={handleImageLoad}
-                        style={{
-                          display: 'block',
-                          maxWidth: '100%',
-                          height: 'auto'
-                        }}
-                      />
+                    <div className="relative bg-white p-4 rounded-lg shadow-sm">
+                      {qrCode ? (
+                        <img
+                          src={qrCode.startsWith('data:') ? qrCode : `data:image/png;base64,${qrCode}`}
+                          alt="QR Code para conectar WhatsApp"
+                          className="w-[256px] h-[256px] mx-auto"
+                          onError={(e) => {
+                            console.error('Erro ao carregar QR code:', e);
+                            console.log('QR Code recebido:', qrCode?.substring(0, 100));
+                            setImageError(true);
+                          }}
+                          onLoad={() => {
+                            console.log('QR Code carregado com sucesso');
+                            setImageError(false);
+                          }}
+                          style={{ imageRendering: 'pixelated' }}
+                        />
+                      ) : (
+                        <div className="w-[256px] h-[256px] mx-auto flex items-center justify-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
+                          <div className="text-center">
+                            <QrCode className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                            <span className="text-sm text-gray-500">Aguardando QR Code...</span>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Botão de copiar centralizado abaixo da imagem */}

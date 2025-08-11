@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Configuração do axios para o backend .NET
 const api = axios.create({
-  baseURL: 'http://localhost:5001/api',
+  baseURL: 'http://localhost:5000/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -30,14 +30,73 @@ const rabbitMQService = {
 
   // Gerar QR code
   generateQR: async () => {
-    const response = await api.post('/whatsapp/generate-qr');
-    return response.data;
+    try {
+      console.log('Iniciando geração de QR code...');
+      const response = await api.post('/whatsapp/generate-qr');
+      console.log('Resposta da API (generate-qr):', response.data);
+      const data = response.data;
+      
+      // Se a API retornou o QR code diretamente
+      if (data.qrCode) {
+        console.log('QR code recebido diretamente:', data.qrCode.substring(0, 50) + '...');
+        return {
+          success: true,
+          qrCode: data.qrCode,
+          status: 'generated'
+        };
+      }
+      
+      // Se a API apenas iniciou o processo
+      console.log('API iniciou processo de geração:', data);
+      return {
+        success: data.success || false,
+        status: data.status || 'error',
+        message: data.message || 'Erro ao gerar QR code'
+      };
+    } catch (error) {
+      console.error('Erro ao gerar QR code:', error);
+      if (error.response) {
+        console.error('Detalhes do erro:', {
+          status: error.response.status,
+          data: error.response.data
+        });
+      }
+      return {
+        success: false,
+        status: 'error',
+        message: 'Erro ao comunicar com o servidor'
+      };
+    }
   },
 
   // Obter QR code atual
   getQRCode: async () => {
-    const response = await api.get('/whatsapp/qr-code');
-    return response.data;
+    try {
+      console.log('Solicitando QR code atual...');
+      const response = await api.get('/whatsapp/qr-code');
+      console.log('Resposta da API (get qr-code):', response.data);
+      const data = response.data;
+      
+      if (!data.qrCode) {
+        console.warn('QR code não disponível na resposta');
+        throw new Error('QR code não disponível');
+      }
+      
+      console.log('QR code obtido:', data.qrCode.substring(0, 50) + '...');
+      return {
+        qrCode: data.qrCode,
+        timestamp: data.timestamp || new Date().toISOString()
+      };
+    } catch (error) {
+      console.error('Erro ao obter QR code:', error);
+      if (error.response) {
+        console.error('Detalhes do erro:', {
+          status: error.response.status,
+          data: error.response.data
+        });
+      }
+      throw error;
+    }
   },
 
   // Obter métricas da fila

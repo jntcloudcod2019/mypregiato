@@ -178,6 +178,47 @@ export const useAttendanceCenter = () => {
     updateMetrics();
   }, [queue, activeChats, updateMetrics]);
 
+  // Efeito para verificar mensagens na fila com intervalo controlado
+  useEffect(() => {
+    let isSubscribed = true;
+    let timeoutId: NodeJS.Timeout | null = null;
+
+    const checkMessages = async () => {
+      if (!isSubscribed) return;
+
+      try {
+        const response = await fetch('http://localhost:5000/api/whatsapp/queue/messages');
+        const data = await response.json();
+        
+        if (isSubscribed && data.messages && data.messages.length > 0) {
+          data.messages.forEach((message: any) => handleNewMessage(message));
+        }
+
+        // Agendar próxima verificação apenas se ainda estiver inscrito
+        if (isSubscribed) {
+          timeoutId = setTimeout(checkMessages, 5000); // Verificar a cada 5 segundos
+        }
+      } catch (error) {
+        if (isSubscribed) {
+          console.error('Erro ao verificar mensagens:', error);
+          // Em caso de erro, tentar novamente em 10 segundos
+          timeoutId = setTimeout(checkMessages, 10000);
+        }
+      }
+    };
+
+    // Iniciar verificação
+    checkMessages();
+
+    // Cleanup
+    return () => {
+      isSubscribed = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, []);
+
   return {
     queue,
     activeChats,

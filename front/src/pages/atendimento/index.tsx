@@ -3,13 +3,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Bot, MessageSquare, Users, Clock, AlertCircle, User, Settings, LogOut, Circle, Wifi, WifiOff, QrCode } from 'lucide-react';
+import { Bot, MessageSquare, Users, Clock, User, Settings, LogOut, Circle, Wifi, WifiOff, QrCode } from 'lucide-react';
 import { useWhatsAppConnection, ConnectionStatus } from '@/hooks/useWhatsAppConnection';
 import { useOperatorStatus } from '@/hooks/useOperatorStatus';
 import { QRCodeModal } from '@/components/whatsapp/qr-code-modal';
 import { CentralDeAtendimento } from '@/components/attendance/central-de-atendimento';
 import { ChatWindow } from '@/components/attendance/chat-window';
-import { TestMessages } from '@/components/attendance/test-messages';
+
 import { useAttendanceCenter } from '@/hooks/useAttendanceCenter';
 import { attendanceService } from '@/services/attendance-service';
 import { useUserRole } from '@/services/user-role-service';
@@ -186,15 +186,7 @@ export default function AttendancePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto p-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Central de Atendimento</h1>
-            <p className="text-gray-600 mt-2">
-              Gerencie mensagens e conversas do WhatsApp
-            </p>
-              </div>
-            </div>
+
             
         {/* Status Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -252,15 +244,7 @@ export default function AttendancePage() {
                   </div>
                 )}
 
-                {/* Error Display */}
-                {error && (
-                  <div className="bg-red-50 border border-red-200 rounded-md p-2">
-                    <div className="flex items-center gap-2">
-                      <AlertCircle className="h-4 w-4 text-red-400" />
-                      <p className="text-xs text-red-700">{error}</p>
-                    </div>
-                  </div>
-                )}
+
               </div>
             </CardContent>
           </Card>
@@ -354,15 +338,10 @@ export default function AttendancePage() {
           </div>
 
         {/* Central de Atendimento */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 gap-6">
           {/* Central de Atendimento */}
-          <div className="lg:col-span-3">
+          <div>
             <CentralDeAtendimento />
-          </div>
-          
-          {/* Painel de Teste */}
-          <div className="lg:col-span-1">
-            <TestMessages />
           </div>
         </div>
 

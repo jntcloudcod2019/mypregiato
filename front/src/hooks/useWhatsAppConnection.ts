@@ -95,49 +95,143 @@ export const useWhatsAppConnection = () => {
 
     setIsGeneratingQR(true);
     try {
+      console.log('Iniciando processo de geração de QR code...');
       const result = await rabbitMQService.generateQR();
-      console.log('QR Code gerado:', result);
+      console.log('Resposta da geração de QR code:', result);
       
-      setConnectionState(prev => ({
-        ...prev,
-        status: ConnectionStatus.generating
-      }));
+      if (result.success) {
+        // Se a API retornou o QR code diretamente
+        if (result.qrCode) {
+          console.log('QR code recebido diretamente da API');
+          setConnectionState(prev => ({
+            ...prev,
+            status: ConnectionStatus.generating,
+            qrCode: result.qrCode,
+            hasQRCode: true,
+            error: undefined
+          }));
+          return;
+        }
+        
+        console.log('API iniciou processo de geração, aguardando QR code...');
+        // Se a API apenas iniciou o processo, aguardar e tentar obter o QR code
+        setConnectionState(prev => ({
+          ...prev,
+          status: ConnectionStatus.generating,
+          error: undefined
+        }));
 
-      // Aguardar um pouco e verificar se o QR code foi gerado
-      setTimeout(async () => {
-        await checkStatus();
-        // Tentar obter o QR code
-        await getQRCode();
-      }, 3000);
+        // Tentar obter o QR code algumas vezes
+        let attempts = 0;
+        const maxAttempts = 10;
+        const interval = setInterval(async () => {
+          try {
+            if (attempts >= maxAttempts) {
+              clearInterval(interval);
+              console.error('Timeout ao aguardar QR code após', maxAttempts, 'tentativas');
+              setConnectionState(prev => ({
+                ...prev,
+                error: 'Timeout ao aguardar QR code'
+              }));
+              return;
+            }
 
+            attempts++;
+            console.log(`Tentativa ${attempts} de obter QR code...`);
+            
+            const qrResponse = await rabbitMQService.getQRCode();
+            if (qrResponse.qrCode) {
+              console.log('QR code obtido com sucesso na tentativa', attempts);
+              clearInterval(interval);
+              setConnectionState(prev => ({
+                ...prev,
+                qrCode: qrResponse.qrCode,
+                hasQRCode: true,
+                error: undefined
+              }));
+            } else {
+              console.log('QR code ainda não disponível na tentativa', attempts);
+            }
+          } catch (error) {
+            console.warn(`Erro na tentativa ${attempts}:`, error);
+          }
+        }, 2000); // Aumentado para 2 segundos entre tentativas
+
+        // Limpar intervalo se o componente for desmontado
+        return () => {
+          console.log('Limpando intervalo de verificação de QR code');
+          clearInterval(interval);
+        };
+      } else {
+        console.error('Falha ao iniciar geração:', result.message);
+        setConnectionState(prev => ({
+          ...prev,
+          error: result.message || 'Erro ao gerar QR code'
+        }));
+      }
     } catch (error) {
       console.error('Erro ao gerar QR code:', error);
       setConnectionState(prev => ({
         ...prev,
-        error: 'Erro ao gerar QR code'
+        error: 'Erro ao comunicar com o servidor'
       }));
     } finally {
       setIsGeneratingQR(false);
     }
-  }, [connectionState.isConnected, checkStatus, getQRCode]);
+  }, [connectionState.isConnected]);
 
   // Verificar status periodicamente
   useEffect(() => {
-    checkStatus();
+    let isSubscribed = true;
+    let timeoutId: NodeJS.Timeout | null = null;
 
-    const interval = setInterval(() => {
-      checkStatus();
-    }, 30000); // Verificar a cada 30 segundos
+    const checkStatusWithTimeout = async () => {
+      if (!isSubscribed) return;
 
-    return () => clearInterval(interval);
-  }, [checkStatus]);
+      try {
+        await checkStatus();
+        
+        // Se não estiver conectado, verificar mais frequentemente
+        const interval = connectionState.isConnected ? 30000 : 10000;
+        
+        if (isSubscribed) {
+          timeoutId = setTimeout(checkStatusWithTimeout, interval);
+        }
+      } catch (error) {
+        if (isSubscribed) {
+          console.error('Erro ao verificar status:', error);
+          // Em caso de erro, tentar novamente em 10 segundos
+          timeoutId = setTimeout(checkStatusWithTimeout, 10000);
+        }
+      }
+    };
 
-  // Se tem QR code disponível, buscar automaticamente
+    checkStatusWithTimeout();
+
+    return () => {
+      isSubscribed = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [connectionState.isConnected]);
+
+  // Se tem QR code disponível, buscar automaticamente (com debounce)
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout | null = null;
+
     if (connectionState.hasQRCode && !connectionState.qrCode) {
-      getQRCode();
+      timeoutId = setTimeout(() => {
+        getQRCode();
+      }, 1000); // Esperar 1 segundo antes de buscar o QR code
     }
-  }, [connectionState.hasQRCode, connectionState.qrCode, getQRCode]);
+
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [connectionState.hasQRCode, connectionState.qrCode]);
 
   return {
     ...connectionState,

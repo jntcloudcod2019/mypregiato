@@ -14,7 +14,7 @@ namespace Pregiato.API.Controllers
 {
     public class QRCodeRequest
     {
-        public string QRCode { get; set; }
+        public string qrCode { get; set; }
     }
 
     public class WhatsAppMessageRequest
@@ -133,10 +133,30 @@ namespace Pregiato.API.Controllers
 
                     _logger.LogInformation("Comando de geração de QR code enviado");
                     
+                    // Aguardar até que o QR code seja gerado (máximo 10 segundos)
+                    int maxAttempts = 10;
+                    int currentAttempt = 0;
+                    
+                    while (currentAttempt < maxAttempts)
+                    {
+                        if (!string.IsNullOrEmpty(_currentQRCode))
+                        {
+                            return Ok(new { 
+                                success = true, 
+                                qrCode = _currentQRCode,
+                                status = "generated"
+                            });
+                        }
+                        
+                        await Task.Delay(1000); // Esperar 1 segundo
+                        currentAttempt++;
+                    }
+                    
+                    // Se chegou aqui, não conseguiu obter o QR code no tempo esperado
                     return Ok(new { 
-                        success = true, 
-                        message = "Comando de geração de QR code enviado",
-                        status = "generating"
+                        success = false, 
+                        message = "Timeout ao aguardar QR code",
+                        status = "timeout"
                     });
                 }
                 else
@@ -176,9 +196,9 @@ namespace Pregiato.API.Controllers
         {
             try
             {
-                _logger.LogInformation("QR Code recebido do zap-bot - Tamanho: {Size}", request.QRCode?.Length ?? 0);
+                _logger.LogInformation("QR Code recebido do zap-bot - Tamanho: {Size}", request.qrCode?.Length ?? 0);
                 
-                _currentQRCode = request.QRCode;
+                _currentQRCode = request.qrCode;
                 
                 return Ok(new { success = true, message = "QR code recebido" });
             }
@@ -362,7 +382,7 @@ namespace Pregiato.API.Controllers
                     using var client = new HttpClient();
                     client.Timeout = TimeSpan.FromSeconds(5);
                     
-                    var response = await client.GetAsync("http://localhost:3000/status");
+                    var response = await client.GetAsync("http://localhost:3030/status");
                     if (response.IsSuccessStatusCode)
                     {
                         var content = await response.Content.ReadAsStringAsync();
@@ -412,8 +432,8 @@ namespace Pregiato.API.Controllers
                 using var client = new HttpClient();
                 client.Timeout = TimeSpan.FromSeconds(5);
                 
-                _logger.LogInformation("Verificando status do zap-bot em http://localhost:3000/status");
-                var response = await client.GetAsync("http://localhost:3000/status");
+                _logger.LogInformation("Verificando status do zap-bot em http://localhost:3030/status");
+                var response = await client.GetAsync("http://localhost:3030/status");
                 
                 if (response.IsSuccessStatusCode)
                 {
@@ -561,11 +581,22 @@ namespace Pregiato.API.Controllers
         /// <summary>
         /// Obtém mensagens da fila
         /// </summary>
+        private static DateTime _lastQueueCheck = DateTime.MinValue;
+        private static readonly TimeSpan _queueCheckInterval = TimeSpan.FromSeconds(5);
+
         [HttpGet("queue/messages")]
         public async Task<IActionResult> GetQueueMessages()
         {
             try
             {
+                // Verificar se já passou o intervalo mínimo desde a última verificação
+                var now = DateTime.UtcNow;
+                if (now - _lastQueueCheck < _queueCheckInterval)
+                {
+                    return Ok(new { messages = new List<object>(), nextCheck = _lastQueueCheck.Add(_queueCheckInterval) });
+                }
+
+                _lastQueueCheck = now;
                 var messages = new List<object>();
                 
                 // Consumir mensagens da fila whatsapp.incoming
@@ -585,7 +616,7 @@ namespace Pregiato.API.Controllers
                     result = _rabbitChannel.BasicGet("whatsapp.incoming", false);
                 }
 
-                return Ok(messages);
+                return Ok(new { messages, nextCheck = _lastQueueCheck.Add(_queueCheckInterval) });
             }
             catch (Exception ex)
             {

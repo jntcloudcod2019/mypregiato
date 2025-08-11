@@ -2,8 +2,7 @@ import { WhatsAppMessage } from '@/types/attendance';
 import { rabbitMQService } from './whatsapp-api';
 
 class AttendanceService {
-  private messageHandlers: ((message: WhatsAppMessage) => void)[] = [];
-
+  private messageHandlers: Array<(m: WhatsAppMessage) => void> = [];
   // Registrar handler para novas mensagens
   onNewMessage(handler: (message: WhatsAppMessage) => void) {
     this.messageHandlers.push(handler);
@@ -127,47 +126,65 @@ class AttendanceService {
 
   // Consumir mensagens da fila RabbitMQ
   async startMessageConsumer() {
-    try {
-      // Fazer polling para verificar novas mensagens
-      setInterval(async () => {
-        try {
-          const response = await fetch('http://localhost:5001/api/whatsapp/queue/messages');
-          if (response.ok) {
-            const messages = await response.json();
-            
-            messages.forEach((message: any) => {
-              if (message.type === 'incoming_message') {
-                const whatsappMessage: WhatsAppMessage = {
-                  id: message.data.id,
-                  from: message.data.from,
-                  to: message.data.to,
-                  body: message.data.body,
-                  type: message.data.type,
-                  timestamp: new Date(message.data.timestamp),
-                  isFromMe: message.data.isFromMe
-                };
-
-                // Notificar handlers
-                this.messageHandlers.forEach(handler => {
-                  try {
-                    handler(whatsappMessage);
-                  } catch (error) {
-                    console.error('Erro ao processar mensagem da fila:', error);
-                  }
-                });
-              }
-            });
-          }
-        } catch (error) {
-          console.error('Erro ao consumir mensagens da fila:', error);
-        }
-      }, 5000); // Verificar a cada 5 segundos
-
-      console.log('✅ Consumidor de mensagens iniciado');
-    } catch (error) {
-      console.error('❌ Erro ao iniciar consumidor de mensagens:', error);
+    // Evita iniciar de novo
+    if ((globalThis as any).__attendanceConsumerStarted) {
+      console.log('⚠️ Consumidor já iniciado. Ignorando.');
+      return;
     }
+    (globalThis as any).__attendanceConsumerStarted = true;
+
+    try {
+      const res = await fetch('http://localhost:5000/api/whatsapp/queue/messages');
+      if (!res.ok) {
+        console.log('Nenhuma mensagem disponível');
+        return;
+      }
+      
+      const data = await res.json();
+      const messages = data.messages || [];
+
+      for (const message of messages) {
+        try {
+          // Verificar se a mensagem tem a estrutura esperada
+          const messageData = message.data || message;
+          
+          if (!messageData || !messageData.from) {
+            console.warn('Mensagem inválida recebida:', message);
+            continue;
+          }
+
+          const whatsappMessage: WhatsAppMessage = {
+            id: messageData.id || `msg_${Date.now()}`,
+            from: messageData.from,
+            to: messageData.to || '5511949908369',
+            body: messageData.body || '',
+            type: messageData.type || 'text',
+            timestamp: new Date(messageData.timestamp || Date.now()),
+            isFromMe: messageData.isFromMe || false
+          };
+
+          // Notificar handlers
+          for (const handler of this.messageHandlers) {
+            try {
+              handler(whatsappMessage);
+            } catch (e) {
+              console.error('Erro ao processar mensagem:', e);
+            }
+          }
+        } catch (e) {
+          console.error('Erro ao processar mensagem da fila:', e);
+        }
+      }
+
+      console.log('✅ Mensagens processadas com sucesso');
+    } catch (e) {
+      console.error('Erro ao consumir mensagens da fila:', e);
+    }
+  }
+
+  onMessage(handler: (m: WhatsAppMessage) => void) {
+    this.messageHandlers.push(handler);
   }
 }
 
-export const attendanceService = new AttendanceService(); 
+export const attendanceService = new AttendanceService();
