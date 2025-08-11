@@ -67,12 +67,12 @@ namespace Pregiato.API.Controllers
                         var factory = new ConnectionFactory
                         {
                             HostName = "mouse.rmq5.cloudamqp.com",
-                            Port = 5672,
+                            VirtualHost = "ewxcrhtv",
                             UserName = "ewxcrhtv",
                             Password = "DNcdH0NEeP4Fsgo2_w-vd47CqjelFk_S",
-                            VirtualHost = "ewxcrhtv",
-                            RequestedHeartbeat = TimeSpan.FromSeconds(60),
-                            AutomaticRecoveryEnabled = true
+                            Port = 5672,
+                            AutomaticRecoveryEnabled = true,
+                            NetworkRecoveryInterval = TimeSpan.FromSeconds(10)
                         };
                         
                         _rabbitConnection = factory.CreateConnection();
@@ -103,18 +103,28 @@ namespace Pregiato.API.Controllers
         {
             try
             {
+                _logger.LogInformation("📥 Recebida requisição para gerar QR code");
+
                 // Verificar se o bot está conectado
+                _logger.LogInformation("🔍 Verificando status atual do bot...");
                 var statusResult = await GetZapBotStatus();
                 var status = (dynamic)statusResult;
                 
+                _logger.LogInformation("📊 Status atual do bot: {@Status}", new { 
+                    IsConnected = status?.isConnected,
+                    IsFullyValidated = status?.isFullyValidated
+                });
+                
                 if (status?.isConnected == true)
                 {
+                    _logger.LogWarning("⚠️ Bot já está conectado, não é possível gerar novo QR code");
                     return BadRequest(new { error = "Bot já está conectado" });
                 }
 
                 // Enviar comando para gerar QR code via RabbitMQ
                 if (_rabbitChannel != null && !_rabbitChannel.IsClosed)
                 {
+                    _logger.LogInformation("✅ Canal RabbitMQ disponível");
                     var qrCommand = new
                     {
                         command = "generate_qr",
@@ -122,14 +132,33 @@ namespace Pregiato.API.Controllers
                     };
 
                     var messageBody = JsonSerializer.Serialize(qrCommand);
+                    _logger.LogInformation("📦 Preparando mensagem para RabbitMQ: {Command}", messageBody);
+
                     var body = Encoding.UTF8.GetBytes(messageBody);
 
-                    _rabbitChannel.BasicPublish(
-                        exchange: "",
-                        routingKey: "whatsapp.outgoing",
-                        basicProperties: null,
-                        body: body
-                    );
+                    var props = _rabbitChannel.CreateBasicProperties();
+                    props.Persistent = true;
+                    props.ContentType = "application/json";
+                    props.MessageId = Guid.NewGuid().ToString();
+                    props.Timestamp = new AmqpTimestamp(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+
+                    _logger.LogInformation("📤 Enviando comando para fila whatsapp.outgoing");
+                    _logger.LogInformation("📦 Mensagem: {Message}", messageBody);
+                    
+                    try {
+                        _rabbitChannel.BasicPublish(
+                            exchange: "",
+                            routingKey: "whatsapp.outgoing",
+                            basicProperties: props,
+                            body: body
+                        );
+                        _logger.LogInformation("✅ Mensagem enviada com sucesso");
+                    } catch (Exception ex) {
+                        _logger.LogError(ex, "❌ Erro ao enviar mensagem para RabbitMQ");
+                        throw;
+                    }
+
+                    _logger.LogInformation("✅ Comando enviado para fila. MessageId: {MessageId}", props.MessageId);
 
                     _logger.LogInformation("Comando de geração de QR code enviado");
                     
@@ -137,10 +166,15 @@ namespace Pregiato.API.Controllers
                     int maxAttempts = 10;
                     int currentAttempt = 0;
                     
+                    _logger.LogInformation("⏳ Aguardando QR code ser gerado (timeout: {Timeout}s)...", maxAttempts);
+                    
                     while (currentAttempt < maxAttempts)
                     {
+                        _logger.LogInformation("🔄 Tentativa {Attempt}/{MaxAttempts} de obter QR code", currentAttempt + 1, maxAttempts);
+                        
                         if (!string.IsNullOrEmpty(_currentQRCode))
                         {
+                            _logger.LogInformation("✅ QR code recebido com sucesso! Tamanho: {Length} caracteres", _currentQRCode.Length);
                             return Ok(new { 
                                 success = true, 
                                 qrCode = _currentQRCode,
@@ -153,6 +187,7 @@ namespace Pregiato.API.Controllers
                     }
                     
                     // Se chegou aqui, não conseguiu obter o QR code no tempo esperado
+                    _logger.LogWarning("⚠️ Timeout ao aguardar QR code após {Attempts} tentativas", maxAttempts);
                     return Ok(new { 
                         success = false, 
                         message = "Timeout ao aguardar QR code",
@@ -196,15 +231,27 @@ namespace Pregiato.API.Controllers
         {
             try
             {
-                _logger.LogInformation("QR Code recebido do zap-bot - Tamanho: {Size}", request.qrCode?.Length ?? 0);
+                _logger.LogInformation("📥 Webhook recebido do zap-bot para QR code");
+                _logger.LogInformation("📊 Dados recebidos: {@Request}", new {
+                    QRCodeLength = request.qrCode?.Length ?? 0,
+                    HasPrefix = request.qrCode?.StartsWith("data:image/png;base64,") ?? false,
+                    Timestamp = DateTime.UtcNow
+                });
                 
+                if (string.IsNullOrEmpty(request.qrCode))
+                {
+                    _logger.LogWarning("⚠️ QR code recebido está vazio");
+                    return BadRequest(new { success = false, message = "QR code não pode ser vazio" });
+                }
+
                 _currentQRCode = request.qrCode;
+                _logger.LogInformation("✅ QR code armazenado com sucesso");
                 
                 return Ok(new { success = true, message = "QR code recebido" });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erro ao receber QR code");
+                _logger.LogError(ex, "❌ Erro ao receber QR code");
                 return BadRequest(new { success = false, message = ex.Message });
             }
         }

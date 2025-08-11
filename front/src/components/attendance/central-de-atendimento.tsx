@@ -1,5 +1,4 @@
 import React from 'react';
-
 import { useAttendanceCenter } from '@/hooks/useAttendanceCenter';
 import { QueueList } from './queue-list';
 
@@ -14,8 +13,6 @@ export const CentralDeAtendimento: React.FC = () => {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-
-
 
 
       <div className="min-h-[400px]">
