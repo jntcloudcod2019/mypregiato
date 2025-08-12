@@ -68,6 +68,7 @@ builder.Services.AddScoped<IWhatsAppService, WhatsAppService>();
 
 // Chat services
 builder.Services.AddScoped<ChatLogService>();
+builder.Services.AddScoped<AttendanceService>();
 
 // MemoryCache e RabbitMQ HostedService
 builder.Services.AddMemoryCache();

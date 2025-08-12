@@ -186,10 +186,15 @@ namespace Pregiato.API.Services
 
                     using var scope = _scopeFactory.CreateScope();
                     var chatService = scope.ServiceProvider.GetRequiredService<ChatLogService>();
+                    var attendanceService = scope.ServiceProvider.GetRequiredService<AttendanceService>();
                     var (chat, msg, created) = await chatService.UpsertInboundAsync(from!, body!, ts, externalId!);
+                    // garante ticket aberto (apenas 1 não finalizado por chat)
+                    await attendanceService.EnsureOpenTicketAsync(chat.Id);
 
                     await _hubContext.Clients.Group("whatsapp").SendAsync("message.inbound", new { chatId = chat.Id, message = msg });
                     await _hubContext.Clients.Group("whatsapp").SendAsync(created ? "chat.created" : "chat.updated", new { chatId = chat.Id, title = chat.Title, unread = chat.UnreadCount, lastMessage = chat.LastMessagePreview, updatedAt = chat.LastMessageAt });
+                    var (inQueue, inService, avg) = await attendanceService.GetDashboardAsync();
+                    await _hubContext.Clients.Group("whatsapp").SendAsync("dashboard.update", new { inQueue, inService, avgServiceTimeSec = avg });
 
                     _channel.BasicAck(ea.DeliveryTag, false);
                 }

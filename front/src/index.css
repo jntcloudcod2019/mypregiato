@@ -424,3 +424,16 @@
 .animate-fade-in {
   animation: fade-in 300ms ease forwards;
 }
+
+@keyframes ta-scale-up {
+  0% { opacity: 0; transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.animate-scale-up {
+  animation-name: ta-scale-up;
+  animation-duration: var(--ta-duration, 0.35s);
+  animation-delay: var(--ta-delay, 0s);
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  animation-fill-mode: both;
+}
