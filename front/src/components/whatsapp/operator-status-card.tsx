@@ -1,43 +1,52 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { User, Settings, LogOut, Circle } from 'lucide-react';
+import { LogOut, Circle } from 'lucide-react';
 import { useOperatorStatus } from '@/hooks/useOperatorStatus';
 import { useUserRole } from '@/services/user-role-service';
 
 export const OperatorStatusCard = () => {
   const { currentOperator, updateOperatorStatus } = useOperatorStatus();
   const { isAdmin, loading: roleLoading } = useUserRole();
-  const [showStatusOptions, setShowStatusOptions] = useState(false);
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'available': return 'bg-green-500';
-      case 'busy': return 'bg-yellow-500';
-      case 'away': return 'bg-red-500';
-      default: return 'bg-gray-500';
-    }
-  };
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'available': return 'Disponível';
+      case 'available': return 'Online';
       case 'busy': return 'Ocupado';
       case 'away': return 'Ausente';
       default: return 'Offline';
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'available': return <Circle className="h-3 w-3 text-green-600" />;
-      case 'busy': return <Circle className="h-3 w-3 text-yellow-600" />;
-      case 'away': return <Circle className="h-3 w-3 text-red-600" />;
-      default: return <Circle className="h-3 w-3 text-gray-600" />;
-    }
+  const getDot = (status: string) => {
+    const color = status === 'available' ? 'text-green-600' : status === 'busy' ? 'text-red-600' : status === 'away' ? 'text-orange-500' : 'text-gray-600';
+    return <Circle className={`h-3 w-3 ${color}`} />;
+  };
+
+  const renderSegmented = () => {
+    const options: Array<{ key: 'available' | 'busy' | 'away'; label: string; activeClass: string; baseClass: string }> = [
+      { key: 'available', label: 'Online', activeClass: 'bg-green-500 text-white shadow', baseClass: 'text-green-700 hover:bg-green-100' },
+      { key: 'busy', label: 'Ocupado', activeClass: 'bg-red-500 text-white shadow', baseClass: 'text-red-700 hover:bg-red-100' },
+      { key: 'away', label: 'Ausente', activeClass: 'bg-orange-500 text-white shadow', baseClass: 'text-orange-700 hover:bg-orange-100' }
+    ];
+    const current = (currentOperator?.status as 'available' | 'busy' | 'away') || 'away';
+
+    return (
+      <div className="inline-flex items-center p-1 rounded-full bg-muted/60 backdrop-blur supports-[backdrop-filter]:bg-muted/40">
+        {options.map(opt => (
+          <button
+            key={opt.key}
+            type="button"
+            onClick={() => updateOperatorStatus(opt.key)}
+            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${current === opt.key ? opt.activeClass : opt.baseClass}`}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+    );
   };
 
   if (roleLoading) {
@@ -48,8 +57,8 @@ export const OperatorStatusCard = () => {
         </CardHeader>
         <CardContent>
           <div className="animate-pulse">
-            <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-            <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+            <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
+            <div className="h-3 bg-gray-200 rounded w-1/2" />
           </div>
         </CardContent>
       </Card>
@@ -60,71 +69,38 @@ export const OperatorStatusCard = () => {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">Status do Operador</CardTitle>
-        <User className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
       <CardContent>
         {currentOperator ? (
-          <div className="space-y-3">
-            {/* Informações do Operador */}
-            <div className="flex items-center gap-3">
-              <Avatar className="h-8 w-8">
+          <div className="space-y-4">
+            {/* Grid: avatar + info lado a lado, controle abaixo ocupando 2 colunas */}
+            <div className="grid grid-cols-[auto,1fr] gap-x-3 gap-y-2 items-center">
+              <Avatar className="h-10 w-10 row-start-1 col-start-1">
                 <AvatarImage src={currentOperator.avatar} />
                 <AvatarFallback>
                   {currentOperator.name.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              <div className="flex-1 min-w-0">
+
+              <div className="min-w-0 row-start-1 col-start-2">
                 <p className="text-sm font-medium truncate">{currentOperator.name}</p>
                 <p className="text-xs text-muted-foreground truncate">{currentOperator.email}</p>
+                <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                  {getDot(currentOperator.status)}
+                  <span className="whitespace-nowrap">{getStatusText(currentOperator.status)}</span>
+                </div>
+              </div>
+
+              <div className="row-start-2 col-span-2">
+                {renderSegmented()}
               </div>
             </div>
 
-            {/* Status Atual */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                {getStatusIcon(currentOperator.status)}
-                <span className="text-sm font-medium">{getStatusText(currentOperator.status)}</span>
-              </div>
-              <Badge className={getStatusColor(currentOperator.status)}>
-                {currentOperator.activeAttendances} atendimentos
-              </Badge>
-            </div>
-
-            {/* Opções de Status */}
-            <div className="flex gap-1">
-              <Button
-                size="sm"
-                variant={currentOperator.status === 'available' ? 'default' : 'outline'}
-                onClick={() => updateOperatorStatus('available')}
-                className="flex-1 text-xs"
-              >
-                Disponível
-              </Button>
-              <Button
-                size="sm"
-                variant={currentOperator.status === 'busy' ? 'default' : 'outline'}
-                onClick={() => updateOperatorStatus('busy')}
-                className="flex-1 text-xs"
-              >
-                Ocupado
-              </Button>
-              <Button
-                size="sm"
-                variant={currentOperator.status === 'away' ? 'default' : 'outline'}
-                onClick={() => updateOperatorStatus('away')}
-                className="flex-1 text-xs"
-              >
-                Ausente
-              </Button>
-            </div>
-
-            {/* Botão de Desconectar (apenas para admins) */}
             {isAdmin && (
               <Button
                 size="sm"
                 variant="destructive"
                 onClick={() => {
-                  // Implementar lógica de desconexão do bot
                   console.log('Desconectar bot (apenas admin)');
                 }}
                 className="w-full text-xs"
@@ -136,7 +112,6 @@ export const OperatorStatusCard = () => {
           </div>
         ) : (
           <div className="text-center py-4 text-muted-foreground">
-            <User className="h-8 w-8 mx-auto mb-2 opacity-50" />
             <p className="text-sm">Operador não identificado</p>
           </div>
         )}

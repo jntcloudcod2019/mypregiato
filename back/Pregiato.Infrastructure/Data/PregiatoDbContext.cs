@@ -19,6 +19,7 @@ public class PregiatoDbContext : DbContext
         public DbSet<Message> Messages { get; set; }
         public DbSet<Operator> Operators { get; set; }
         public DbSet<QueueEvent> QueueEvents { get; set; }
+        public DbSet<ChatLog> ChatLogs { get; set; }
         
         // CRM Entities
         public DbSet<Lead> Leads { get; set; }
@@ -297,6 +298,21 @@ public class PregiatoDbContext : DbContext
                 .WithMany(u => u.QueueEvents)
                 .HasForeignKey(e => e.OperatorId)
                 .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<ChatLog>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.Property(e => e.ContactPhoneE164).IsRequired().HasMaxLength(20);
+            entity.HasIndex(e => e.ContactPhoneE164).IsUnique();
+            entity.Property(e => e.Title).IsRequired().HasMaxLength(150);
+            entity.Property(e => e.PayloadJson).IsRequired().HasColumnType("LONGTEXT");
+            entity.Property(e => e.UnreadCount).IsRequired();
+            entity.Property(e => e.LastMessageAt).HasColumnType("datetime");
+            entity.Property(e => e.LastMessagePreview).HasMaxLength(200);
+            entity.Property(e => e.CreatedAt).HasColumnType("datetime").HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(e => e.UpdatedAt).HasColumnType("datetime").HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
         });
 
         // Configuração das entidades CRM

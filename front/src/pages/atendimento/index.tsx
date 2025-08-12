@@ -1,369 +1,244 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Bot, MessageSquare, Users, Clock, User, Settings, LogOut, Circle, Wifi, WifiOff, QrCode } from 'lucide-react';
-import { useWhatsAppConnection, ConnectionStatus } from '@/hooks/useWhatsAppConnection';
-import { useOperatorStatus } from '@/hooks/useOperatorStatus';
-import { QRCodeModal } from '@/components/whatsapp/qr-code-modal';
-import { CentralDeAtendimento } from '@/components/attendance/central-de-atendimento';
-import { ChatWindow } from '@/components/attendance/chat-window';
+import { Separator } from '@/components/ui/separator';
+import { chatsApi, ChatListItem, ChatMessageDto } from '@/services/chat-service';
+import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
+import { BotStatusCard } from '@/components/whatsapp/bot-status-card';
+import { OperatorStatusCard } from '@/components/whatsapp/operator-status-card';
+import { AnimatedList } from '@/components/ui/animated-list';
+import { Minus, X } from 'lucide-react';
 
-import { useAttendanceCenter } from '@/hooks/useAttendanceCenter';
-import { attendanceService } from '@/services/attendance-service';
-import { useUserRole } from '@/services/user-role-service';
-import { ActiveChat } from '@/types/attendance';
+const formatTime = (iso?: string) => iso ? new Date(iso).toLocaleString('pt-BR') : '';
 
-export default function AttendancePage() {
-  const [showQRModal, setShowQRModal] = useState(false);
-  const [selectedChat, setSelectedChat] = useState<ActiveChat | null>(null);
-  const [showChatWindow, setShowChatWindow] = useState(false);
+export default function AtendimentoPage() {
+  const [search, setSearch] = useState('');
+  const [chats, setChats] = useState<ChatListItem[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
+  const [messages, setMessages] = useState<ChatMessageDto[]>([]);
+  const [composer, setComposer] = useState('');
+  const bottomRef = useRef<HTMLDivElement | null>(null);
+  const [nextCursor, setNextCursor] = useState<number | null>(null);
+  const [isChatMinimized, setIsChatMinimized] = useState(false);
+  const simulatedMessagesRef = useRef<Map<string, ChatMessageDto[]>>(new Map());
 
-  // WhatsApp Connection
-  const {
-    status,
-    isConnected,
-    lastActivity,
-    error,
-    isConnecting,
-    isGeneratingQR,
-    canGenerateQR,
-    qrCode,
-    hasQRCode,
-    connect,
-    disconnect,
-    generateQR
-  } = useWhatsAppConnection();
+  const refreshChats = async () => {
+    const { items, total } = await chatsApi.list(search, 1, 20);
+    setTotal(total);
+    setChats(items);
+  };
 
-  // Operator Status
-  const { currentOperator, updateOperatorStatus } = useOperatorStatus();
-  const { isAdmin, loading: roleLoading } = useUserRole();
+  const loadHistory = async (id: string, cursor?: number | null) => {
+    const data = await chatsApi.history(id, cursor ?? undefined, 50);
+    setNextCursor(data.nextCursor ?? null);
+    setMessages(prev => {
+      const merged = [...data.messages, ...prev];
+      const map = new Map(merged.map(m => [m.id || m.externalMessageId!, m]));
+      return Array.from(map.values()).sort((a, b) => new Date(a.ts).getTime() - new Date(b.ts).getTime());
+    });
+    requestAnimationFrame(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }));
+  };
 
-  // Attendance Center
-  const {
-    queue,
-    activeChats,
-    metrics,
-    selectedTab,
-    setSelectedTab,
-    attendRequest,
-    handleNewMessage,
-    closeChat
-  } = useAttendanceCenter();
+  const sendMessage = async () => {
+    if (!selectedChatId || !composer.trim()) return;
+    const clientMessageId = crypto.randomUUID();
+    setComposer('');
+    if (selectedChatId.startsWith('sim-')) {
+      const outMsg: ChatMessageDto = { id: clientMessageId, direction: 'out', text: composer, status: 'sent', ts: new Date().toISOString() } as any;
+      setMessages(prev => [...prev, outMsg]);
+      return;
+    }
+    await chatsApi.send(selectedChatId, composer, clientMessageId);
+  };
 
-  // Configurar handler para novas mensagens
+  useEffect(() => { refreshChats(); }, [search]);
+
   useEffect(() => {
-    const messageHandler = (message: any) => {
-      handleNewMessage(message);
+    if (!selectedChatId) return;
+    setMessages([]);
+    setNextCursor(null);
+    setIsChatMinimized(false);
+    if (selectedChatId.startsWith('sim-')) {
+      const msgs = simulatedMessagesRef.current.get(selectedChatId) || [];
+      setMessages(msgs);
+      requestAnimationFrame(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }));
+      return;
+    }
+    loadHistory(selectedChatId);
+  }, [selectedChatId]);
+
+  useEffect(() => {
+    const conn = new HubConnectionBuilder().withUrl('http://localhost:5656/whatsappHub').withAutomaticReconnect().configureLogging(LogLevel.Information).build();
+    conn.on('chat.created', async () => { await refreshChats(); });
+    conn.on('chat.updated', async () => { await refreshChats(); });
+    conn.on('message.inbound', async (evt: any) => {
+      if (evt.chatId === selectedChatId) {
+        setMessages(prev => [...prev, evt.message]);
+        requestAnimationFrame(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }));
+      }
+      await refreshChats();
+    });
+    conn.on('message.outbound', (evt: any) => {
+      if (evt.chatId === selectedChatId) {
+        setMessages(prev => [...prev.filter(m => m.id !== evt.message.id), evt.message]);
+        requestAnimationFrame(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }));
+      }
+    });
+    conn.on('message.status', (evt: any) => {
+      if (evt.chatId === selectedChatId) {
+        setMessages(prev => prev.map(m => (m.id === evt.messageId || m.externalMessageId === evt.messageId) ? { ...m, status: evt.status } : m));
+      }
+    });
+    conn.start().then(() => conn.invoke('JoinWhatsAppGroup')).catch(console.error);
+    return () => { conn.stop(); };
+  }, [selectedChatId]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const mkSimChat = (idx: number): ChatListItem => {
+      const phone = `55119999${(1000 + idx).toString()}`;
+      const id = `sim-${crypto.randomUUID()}`;
+      const now = new Date();
+      const msg: ChatMessageDto = {
+        id: crypto.randomUUID(),
+        externalMessageId: crypto.randomUUID(),
+        direction: 'in' as any,
+        text: `Mensagem de teste ${idx + 1} do número ${phone}`,
+        status: 'delivered' as any,
+        ts: now.toISOString()
+      };
+      simulatedMessagesRef.current.set(id, [msg]);
+      return {
+        id,
+        title: `+${phone}`,
+        lastMessagePreview: msg.text,
+        unreadCount: 1,
+        lastMessageAt: now.toISOString(),
+        contactPhoneE164: phone
+      } as any;
     };
 
-    attendanceService.onNewMessage(messageHandler);
+    const timers: NodeJS.Timeout[] = [];
+    [0, 60000, 120000].forEach((delayMs, idx) => {
+      const t = setTimeout(() => {
+        if (cancelled) return;
+        const simChat = mkSimChat(idx);
+        setChats(prev => [simChat, ...prev]);
+      }, delayMs);
+      timers.push(t);
+    });
 
-    // Iniciar consumidor de mensagens da fila
-    attendanceService.startMessageConsumer();
+    return () => { cancelled = true; timers.forEach(clearTimeout); };
+  }, []);
 
-    // Removidas simulações para produção
+  const chatItems = chats.map(c => ({
+    id: c.id,
+    content: (
+      <div
+        className={
+          `group relative flex items-start gap-3 rounded-xl border bg-background/70 dark:bg-muted/40 backdrop-blur-sm p-3 shadow-sm transition-all hover:shadow-md hover:border-primary/40 cursor-pointer ${selectedChatId===c.id ? 'ring-2 ring-primary shadow-md bg-primary/5' : ''}`
+        }
+        onClick={() => setSelectedChatId(c.id)}
+      >
+        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary/90 to-primary/60 text-primary-foreground grid place-items-center text-xs font-semibold shadow-sm">
+          {c.title?.replace('+','').slice(-2)}
+        </div>
+        <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2">
+            <div className="font-medium truncate text-sm">{c.title}</div>
+            {c.unreadCount>0 && (
+              <Badge className="ml-auto rounded-full px-2 py-0.5 text-[10px] leading-none">{c.unreadCount}</Badge>
+            )}
+          </div>
+          <div className="mt-0.5 text-xs text-muted-foreground truncate">
+            {c.lastMessagePreview || ''}
+                  </div>
+          <div className="mt-1 text-[10px] text-muted-foreground">{formatTime(c.lastMessageAt)}</div>
+                  </div>
+                </div>
+    )
+  }));
 
-    return () => {
-      attendanceService.removeHandler(messageHandler);
-    };
-  }, [handleNewMessage]);
-
-  const handleAttendRequest = (requestId: string, operatorId: string) => {
-    attendRequest(requestId, operatorId);
-    
-    // Encontrar o chat recém-criad o
-    const operatorChats = activeChats.get(operatorId) || [];
-    const newChat = operatorChats[operatorChats.length - 1];
-    
-    if (newChat) {
-      setSelectedChat(newChat);
-      setShowChatWindow(true);
-    }
-  };
-
-  const handleSendMessage = async (message: string) => {
-    if (!selectedChat) return;
-
-    try {
-      const responseMessage = await attendanceService.sendMessage(selectedChat.phone, message);
-      console.log('Mensagem enviada:', responseMessage);
-    } catch (error) {
-      console.error('Erro ao enviar mensagem:', error);
-    }
-  };
-
-  const handleCloseChat = (chatId: string, operatorId: string) => {
-    closeChat(chatId, operatorId);
-    
-    if (selectedChat?.id === chatId) {
-      setSelectedChat(null);
-      setShowChatWindow(false);
-    }
-  };
-
-  // Helper functions for status display
-  const getStatusColor = (status: ConnectionStatus) => {
-    switch (status) {
-      case ConnectionStatus.connected:
-        return 'bg-green-100 text-green-800 border-green-200';
-      case ConnectionStatus.disconnected:
-        return 'bg-red-100 text-red-800 border-red-200';
-      case ConnectionStatus.connecting:
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case ConnectionStatus.generating:
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
-  const getStatusText = (status: ConnectionStatus) => {
-    switch (status) {
-      case ConnectionStatus.connected:
-        return 'Bot Conectado';
-      case ConnectionStatus.disconnected:
-        return 'Bot Inativo';
-      case ConnectionStatus.connecting:
-        return 'Conectando...';
-      case ConnectionStatus.generating:
-        return 'Gerando QR Code...';
-      default:
-        return 'Status Desconhecido';
-    }
-  };
-
-  const getStatusIcon = (status: ConnectionStatus) => {
-    switch (status) {
-      case ConnectionStatus.connected:
-        return <Wifi className="h-5 w-5 text-green-600" />;
-      case ConnectionStatus.disconnected:
-        return <WifiOff className="h-5 w-5 text-red-600" />;
-      case ConnectionStatus.connecting:
-        return <Wifi className="h-5 w-5 text-yellow-600 animate-pulse" />;
-      case ConnectionStatus.generating:
-        return <QrCode className="h-5 w-5 text-blue-600 animate-pulse" />;
-      default:
-        return <Bot className="h-5 w-5 text-gray-600" />;
-    }
-  };
-
-  const getOperatorStatusColor = (status: string) => {
-    switch (status) {
-      case 'available': return 'bg-green-500';
-      case 'busy': return 'bg-yellow-500';
-      case 'away': return 'bg-red-500';
-      default: return 'bg-gray-500';
-    }
-  };
-
-  const getOperatorStatusText = (status: string) => {
-    switch (status) {
-      case 'available': return 'Disponível';
-      case 'busy': return 'Ocupado';
-      case 'away': return 'Ausente';
-      default: return 'Offline';
-    }
-  };
-
-  const getOperatorStatusIcon = (status: string) => {
-    switch (status) {
-      case 'available': return <Circle className="h-3 w-3 text-green-600" />;
-      case 'busy': return <Circle className="h-3 w-3 text-yellow-600" />;
-      case 'away': return <Circle className="h-3 w-3 text-red-600" />;
-      default: return <Circle className="h-3 w-3 text-gray-600" />;
-    }
-  };
+  const activeChat = selectedChatId ? chats.find(c => c.id === selectedChatId) : null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto p-6">
-
-            
-        {/* Status Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          {/* Status do Bot */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Status do Chat Bot</CardTitle>
-              {getStatusIcon(status)}
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {/* Status do Bot */}
-                <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                    <Badge className={getStatusColor(status)}>
-                      {getStatusText(status)}
-                            </Badge>
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {lastActivity ? `Última atividade: ${new Date(lastActivity).toLocaleString()}` : 'Nenhuma atividade'}
-                  </div>
+    <div className="flex flex-col gap-4 px-3 md:px-4 lg:px-6 min-h-[100svh]">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <BotStatusCard />
+        <OperatorStatusCard />
                 </div>
 
-                {/* Botões de Ação */}
-                <div className="space-y-2">
-                  {!isConnected && canGenerateQR && (
-                    <Button
-                      onClick={() => setShowQRModal(true)}
-                      disabled={isGeneratingQR}
-                      className="w-full"
-                      variant="outline"
-                    >
-                      <QrCode className="h-4 w-4 mr-2" />
-                      {isGeneratingQR ? 'Gerando...' : 'Conectar WhatsApp'}
-                    </Button>
-                  )}
-
-                  {isConnected && (
-                    <Button
-                      onClick={disconnect}
-                      className="w-full"
-                      variant="destructive"
-                    >
-                      <WifiOff className="h-4 w-4 mr-2" />
-                      Desconectar
-                    </Button>
-                  )}
-                </div>
-
-
-
-
-              </div>
+      {/* Empilha no mobile, duas colunas no desktop */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        {/* Lista de chats */}
+        <div className="lg:col-span-4 flex flex-col min-h-[40svh] lg:min-h-[calc(100svh-260px)]">
+          <div className="flex items-center gap-2 mb-2 sticky top-0 z-10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-1 rounded-md">
+            <Input className="flex-1" placeholder="Buscar por nome/telefone" value={search} onChange={e => setSearch(e.target.value)} onKeyDown={e => e.key==='Enter' && refreshChats()} />
+            <Button onClick={() => refreshChats()} className="shrink-0">Buscar</Button>
+                  </div>
+          <Card className="flex-1 overflow-hidden">
+            <CardContent className="h-full p-0">
+              <ScrollArea className="h-full">
+                <AnimatedList items={chatItems} />
+              </ScrollArea>
             </CardContent>
           </Card>
-
-          {/* Status do Operador */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Status do Operador</CardTitle>
-              <User className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              {currentOperator ? (
-                <div className="space-y-3">
-                  {/* Informações do Operador */}
-                              <div className="flex items-center gap-3">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={currentOperator.avatar} />
-                      <AvatarFallback>
-                        {currentOperator.name.charAt(0).toUpperCase()}
-                                  </AvatarFallback>
-                                </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{currentOperator.name}</p>
-                      <p className="text-xs text-muted-foreground truncate">{currentOperator.email}</p>
-                                </div>
                               </div>
 
-                  {/* Status Atual */}
-                  <div className="flex items-center justify-between">
+        {/* Janela de chat */}
+        <div className="lg:col-span-8 flex flex-col min-h-[50svh] lg:min-h-[calc(100svh-260px)]">
+          <Card className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-2 border-b bg-muted/30 sticky top-0 z-10">
+              <div className="min-w-0">
+                <div className="text-sm font-semibold truncate">{activeChat?.title || 'Nenhuma conversa selecionada'}</div>
+                {activeChat && <div className="text-xs text-muted-foreground truncate">{activeChat.contactPhoneE164}</div>}
+              </div>
                               <div className="flex items-center gap-2">
-                      {getOperatorStatusIcon(currentOperator.status)}
-                      <span className="text-sm font-medium">{getOperatorStatusText(currentOperator.status)}</span>
-                    </div>
-                    <Badge className={getOperatorStatusColor(currentOperator.status)}>
-                      {currentOperator.activeAttendances} atendimentos
-                    </Badge>
-                  </div>
-
-                  {/* Opções de Status */}
-                  <div className="flex gap-1">
-                    <Button
-                      size="sm"
-                      variant={currentOperator.status === 'available' ? 'default' : 'outline'}
-                      onClick={() => updateOperatorStatus('available')}
-                      className="flex-1 text-xs"
-                    >
-                      Disponível
+                {selectedChatId && (
+                  <Button variant="ghost" size="icon" title={isChatMinimized ? 'Restaurar' : 'Minimizar'} onClick={() => setIsChatMinimized(v => !v)}>
+                    <Minus className="h-4 w-4" />
                     </Button>
-                    <Button
-                      size="sm"
-                      variant={currentOperator.status === 'busy' ? 'default' : 'outline'}
-                      onClick={() => updateOperatorStatus('busy')}
-                      className="flex-1 text-xs"
-                    >
-                      Ocupado
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant={currentOperator.status === 'away' ? 'default' : 'outline'}
-                      onClick={() => updateOperatorStatus('away')}
-                      className="flex-1 text-xs"
-                    >
-                      Ausente
-                    </Button>
-                  </div>
-
-                  {/* Botão de Desconectar (apenas para admins) */}
-                  {isAdmin && (
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => {
-                        // Implementar lógica de desconexão do bot
-                        console.log('Desconectar bot (apenas admin)');
-                      }}
-                      className="w-full text-xs"
-                    >
-                      <LogOut className="h-3 w-3 mr-1" />
-                      Desconectar Bot
+                )}
+                {selectedChatId && (
+                  <Button variant="ghost" size="icon" title="Fechar" onClick={() => { setSelectedChatId(null); setMessages([]); }}>
+                    <X className="h-4 w-4" />
                     </Button>
                   )}
                 </div>
-              ) : (
-                <div className="text-center py-4 text-muted-foreground">
-                  <User className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">Operador não identificado</p>
-                </div>
-              )}
-              </CardContent>
-            </Card>
           </div>
 
-        {/* Central de Atendimento */}
-        <div className="grid grid-cols-1 gap-6">
-          {/* Central de Atendimento */}
-          <div>
-            <CentralDeAtendimento />
+            {!isChatMinimized && (
+              <>
+                <CardContent className="flex-1 p-0">
+                  <ScrollArea className="h-full px-4 py-2">
+                    {messages.map((m) => (
+                      <div key={(m.id||m.externalMessageId)!} className={`my-1 flex ${m.direction==='out'?'justify-end':'justify-start'}`}>
+                        <div className={`max-w-[85%] md:max-w-[70%] px-3 py-2 rounded-lg ${m.direction==='out'?'bg-primary text-primary-foreground':'bg-muted'}`}>
+                          <div className="whitespace-pre-wrap break-words text-sm">{m.text}</div>
+                          <div className="flex gap-2 justify-end items-center text-[10px] opacity-70 mt-1">
+                            <span>{new Date(m.ts).toLocaleTimeString('pt-BR')}</span>
+                            {m.direction==='out' && <span>{m.status}</span>}
           </div>
         </div>
-
-        {/* Chat Window Modal */}
-        {showChatWindow && selectedChat && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="w-full max-w-4xl h-[80vh]">
-              <ChatWindow
-                chat={selectedChat}
-                onClose={() => {
-                  setShowChatWindow(false);
-                  setSelectedChat(null);
-                }}
-                onSendMessage={handleSendMessage}
-              />
                   </div>
+                    ))}
+                    <div ref={bottomRef} />
+                  </ScrollArea>
+                </CardContent>
+                <Separator />
+                <div className="p-2 md:p-3 flex gap-2">
+                  <Input className="flex-1" placeholder="Digite sua mensagem" value={composer} onChange={e=>setComposer(e.target.value)} onKeyDown={e=>{ if(e.key==='Enter'){ e.preventDefault(); sendMessage(); } }} />
+                  <Button onClick={sendMessage} disabled={!selectedChatId} className="shrink-0">Enviar</Button>
                 </div>
-          )}
-
-        {/* QR Code Modal */}
-        <QRCodeModal
-          isOpen={showQRModal}
-          onClose={() => setShowQRModal(false)}
-          status={status}
-          lastActivity={lastActivity}
-          error={error}
-          isConnecting={isConnecting}
-          isGeneratingQR={isGeneratingQR}
-          canGenerateQR={canGenerateQR}
-          qrCode={qrCode}
-          hasQRCode={hasQRCode}
-          onConnect={connect}
-          onDisconnect={disconnect}
-          onGenerateQR={generateQR}
-        />
+              </>
+            )}
+          </Card>
+        </div>
       </div>
     </div>
   );

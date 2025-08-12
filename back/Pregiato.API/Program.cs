@@ -66,7 +66,10 @@ builder.Services.AddScoped<IContractService, ContractService>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IWhatsAppService, WhatsAppService>();
 
-// MemoryCache e RabbitMQ HostedService (Singleton + HostedService usando a mesma instância)
+// Chat services
+builder.Services.AddScoped<ChatLogService>();
+
+// MemoryCache e RabbitMQ HostedService
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<RabbitBackgroundService>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<RabbitBackgroundService>());

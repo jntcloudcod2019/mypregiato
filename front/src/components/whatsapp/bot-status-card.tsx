@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Bot, QrCode, Wifi, WifiOff, AlertCircle } from 'lucide-react';
+import { Bot, QrCode, Wifi, WifiOff, AlertCircle, RefreshCw, CheckCircle } from 'lucide-react';
 import { useWhatsAppConnection, ConnectionStatus } from '@/hooks/useWhatsAppConnection';
 import { QRCodeModal } from '@/components/whatsapp/qr-code-modal';
 
@@ -41,7 +41,6 @@ export const BotStatusCard = () => {
   };
 
   const getStatusText = (status: ConnectionStatus) => {
-    // TODO: Implementar lógica usando botUp e sessionConnected quando disponível
     switch (status) {
       case ConnectionStatus.connected:
         return 'Bot Conectado';
@@ -71,14 +70,6 @@ export const BotStatusCard = () => {
     }
   };
 
-  // Debug: Log do estado atual
-  console.log('🔍 Estado do BotStatusCard:', {
-    isConnected,
-    canGenerateQR,
-    status,
-    error
-  });
-
   return (
     <>
       <Card>
@@ -104,7 +95,7 @@ export const BotStatusCard = () => {
             <div className="space-y-2">
               {!isConnected ? (
                 <Button 
-                  onClick={generateQR}
+                  onClick={() => setShowQRModal(true)}
                   disabled={isGeneratingQR}
                   className="w-full"
                   variant="outline"
@@ -132,11 +123,9 @@ export const BotStatusCard = () => {
                 size="sm"
               >
                 <RefreshCw className={`h-3 w-3 mr-1 ${isConnecting ? 'animate-spin' : ''}`} />
-                {isConnecting ? 'Verificando...' : 'Testar Status'}
+                {isConnecting ? 'Verificando...' : 'Verificar Status'}
               </Button>
             </div>
-
-
 
             {/* Connected Number Status */}
             {isConnected && connectedNumber && (

@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { rabbitMQService, WhatsAppStatus, QRCodeResponse } from '../services/whatsapp-api';
 import { qrCodeQueueService } from '@/services/qr-code-queue-service';
+import { toast } from '@/components/ui/sonner';
 
 export enum ConnectionStatus {
   disconnected = 'disconnected',
@@ -35,16 +36,6 @@ export const useWhatsAppConnection = () => {
     try {
       const status: WhatsAppStatus = await rabbitMQService.getStatus();
       const isActuallyConnected = Boolean(status.sessionConnected) && Boolean(status.connectedNumber);
-
-      console.log('📊 Status do WhatsApp:', {
-        botUp: status.botUp,
-        sessionConnected: status.sessionConnected,
-        isConnected: status.isConnected,
-        isFullyValidated: status.isFullyValidated,
-        connectedNumber: status.connectedNumber,
-        isActuallyConnected
-      });
-
       const nextStatus = isActuallyConnected
         ? ConnectionStatus.connected
         : (status.botUp ? ConnectionStatus.connecting : ConnectionStatus.disconnected);
@@ -59,7 +50,6 @@ export const useWhatsAppConnection = () => {
         connectedNumber: status.connectedNumber
       }));
     } catch (error) {
-      console.error('Erro ao verificar status do WhatsApp:', error);
       setConnectionState(prev => ({
         ...prev,
         status: ConnectionStatus.disconnected,
@@ -73,7 +63,6 @@ export const useWhatsAppConnection = () => {
   const getQRCode = useCallback(async () => {
     try {
       const qrResponse: QRCodeResponse = await rabbitMQService.getQRCode();
-      console.log('QR Code recebido:', qrResponse.qrCode?.substring(0, 100) + '...');
       setConnectionState(prev => ({
         ...prev,
         qrCode: qrResponse.qrCode,
@@ -81,144 +70,75 @@ export const useWhatsAppConnection = () => {
       }));
       return qrResponse.qrCode;
     } catch (error) {
-      console.error('Erro ao obter QR code:', error);
       return null;
     }
   }, []);
 
   const connect = useCallback(async () => {
     setIsConnecting(true);
-    try {
-      await checkStatus();
-    } catch (error) {
-      console.error('Erro ao conectar:', error);
-    } finally {
-      setIsConnecting(false);
-    }
+    try { await checkStatus(); } finally { setIsConnecting(false); }
   }, [checkStatus]);
 
   const disconnect = useCallback(async () => {
-    try {
-      console.log('🔄 Iniciando desconexão do WhatsApp...');
-      await rabbitMQService.disconnect();
-      console.log('✅ Comando de desconexão enviado com sucesso');
-      setConnectionState({
-        status: ConnectionStatus.disconnected,
-        isConnected: false,
-        canGenerateQR: true
-      });
-    } catch (error) {
-      console.error('❌ Erro ao desconectar WhatsApp:', error);
-      setConnectionState({
-        status: ConnectionStatus.disconnected,
-        isConnected: false,
-        canGenerateQR: true
-      });
-    }
+    try { await rabbitMQService.disconnect(); } catch {}
+    setConnectionState({ status: ConnectionStatus.disconnected, isConnected: false, canGenerateQR: true });
   }, []);
 
   const generateQR = useCallback(async () => {
-    console.log('Iniciando geração de QR code...');
-    if (isGeneratingQR) {
-      console.log('⚠️ Geração de QR já em andamento, ignorando chamada');
-      return;
-    }
+    // Iniciar consumer antes de mandar o comando, garantindo assinatura do evento
+    try { await qrCodeQueueService.startQRCodeConsumer(); } catch {}
 
+    if (isGeneratingQR) return;
     setIsGeneratingQR(true);
+
+    // Atualiza status preventivamente
+    setConnectionState(prev => ({ ...prev, status: ConnectionStatus.generating, error: undefined }));
+
     try {
-      console.log('Iniciando processo de geração de QR code...');
+      console.log('[QR] Enviando comando generate-qr para API...');
       const result = await rabbitMQService.generateQR();
-      console.log('Resposta da geração de QR code:', result);
-
-      if (result.success) {
-        if (result.qrCode) {
-          console.log('QR code recebido diretamente da API');
-          setConnectionState(prev => ({
-            ...prev,
-            status: ConnectionStatus.generating,
-            qrCode: result.qrCode,
-            hasQRCode: true,
-            error: undefined
-          }));
-          return;
-        }
-
-        console.log('API iniciou processo de geração, aguardando QR code da fila...');
-        setConnectionState(prev => ({
-          ...prev,
-          status: ConnectionStatus.generating,
-          error: undefined
-        }));
-      } else {
-        console.error('Falha ao iniciar geração:', result.message);
-        setConnectionState(prev => ({
-          ...prev,
-          error: result.message || 'Erro ao gerar QR code'
-        }));
+      console.log('[QR] Resposta da API (generate-qr):', result);
+      if (!result.success) {
+        toast?.(result.message || 'Falha ao gerar QR code');
+        setConnectionState(prev => ({ ...prev, error: result.message || 'Falha ao gerar QR code', status: ConnectionStatus.disconnected }));
+        return;
       }
-    } catch (error) {
-      console.error('Erro ao gerar QR code:', error);
-      setConnectionState(prev => ({
-        ...prev,
-        error: 'Erro ao comunicar com o servidor'
-      }));
+      // sucesso: aguardar evento qr.update via SignalR
+      toast?.('Comando enviado. Aguardando QR...');
+    } catch (error: any) {
+      console.error('[QR] Erro ao gerar QR:', error);
+      setConnectionState(prev => ({ ...prev, error: 'Erro ao comunicar com o servidor', status: ConnectionStatus.disconnected }));
     } finally {
       setIsGeneratingQR(false);
     }
-  }, [connectionState.isConnected]);
+  }, [isGeneratingQR]);
 
   useEffect(() => {
     let isSubscribed = true;
     let timeoutId: NodeJS.Timeout | null = null;
 
-    const checkStatusWithTimeout = async () => {
+    const loop = async () => {
       if (!isSubscribed) return;
       try {
         await checkStatus();
         const interval = connectionState.isConnected ? 60000 : 30000;
-        if (isSubscribed) {
-          timeoutId = setTimeout(checkStatusWithTimeout, interval);
-        }
-      } catch (error) {
-        if (isSubscribed) {
-          console.error('Erro ao verificar status:', error);
-          timeoutId = setTimeout(checkStatusWithTimeout, 10000);
-        }
+        if (isSubscribed) timeoutId = setTimeout(loop, interval);
+      } catch {
+        if (isSubscribed) timeoutId = setTimeout(loop, 10000);
       }
     };
 
-    checkStatusWithTimeout();
-    return () => {
-      isSubscribed = false;
-      if (timeoutId) clearTimeout(timeoutId);
-    };
+    loop();
+    return () => { isSubscribed = false; if (timeoutId) clearTimeout(timeoutId); };
   }, [connectionState.isConnected]);
 
   useEffect(() => {
-    console.log('🔧 Configurando handler de QR code via SignalR...');
     const handleQRCode = (qrCode: string | null) => {
-      console.log('🎯 Handler de QR code chamado com:', qrCode ? 'QR code válido' : 'null');
-      if (qrCode === null) {
-        console.log('❌ Erro recebido da fila de QR code');
-        setConnectionState(prev => ({
-          ...prev,
-          error: 'Bot já está conectado. Não é possível gerar novo QR code.',
-          status: ConnectionStatus.disconnected,
-          hasQRCode: false,
-          qrCode: undefined
-        }));
+      if (!qrCode) {
+        setConnectionState(prev => ({ ...prev, error: 'Bot já está conectado. Não é possível gerar novo QR code.', status: ConnectionStatus.disconnected, hasQRCode: false, qrCode: undefined }));
         return;
       }
-      console.log('📱 QR Code recebido da fila:', qrCode.substring(0, 50) + '...');
-      console.log('📊 Tamanho do QR code:', qrCode.length);
-      console.log('🔍 QR code começa com data:?', qrCode.startsWith('data:'));
-      setConnectionState(prev => ({
-        ...prev,
-        qrCode,
-        hasQRCode: true,
-        status: ConnectionStatus.generating,
-        error: undefined
-      }));
+      setConnectionState(prev => ({ ...prev, qrCode, hasQRCode: true, status: ConnectionStatus.generating, error: undefined }));
     };
 
     qrCodeQueueService.onQRCode(handleQRCode);
@@ -229,14 +149,5 @@ export const useWhatsAppConnection = () => {
     };
   }, []);
 
-  return {
-    ...connectionState,
-    isConnecting,
-    isGeneratingQR,
-    connect,
-    disconnect,
-    generateQR,
-    getQRCode,
-    checkStatus
-  };
+  return { ...connectionState, isConnecting, isGeneratingQR, connect, disconnect, generateQR, getQRCode, checkStatus };
 };
