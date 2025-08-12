@@ -53,7 +53,7 @@ Interface web moderna desenvolvida com:
 2. Execute:
 ```bash
 dotnet restore
-dotnet run --urls="http://localhost:5000"
+dotnet run --urls="http://localhost:5656"
 ```
 
 ### ZapBot
@@ -76,7 +76,7 @@ VITE_PORT=8080 npm run dev
 
 ## Portas Padrão
 
-- Back-end API: http://localhost:5000
+- Back-end API: http://localhost:5656
 - ZapBot: http://localhost:3030
 - Front-end: http://localhost:8080
 

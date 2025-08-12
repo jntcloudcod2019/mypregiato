@@ -2,8 +2,8 @@ import axios from 'axios';
 
 // Configuração do axios para o backend .NET
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api',
-  timeout: 10000,
+  baseURL: 'http://localhost:5656/api',
+  timeout: 0,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -28,6 +28,19 @@ const rabbitMQService = {
     return response.data;
   },
 
+  // Desconectar WhatsApp
+  disconnect: async () => {
+    try {
+      console.log('Iniciando desconexão do WhatsApp...');
+      const response = await api.post('/whatsapp/disconnect');
+      console.log('Resposta da API (disconnect):', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao desconectar WhatsApp:', error);
+      throw error;
+    }
+  },
+
   // Gerar QR code
   generateQR: async () => {
     try {
@@ -50,15 +63,16 @@ const rabbitMQService = {
       console.log('API iniciou processo de geração:', data);
       return {
         success: data.success || false,
-        status: data.status || 'error',
-        message: data.message || 'Erro ao gerar QR code'
+        status: data.status || 'command_sent',
+        requestId: data.requestId,
+        message: data.message || 'Comando enviado'
       };
     } catch (error) {
       console.error('Erro ao gerar QR code:', error);
-      if (error.response) {
+      if ((error as any).response) {
         console.error('Detalhes do erro:', {
-          status: error.response.status,
-          data: error.response.data
+          status: (error as any).response.status,
+          data: (error as any).response.data
         });
       }
       return {
@@ -89,10 +103,10 @@ const rabbitMQService = {
       };
     } catch (error) {
       console.error('Erro ao obter QR code:', error);
-      if (error.response) {
+      if ((error as any).response) {
         console.error('Detalhes do erro:', {
-          status: error.response.status,
-          data: error.response.data
+          status: (error as any).response.status,
+          data: (error as any).response.data
         });
       }
       throw error;
@@ -213,7 +227,11 @@ export interface SendMessageRequest {
 }
 
 export interface WhatsAppStatus {
+  botUp: boolean;
+  sessionConnected: boolean;
   isConnected: boolean;
+  isFullyValidated?: boolean;
+  connectedNumber?: string;
   status: 'connected' | 'disconnected' | 'connecting';
   lastActivity: string;
   queueMessageCount: number;

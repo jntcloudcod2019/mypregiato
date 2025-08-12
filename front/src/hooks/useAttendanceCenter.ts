@@ -187,7 +187,7 @@ export const useAttendanceCenter = () => {
       if (!isSubscribed) return;
 
       try {
-        const response = await fetch('http://localhost:5000/api/whatsapp/queue/messages');
+        const response = await fetch('http://localhost:5656/api/whatsapp/queue/messages');
         const data = await response.json();
         
         if (isSubscribed && data.messages && data.messages.length > 0) {

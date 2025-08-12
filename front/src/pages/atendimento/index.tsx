@@ -63,14 +63,7 @@ export default function AttendancePage() {
     // Iniciar consumidor de mensagens da fila
     attendanceService.startMessageConsumer();
 
-    // Simular algumas mensagens para teste
-    setTimeout(() => {
-      attendanceService.simulateIncomingMessage('11999999999', 'Olá, preciso de ajuda!');
-    }, 2000);
-
-    setTimeout(() => {
-      attendanceService.simulateIncomingMessage('11988888888', 'Bom dia, gostaria de informações sobre produtos');
-    }, 4000);
+    // Removidas simulações para produção
 
     return () => {
       attendanceService.removeHandler(messageHandler);
@@ -236,13 +229,7 @@ export default function AttendancePage() {
                   )}
                 </div>
 
-                {/* QR Code Status */}
-                {hasQRCode && (
-                  <div className="text-center p-2 bg-blue-50 rounded-md">
-                    <QrCode className="h-4 w-4 mx-auto mb-1 text-blue-600" />
-                    <p className="text-xs text-blue-600">QR Code disponível</p>
-                  </div>
-                )}
+
 
 
               </div>

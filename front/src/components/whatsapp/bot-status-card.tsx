@@ -19,6 +19,7 @@ export const BotStatusCard = () => {
     canGenerateQR,
     qrCode,
     hasQRCode,
+    connectedNumber,
     connect,
     disconnect,
     generateQR
@@ -40,6 +41,7 @@ export const BotStatusCard = () => {
   };
 
   const getStatusText = (status: ConnectionStatus) => {
+    // TODO: Implementar lógica usando botUp e sessionConnected quando disponível
     switch (status) {
       case ConnectionStatus.connected:
         return 'Bot Conectado';
@@ -69,6 +71,14 @@ export const BotStatusCard = () => {
     }
   };
 
+  // Debug: Log do estado atual
+  console.log('🔍 Estado do BotStatusCard:', {
+    isConnected,
+    canGenerateQR,
+    status,
+    error
+  });
+
   return (
     <>
       <Card>
@@ -92,9 +102,9 @@ export const BotStatusCard = () => {
 
             {/* Botões de Ação */}
             <div className="space-y-2">
-              {!isConnected && canGenerateQR && (
+              {!isConnected ? (
                 <Button 
-                  onClick={() => setShowQRModal(true)}
+                  onClick={generateQR}
                   disabled={isGeneratingQR}
                   className="w-full"
                   variant="outline"
@@ -102,9 +112,7 @@ export const BotStatusCard = () => {
                   <QrCode className="h-4 w-4 mr-2" />
                   {isGeneratingQR ? 'Gerando...' : 'Conectar WhatsApp'}
                 </Button>
-              )}
-              
-              {isConnected && (
+              ) : (
                 <Button 
                   onClick={disconnect}
                   className="w-full"
@@ -114,13 +122,27 @@ export const BotStatusCard = () => {
                   Desconectar
                 </Button>
               )}
+              
+              {/* Botão de Teste para Debug */}
+              <Button 
+                onClick={connect}
+                disabled={isConnecting}
+                className="w-full"
+                variant="ghost"
+                size="sm"
+              >
+                <RefreshCw className={`h-3 w-3 mr-1 ${isConnecting ? 'animate-spin' : ''}`} />
+                {isConnecting ? 'Verificando...' : 'Testar Status'}
+              </Button>
             </div>
 
-            {/* QR Code Status */}
-            {hasQRCode && (
-              <div className="text-center p-2 bg-blue-50 rounded-md">
-                <QrCode className="h-4 w-4 mx-auto mb-1 text-blue-600" />
-                <p className="text-xs text-blue-600">QR Code disponível</p>
+
+
+            {/* Connected Number Status */}
+            {isConnected && connectedNumber && (
+              <div className="text-center p-2 bg-green-50 rounded-md">
+                <CheckCircle className="h-4 w-4 mx-auto mb-1 text-green-600" />
+                <p className="text-xs text-green-600">Conectado: {connectedNumber}</p>
               </div>
             )}
 

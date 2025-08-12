@@ -9,6 +9,7 @@ using Pregiato.Application.Validators;
 using Pregiato.Application.DTOs;
 using Serilog;
 using Serilog.Events;
+using Pregiato.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,71 +26,77 @@ builder.Host.UseSerilog();
 // Add services to the container.
 builder.Services.AddControllers();
 
-// Configurar CORS
+// SignalR
+builder.Services.AddSignalR(options =>
+{
+    options.EnableDetailedErrors = true;
+});
+
+// CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins("http://localhost:8080", "http://localhost:3000", "http://localhost:5173")
               .AllowAnyMethod()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .AllowCredentials();
     });
 });
 
-// Configurar DbContext
+// DbContext
 builder.Services.AddDbContext<PregiatoDbContext>(options =>
     options.UseMySql(
         builder.Configuration.GetConnectionString("DefaultConnection"),
         ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
     ));
 
-// Registrar HttpClient
+// HttpClient
 builder.Services.AddHttpClient();
 
-// Registrar AutoMapper
+// AutoMapper
 builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 
-// Registrar FluentValidation
+// FluentValidation
 builder.Services.AddScoped<IValidator<CreateTalentDto>, CreateTalentDtoValidator>();
 
-// Registrar Services
+// Services
 builder.Services.AddScoped<ITalentService, TalentService>();
 builder.Services.AddScoped<IContractService, ContractService>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IWhatsAppService, WhatsAppService>();
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+// MemoryCache e RabbitMQ HostedService (Singleton + HostedService usando a mesma instância)
+builder.Services.AddMemoryCache();
+builder.Services.AddSingleton<RabbitBackgroundService>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<RabbitBackgroundService>());
+
+// Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-// app.UseHttpsRedirection();
-
-// Usar CORS
 app.UseCors("AllowAll");
-
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<Pregiato.API.Hubs.WhatsAppHub>("/whatsappHub");
 
-// Middleware para logging de requests
+// Middleware de log simples
 app.Use(async (context, next) =>
 {
     var start = DateTime.UtcNow;
     Log.Information("Request starting {Method} {Path}", context.Request.Method, context.Request.Path);
-    
     await next();
-    
     var elapsed = DateTime.UtcNow - start;
-    Log.Information("Request finished {Method} {Path} - {StatusCode} in {Elapsed:0.0000}ms", 
+    Log.Information("Request finished {Method} {Path} - {StatusCode} in {Elapsed:0.0000}ms",
         context.Request.Method, context.Request.Path, context.Response.StatusCode, elapsed.TotalMilliseconds);
 });
 

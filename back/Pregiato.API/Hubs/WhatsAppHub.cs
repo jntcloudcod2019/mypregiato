@@ -4,14 +4,16 @@ namespace Pregiato.API.Hubs
 {
     public class WhatsAppHub : Hub
     {
-        public override async Task OnConnectedAsync()
+        public async Task JoinWhatsAppGroup()
         {
-            await base.OnConnectedAsync();
+            await Groups.AddToGroupAsync(Context.ConnectionId, "whatsapp");
+            await Clients.Caller.SendAsync("JoinedWhatsAppGroup", "Conectado ao grupo WhatsApp");
         }
 
-        public override async Task OnDisconnectedAsync(Exception? exception)
+        public async Task LeaveWhatsAppGroup()
         {
-            await base.OnDisconnectedAsync(exception);
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, "whatsapp");
+            await Clients.Caller.SendAsync("LeftWhatsAppGroup", "Desconectado do grupo WhatsApp");
         }
     }
 } 

@@ -134,7 +134,7 @@ class AttendanceService {
     (globalThis as any).__attendanceConsumerStarted = true;
 
     try {
-      const res = await fetch('http://localhost:5000/api/whatsapp/queue/messages');
+              const res = await fetch('http://localhost:5656/api/whatsapp/queue/messages');
       if (!res.ok) {
         console.log('Nenhuma mensagem disponível');
         return;
