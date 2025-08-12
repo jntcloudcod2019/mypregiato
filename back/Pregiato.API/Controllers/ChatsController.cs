@@ -31,7 +31,15 @@ namespace Pregiato.API.Controllers
         public async Task<IActionResult> List([FromQuery] string? search, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
             var (items, total) = await _chatService.ListAsync(search, Math.Max(page, 1), Math.Clamp(pageSize, 1, 100));
-            return Ok(new { items, total });
+            // Deduplicar por contato/título no retorno para evitar itens duplicados no front
+            var seen = new HashSet<string>();
+            var unique = new List<ChatLog>();
+            foreach (var c in items)
+            {
+                var key = $"{c.ContactPhoneE164}|{c.Title}";
+                if (seen.Add(key)) unique.Add(c);
+            }
+            return Ok(new { items = unique, total });
         }
 
         [HttpGet("{id:guid}/messages")]
@@ -68,7 +76,12 @@ namespace Pregiato.API.Controllers
 
             // Publicar para envio via Rabbit
             var payload = _chatService.Deserialize(updatedChat.PayloadJson);
-            var to = payload.Contact?.PhoneE164 ?? updatedChat.ContactPhoneE164;
+            var to = payload.Contact?.PhoneE164;
+            if (string.IsNullOrWhiteSpace(to)) to = updatedChat.ContactPhoneE164;
+            if (string.IsNullOrWhiteSpace(to))
+            {
+                return BadRequest(new { error = "Telefone do contato não encontrado para este chat." });
+            }
             var cmd = new { command = "send_message", toNormalized = to, body = req.text, clientMessageId = req.clientMessageId, chatId = updatedChat.Id };
             _rabbit.PublishCommand(cmd);
 

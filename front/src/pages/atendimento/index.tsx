@@ -8,7 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { chatsApi, ChatListItem, ChatMessageDto } from '@/services/chat-service';
-import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
+import { HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
 import { BotStatusCard } from '@/components/whatsapp/bot-status-card';
 import { OperatorStatusCard } from '@/components/whatsapp/operator-status-card';
 import { AnimatedList } from '@/components/ui/animated-list';
@@ -123,18 +123,37 @@ export default function AtendimentoPage() {
   const [isChatMinimized, setIsChatMinimized] = useState(false);
   const [nowTick, setNowTick] = useState<number>(Date.now());
 
+  // refs auxiliares para evitar duplicação e problemas de stale state
+  const connRef = useRef<HubConnection | null>(null);
+  const selectedChatIdRef = useRef<string | null>(null);
+  const processedInboundIdsRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => { selectedChatIdRef.current = selectedChatId; }, [selectedChatId]);
+
   // mapa de status por chat
   const [tickets, setTickets] = useState<Record<string, TicketState>>({});
 
   const refreshChats = async () => {
-    const { items } = await chatsApi.list(search, 1, 20);
-    // inicializar como "novo" qualquer chat que ainda não tenha ticket
+    const { items } = await chatsApi.list(search, 1, 50);
+    // deduplicação por id e por título/telefone para evitar entradas repetidas
+    const byId = new Map<string, ChatListItem>();
+    const byKey = new Map<string, string>();
+    for (const c of items) {
+      const key = `${c.contactPhoneE164 || ''}|${c.title || ''}`;
+      if (!byKey.has(key) && !byId.has(c.id)) {
+        byKey.set(key, c.id);
+        byId.set(c.id, c);
+      }
+    }
+    const unique = Array.from(byId.values())
+      .sort((a, b) => new Date(b.lastMessageAt || b['updatedAt'] || 0).getTime() - new Date(a.lastMessageAt || a['updatedAt'] || 0).getTime());
+
     setTickets(prev => {
       const next = { ...prev } as Record<string, TicketState>;
-      items.forEach(c => { if (!next[c.id]) next[c.id] = { status: 'novo', step: 1 }; });
+      unique.forEach(c => { if (!next[c.id]) next[c.id] = { status: 'novo', step: 1 }; });
       return next;
     });
-    setChats(items);
+    setChats(unique);
   };
 
   const loadHistory = async (id: string) => {
@@ -162,25 +181,55 @@ export default function AtendimentoPage() {
     if (!selectedChatId) return;
     setMessages([]);
     setIsChatMinimized(false);
-    if (selectedChatId.startsWith('sim-')) return; // histórico simulado já é setado em outro fluxo
+    if (selectedChatId.startsWith('sim-')) return;
     loadHistory(selectedChatId);
   }, [selectedChatId]);
 
+  // Conexão SignalR única (monta/desmonta 1x) + deduplicação de mensagens
   useEffect(() => {
-    const conn = new HubConnectionBuilder().withUrl('http://localhost:5656/whatsappHub').withAutomaticReconnect().configureLogging(LogLevel.Information).build();
-    conn.on('chat.created', async () => { await refreshChats(); });
-    conn.on('chat.updated', async () => { await refreshChats(); });
-    conn.on('message.inbound', async (evt: any) => {
+    if (connRef.current) return; // já conectado
+    const connection = new HubConnectionBuilder()
+      .withUrl('http://localhost:5656/whatsappHub')
+      .withAutomaticReconnect([0, 2000, 10000, 30000])
+      .configureLogging(LogLevel.Information)
+      .build();
+
+    connection.onreconnected(() => {
+      connection.invoke('JoinWhatsAppGroup').catch(() => {});
+    });
+
+    connection.on('chat.created', async () => { await refreshChats(); });
+    connection.on('chat.updated', async () => { await refreshChats(); });
+    connection.on('message.inbound', async (evt: any) => {
+      const id: string | undefined = evt?.message?.id || evt?.message?.externalMessageId;
+      if (id) {
+        if (processedInboundIdsRef.current.has(id)) return;
+        processedInboundIdsRef.current.add(id);
+        // limitar memória
+        if (processedInboundIdsRef.current.size > 5000) {
+          processedInboundIdsRef.current = new Set(Array.from(processedInboundIdsRef.current).slice(-1000));
+        }
+      }
+      const currentSelected = selectedChatIdRef.current;
       setTickets(prev => ({ ...prev, [evt.chatId]: prev[evt.chatId] || { status: 'novo', step: 1 } }));
-      if (evt.chatId === selectedChatId) {
+      if (evt.chatId === currentSelected) {
         setMessages(prev => [...prev, evt.message]);
         requestAnimationFrame(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }));
       }
       await refreshChats();
     });
-    conn.start().then(() => conn.invoke('JoinWhatsAppGroup')).catch(console.error);
-    return () => { conn.stop(); };
-  }, [selectedChatId]);
+
+    connection.start()
+      .then(() => connection.invoke('JoinWhatsAppGroup'))
+      .catch(console.error);
+
+    connRef.current = connection;
+    return () => {
+      processedInboundIdsRef.current.clear();
+      connRef.current?.stop().catch(() => {});
+      connRef.current = null;
+    };
+  }, []);
 
   // tick a cada 1s para atualizar tempo médio em tempo real
   useEffect(() => {
@@ -188,19 +237,8 @@ export default function AtendimentoPage() {
     return () => clearInterval(t);
   }, []);
 
-  // Simulação de novas conversas (mantido do fluxo anterior)
-  useEffect(() => {
-    const mkSim = (idx: number) => {
-      const phone = `55119999${(1000 + idx).toString()}`;
-      const id = `sim-${crypto.randomUUID()}`;
-      setChats(prev => [{ id, title: `+${phone}`, lastMessagePreview: `Mensagem de teste ${idx + 1} do número ${phone}`, unreadCount: 1, lastMessageAt: new Date().toISOString(), contactPhoneE164: phone } as any, ...prev]);
-      setTickets(prev => ({ ...prev, [id]: { status: 'novo', step: 1 } }));
-    };
-    const t1 = setTimeout(() => mkSim(0), 0);
-    const t2 = setTimeout(() => mkSim(1), 60000);
-    const t3 = setTimeout(() => mkSim(2), 120000);
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
-  }, []);
+  // Removida simulação de conversas para uso do fluxo real-time
+  // useEffect(() => { ... }, []);
 
   const handleAttend = (chatId: string) => {
     setSelectedChatId(chatId);
