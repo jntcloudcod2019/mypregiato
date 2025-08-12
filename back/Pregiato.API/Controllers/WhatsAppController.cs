@@ -1,11 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Caching.Memory;
 using Pregiato.API.Hubs;
 using Pregiato.API.Services;
-using Pregiato.Application.DTOs;
 using Pregiato.Application.Interfaces;
-using FluentValidation;
 using System.Text.Json;
 
 namespace Pregiato.API.Controllers
@@ -31,25 +28,21 @@ namespace Pregiato.API.Controllers
             _hub = hub;
         }
 
-        // POST api/whatsapp/generate-qr
         [HttpPost("generate-qr")]
         public IActionResult GenerateQr()
         {
             _logger.LogInformation("📥 Requisição de geração de QR recebida");
-
             var (created, requestId) = _rabbit.BeginQrRequest();
             if (!created)
             {
                 _logger.LogWarning("Pedido de QR já pendente. requestId={RequestId}", requestId);
                 return Ok(new { success = true, status = "pending", requestId });
             }
-
             var cmd = new { command = "generate_qr", requestId, timestamp = DateTime.UtcNow };
             _rabbit.PublishCommand(cmd);
             return Ok(new { success = true, status = "command_sent", requestId });
         }
 
-        // POST api/whatsapp/disconnect
         [HttpPost("disconnect")]
         public IActionResult Disconnect()
         {
@@ -60,7 +53,6 @@ namespace Pregiato.API.Controllers
             return Ok(new { success = true, status = "command_sent" });
         }
 
-        // GET api/whatsapp/qr-code/current (fallback)
         [HttpGet("qr-code/current")]
         public IActionResult GetCurrentQr()
         {
@@ -69,7 +61,6 @@ namespace Pregiato.API.Controllers
             return Ok(new { qrCode = qr, timestamp = DateTime.UtcNow.ToString("O") });
         }
 
-        // POST api/whatsapp/webhook/qr-code (opcional)
         public class QrRequest { public string qrCode { get; set; } = string.Empty; public string? requestId { get; set; } }
 
         [HttpPost("webhook/qr-code")]
@@ -77,48 +68,48 @@ namespace Pregiato.API.Controllers
         {
             if (req == null || string.IsNullOrWhiteSpace(req.qrCode))
                 return BadRequest(new { success = false, message = "qrCode obrigatório" });
-
             var qr = req.qrCode.StartsWith("data:image/") ? req.qrCode : $"data:image/png;base64,{req.qrCode}";
-
-            // sempre cachear para fallback
             _rabbit.SetCachedQr(qr);
-
-            // Só emitir para o front se houver um pedido pendente
             if (_rabbit.IsQrRequestPending())
             {
-                await _hub.Clients.Group("whatsapp").SendAsync("qr.update", new
-                {
-                    qrCode = qr,
-                    timestamp = DateTime.UtcNow.ToString("O"),
-                    instanceId = "webhook",
-                    requestId = req.requestId
-                });
+                await _hub.Clients.Group("whatsapp").SendAsync("qr.update", new { qrCode = qr, timestamp = DateTime.UtcNow.ToString("O"), instanceId = "webhook", requestId = req.requestId });
                 _logger.LogInformation("📤 QR Code emitido via SignalR (webhook) requestId={RequestId}", req.requestId);
             }
             else
             {
                 _logger.LogInformation("🚫 Webhook de QR recebido sem pedido pendente. Apenas cacheado.");
             }
-
             return Ok(new { success = true });
         }
 
-        // GET api/whatsapp/status
+        // Webhook para o bot sinalizar sessão conectada/validada (chamar quando 'ready' no bot)
+        public class SessionUpdatedRequest { public bool sessionConnected { get; set; } public string? connectedNumber { get; set; } public bool isFullyValidated { get; set; } }
+
+        [HttpPost("session/updated")]
+        public IActionResult SessionUpdated([FromBody] SessionUpdatedRequest req)
+        {
+            _rabbit.SetSessionStatus(req.sessionConnected, req.connectedNumber, req.isFullyValidated);
+            _logger.LogInformation("📥 Webhook session/updated: connected={Connected} number={Number} validated={Validated}", req.sessionConnected, req.connectedNumber, req.isFullyValidated);
+            return Ok(new { success = true });
+        }
+
         [HttpGet("status")]
         public async Task<IActionResult> Status()
         {
+            // Tentamos primeiro pelo cache do serviço (rápido e confiável pós-webhook)
+            var (sessionConnectedCached, numberCached, validatedCached) = _rabbit.GetSessionStatus();
             bool botUp = false;
-            bool sessionConnected = false;
-            bool isFullyValidated = false;
-            string? connectedNumber = null;
+            bool sessionConnected = sessionConnectedCached;
+            bool isFullyValidated = validatedCached;
+            string? connectedNumber = numberCached;
 
             try
             {
                 using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(3) };
                 var resp = await client.GetAsync("http://localhost:3030/status");
+                botUp = resp.IsSuccessStatusCode;
                 if (resp.IsSuccessStatusCode)
                 {
-                    botUp = true;
                     var json = JsonDocument.Parse(await resp.Content.ReadAsStringAsync()).RootElement;
                     if (json.TryGetProperty("isConnected", out var c) && c.GetBoolean())
                     {
@@ -135,7 +126,7 @@ namespace Pregiato.API.Controllers
                     }
                 }
             }
-            catch { botUp = false; }
+            catch { /* ignora - usa cache */ }
 
             var hasQr = !string.IsNullOrEmpty(_rabbit.GetCachedQr());
 
@@ -146,7 +137,7 @@ namespace Pregiato.API.Controllers
                 isFullyValidated,
                 isConnected = sessionConnected && !string.IsNullOrEmpty(connectedNumber),
                 connectedNumber,
-                status = sessionConnected ? "connected" : "disconnected",
+                status = sessionConnected ? "connected" : (botUp ? "connecting" : "disconnected"),
                 lastActivity = DateTime.UtcNow.ToString("O"),
                 queueMessageCount = 0,
                 canGenerateQR = !sessionConnected,
@@ -154,13 +145,7 @@ namespace Pregiato.API.Controllers
             });
         }
 
-        public class SendMessageRequest
-        {
-            public string Phone { get; set; } = string.Empty;
-            public string? Message { get; set; }
-            public string? Template { get; set; }
-            public Dictionary<string, object>? Data { get; set; }
-        }
+        public class SendMessageRequest { public string Phone { get; set; } = string.Empty; public string? Message { get; set; } public string? Template { get; set; } public Dictionary<string, object>? Data { get; set; } }
 
         [HttpPost("messages/send")]
         public IActionResult SendMessage([FromBody] SendMessageRequest req)

@@ -21,7 +21,9 @@ namespace Pregiato.API.Services
 
         private const string QrQueue = "out.qrcode";
         public const string QrCacheKey = "last_qr";
+        public const string StatusCacheKey = "session_status";
         private static readonly TimeSpan QrCacheTtl = TimeSpan.FromMinutes(3);
+        private static readonly TimeSpan StatusCacheTtl = TimeSpan.FromMinutes(5);
 
         // Controle de idempotência / pedido pendente
         private readonly object _qrLock = new();
@@ -112,6 +114,7 @@ namespace Pregiato.API.Services
                 {
                     var body = ea.Body.ToArray();
                     var message = Encoding.UTF8.GetString(body);
+                    _logger.LogInformation("📥 Mensagem recebida em {Queue}: {Message}", QrQueue, message);
                     var json = JsonSerializer.Deserialize<JsonElement>(message);
 
                     bool shouldEmit;
@@ -120,12 +123,6 @@ namespace Pregiato.API.Services
                     {
                         shouldEmit = _qrRequestPending;
                         requestIdSnapshot = _qrRequestId;
-                        if (_qrRequestPending)
-                        {
-                            // Consumiremos este QR e fecharemos o pedido
-                            _qrRequestPending = false;
-                            _qrRequestAt = null;
-                        }
                     }
 
                     if (!shouldEmit)
@@ -143,10 +140,8 @@ namespace Pregiato.API.Services
                             qr = $"data:image/png;base64,{qr}";
                         }
 
-                        // cachear
                         _cache.Set(QrCacheKey, qr, QrCacheTtl);
 
-                        // emitir via SignalR
                         await _hubContext.Clients.Group("whatsapp").SendAsync("qr.update", new
                         {
                             qrCode = qr,
@@ -156,6 +151,18 @@ namespace Pregiato.API.Services
                         });
 
                         _logger.LogInformation("📤 QR Code emitido via SignalR (rabbit) tamanho={Length} requestId={RequestId}", qr.Length, requestIdSnapshot);
+
+                        // limpar pedido APÓS sucesso na emissão
+                        lock (_qrLock)
+                        {
+                            _qrRequestPending = false;
+                            _qrRequestAt = null;
+                            _logger.LogInformation("✅ Pedido de QR concluído requestId={RequestId}", requestIdSnapshot);
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogWarning("⚠️ Mensagem não possui campo qrCode. Mantendo pedido pendente. requestId={RequestId}", requestIdSnapshot);
                     }
 
                     _channel.BasicAck(ea.DeliveryTag, false);
@@ -179,11 +186,13 @@ namespace Pregiato.API.Services
             {
                 if (_qrRequestPending)
                 {
+                    _logger.LogInformation("ℹ️ Pedido de QR já pendente requestId={RequestId}", _qrRequestId);
                     return (false, _qrRequestId);
                 }
                 _qrRequestPending = true;
                 _qrRequestId = Guid.NewGuid().ToString("N");
                 _qrRequestAt = DateTime.UtcNow;
+                _logger.LogInformation("🟢 Pedido de QR aberto requestId={RequestId}", _qrRequestId);
                 return (true, _qrRequestId);
             }
         }
@@ -195,6 +204,7 @@ namespace Pregiato.API.Services
                 _qrRequestPending = false;
                 _qrRequestId = null;
                 _qrRequestAt = null;
+                _logger.LogInformation("🛑 Pedido de QR cancelado");
             }
         }
 
@@ -215,6 +225,7 @@ namespace Pregiato.API.Services
             props.Timestamp = new AmqpTimestamp(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
 
             _channel.BasicPublish("", "whatsapp.outgoing", props, body);
+            _logger.LogInformation("📨 Comando publicado em whatsapp.outgoing: {Json}", json);
         }
 
         public string? GetCachedQr()
@@ -226,6 +237,22 @@ namespace Pregiato.API.Services
         public void SetCachedQr(string qr)
         {
             _cache.Set(QrCacheKey, qr, QrCacheTtl);
+        }
+
+        // Status: get/set
+        public (bool sessionConnected, string? connectedNumber, bool isFullyValidated) GetSessionStatus()
+        {
+            if (_cache.TryGetValue(StatusCacheKey, out (bool sessionConnected, string? connectedNumber, bool isFullyValidated) status))
+            {
+                return status;
+            }
+            return (false, null, false);
+        }
+
+        public void SetSessionStatus(bool sessionConnected, string? connectedNumber, bool isFullyValidated)
+        {
+            _cache.Set(StatusCacheKey, (sessionConnected, connectedNumber, isFullyValidated), StatusCacheTtl);
+            _logger.LogInformation("🟢 Status de sessão atualizado: connected={Connected} number={Number} validated={Validated}", sessionConnected, connectedNumber, isFullyValidated);
         }
 
         private void CloseConnection()
