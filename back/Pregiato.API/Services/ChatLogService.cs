@@ -10,6 +10,10 @@ namespace Pregiato.API.Services
     {
         private readonly PregiatoDbContext _db;
         private readonly ILogger<ChatLogService> _logger;
+        // Limites de histórico: mantém janela recente e consolida o restante em resumo textual
+        private const int MaxMessagesWindow = 300;     // limite rígido para disparar redução
+        private const int TargetMessagesWindow = 200;  // após reduzir, manter esta janela
+        private const int MaxSummaryChars = 4000;      // tamanho máximo do campo de resumo
 
         public ChatLogService(PregiatoDbContext db, ILogger<ChatLogService> logger)
         {
@@ -20,6 +24,8 @@ namespace Pregiato.API.Services
         public static string NormalizePhoneE164Br(string phone)
         {
             var digits = new string((phone ?? "").Where(char.IsDigit).ToArray());
+            // Se for um possível ID de grupo (ex.: 1203... >= 18 dígitos), mantenha como está
+            if (digits.StartsWith("120") && digits.Length >= 18) return digits;
             if (digits.StartsWith("55")) return digits;
             if (digits.Length == 11 || digits.Length == 10) return "55" + digits;
             return digits;
@@ -31,24 +37,26 @@ namespace Pregiato.API.Services
             return await _db.ChatLogs.AsNoTracking().FirstOrDefaultAsync(c => c.ContactPhoneE164 == normalized);
         }
 
-        public async Task<(ChatLog chat, ChatMessage msg, bool created)> UpsertInboundAsync(string phoneRaw, string text, DateTime tsUtc, string externalMessageId)
+        public async Task<(ChatLog chat, ChatMessage msg, bool chatCreated, bool messageAdded, bool reduced)> UpsertInboundAsync(string phoneRaw, string text, DateTime tsUtc, string externalMessageId)
         {
-            var phone = NormalizePhoneE164Br(phoneRaw);
+            var phoneRawDigits = new string((phoneRaw ?? "").Where(char.IsDigit).ToArray());
+            var isGroup = (phoneRaw?.Contains("@g.us") ?? false) || (phoneRawDigits.StartsWith("120") && phoneRawDigits.Length >= 18);
+            var phone = isGroup ? phoneRawDigits : NormalizePhoneE164Br(phoneRaw);
 
             var chat = await _db.ChatLogs.FirstOrDefaultAsync(c => c.ContactPhoneE164 == phone);
-            var created = false;
+            var chatCreated = false;
             if (chat == null)
             {
-                created = true;
+                chatCreated = true;
                 chat = new ChatLog
                 {
                     Id = Guid.NewGuid(),
                     ContactPhoneE164 = phone,
-                    Title = phone,
+                    Title = isGroup ? ($"Grupo {phone.Substring(0, Math.Min(6, phone.Length))}...") : phone,
                     PayloadJson = JsonSerializer.Serialize(new ChatPayload
                     {
                         ChatId = Guid.NewGuid().ToString("N"),
-                        Contact = new ContactPayload { PhoneE164 = phone },
+                        Contact = new ContactPayload { PhoneE164 = phone, Name = isGroup ? "Grupo" : null },
                         Messages = new List<ChatMessage>()
                     }),
                     UnreadCount = 0,
@@ -64,7 +72,8 @@ namespace Pregiato.API.Services
             if (payload.Messages.Any(m => m.ExternalMessageId == externalMessageId))
             {
                 _logger.LogInformation("🔁 Mensagem inbound duplicada ignorada: {ExternalId}", externalMessageId);
-                return (chat, payload.Messages.First(m => m.ExternalMessageId == externalMessageId)!, created);
+                // Não altera counters/preview
+                return (chat, payload.Messages.First(m => m.ExternalMessageId == externalMessageId)!, chatCreated, false, false);
             }
 
             var msg = new ChatMessage
@@ -79,6 +88,7 @@ namespace Pregiato.API.Services
             payload.Messages.Add(msg);
             payload.Messages = payload.Messages.OrderBy(m => m.Ts).ToList();
 
+            var reduced = ReduceHistoryIfNeeded(payload);
             chat.PayloadJson = JsonSerializer.Serialize(payload);
             chat.UnreadCount += 1;
             chat.LastMessageAt = msg.Ts;
@@ -86,10 +96,10 @@ namespace Pregiato.API.Services
             chat.UpdatedAt = DateTime.UtcNow;
 
             await _db.SaveChangesAsync();
-            return (chat, msg, created);
+            return (chat, msg, chatCreated, true, reduced);
         }
 
-        public async Task<(ChatLog chat, ChatMessage msg)> AddOutboundPendingAsync(Guid chatId, string text, string clientMessageId, DateTime tsUtc)
+        public async Task<(ChatLog chat, ChatMessage msg)> AddOutboundPendingAsync(Guid chatId, string text, string clientMessageId, DateTime tsUtc, ChatAttachment? attachment = null)
         {
             var chat = await _db.ChatLogs.FirstAsync(c => c.Id == chatId);
             var payload = Deserialize(chat.PayloadJson);
@@ -100,7 +110,9 @@ namespace Pregiato.API.Services
                 Direction = "out",
                 Text = text,
                 Status = "pending",
-                Ts = tsUtc
+                Ts = tsUtc,
+                Type = attachment == null ? "text" : (attachment.MediaType == "image" ? "image" : "file"),
+                Attachment = attachment
             };
             if (payload.Messages.Any(m => m.Id == msg.Id))
             {
@@ -110,6 +122,7 @@ namespace Pregiato.API.Services
 
             payload.Messages.Add(msg);
             payload.Messages = payload.Messages.OrderBy(m => m.Ts).ToList();
+            ReduceHistoryIfNeeded(payload);
             chat.PayloadJson = JsonSerializer.Serialize(payload);
             chat.LastMessageAt = msg.Ts;
             chat.LastMessagePreview = TruncatePreview(text);
@@ -179,6 +192,55 @@ namespace Pregiato.API.Services
             if (string.IsNullOrEmpty(text)) return string.Empty;
             return text.Length <= 200 ? text : text.Substring(0, 200);
         }
+
+        private static string SanitizeForSummary(string? text)
+        {
+            if (string.IsNullOrEmpty(text)) return string.Empty;
+            var t = text;
+            // Remover emails e mascarar telefones para privacidade básica
+            t = System.Text.RegularExpressions.Regex.Replace(t, @"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}", "[email]");
+            t = System.Text.RegularExpressions.Regex.Replace(t, @"(?<!\\d)(\\+?\\d[\\d .()-]{7,})(?!\\d)", "[phone]");
+            return t;
+        }
+
+        private bool ReduceHistoryIfNeeded(ChatPayload payload)
+        {
+            try
+            {
+                if (payload.Messages == null) { payload.Messages = new List<ChatMessage>(); return false; }
+                if (payload.Messages.Count <= MaxMessagesWindow) return false;
+
+                // Ordenar por timestamp (defensivo)
+                payload.Messages = payload.Messages.OrderBy(m => m.Ts).ToList();
+                var toRemove = payload.Messages.Count - TargetMessagesWindow;
+                if (toRemove <= 0) return false;
+
+                var removed = payload.Messages.Take(toRemove).ToList();
+                payload.Messages = payload.Messages.Skip(toRemove).ToList();
+
+                // Anexar ao resumo
+                var sb = new System.Text.StringBuilder(payload.Summary ?? string.Empty);
+                foreach (var m in removed)
+                {
+                    var role = m.Direction == "in" ? "user" : "assistant";
+                    var line = $"[{m.Ts:O}] {role}: {SanitizeForSummary(m.Text)}\n";
+                    if (sb.Length + line.Length > MaxSummaryChars)
+                    {
+                        // Se estourar, remova do começo um bloco pequeno
+                        var cut = Math.Min(1000, sb.Length);
+                        sb.Remove(0, cut);
+                    }
+                    sb.Append(line);
+                }
+                payload.Summary = sb.ToString();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Falha ao reduzir histórico do chat");
+                return false;
+            }
+        }
     }
 
     public class ChatPayload
@@ -186,6 +248,7 @@ namespace Pregiato.API.Services
         public string ChatId { get; set; } = string.Empty;
         public ContactPayload Contact { get; set; } = new ContactPayload();
         public List<ChatMessage> Messages { get; set; } = new List<ChatMessage>();
+        public string? Summary { get; set; }
     }
 
     public class ContactPayload
@@ -202,5 +265,15 @@ namespace Pregiato.API.Services
         public string Text { get; set; } = string.Empty;
         public string Status { get; set; } = "delivered";
         public DateTime Ts { get; set; }
+        public string? Type { get; set; } // text | image | file
+        public ChatAttachment? Attachment { get; set; }
+    }
+
+        public class ChatAttachment
+    {
+        public string DataUrl { get; set; } = string.Empty;
+        public string MimeType { get; set; } = string.Empty;
+        public string? FileName { get; set; }
+            public string? MediaType { get; set; } // image | file | audio
     }
 }

@@ -59,7 +59,18 @@ namespace Pregiato.API.Controllers
             return Ok(new { messages = slice.OrderBy(m => m.Ts), nextCursor });
         }
 
-        public class SendRequest { public string text { get; set; } = string.Empty; public string clientMessageId { get; set; } = string.Empty; }
+        public class SendRequest {
+            public string text { get; set; } = string.Empty;
+            public string clientMessageId { get; set; } = string.Empty;
+            public AttachmentDto? attachment { get; set; }
+        }
+
+        public class AttachmentDto {
+            public string dataUrl { get; set; } = string.Empty; // data:mime;base64,...
+            public string mimeType { get; set; } = string.Empty;
+            public string? fileName { get; set; }
+            public string? mediaType { get; set; } // image | file
+        }
 
         [HttpPost("{id:guid}/messages")]
         public async Task<IActionResult> Send(Guid id, [FromBody] SendRequest req)
@@ -70,7 +81,7 @@ namespace Pregiato.API.Controllers
             var chat = await _db.ChatLogs.FirstOrDefaultAsync(c => c.Id == id);
             if (chat == null) return NotFound();
 
-            var (updatedChat, msg) = await _chatService.AddOutboundPendingAsync(id, req.text, req.clientMessageId, DateTime.UtcNow);
+            var (updatedChat, msg) = await _chatService.AddOutboundPendingAsync(id, req.text, req.clientMessageId, DateTime.UtcNow, req.attachment != null ? new ChatAttachment { DataUrl = req.attachment.dataUrl, MimeType = req.attachment.mimeType, FileName = req.attachment.fileName, MediaType = req.attachment.mediaType } : null);
 
             await _hub.Clients.Group("whatsapp").SendAsync("message.outbound", new { chatId = updatedChat.Id, message = msg });
 
@@ -82,7 +93,11 @@ namespace Pregiato.API.Controllers
             {
                 return BadRequest(new { error = "Telefone do contato não encontrado para este chat." });
             }
-            var cmd = new { command = "send_message", toNormalized = to, body = req.text, clientMessageId = req.clientMessageId, chatId = updatedChat.Id };
+            // Heurística para grupos: IDs de grupo podem vir como "...@g.us" ou iniciar com 120 e ter >= 18 dígitos
+            var isGroup = (to?.Contains("@g.us") ?? false) || (to?.StartsWith("120") == true && to!.Length >= 18);
+            var toNormalized = to ?? string.Empty;
+            if (toNormalized.EndsWith("@g.us")) toNormalized = toNormalized.Split('@')[0];
+            var cmd = new { command = "send_message", toNormalized = toNormalized, isGroup, body = req.text, clientMessageId = req.clientMessageId, chatId = updatedChat.Id, attachment = req.attachment };
             _rabbit.PublishCommand(cmd);
 
             return Ok(new { success = true, message = msg });
@@ -96,6 +111,17 @@ namespace Pregiato.API.Controllers
             var ts = DateTimeOffset.FromUnixTimeMilliseconds(req.readUpToTs).UtcDateTime;
             await _chatService.MarkReadUpToAsync(id, ts);
             await _hub.Clients.Group("whatsapp").SendAsync("chat.read", new { chatId = id, readUpToTs = req.readUpToTs });
+            return Ok(new { success = true });
+        }
+
+        [HttpDelete("{id:guid}")]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            var chat = await _db.ChatLogs.FirstOrDefaultAsync(c => c.Id == id);
+            if (chat == null) return NotFound();
+            _db.ChatLogs.Remove(chat);
+            await _db.SaveChangesAsync();
+            await _hub.Clients.Group("whatsapp").SendAsync("chat.deleted", new { chatId = id });
             return Ok(new { success = true });
         }
     }

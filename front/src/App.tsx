@@ -2,9 +2,12 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import MainLayout from "./components/layout/main-layout";
 import Dashboard from "./pages/dashboard";
 import CRMDashboard from "./pages/crm/dashboard";
+import CRMWorkspace from "./pages/crm/workspace";
 import LeadsPage from "./pages/crm/leads";
 import NovoLead from "./pages/crm/leads/novo";
 import DetalheLead from "./pages/crm/leads/[id]";
+import LeadsKanban from "./pages/crm/leads/kanban";
+import EventosPage from "./pages/crm/eventos";
 import TarefasPage from "./pages/crm/tarefas";
 import NovaTarefa from "./pages/crm/tarefas/nova";
 import RelatoriosPage from "./pages/crm/relatorios";
@@ -27,6 +30,8 @@ import CriarTreinamentoPage from "./pages/treinamentos/criar";
 import CursoPage from "./pages/treinamentos/curso/[id]";
 import PontoEletronicoPage from "./pages/ponto";
 import NotFound from "./pages/NotFound";
+import ModulePage from "./pages/modules/[slug]";
+import FichaDigitalPage from "./pages/events/ficha/[token]";
 
 const App = () => (
   <BrowserRouter>
@@ -34,8 +39,11 @@ const App = () => (
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/crm" element={<CRMDashboard />} />
+        <Route path="/apps/:slug" element={<ModulePage />} />
+        <Route path="/ficha/:token" element={<FichaDigitalPage />} />
+        <Route path="/crm" element={<CRMWorkspace />} />
         <Route path="/crm/leads" element={<LeadsPage />} />
+        <Route path="/crm/leads/kanban" element={<LeadsKanban />} />
         <Route path="/crm/leads/novo" element={<NovoLead />} />
         <Route path="/crm/leads/:id" element={<DetalheLead />} />
         <Route path="/crm/leads/:id/editar" element={<NovoLead />} />
@@ -43,6 +51,7 @@ const App = () => (
         <Route path="/crm/tarefas/nova" element={<NovaTarefa />} />
         <Route path="/crm/relatorios" element={<RelatoriosPage />} />
         <Route path="/crm/configuracoes" element={<ConfiguracoesPage />} />
+        <Route path="/crm/eventos" element={<EventosPage />} />
         <Route path="/configuracoes" element={<ConfiguracoesPage />} />
         <Route path="/atendimento" element={<AtendimentoPage />} />
         <Route path="/treinamentos" element={<TreinamentosPage />} />

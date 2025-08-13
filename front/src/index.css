@@ -7,6 +7,9 @@
 @import "@fontsource/inter/500.css";
 @import "@fontsource/inter/600.css";
 @import "@fontsource/inter/700.css";
+@import "@fontsource/poppins/400.css";
+@import "@fontsource/poppins/600.css";
+@import "@fontsource/poppins/700.css";
 
 @tailwind base;
 @tailwind components;
@@ -153,6 +156,7 @@
 
 /* MUI Dashboard Typography */
 @layer utilities {
+  .font-poppins { font-family: 'Poppins', sans-serif; }
   .mui-h1 {
     @apply text-3xl font-light tracking-tight;
     font-family: 'Roboto', sans-serif;
@@ -243,97 +247,9 @@
     filter: drop-shadow(0 0 8px hsl(var(--accent) / 0.4));
   }
 
-  /* Animated light wire effects */
-  @keyframes lightWireFlow {
-    0% {
-      transform: translateX(-100%);
-      opacity: 0;
-    }
-    50% {
-      opacity: 1;
-    }
-    100% {
-      transform: translateX(200%);
-      opacity: 0;
-    }
-  }
+  /* (removido) animações de light-wire e bordas pulsantes */
 
-  @keyframes lightWirePulse {
-    0%, 100% {
-      box-shadow: 0 0 5px hsl(var(--light-wire-color) / 0.5);
-    }
-    50% {
-      box-shadow: 0 0 20px hsl(var(--light-wire-glow) / 0.8);
-    }
-  }
-
-  .light-wire {
-    position: relative;
-    overflow: hidden;
-  }
-
-  .light-wire::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      hsl(var(--light-wire-color) / 0.6),
-      hsl(var(--light-wire-glow) / 0.8),
-      hsl(var(--light-wire-color) / 0.6),
-      transparent
-    );
-    animation: lightWireFlow 3s ease-in-out infinite;
-  }
-
-  .light-wire-border-top {
-    border-top: 1px solid hsl(var(--border));
-    animation: lightWirePulse 2s ease-in-out infinite;
-  }
-
-  .light-wire-border-right {
-    border-right: 1px solid hsl(var(--border));
-    animation: lightWirePulse 2s ease-in-out infinite;
-  }
-
-  /* Dark theme wire effects */
-  .dark .light-wire::before {
-    background: linear-gradient(
-      90deg,
-      transparent,
-      hsl(var(--light-wire-color) / 0.6),
-      hsl(var(--light-wire-glow) / 0.8),
-      hsl(var(--light-wire-color) / 0.6),
-      transparent
-    );
-  }
-
-  .dark .light-wire-border-top {
-    animation: lightWirePulse 2s ease-in-out infinite;
-    box-shadow: 0 0 5px hsl(var(--light-wire-color) / 0.3);
-  }
-
-  .dark .light-wire-border-right {
-    animation: lightWirePulse 2s ease-in-out infinite;
-    box-shadow: 0 0 5px hsl(var(--light-wire-color) / 0.3);
-  }
-
-  /* Float animation for particles */
-  @keyframes float {
-    0%, 100% { 
-      transform: translateY(0px) rotate(0deg); 
-    }
-    33% { 
-      transform: translateY(-10px) rotate(120deg); 
-    }
-    66% { 
-      transform: translateY(-5px) rotate(240deg); 
-    }
-  }
+  /* (removido) float duplicada - usar a versão em @layer utilities */
 }
 
 @layer utilities {
@@ -401,19 +317,7 @@
     transition: var(--transition-fast);
   }
 
-  /* Tech-inspired animations */
-  .animate-float {
-    animation: float 6s ease-in-out infinite;
-  }
-  
-  .animate-pulse-slow {
-    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  }
-
-  @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
-  }
+  /* (removido) utilitárias de animação não utilizadas */
 }
 
 @keyframes fade-in {
@@ -436,4 +340,45 @@
   animation-delay: var(--ta-delay, 0s);
   animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
   animation-fill-mode: both;
+}
+
+/* Aurora Text effect (MagicUI-like) */
+.aurora-text {
+  position: relative;
+  display: inline-block;
+  background: linear-gradient(90deg, var(--aurora-colors, #0ea5e9,#38bdf8,#22d3ee,#60a5fa));
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: aurora-shift calc(6s / var(--aurora-speed, 1)) ease-in-out infinite;
+}
+
+@keyframes aurora-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* (removido) Orb Ring background e keyframes - não utilizado */
+
+/* Modern UI primitives */
+.glass-card {
+  background: color-mix(in srgb, var(--background, #0b0f1a) 65%, transparent);
+  background: rgba(15, 23, 42, 0.45);
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 10px 30px rgba(2,6,23,0.25), inset 0 1px 0 rgba(255,255,255,0.03);
+  backdrop-filter: saturate(140%) blur(10px);
+}
+
+.shadow-smooth {
+  box-shadow: 0 10px 30px rgba(2,6,23,0.12), 0 2px 6px rgba(2,6,23,0.08);
+}
+
+.soft-border {
+  border: 1px solid rgba(148,163,184,0.12);
+}
+
+.card-header-glow {
+  background: linear-gradient(180deg, rgba(99,102,241,0.06), rgba(2,6,23,0));
 }

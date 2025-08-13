@@ -100,25 +100,17 @@ namespace Pregiato.API.Controllers
 
             try
             {
-                using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(3) };
-                var resp = await client.GetAsync("http://localhost:3030/status");
-                botUp = resp.IsSuccessStatusCode;
-                if (resp.IsSuccessStatusCode)
+                // Confiar prioritariamente no cache atualizado via /session/updated (batimento do bot)
+                // Opcionalmente, podemos pingar a porta 3030 apenas para saber se o processo está UP
+                using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(2) };
+                try
                 {
-                    var json = JsonDocument.Parse(await resp.Content.ReadAsStringAsync()).RootElement;
-                    if (json.TryGetProperty("isConnected", out var c) && c.GetBoolean())
-                    {
-                        sessionConnected = true;
-                    }
-                    if (json.TryGetProperty("connectedNumber", out var n))
-                    {
-                        connectedNumber = n.GetString();
-                        sessionConnected = !string.IsNullOrEmpty(connectedNumber);
-                    }
-                    if (json.TryGetProperty("isFullyValidated", out var f))
-                    {
-                        isFullyValidated = f.GetBoolean();
-                    }
+                    var resp = await client.GetAsync("http://localhost:3030/status");
+                    botUp = resp.IsSuccessStatusCode;
+                }
+                catch
+                {
+                    botUp = false;
                 }
             }
             catch { }
@@ -130,7 +122,7 @@ namespace Pregiato.API.Controllers
                 botUp,
                 sessionConnected,
                 isFullyValidated,
-                isConnected = sessionConnected && !string.IsNullOrEmpty(connectedNumber),
+                isConnected = sessionConnected,
                 connectedNumber,
                 status = sessionConnected ? "connected" : (botUp ? "connecting" : "disconnected"),
                     lastActivity = DateTime.UtcNow.ToString("O"),

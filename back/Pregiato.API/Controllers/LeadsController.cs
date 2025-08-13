@@ -15,6 +15,25 @@ namespace Pregiato.API.Controllers
             _leadService = leadService;
         }
 
+        [HttpPost("import")]
+        public async Task<ActionResult<object>> ImportCsv([FromBody] List<CreateLeadDto> items)
+        {
+            try
+            {
+                var created = new List<LeadDto>();
+                foreach (var i in items)
+                {
+                    var lead = await _leadService.CreateAsync(i);
+                    created.Add(lead);
+                }
+                return Ok(new { imported = created.Count, items = created });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Erro ao importar leads", error = ex.Message });
+            }
+        }
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<LeadDto>>> GetAll([FromQuery] LeadFilterDto filter)
         {

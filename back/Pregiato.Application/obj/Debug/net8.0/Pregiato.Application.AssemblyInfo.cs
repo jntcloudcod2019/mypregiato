@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Pregiato.Application")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d814a15e672598808f2f36a9b8125e988cee89af")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+12d21e75db7368bb126e2b691b55e1a5140c2d35")]
 [assembly: System.Reflection.AssemblyProductAttribute("Pregiato.Application")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Pregiato.Application")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

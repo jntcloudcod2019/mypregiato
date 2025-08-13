@@ -2,6 +2,7 @@ import { useState } from "react"
 import { FileText, Home, Users, Settings, ChevronDown, Star, DollarSign, BarChart3, Headphones, BookOpen, Clock } from "lucide-react"
 import { NavLink, useLocation } from "react-router-dom"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { AuroraText } from "@/components/magicui/aurora-text"
 
 import {
   Sidebar,
@@ -49,8 +50,9 @@ export function AppSidebar() {
         <div className="p-4 border-b border-border flex items-center justify-between">
           {!collapsed ? (
             <div className="flex items-center">
-              <h1 className="font-merriweather text-xl font-bold shiny-text tracking-wider">
-                MY PREGIATO 
+              <h1 className="text-xl font-bold tracking-wider" style={{ fontFamily: 'Poppins, ui-sans-serif, system-ui' }}>
+                <span className="text-foreground">MY </span>
+                <AuroraText colors={["#0ea5e9","#38bdf8","#22d3ee","#60a5fa","#93c5fd"]}>PREGIATO</AuroraText>
               </h1>
             </div>
           ) : (
@@ -58,7 +60,10 @@ export function AppSidebar() {
               <span className="text-white font-bold text-sm">MP</span>
             </div>
           )}
-          {!collapsed && <ThemeToggle />}
+          <div className="flex items-center gap-2">
+            {!collapsed && <ThemeToggle />}
+            <SidebarTrigger className="p-2 hover:bg-accent rounded-lg transition-colors" />
+          </div>
         </div>
 
         <SidebarGroup className="mt-4">

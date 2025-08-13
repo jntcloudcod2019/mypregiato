@@ -14,6 +14,7 @@ import {
 import { ArrowLeft, Save, X } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
 import { useToast } from "@/hooks/use-toast"
+import { talentsService } from '@/services/crm/talents-service'
 
 export default function NovoLead() {
   const navigate = useNavigate()
@@ -62,7 +63,7 @@ export default function NovoLead() {
     }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     // Validação básica
@@ -75,16 +76,21 @@ export default function NovoLead() {
       return
     }
 
-    // Aqui você faria a chamada para a API para salvar o lead
-    console.log("Dados do novo lead:", formData)
-    
-    toast({
-      title: "Lead criado com sucesso!",
-      description: `${formData.nome} foi adicionado à sua lista de leads.`
-    })
-
-    // Redirecionar para a lista de leads
-    navigate("/crm/leads")
+    try {
+      await talentsService.create({
+        fullName: formData.nome,
+        email: formData.email,
+        phone: formData.telefone,
+        city: formData.empresa,
+        notes: formData.observacoes,
+        status: formData.etapa === 'fechado' ? 'aprovado' : formData.etapa === 'contato' ? 'avaliacao' : 'novo',
+        stage: (formData.etapa as any)
+      })
+      toast({ title: 'Lead criado com sucesso!', description: `${formData.nome} foi adicionado.` })
+      navigate('/crm/leads')
+    } catch {
+      toast({ title: 'Erro ao salvar lead', variant: 'destructive' })
+    }
   }
 
   return (

@@ -163,12 +163,9 @@ export default function TarefasPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold">
             Gestão de Tarefas
           </h1>
-          <p className="text-muted-foreground mt-1">
-            Gerencie todas as suas tarefas e atividades
-          </p>
         </div>
         <Link to="/crm/tarefas/nova">
           <Button size="lg" className="gap-2">

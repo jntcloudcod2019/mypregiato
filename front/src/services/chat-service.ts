@@ -22,6 +22,12 @@ export interface ChatMessageDto {
   text: string;
   status: 'pending' | 'sent' | 'delivered' | 'read' | 'failed';
   ts: string;
+  type?: 'text' | 'image' | 'file' | 'audio';
+  attachment?: {
+    dataUrl: string;
+    mimeType: string;
+    fileName?: string;
+  } | null;
 }
 
 export interface ChatHistoryResponse {
@@ -38,12 +44,16 @@ export const chatsApi = {
     const { data } = await api.get(`/chats/${id}/messages`, { params: { cursorTs, limit } });
     return data as ChatHistoryResponse;
   },
-  send: async (id: string, text: string, clientMessageId: string) => {
-    const { data } = await api.post(`/chats/${id}/messages`, { text, clientMessageId });
+  send: async (id: string, text: string, clientMessageId: string, attachment?: { dataUrl: string; mimeType: string; fileName?: string; mediaType?: 'image' | 'file' | 'audio' }) => {
+    const { data } = await api.post(`/chats/${id}/messages`, { text, clientMessageId, attachment });
     return data;
   },
   read: async (id: string, readUpToTs: number) => {
     const { data } = await api.post(`/chats/${id}/read`, { readUpToTs });
+    return data;
+  },
+  delete: async (id: string) => {
+    const { data } = await api.delete(`/chats/${id}`);
     return data;
   }
 };

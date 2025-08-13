@@ -34,6 +34,7 @@ namespace Pregiato.API.Services
         public const string StatusCacheKey = "session_status";
         private static readonly TimeSpan QrCacheTtl = TimeSpan.FromMinutes(3);
         private static readonly TimeSpan StatusCacheTtl = TimeSpan.FromMinutes(5);
+        private static readonly TimeSpan InboundIdTtl = TimeSpan.FromMinutes(30);
 
         private readonly object _qrLock = new();
         private bool _qrRequestPending = false;
@@ -104,6 +105,8 @@ namespace Pregiato.API.Services
 
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();
+            // Evitar entregas paralelas que podem causar duplicidade por corrida
+            _channel.BasicQos(0, 1, false);
 
             _channel.QueueDeclare(QrQueue, durable: true, exclusive: false, autoDelete: false);
             _channel.QueueDeclare(IncomingQueue, durable: true, exclusive: false, autoDelete: false);
@@ -183,16 +186,58 @@ namespace Pregiato.API.Services
                     var body = json.TryGetProperty("body", out var b) ? b.GetString() : string.Empty;
                     var ts = json.TryGetProperty("timestamp", out var t) ? DateTime.Parse(t.GetString()!) : DateTime.UtcNow;
                     var externalId = json.TryGetProperty("externalMessageId", out var eid) ? eid.GetString() : json.TryGetProperty("messageId", out var mid) ? mid.GetString() : Guid.NewGuid().ToString("N");
+                    var type = json.TryGetProperty("type", out var tp) ? tp.GetString() : "text";
+                    ChatAttachment? attachment = null;
+                    if (json.TryGetProperty("attachment", out var att) && att.ValueKind == JsonValueKind.Object)
+                    {
+                        var dataUrl = att.TryGetProperty("dataUrl", out var du) ? du.GetString() : null;
+                        var mime = att.TryGetProperty("mimeType", out var mt) ? mt.GetString() : null;
+                        var fileName = att.TryGetProperty("fileName", out var fn) ? fn.GetString() : null;
+                        var mediaType = att.TryGetProperty("mediaType", out var md) ? md.GetString() : null;
+                        if (!string.IsNullOrWhiteSpace(dataUrl) && !string.IsNullOrWhiteSpace(mime))
+                        {
+                            attachment = new ChatAttachment { DataUrl = dataUrl!, MimeType = mime!, FileName = fileName, MediaType = mediaType };
+                        }
+                    }
+
+                    // Idempotência rápida em memória para evitar reprocessamento/reamentrega da mesma mensagem
+                    var processedKey = $"processed_inbound_{externalId}";
+                    // Setar o cache ANTES para impedir corrida em re-entregas
+                    if (!_cache.TryGetValue(processedKey, out _))
+                    {
+                        _cache.Set(processedKey, true, InboundIdTtl);
+                    }
+                    else
+                    {
+                        _logger.LogInformation("🔁 Inbound já processado (cache). Ack imediato. id={ExternalId}", externalId);
+                        _channel.BasicAck(ea.DeliveryTag, false);
+                        return;
+                    }
 
                     using var scope = _scopeFactory.CreateScope();
                     var chatService = scope.ServiceProvider.GetRequiredService<ChatLogService>();
                     var attendanceService = scope.ServiceProvider.GetRequiredService<AttendanceService>();
-                    var (chat, msg, created) = await chatService.UpsertInboundAsync(from!, body!, ts, externalId!);
+                    var (chat, msg, chatCreated, messageAdded, reduced) = await chatService.UpsertInboundAsync(from!, body!, ts, externalId!);
+                    // se há attachment, sobrescrever campos no msg gravado
+                    if (attachment != null)
+                    {
+                        msg.Type = attachment.MediaType == "image" ? "image" : (attachment.MediaType == "audio" ? "audio" : "file");
+                        msg.Attachment = attachment;
+                        chat.PayloadJson = JsonSerializer.Serialize(chatService.Deserialize(chat.PayloadJson));
+                        await scope.ServiceProvider.GetRequiredService<PregiatoDbContext>().SaveChangesAsync();
+                    }
                     // garante ticket aberto (apenas 1 não finalizado por chat)
                     await attendanceService.EnsureOpenTicketAsync(chat.Id);
 
-                    await _hubContext.Clients.Group("whatsapp").SendAsync("message.inbound", new { chatId = chat.Id, message = msg });
-                    await _hubContext.Clients.Group("whatsapp").SendAsync(created ? "chat.created" : "chat.updated", new { chatId = chat.Id, title = chat.Title, unread = chat.UnreadCount, lastMessage = chat.LastMessagePreview, updatedAt = chat.LastMessageAt });
+                    if (messageAdded)
+                    {
+                        await _hubContext.Clients.Group("whatsapp").SendAsync("message.inbound", new { chatId = chat.Id, message = msg });
+                    }
+                    await _hubContext.Clients.Group("whatsapp").SendAsync(chatCreated ? "chat.created" : "chat.updated", new { chatId = chat.Id, title = chat.Title, unread = chat.UnreadCount, lastMessage = chat.LastMessagePreview, updatedAt = chat.LastMessageAt });
+                    if (reduced)
+                    {
+                        await _hubContext.Clients.Group("whatsapp").SendAsync("chat.summary.updated", new { chatId = chat.Id });
+                    }
                     var (inQueue, inService, avg) = await attendanceService.GetDashboardAsync();
                     await _hubContext.Clients.Group("whatsapp").SendAsync("dashboard.update", new { inQueue, inService, avgServiceTimeSec = avg });
 

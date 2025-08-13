@@ -1,4 +1,4 @@
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { SidebarProvider } from "@/components/ui/sidebar"
 import { AppSidebar } from "./app-sidebar"
 import { UserButton, SignedIn, SignedOut, useClerk } from "@clerk/clerk-react"
 import { Button } from "@/components/ui/button"
@@ -29,10 +29,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
           <div className="flex-1 flex flex-col">
             {/* Header */}
             <header className="h-16 flex items-center justify-between px-6 border-b border-border bg-card/50 backdrop-blur">
-              <div className="flex items-center gap-3">
-                <SidebarTrigger className="p-2 hover:bg-accent rounded-lg transition-colors" />
-                <h1 className="font-semibold text-foreground">Sistema Pregiato</h1>
-              </div>
+              <div className="flex items-center gap-3" />
               
               <div className="flex items-center gap-3">
                 <Button

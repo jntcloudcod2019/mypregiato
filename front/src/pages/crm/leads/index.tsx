@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -31,11 +31,16 @@ import {
   User
 } from "lucide-react"
 import { Link } from "react-router-dom"
+import { talentsService, Talent } from '@/services/crm/talents-service'
+import api from '@/services/whatsapp-api'
+import Papa from 'papaparse'
 
 export default function LeadsPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [filterEtapa, setFilterEtapa] = useState("todas")
   const [filterResponsavel, setFilterResponsavel] = useState("todos")
+  const [talents, setTalents] = useState<Talent[]>([])
+  const [importing, setImporting] = useState(false)
 
   // Mock data - em uma aplicação real, viria do backend
   const leads = [
@@ -86,10 +91,12 @@ export default function LeadsPage() {
   ]
 
   const etapas = [
-    { value: "novo", label: "Novo Lead", cor: "bg-blue-500" },
-    { value: "contato", label: "Em Contato", cor: "bg-yellow-500" },
-    { value: "proposta", label: "Proposta Enviada", cor: "bg-orange-500" },
-    { value: "fechado", label: "Fechado Ganho", cor: "bg-green-500" },
+    { value: "novo", label: "Novo", cor: "bg-blue-500" },
+    { value: "contato", label: "Contato", cor: "bg-yellow-500" },
+    { value: "agendamento", label: "Agendamento", cor: "bg-orange-500" },
+    { value: "seletiva", label: "Seletiva", cor: "bg-indigo-500" },
+    { value: "contrato", label: "Contrato", cor: "bg-green-500" },
+    { value: "finalizado", label: "Finalizado", cor: "bg-emerald-600" },
     { value: "perdido", label: "Perdido", cor: "bg-red-500" }
   ]
 
@@ -100,7 +107,23 @@ export default function LeadsPage() {
     return etapaInfo ? etapaInfo : { label: etapa, cor: "bg-gray-500" }
   }
 
-  const filteredLeads = leads.filter(lead => {
+  useEffect(() => { (async()=>{ try { setTalents(await talentsService.list()) } catch {} })() }, [])
+
+  const dynamicLeads = talents.map(t => ({
+    id: t.id,
+    nome: t.fullName || 'Sem nome',
+    email: t.email || '',
+    telefone: t.phone || '',
+    empresa: t.city || '',
+    etapa: t.stage || (t.status === 'aprovado' ? 'contrato' : t.status === 'avaliacao' ? 'contato' : t.status === 'rejeitado' ? 'perdido' : 'novo'),
+    responsavel: '—',
+    dataUltimoContato: t.updatedAt ? new Date(t.updatedAt).toLocaleDateString('pt-BR') : '',
+    valor: ''
+  }))
+
+  const dataset = dynamicLeads.length > 0 ? dynamicLeads : leads
+
+  const filteredLeads = dataset.filter(lead => {
     const matchesSearch = lead.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          lead.empresa.toLowerCase().includes(searchTerm.toLowerCase())
@@ -151,6 +174,40 @@ export default function LeadsPage() {
                   className="pl-9"
                 />
               </div>
+            </div>
+            <div>
+              <input id="lead-import" type="file" accept=".csv,.txt" className="hidden" onChange={async (e)=>{
+                const f = e.target.files?.[0]; if(!f) return;
+                setImporting(true);
+                Papa.parse(f, {
+                  header: true,
+                  skipEmptyLines: true,
+                  complete: async (results)=>{
+                    try {
+                      // Tenta importar via backend nativo de Leads
+                      const rows = (results.data as any[]).map(r=>({
+                        name: r.nome || r.name || r.fullName || 'Sem nome',
+                        email: r.email || r.mail || '',
+                        phone: r.telefone || r.phone || '',
+                        company: r.empresa || r.company || r.cidade || r.city,
+                        description: r.observacoes || r.notes,
+                        source: r.origem || 'CSV',
+                        status: r.status || 'Novo'
+                      }));
+                      try {
+                        await api.post('/leads/import', rows);
+                      } catch {
+                        // fallback para módulo genérico caso endpoint não esteja disponível
+                        await talentsService.bulkImport(results.data as any[]);
+                      }
+                      setTalents(await talentsService.list());
+                    } finally { setImporting(false); (e.target as any).value=''; }
+                  }
+                });
+              }} />
+              <Button disabled={importing} onClick={()=>document.getElementById('lead-import')?.click()}>
+                Importar CSV
+              </Button>
             </div>
             <Select value={filterEtapa} onValueChange={setFilterEtapa}>
               <SelectTrigger className="w-[200px]">

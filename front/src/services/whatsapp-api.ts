@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Configuração do axios para o backend .NET
 const api = axios.create({
-  baseURL: 'http://localhost:5656/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') + '/api' || 'http://localhost:5656/api',
   timeout: 0,
   headers: {
     'Content-Type': 'application/json',

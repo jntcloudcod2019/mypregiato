@@ -35,7 +35,8 @@ export const useWhatsAppConnection = () => {
   const checkStatus = useCallback(async () => {
     try {
       const status: WhatsAppStatus = await rabbitMQService.getStatus();
-      const isActuallyConnected = Boolean(status.sessionConnected) && Boolean(status.connectedNumber);
+      // Considerar conectado quando a sessão está conectada, independente do número
+      const isActuallyConnected = Boolean(status.sessionConnected);
       const nextStatus = isActuallyConnected
         ? ConnectionStatus.connected
         : (status.botUp ? ConnectionStatus.connecting : ConnectionStatus.disconnected);
@@ -47,7 +48,7 @@ export const useWhatsAppConnection = () => {
         lastActivity: status.lastActivity,
         error: status.error,
         canGenerateQR: !isActuallyConnected,
-        connectedNumber: status.connectedNumber
+        connectedNumber: status.connectedNumber || prev.connectedNumber
       }));
     } catch (error) {
       setConnectionState(prev => ({
@@ -85,28 +86,19 @@ export const useWhatsAppConnection = () => {
   }, []);
 
   const generateQR = useCallback(async () => {
-    // Iniciar consumer antes de mandar o comando, garantindo assinatura do evento
     try { await qrCodeQueueService.startQRCodeConsumer(); } catch {}
-
     if (isGeneratingQR) return;
     setIsGeneratingQR(true);
-
-    // Atualiza status preventivamente
     setConnectionState(prev => ({ ...prev, status: ConnectionStatus.generating, error: undefined }));
-
     try {
-      console.log('[QR] Enviando comando generate-qr para API...');
       const result = await rabbitMQService.generateQR();
-      console.log('[QR] Resposta da API (generate-qr):', result);
       if (!result.success) {
         toast?.(result.message || 'Falha ao gerar QR code');
         setConnectionState(prev => ({ ...prev, error: result.message || 'Falha ao gerar QR code', status: ConnectionStatus.disconnected }));
         return;
       }
-      // sucesso: aguardar evento qr.update via SignalR
       toast?.('Comando enviado. Aguardando QR...');
     } catch (error: any) {
-      console.error('[QR] Erro ao gerar QR:', error);
       setConnectionState(prev => ({ ...prev, error: 'Erro ao comunicar com o servidor', status: ConnectionStatus.disconnected }));
     } finally {
       setIsGeneratingQR(false);
@@ -130,7 +122,7 @@ export const useWhatsAppConnection = () => {
 
     loop();
     return () => { isSubscribed = false; if (timeoutId) clearTimeout(timeoutId); };
-  }, [connectionState.isConnected]);
+  }, [connectionState.isConnected, checkStatus]);
 
   useEffect(() => {
     const handleQRCode = (qrCode: string | null) => {

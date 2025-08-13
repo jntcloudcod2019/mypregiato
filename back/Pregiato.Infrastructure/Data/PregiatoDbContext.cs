@@ -5,6 +5,7 @@ namespace Pregiato.Infrastructure.Data;
 
 public class PregiatoDbContext : DbContext
 {
+        public DbSet<Pregiato.Core.Entities.ModuleRecord> ModuleRecords { get; set; }
     public PregiatoDbContext(DbContextOptions<PregiatoDbContext> options) : base(options)
     {
     }
@@ -528,5 +529,19 @@ public class PregiatoDbContext : DbContext
                 .HasColumnType("datetime")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
         });
+            modelBuilder.Entity<Pregiato.Core.Entities.ModuleRecord>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).ValueGeneratedOnAdd();
+                entity.Property(e => e.ModuleSlug).IsRequired().HasMaxLength(80);
+                entity.Property(e => e.Title).HasMaxLength(180);
+                entity.Property(e => e.Status).HasMaxLength(60);
+                entity.Property(e => e.Tags).HasMaxLength(180);
+                entity.Property(e => e.PayloadJson).HasColumnType("LONGTEXT");
+                entity.Property(e => e.CreatedAtUtc).HasColumnType("datetime").HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.Property(e => e.UpdatedAtUtc).HasColumnType("datetime").HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+                entity.Property(e => e.RowVersion).IsRowVersion();
+                entity.HasIndex(e => e.ModuleSlug);
+            });
     }
 } 
