@@ -4,18 +4,24 @@ using Pregiato.Application.DTOs;
 using Pregiato.Core.Entities;
 using Pregiato.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Pregiato.API.Attributes;
+using Pregiato.API.Services;
+using System.Security.Claims;
 
 namespace Pregiato.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [ClerkAuthorize] // Requer autenticação para todos os endpoints
     public class UsersController : ControllerBase
     {
         private readonly PregiatoDbContext _context;
+        private readonly IClerkAuthService _clerkAuthService;
 
-        public UsersController(PregiatoDbContext context)
+        public UsersController(PregiatoDbContext context, IClerkAuthService clerkAuthService)
         {
             _context = context;
+            _clerkAuthService = clerkAuthService;
         }
 
         [HttpGet("by-email/{email}")]
@@ -95,6 +101,57 @@ namespace Pregiato.API.Controllers
 
                 var isAdmin = user.Role?.ToUpper() == "ADMIN";
                 return Ok(isAdmin);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Erro interno do servidor: {ex.Message}");
+            }
+        }
+
+        [HttpGet("me")]
+        public async Task<ActionResult<UserDto>> GetCurrentUser()
+        {
+            try
+            {
+                var currentUserId = _clerkAuthService.GetCurrentUserId(User);
+                var currentUserEmail = _clerkAuthService.GetCurrentUserEmail(User);
+                var currentUserName = _clerkAuthService.GetCurrentUserName(User);
+
+                if (string.IsNullOrEmpty(currentUserEmail))
+                {
+                    return Unauthorized("Usuário não autenticado");
+                }
+
+                // Buscar usuário no banco de dados
+                var user = await _context.Users
+                    .FirstOrDefaultAsync(u => u.Email.ToLower() == currentUserEmail.ToLower());
+
+                if (user == null)
+                {
+                    // Se o usuário não existe no banco, criar um novo
+                    user = new User
+                    {
+                        Email = currentUserEmail,
+                        Name = currentUserName ?? "Usuário",
+                        Role = "USER",
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                    _context.Users.Add(user);
+                    await _context.SaveChangesAsync();
+                }
+
+                var userDto = new UserDto
+                {
+                    Id = user.Id.ToString(),
+                    Email = user.Email,
+                    Name = user.Name,
+                    Role = user.Role ?? "USER",
+                    IsActive = user.IsActive
+                };
+
+                return Ok(userDto);
             }
             catch (Exception ex)
             {

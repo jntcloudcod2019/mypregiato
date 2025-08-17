@@ -3633,6 +3633,7 @@
           "FluentValidation.AspNetCore": "11.3.1",
           "Microsoft.AspNetCore.Authentication.JwtBearer": "8.0.0",
           "Microsoft.AspNetCore.OpenApi": "8.0.0",
+          "Microsoft.AspNetCore.SignalR": "1.1.0",
           "Microsoft.EntityFrameworkCore": "8.0.0",
           "Microsoft.EntityFrameworkCore.Sqlite": "8.0.0",
           "Pregiato.Application": "1.0.0",
@@ -10353,11 +10354,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/worldgames/Documents/PREGIATO/mypregiato/backend/Pregiato.Application.Tests/Pregiato.Application.Tests.csproj",
+      "projectUniqueName": "/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application.Tests/Pregiato.Application.Tests.csproj",
       "projectName": "Pregiato.Application.Tests",
-      "projectPath": "/Users/worldgames/Documents/PREGIATO/mypregiato/backend/Pregiato.Application.Tests/Pregiato.Application.Tests.csproj",
+      "projectPath": "/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application.Tests/Pregiato.Application.Tests.csproj",
       "packagesPath": "/Users/worldgames/.nuget/packages/",
-      "outputPath": "/Users/worldgames/Documents/PREGIATO/mypregiato/backend/Pregiato.Application.Tests/obj/",
+      "outputPath": "/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application.Tests/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/Users/worldgames/.nuget/NuGet/NuGet.Config"
@@ -10372,14 +10373,14 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "/Users/worldgames/Documents/PREGIATO/mypregiato/backend/Pregiato.API/Pregiato.API.csproj": {
-              "projectPath": "/Users/worldgames/Documents/PREGIATO/mypregiato/backend/Pregiato.API/Pregiato.API.csproj"
+            "/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/Pregiato.API.csproj": {
+              "projectPath": "/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/Pregiato.API.csproj"
             },
-            "/Users/worldgames/Documents/PREGIATO/mypregiato/backend/Pregiato.Application/Pregiato.Application.csproj": {
-              "projectPath": "/Users/worldgames/Documents/PREGIATO/mypregiato/backend/Pregiato.Application/Pregiato.Application.csproj"
+            "/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application/Pregiato.Application.csproj": {
+              "projectPath": "/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application/Pregiato.Application.csproj"
             },
-            "/Users/worldgames/Documents/PREGIATO/mypregiato/backend/Pregiato.Core/Pregiato.Core.csproj": {
-              "projectPath": "/Users/worldgames/Documents/PREGIATO/mypregiato/backend/Pregiato.Core/Pregiato.Core.csproj"
+            "/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Core/Pregiato.Core.csproj": {
+              "projectPath": "/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Core/Pregiato.Core.csproj"
             }
           }
         }

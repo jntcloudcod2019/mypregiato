@@ -14,6 +14,15 @@ export interface OperatorInfo {
   lastActivity: string
 }
 
+// Interface para usuário do Clerk (simplificada)
+interface ClerkUser {
+  id: string;
+  fullName?: string | null;
+  firstName?: string | null;
+  imageUrl?: string;
+  emailAddresses: Array<{ emailAddress: string }>;
+}
+
 // Sistema real de presença - armazena operadores online
 const onlineOperators = new Map<string, OperatorInfo>()
 const operatorListeners = new Set<() => void>()
@@ -23,50 +32,85 @@ const notifyOperatorChange = () => {
   operatorListeners.forEach(listener => listener())
 }
 
+// Operador anônimo padrão para quando Clerk não está disponível
+const createAnonymousOperator = (): OperatorInfo => ({
+  id: 'anonymous-' + Math.random().toString(36).substring(2, 9),
+  name: 'Operador Temporário',
+  email: 'temp@pregiato.com',
+  status: 'available',
+  activeAttendances: 0,
+  totalAttendancesToday: 0,
+  averageResponseTime: 0,
+  lastActivity: new Date().toISOString()
+});
+
+// Hook seguro que tenta usar Clerk, mas não falha se não estiver disponível
+const useSafeClerkUser = (): { user: ClerkUser | null, isLoaded: boolean } => {
+  try {
+    // Tentar usar o hook do Clerk
+    return useUser();
+  } catch (error) {
+    console.warn('Clerk não está disponível, usando modo anônimo', error);
+    
+    // Registrar falha no session storage para próximos carregamentos
+    try {
+      sessionStorage.setItem('clerk_failed', 'true');
+    } catch (e) {
+      console.error('Error saving clerk_failed:', e);
+    }
+    
+    // Retornar valores padrão
+    return { user: null, isLoaded: true };
+  }
+};
+
 export const useOperatorStatus = () => {
-  const { user } = useUser()
-  const [operators, setOperators] = useState<OperatorInfo[]>([])
-  const [currentOperator, setCurrentOperator] = useState<OperatorInfo | null>(null)
+  // Usar o hook seguro para Clerk
+  const { user } = useSafeClerkUser();
+  const [operators, setOperators] = useState<OperatorInfo[]>([]);
+  const [currentOperator, setCurrentOperator] = useState<OperatorInfo | null>(null);
+  
+  // Verificar se estamos em modo anônimo (sem Clerk)
+  const [isAnonymousMode] = useState(!user);
 
-  // Registrar operador atual quando user estiver disponível
+  // Registrar operador atual quando componente montar
   useEffect(() => {
-    if (user) {
-      const operator: OperatorInfo = {
-        id: user.id,
-        name: user.fullName || user.firstName || 'Operador',
-        email: user.emailAddresses[0]?.emailAddress || '',
-        status: 'available',
-        avatar: user.imageUrl,
-        activeAttendances: 0,
-        totalAttendancesToday: 0,
-        averageResponseTime: 0,
-        lastActivity: new Date().toISOString()
-      }
+    // Criar operador baseado no usuário do Clerk ou criar um anônimo
+    const operator: OperatorInfo = user ? {
+      id: user.id,
+      name: user.fullName || user.firstName || 'Operador',
+      email: user.emailAddresses[0]?.emailAddress || '',
+      status: 'available',
+      avatar: user.imageUrl,
+      activeAttendances: 0,
+      totalAttendancesToday: 0,
+      averageResponseTime: 0,
+      lastActivity: new Date().toISOString()
+    } : createAnonymousOperator();
 
-      // Adicionar/atualizar operador na lista global
-      onlineOperators.set(user.id, operator)
-      setCurrentOperator(operator)
-      
-      console.log(`✅ Operador ${operator.name} conectado com status: ${operator.status}`)
-      notifyOperatorChange()
+    // Adicionar/atualizar operador na lista global
+    onlineOperators.set(operator.id, operator)
+    setCurrentOperator(operator)
+    
+    console.log(`✅ Operador ${operator.name} conectado com status: ${operator.status}${!user ? ' (modo anônimo)' : ''}`)
+    notifyOperatorChange()
 
-      // Heartbeat para manter presença ativa
-      const heartbeatInterval = setInterval(() => {
-        const updatedOperator = onlineOperators.get(user.id)
-        if (updatedOperator) {
-          updatedOperator.lastActivity = new Date().toISOString()
-          onlineOperators.set(user.id, updatedOperator)
-          notifyOperatorChange()
-        }
-      }, 30000) // A cada 30 segundos
-
-      // Cleanup ao desmontar
-      return () => {
-        clearInterval(heartbeatInterval)
-        onlineOperators.delete(user.id)
-        console.log(`❌ Operador ${operator.name} desconectado`)
+    // Heartbeat para manter presença ativa
+    const heartbeatInterval = setInterval(() => {
+      const updatedOperator = onlineOperators.get(operator.id)
+      if (updatedOperator) {
+        updatedOperator.lastActivity = new Date().toISOString()
+        onlineOperators.set(operator.id, updatedOperator)
         notifyOperatorChange()
       }
+    }, 30000) // A cada 30 segundos
+
+    // Cleanup ao desmontar
+    return () => {
+      clearInterval(heartbeatInterval)
+      onlineOperators.delete(operator.id)
+      console.log(`❌ Operador ${operator.name} desconectado`)
+      notifyOperatorChange()
     }
   }, [user])
 
@@ -87,8 +131,8 @@ export const useOperatorStatus = () => {
           if (b.status === 'available' && a.status !== 'available') return 1
           
           // Operador atual primeiro entre os do mesmo status
-          if (a.id === user?.id) return -1
-          if (b.id === user?.id) return 1
+          if (currentOperator && a.id === currentOperator.id) return -1
+          if (currentOperator && b.id === currentOperator.id) return 1
           
           return a.name.localeCompare(b.name)
         })
@@ -109,17 +153,17 @@ export const useOperatorStatus = () => {
       operatorListeners.delete(updateOperatorList)
       clearInterval(interval)
     }
-  }, [user])
+  }, [currentOperator])
 
   const updateOperatorStatus = (status: 'available' | 'busy' | 'away') => {
-    if (currentOperator && user) {
+    if (currentOperator) {
       const updated = { 
         ...currentOperator, 
         status, 
         lastActivity: new Date().toISOString() 
       }
       
-      onlineOperators.set(user.id, updated)
+      onlineOperators.set(currentOperator.id, updated)
       setCurrentOperator(updated)
       notifyOperatorChange()
       
@@ -127,13 +171,13 @@ export const useOperatorStatus = () => {
       
       // Emitir evento global para outros sistemas
       window.dispatchEvent(new CustomEvent('operatorStatusChanged', { 
-        detail: { operatorId: user.id, status, operator: updated }
+        detail: { operatorId: currentOperator.id, status, operator: updated }
       }))
     }
   }
 
   const incrementActiveAttendances = () => {
-    if (currentOperator && user) {
+    if (currentOperator) {
       const updated = {
         ...currentOperator,
         activeAttendances: currentOperator.activeAttendances + 1,
@@ -142,19 +186,19 @@ export const useOperatorStatus = () => {
         lastActivity: new Date().toISOString()
       }
       
-      onlineOperators.set(user.id, updated)
+      onlineOperators.set(currentOperator.id, updated)
       setCurrentOperator(updated)
       notifyOperatorChange()
       
       // Emitir evento global
       window.dispatchEvent(new CustomEvent('operatorStatusChanged', { 
-        detail: { operatorId: user.id, status: 'busy', operator: updated }
+        detail: { operatorId: currentOperator.id, status: 'busy', operator: updated }
       }))
     }
   }
 
   const decrementActiveAttendances = () => {
-    if (currentOperator && user) {
+    if (currentOperator) {
       const newCount = Math.max(0, currentOperator.activeAttendances - 1)
       const newStatus = newCount === 0 ? 'available' as const : 'busy' as const
       
@@ -165,13 +209,13 @@ export const useOperatorStatus = () => {
         lastActivity: new Date().toISOString()
       }
       
-      onlineOperators.set(user.id, updated)
+      onlineOperators.set(currentOperator.id, updated)
       setCurrentOperator(updated)
       notifyOperatorChange()
       
       // Emitir evento global
       window.dispatchEvent(new CustomEvent('operatorStatusChanged', { 
-        detail: { operatorId: user.id, status: newStatus, operator: updated }
+        detail: { operatorId: currentOperator.id, status: newStatus, operator: updated }
       }))
     }
   }

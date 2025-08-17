@@ -32,6 +32,9 @@ namespace Pregiato.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] ModuleRecord record)
         {
+            if (record == null) return BadRequest(new { message = "Payload inválido" });
+            if (string.IsNullOrWhiteSpace(record.ModuleSlug)) return BadRequest(new { message = "moduleSlug é obrigatório" });
+            if (string.IsNullOrWhiteSpace(record.PayloadJson)) record.PayloadJson = "{}";
             record.Id = Guid.NewGuid();
             record.CreatedAtUtc = DateTime.UtcNow;
             record.UpdatedAtUtc = DateTime.UtcNow;

@@ -7,6 +7,27 @@ namespace Pregiato.Core.Entities
         [Key]
         public Guid Id { get; set; }
 
+        // ID do chat relacionado (para agrupamento)
+        public Guid ChatId { get; set; }
+    
+        // Telefone do remetente ou destinatário
+        public string? PhoneNumber { get; set; }
+        
+        // ID da mensagem específica
+        public string? MessageId { get; set; }
+        
+        // Direção: "inbound" ou "outbound"
+        public string? Direction { get; set; }
+        
+        // Conteúdo da mensagem
+        public string? Content { get; set; }
+        
+        // Tipo de conteúdo: "text", "image", "video", "audio", "document"
+        public string? ContentType { get; set; }
+        
+        // Data/hora da mensagem
+        public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+        
         // Telefone do contato normalizado em E.164 (ex.: 5511999999999)
         [Required]
         [StringLength(20)]
@@ -25,6 +46,10 @@ namespace Pregiato.Core.Entities
         // Contadores e rastreio para listagens
         public int UnreadCount { get; set; } = 0;
         public DateTime? LastMessageAt { get; set; }
+        
+        // Timestamp UTC da última mensagem (para ordenação)
+        public DateTime? LastMessageUtc { get; set; }
+        
         [StringLength(200)]
         public string? LastMessagePreview { get; set; }
 

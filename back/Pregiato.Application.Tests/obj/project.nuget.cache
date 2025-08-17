@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "UgR8XGpyO/k=",
+  "dgSpecHash": "QaCu9l3VsY4=",
   "success": true,
-  "projectFilePath": "/Users/worldgames/Documents/PREGIATO/mypregiato/backend/Pregiato.Application.Tests/Pregiato.Application.Tests.csproj",
+  "projectFilePath": "/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application.Tests/Pregiato.Application.Tests.csproj",
   "expectedPackageFiles": [
     "/Users/worldgames/.nuget/packages/autofixture/4.18.1/autofixture.4.18.1.nupkg.sha512",
     "/Users/worldgames/.nuget/packages/autofixture.automoq/4.18.1/autofixture.automoq.4.18.1.nupkg.sha512",

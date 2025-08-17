@@ -62,19 +62,17 @@ export class AutentiqueService {
       // Integrar com o sistema de contratos
       try {
         const { ContractsService } = await import('@/services/contracts-service')
-        
-        const contractRecord = ContractsService.save({
+        const contractRecord = await ContractsService.save({
           tipo: contractType,
           cliente: contractData.modelo.fullName,
-          produtor: 'Produtor Atual', // TODO: pegar do contexto do usuário
+          produtor: 'Produtor Atual',
           data: `${contractData.dia}/${contractData.mes}/${contractData.ano}`,
           status: whatsappLink ? 'Enviado' : 'Pendente',
           valor: contractData.valorContrato || 'Não informado',
           documentId,
           whatsappLink
         })
-
-        console.log('[AUTENTIQUE] Contrato salvo no sistema:', contractRecord)
+        console.log('[AUTENTIQUE] Contrato salvo no sistema (API):', contractRecord)
 
         return {
           success: true,

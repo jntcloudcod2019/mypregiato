@@ -1,26 +1,45 @@
-import React from 'react';
+import { cn } from "@/lib/utils";
+import React, { HTMLAttributes, useEffect, useState } from "react";
 
-type AuroraTextProps = {
-  className?: string;
+interface AuroraTextProps extends HTMLAttributes<HTMLHeadingElement> {
   children: React.ReactNode;
   colors?: string[];
-  speed?: number;
-};
+  className?: string;
+  speed?: "slow" | "normal" | "fast";
+}
 
-export const AuroraText: React.FC<AuroraTextProps> = ({ className = '', children, colors = [
-  '#0ea5e9', // sky-500
-  '#38bdf8', // sky-400
-  '#22d3ee', // cyan-400
-  '#60a5fa', // blue-400
-], speed = 1 }) => {
-  const style: React.CSSProperties = {
-    ['--aurora-colors' as any]: colors.join(','),
-    ['--aurora-speed' as any]: String(speed),
-  };
+export const AuroraText = ({
+  children,
+  colors = ["#38bdf8", "#818cf8", "#c084fc", "#e879f9", "#22d3ee"],
+  className,
+  speed = "normal",
+  ...props
+}: AuroraTextProps) => {
+  const [gradientPosition, setGradientPosition] = useState(0);
+
+  const speedValue = {
+    slow: 50,
+    normal: 30,
+    fast: 15
+  }[speed];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setGradientPosition((prev) => (prev + 1) % 100);
+    }, speedValue);
+
+    return () => clearInterval(interval);
+  }, [speedValue]);
+
+  const gradientString = `linear-gradient(${gradientPosition}deg, ${colors.join(", ")})`;
+
   return (
-    <span className={`aurora-text ${className}`} style={style}>{children}</span>
+    <span
+      className={cn("bg-clip-text text-transparent", className)}
+      style={{ backgroundImage: gradientString }}
+      {...props}
+    >
+      {children}
+    </span>
   );
 };
-
-export default AuroraText;
-

@@ -17,12 +17,26 @@ namespace Pregiato.Core.Entities
 
         [Required]
         public Guid ChatLogId { get; set; }
+        
+        // ID do chat relacionado (usado nos serviços)
+        public Guid ChatId { get; set; }
 
         [Required]
         public AttendanceStatus Status { get; set; } = AttendanceStatus.Novo;
 
         [Range(1, 4)]
         public int Step { get; set; } = 1;
+        
+        // Passo atual do atendimento (para controle de fluxo)
+        public int CurrentStep { get; set; } = 0;
+
+        // ID do operador responsável pelo atendimento
+        [StringLength(100)]
+        public string? OperatorId { get; set; }
+        
+        // Nome do operador responsável
+        [StringLength(150)]
+        public string? OperatorName { get; set; }
 
         [StringLength(100)]
         public string? AssignedUserId { get; set; }

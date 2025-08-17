@@ -69,5 +69,10 @@
             Remove um talento
             </summary>
         </member>
+        <member name="M:Pregiato.API.Controllers.TalentsController.CheckTalentExists(System.String,System.String)">
+            <summary>
+            Verifica se um talento existe por email ou documento
+            </summary>
+        </member>
     </members>
 </doc>

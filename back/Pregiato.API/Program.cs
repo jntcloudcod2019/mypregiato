@@ -10,6 +10,10 @@ using Pregiato.Application.DTOs;
 using Serilog;
 using Serilog.Events;
 using Pregiato.API.Services;
+using Pregiato.Core.Interfaces;
+using Pregiato.Infrastructure.Repositories;
+using Pregiato.API.Middleware;
+using Pregiato.API.Attributes;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,12 +48,29 @@ builder.Services.AddCors(options =>
     });
 });
 
-// DbContext
-builder.Services.AddDbContext<PregiatoDbContext>(options =>
-    options.UseMySql(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
-    ));
+// DbContext (fallback para InMemory em Dev se sem connection string)
+var conn = builder.Configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrWhiteSpace(conn))
+{
+    builder.Services.AddDbContext<PregiatoDbContext>(options => options.UseInMemoryDatabase("Pregiato"));
+    builder.Services.AddSingleton<RuntimePregiatoDbContextFactory>(provider => 
+        new RuntimePregiatoDbContextFactory(provider.GetRequiredService<DbContextOptions<PregiatoDbContext>>()));
+}
+else
+{
+    builder.Services.AddDbContext<PregiatoDbContext>(options =>
+        options.UseMySql(
+            conn,
+            ServerVersion.AutoDetect(conn),
+            options => options.EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(30),
+                errorNumbersToAdd: null)
+        ));
+    
+    builder.Services.AddSingleton<RuntimePregiatoDbContextFactory>(provider => 
+        new RuntimePregiatoDbContextFactory(provider.GetRequiredService<DbContextOptions<PregiatoDbContext>>()));
+}
 
 // HttpClient
 builder.Services.AddHttpClient();
@@ -59,16 +80,30 @@ builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 
 // FluentValidation
 builder.Services.AddScoped<IValidator<CreateTalentDto>, CreateTalentDtoValidator>();
+builder.Services.AddScoped<IValidator<UpdateTalentDto>, UpdateTalentDtoValidator>();
 
 // Services
 builder.Services.AddScoped<ITalentService, TalentService>();
 builder.Services.AddScoped<IContractService, ContractService>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IWhatsAppService, WhatsAppService>();
+builder.Services.AddScoped<ILeadService, LeadService>();
+builder.Services.AddScoped<ILeadRepository, LeadRepository>();
+
+// Clerk Authentication Services
+builder.Services.AddScoped<IClerkAuthService, ClerkAuthService>();
+
+// Repositories
+builder.Services.AddScoped<ITalentRepository, TalentRepository>();
+builder.Services.AddScoped<IImportedFileRepository, ImportedFileRepository>();
+builder.Services.AddScoped<IChatLogRepository, ChatLogRepository>();
 
 // Chat services
 builder.Services.AddScoped<ChatLogService>();
 builder.Services.AddScoped<AttendanceService>();
+
+// Serviços de importação
+builder.Services.AddScoped<IImportService, Pregiato.Application.Services.ImportServiceWithRepo>();
 
 // MemoryCache e RabbitMQ HostedService
 builder.Services.AddMemoryCache();
@@ -88,6 +123,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("AllowAll");
+
+// Clerk Authentication Middleware
+app.UseClerkAuthentication();
+
 app.UseAuthorization();
 
 app.MapControllers();

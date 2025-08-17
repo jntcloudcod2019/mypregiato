@@ -16,26 +16,40 @@ public class TalentRepository : ITalentRepository
 
     public async Task<IEnumerable<Talent>> GetAllAsync()
     {
-        return await _context.Talents
+        return await _context.Talent
             .OrderByDescending(t => t.CreatedAt)
             .ToListAsync();
     }
 
     public async Task<Talent?> GetByIdAsync(Guid id)
     {
-        return await _context.Talents.FindAsync(id);
+        return await _context.Talent.FindAsync(id);
     }
 
     public async Task<Talent> CreateAsync(Talent talent)
     {
-        _context.Talents.Add(talent);
+        _context.Talent.Add(talent);
         await _context.SaveChangesAsync();
+        
+        // Criar automaticamente o TalentDNA associado com apenas o TalentId
+        var talentDna = new TalentDNA
+        {
+            Id = Guid.NewGuid(),
+            TalentId = talent.Id,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+            // Todos os outros campos ficam null/blank para serem preenchidos posteriormente
+        };
+        
+        _context.TalentDNA.Add(talentDna);
+        await _context.SaveChangesAsync();
+        
         return talent;
     }
 
     public async Task<Talent?> UpdateAsync(Talent talent)
     {
-        var existingTalent = await _context.Talents.FindAsync(talent.Id);
+        var existingTalent = await _context.Talent.FindAsync(talent.Id);
         if (existingTalent == null)
             return null;
 
@@ -46,11 +60,11 @@ public class TalentRepository : ITalentRepository
 
     public async Task<bool> DeleteAsync(Guid id)
     {
-        var talent = await _context.Talents.FindAsync(id);
+        var talent = await _context.Talent.FindAsync(id);
         if (talent == null)
             return false;
 
-        _context.Talents.Remove(talent);
+        _context.Talent.Remove(talent);
         await _context.SaveChangesAsync();
         return true;
     }

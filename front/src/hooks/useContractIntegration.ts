@@ -12,7 +12,7 @@ export const useContractIntegration = () => {
     whatsappLink?: string
   ) => {
     try {
-      const contractRecord = ContractsService.save({
+      const contractRecord = await ContractsService.save({
         tipo: contractType,
         cliente: contractData.modelo.fullName,
         produtor: 'Produtor Atual', // Isso deve vir do contexto do usuário logado
@@ -31,13 +31,13 @@ export const useContractIntegration = () => {
     }
   }, [])
 
-  const updateContractStatus = useCallback((
+  const updateContractStatus = useCallback(async (
     contractId: string, 
     status: 'Ativo' | 'Pendente' | 'Concluído' | 'Enviado',
     whatsappLink?: string
   ) => {
     try {
-      const updated = ContractsService.update(contractId, { 
+      const updated = await ContractsService.update(contractId, { 
         status,
         ...(whatsappLink && { whatsappLink })
       })

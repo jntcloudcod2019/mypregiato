@@ -17,7 +17,7 @@ interface AttendanceDashboardProps {
 
 export const AttendanceDashboard = ({ onStartAttendance }: AttendanceDashboardProps) => {
   const { metrics, loading: queueLoading, error: queueError } = useAttendanceQueue()
-  const { conversations, loading: conversationsLoading, error: conversationsError, endAttendance } = useActiveAttendance()
+  const { conversations, loading: conversationsLoading, error: conversationsError, closeConversation } = useActiveAttendance()
   const { currentOperator } = useOperatorStatus()
 
   const getPriorityColor = (priority: string) => {
@@ -61,13 +61,13 @@ export const AttendanceDashboard = ({ onStartAttendance }: AttendanceDashboardPr
   }
 
   const handleEndAttendance = (conversationId: string) => {
-    endAttendance(conversationId)
+    closeConversation(conversationId)
   }
 
-  const myConversations = conversations.filter(conv => conv.operatorId === currentOperator?.id)
+  const myConversations = Array.isArray(conversations) ? conversations.filter(conv => conv.operatorId === currentOperator?.id) : []
 
   // Criar items para a lista animada da fila
-  const queueItems = (metrics.queueItems || []).map((item, index) => ({
+  const queueItems = Array.isArray(metrics?.queueItems) ? metrics.queueItems.map((item, index) => ({
     id: `queue-${item.conversationId}-${index}`,
     content: (
       <div className="group relative overflow-hidden bg-gradient-to-r from-card via-card to-muted/10 border border-border rounded-lg p-2 hover:shadow-lg transition-all duration-300">
@@ -119,7 +119,7 @@ export const AttendanceDashboard = ({ onStartAttendance }: AttendanceDashboardPr
         </div>
       </div>
     )
-  }))
+  })) : []
 
   // Criar items para a lista animada de conversas ativas
   const activeItems = myConversations.map((conversation, index) => ({
@@ -144,11 +144,11 @@ export const AttendanceDashboard = ({ onStartAttendance }: AttendanceDashboardPr
                 </div>
                 <div className="flex items-center gap-0.5">
                   <Clock className="h-2.5 w-2.5" />
-                  <span>{conversation.lastMessageAt ? formatTime(new Date(conversation.lastMessageAt).toISOString()) : 'Agora'}</span>
+                  <span>{conversation.lastMessageTime ? formatTime(conversation.lastMessageTime) : 'Agora'}</span>
                 </div>
                 <div className="flex items-center gap-0.5">
                   <MessageSquare className="h-2.5 w-2.5" />
-                  <span>{conversation.unreadCount} msgs</span>
+                  <span>1 msg</span>
                 </div>
               </div>
             </div>

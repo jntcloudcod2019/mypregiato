@@ -23,8 +23,8 @@ export default function Contratos() {
     loadContratos()
   }, [])
 
-  const loadContratos = () => {
-    const savedContratos = ContractsService.getAll()
+  const loadContratos = async () => {
+    const savedContratos = await ContractsService.getAll()
     setContratos(savedContratos)
   }
 

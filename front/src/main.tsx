@@ -1,30 +1,46 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ThemeProvider } from 'next-themes'
-import { ClerkProvider } from '@clerk/clerk-react'
-import './index.css'
-import App from './App.tsx'
-import { Toaster } from "@/components/ui/toaster"
+import { StrictMode, Suspense } from 'react';
+import { createRoot } from 'react-dom/client';
+import { ClerkProvider } from '@clerk/clerk-react';
+import './index.css';
+import { ErrorBoundary } from '@/components/common/error-boundary';
+import { RootApp } from '@/components/root-app';
+import { ClerkErrorFallback } from '@/components/auth/clerk-fallback';
+import { LoadingFallback } from '@/components/ui/loading-fallback';
+import { detectClerkAvailability, getClerkPublishableKey, shouldEnableClerk } from '@/utils/clerk-utils';
 
-const queryClient = new QueryClient()
+/**
+ * Ponto de entrada da aplicação
+ * 
+ * Configura:
+ * - StrictMode para desenvolvimento
+ * - ErrorBoundary para tratamento de erros
+ * - Clerk para autenticação
+ * - Suspense para carregamento assíncrono
+ */
 
-// Chave Clerk configurada
-const PUBLISHABLE_KEY = "pk_test_c21pbGluZy1tYW1tb3RoLTYuY2xlcmsuYWNjb3VudHMuZGV2JA"
+// Verifica se o Clerk deve ser usado
+const shouldUseClerk = shouldEnableClerk() && detectClerkAvailability(true);
 
-if (!PUBLISHABLE_KEY) {
-  throw new Error("Missing Clerk Publishable Key")
-}
+// Obtém a chave publishable do Clerk
+const PUBLISHABLE_KEY = getClerkPublishableKey();
 
+// Renderiza a árvore de componentes
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-          <App />
-          <Toaster />
-        </ThemeProvider>
-      </QueryClientProvider>
-    </ClerkProvider>
-  </StrictMode>,
-)
+    <ErrorBoundary 
+      fallback={
+        <ClerkErrorFallback />
+      }
+    >
+      <Suspense fallback={<LoadingFallback />}>
+        <ClerkProvider 
+          publishableKey={PUBLISHABLE_KEY}
+          afterSignInUrl="/"
+          afterSignUpUrl="/"
+        >
+          <RootApp />
+        </ClerkProvider>
+      </Suspense>
+    </ErrorBoundary>
+  </StrictMode>
+);

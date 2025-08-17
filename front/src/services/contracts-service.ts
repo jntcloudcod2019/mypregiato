@@ -1,3 +1,4 @@
+import api from '@/services/whatsapp-api'
 
 export interface ContractRecord {
   id: string
@@ -13,79 +14,100 @@ export interface ContractRecord {
   updatedAt: string
 }
 
-const CONTRACTS_STORAGE_KEY = 'pregiato_contratos'
+type ContractDto = {
+  id: string
+  contractType: string
+  status: string
+  talentName?: string
+  value?: number
+  createdAt: string
+  updatedAt: string
+  createdBy?: string
+}
+
+type CreateContractDto = {
+  contractType: string
+  talentName?: string
+  startDate?: string | null
+  endDate?: string | null
+  value?: number | null
+}
+
+type UpdateContractDto = {
+  contractType?: string
+  status?: string
+  talentName?: string
+  startDate?: string | null
+  endDate?: string | null
+  value?: number | null
+  pdfPath?: string | null
+  signedPdfPath?: string | null
+}
+
+function toRecord(c: ContractDto): ContractRecord {
+  return {
+    id: c.id,
+    tipo: c.contractType || '—',
+    cliente: c.talentName || '—',
+    produtor: c.createdBy || '—',
+    data: new Date(c.createdAt).toISOString(),
+    status: (c.status as any) || 'Pendente',
+    valor: typeof c.value === 'number' ? `R$ ${c.value.toFixed(2)}` : '—',
+    createdAt: c.createdAt,
+    updatedAt: c.updatedAt
+  }
+}
 
 export class ContractsService {
-  static getAll(): ContractRecord[] {
-    try {
-      const stored = localStorage.getItem(CONTRACTS_STORAGE_KEY)
-      if (!stored) return []
-      
-      const contracts = JSON.parse(stored) as ContractRecord[]
-      // Ordenar por data de criação, mais recente primeiro
-      return contracts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    } catch (error) {
-      console.error('Erro ao carregar contratos:', error)
-      return []
-    }
+  static async getAll(): Promise<ContractRecord[]> {
+    const { data } = await api.get('/contracts')
+    const items = Array.isArray(data) ? data : (data?.items || [])
+    return (items as ContractDto[]).map(toRecord)
   }
 
-  static save(contract: Omit<ContractRecord, 'id' | 'createdAt' | 'updatedAt'>): ContractRecord {
-    try {
-      const contracts = this.getAll()
-      const now = new Date().toISOString()
-      
-      const newContract: ContractRecord = {
-        ...contract,
-        id: `contract_${Date.now()}`,
-        createdAt: now,
-        updatedAt: now
-      }
-
-      contracts.unshift(newContract) // Adicionar no início da lista
-      localStorage.setItem(CONTRACTS_STORAGE_KEY, JSON.stringify(contracts))
-      
-      console.log('[CONTRACTS_SERVICE] Contrato salvo:', newContract)
-      return newContract
-    } catch (error) {
-      console.error('Erro ao salvar contrato:', error)
-      throw error
+  static async save(contract: Omit<ContractRecord, 'id' | 'createdAt' | 'updatedAt'>): Promise<ContractRecord> {
+    const parseValue = (v?: string) => {
+      if (!v) return undefined
+      const num = Number(String(v).replace(/[^0-9,.-]/g, '').replace('.', '').replace(',', '.'))
+      return isNaN(num) ? undefined : num
     }
+    const payload: CreateContractDto = {
+      contractType: contract.tipo,
+      talentName: contract.cliente,
+      startDate: undefined,
+      endDate: undefined,
+      value: parseValue(contract.valor)
+    }
+    const { data } = await api.post('/contracts', payload)
+    let created: ContractRecord = toRecord(data as ContractDto)
+
+    // Se status foi informado, atualiza após criação
+    if (contract.status) {
+      const { data: upd } = await api.put(`/contracts/${created.id}`, { status: contract.status } as UpdateContractDto)
+      created = toRecord(upd as ContractDto)
+    }
+    return created
   }
 
-  static update(id: string, updates: Partial<ContractRecord>): ContractRecord | null {
-    try {
-      const contracts = this.getAll()
-      const index = contracts.findIndex(c => c.id === id)
-      
-      if (index === -1) return null
-      
-      const updatedContract = {
-        ...contracts[index],
-        ...updates,
-        updatedAt: new Date().toISOString()
-      }
-      
-      contracts[index] = updatedContract
-      localStorage.setItem(CONTRACTS_STORAGE_KEY, JSON.stringify(contracts))
-      
-      return updatedContract
-    } catch (error) {
-      console.error('Erro ao atualizar contrato:', error)
-      return null
+  static async update(id: string, updates: Partial<ContractRecord>): Promise<ContractRecord | null> {
+    const parseValue = (v?: string) => {
+      if (!v) return undefined
+      const num = Number(String(v).replace(/[^0-9,.-]/g, '').replace('.', '').replace(',', '.'))
+      return isNaN(num) ? undefined : num
     }
+    const dto: UpdateContractDto = {
+      contractType: updates.tipo,
+      status: updates.status,
+      talentName: updates.cliente,
+      value: parseValue(updates.valor)
+    }
+    const { data } = await api.put(`/contracts/${id}`, dto)
+    return toRecord(data as ContractDto)
   }
 
-  static delete(id: string): boolean {
-    try {
-      const contracts = this.getAll()
-      const filtered = contracts.filter(c => c.id !== id)
-      localStorage.setItem(CONTRACTS_STORAGE_KEY, JSON.stringify(filtered))
-      return true
-    } catch (error) {
-      console.error('Erro ao excluir contrato:', error)
-      return false
-    }
+  static async remove(id: string): Promise<boolean> {
+    await api.delete(`/contracts/${id}`)
+    return true
   }
 
   static getContractTypeDisplayName(tipo: string): string {

@@ -1,93 +1,163 @@
-import { useEffect, useState } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { eventsService, Event, EventInvite } from '@/services/crm/events-service';
-import { talentsService, Talent } from '@/services/crm/talents-service';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Calendar, Search, Plus, Edit, Eye, Trash2, QrCode, Users } from 'lucide-react';
+
+// Dados de exemplo
+const eventos = [
+  {
+    id: '1',
+    nome: 'Seletiva Verão 2024',
+    data: '2024-01-15',
+    local: 'Studio Central',
+    status: 'agendado',
+    vagas: 30,
+    inscritos: 18
+  },
+  {
+    id: '2',
+    nome: 'Workshop de Fotografia',
+    data: '2024-01-22',
+    local: 'Estúdio Luz & Arte',
+    status: 'agendado',
+    vagas: 15,
+    inscritos: 15
+  },
+  {
+    id: '3',
+    nome: 'Seletiva Inverno 2023',
+    data: '2023-06-10',
+    local: 'Studio Central',
+    status: 'finalizado',
+    vagas: 25,
+    inscritos: 22
+  }
+];
 
 export default function EventosPage() {
-  const [items, setItems] = useState<Event[]>([]);
-  const [talents, setTalents] = useState<Talent[]>([]);
-  const [title, setTitle] = useState('');
-  const [city, setCity] = useState('');
-  const [place, setPlace] = useState('');
-  const [dateIso, setDateIso] = useState('');
-  const [selectedEvent, setSelectedEvent] = useState<Event|null>(null);
-  const [invites, setInvites] = useState<EventInvite[]>([]);
-  const [talentId, setTalentId] = useState('');
-
-  useEffect(() => { (async()=>{ setItems(await eventsService.list()); setTalents(await talentsService.list()); })() }, []);
-  const create = async () => {
-    const e = await eventsService.create({ title, city, place, dateIso, description: '' });
-    setItems(await eventsService.list()); setTitle(''); setCity(''); setPlace(''); setDateIso('');
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  const filteredEventos = eventos.filter(evento => 
+    evento.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    evento.local.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'agendado':
+        return <Badge className="bg-blue-500">Agendado</Badge>;
+      case 'em_andamento':
+        return <Badge className="bg-green-500">Em Andamento</Badge>;
+      case 'finalizado':
+        return <Badge className="bg-gray-500">Finalizado</Badge>;
+      case 'cancelado':
+        return <Badge className="bg-red-500">Cancelado</Badge>;
+      default:
+        return <Badge>{status}</Badge>;
+    }
   };
-  const open = async (e: Event) => { setSelectedEvent(e); setInvites(await eventsService.listInvites(e.id)); };
-  const invite = async () => { if(!selectedEvent||!talentId) return; await eventsService.invite(selectedEvent.id, talentId); setInvites(await eventsService.listInvites(selectedEvent.id)); setTalentId(''); };
-
+  
   return (
     <div className="p-6 space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">Eventos e Seletivas</h1>
+          <p className="text-muted-foreground mt-1">
+            Gerencie eventos, seletivas e workshops
+          </p>
+        </div>
+        <Button className="gap-2">
+          <Plus className="h-4 w-4" />
+          Novo Evento
+        </Button>
+      </div>
+      
+      {/* Filtros */}
       <Card>
         <CardHeader>
-          <CardTitle>Novo Evento/Seletiva</CardTitle>
-          <CardDescription>Cadastre um evento e convide leads</CardDescription>
+          <CardTitle className="text-lg">Filtros</CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-4 gap-3">
-          <div><Label>Título</Label><Input value={title} onChange={e=>setTitle(e.target.value)} /></div>
-          <div><Label>Cidade</Label><Input value={city} onChange={e=>setCity(e.target.value)} /></div>
-          <div><Label>Local</Label><Input value={place} onChange={e=>setPlace(e.target.value)} /></div>
-          <div><Label>Data/Hora</Label><Input type="datetime-local" value={dateIso} onChange={e=>setDateIso(e.target.value)} /></div>
-          <div className="md:col-span-4"><Button onClick={create}>Criar Evento</Button></div>
+        <CardContent>
+          <div className="flex gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por nome ou local..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+          </div>
         </CardContent>
       </Card>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader><CardTitle>Eventos</CardTitle></CardHeader>
-          <CardContent className="space-y-2">
-            {items.map(e=> (
-              <div key={e.id} className="p-2 border rounded flex justify-between items-center">
-                <div>
-                  <div className="font-medium">{e.title}</div>
-                  <div className="text-xs text-muted-foreground">{e.city} • {new Date(e.dateIso).toLocaleString('pt-BR')}</div>
-                </div>
-                <Button size="sm" onClick={()=>open(e)}>Abrir</Button>
-              </div>
-            ))}
-            {items.length===0 && <div className="text-sm text-muted-foreground">Nenhum evento</div>}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader><CardTitle>Convites {selectedEvent && `— ${selectedEvent.title}`}</CardTitle></CardHeader>
-          <CardContent className="space-y-3">
-            {!selectedEvent && <div className="text-sm text-muted-foreground">Selecione um evento</div>}
-            {selectedEvent && (
-              <>
-                <div className="flex gap-2">
-                  <select className="border rounded px-2 py-1 flex-1" value={talentId} onChange={e=>setTalentId(e.target.value)}>
-                    <option value="">Selecione um lead</option>
-                    {talents.map(t => (<option key={t.id} value={t.id}>{t.fullName} — {t.phone}</option>))}
-                  </select>
-                  <Button size="sm" onClick={invite}>Convidar</Button>
-                </div>
-                <div className="space-y-2">
-                  {invites.map(inv => (
-                    <div key={inv.id} className="p-2 border rounded">
-                      <div className="font-medium text-sm">{inv.talentName} • Protocolo {inv.protocol}</div>
-                      <div className="text-xs text-muted-foreground break-all">{inv.linkUrl}</div>
-                      <div className="mt-2"><img src={inv.qrUrl} alt="QR" className="h-28 w-28" /></div>
-                    </div>
-                  ))}
-                  {invites.length===0 && <div className="text-sm text-muted-foreground">Sem convites</div>}
-                </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+      
+      {/* Lista de Eventos */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Lista de Eventos</CardTitle>
+          <CardDescription>
+            Total de {filteredEventos.length} eventos encontrados
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Data</TableHead>
+                  <TableHead>Local</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Inscritos</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredEventos.map((evento) => (
+                  <TableRow key={evento.id}>
+                    <TableCell className="font-medium">{evento.nome}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        {new Date(evento.data).toLocaleDateString('pt-BR')}
+                      </div>
+                    </TableCell>
+                    <TableCell>{evento.local}</TableCell>
+                    <TableCell>{getStatusBadge(evento.status)}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                        {evento.inscritos}/{evento.vagas}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button variant="ghost" size="icon" title="Visualizar">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" title="Editar">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" title="QR Code de Inscrição">
+                          <QrCode className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="text-destructive" title="Excluir">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
-
-

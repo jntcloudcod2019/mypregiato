@@ -18,13 +18,15 @@ namespace Pregiato.API.Controllers
         private readonly PregiatoDbContext _db;
         private readonly IHubContext<WhatsAppHub> _hub;
         private readonly RabbitBackgroundService _rabbit;
+        private readonly ILogger<ChatsController> _logger;
 
-        public ChatsController(ChatLogService chatService, PregiatoDbContext db, IHubContext<WhatsAppHub> hub, RabbitBackgroundService rabbit)
+        public ChatsController(ChatLogService chatService, PregiatoDbContext db, IHubContext<WhatsAppHub> hub, RabbitBackgroundService rabbit, ILogger<ChatsController> logger)
         {
             _chatService = chatService;
             _db = db;
             _hub = hub;
             _rabbit = rabbit;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -81,7 +83,13 @@ namespace Pregiato.API.Controllers
             var chat = await _db.ChatLogs.FirstOrDefaultAsync(c => c.Id == id);
             if (chat == null) return NotFound();
 
-            var (updatedChat, msg) = await _chatService.AddOutboundPendingAsync(id, req.text, req.clientMessageId, DateTime.UtcNow, req.attachment != null ? new ChatAttachment { DataUrl = req.attachment.dataUrl, MimeType = req.attachment.mimeType, FileName = req.attachment.fileName, MediaType = req.attachment.mediaType } : null);
+            var (updatedChat, msg) = await _chatService.AddOutboundPendingAsync(id, req.text, req.clientMessageId, DateTime.UtcNow, 
+                req.attachment != null ? new ChatLogService.ChatAttachment { 
+                    DataUrl = req.attachment.dataUrl, 
+                    MimeType = req.attachment.mimeType, 
+                    FileName = req.attachment.fileName, 
+                    MediaType = req.attachment.mediaType 
+                } : null);
 
             await _hub.Clients.Group("whatsapp").SendAsync("message.outbound", new { chatId = updatedChat.Id, message = msg });
 
@@ -94,9 +102,16 @@ namespace Pregiato.API.Controllers
                 return BadRequest(new { error = "Telefone do contato não encontrado para este chat." });
             }
             // Heurística para grupos: IDs de grupo podem vir como "...@g.us" ou iniciar com 120 e ter >= 18 dígitos
-            var isGroup = (to?.Contains("@g.us") ?? false) || (to?.StartsWith("120") == true && to!.Length >= 18);
+            var isGroup = (to?.EndsWith("@g.us") ?? false) || (to?.StartsWith("120") == true && to!.Length >= 18);
             var toNormalized = to ?? string.Empty;
-            if (toNormalized.EndsWith("@g.us")) toNormalized = toNormalized.Split('@')[0];
+            
+            // Remover sufixo @g.us ou @c.us para normalização
+            if (toNormalized.EndsWith("@g.us") || toNormalized.EndsWith("@c.us")) {
+                toNormalized = toNormalized.Split('@')[0];
+            }
+            
+            // Log para debug de normalização
+            _logger.LogDebug($"Normalização em Send: original={to}, normalizado={toNormalized}, isGroup={isGroup}");
             var cmd = new { command = "send_message", toNormalized = toNormalized, isGroup, body = req.text, clientMessageId = req.clientMessageId, chatId = updatedChat.Id, attachment = req.attachment };
             _rabbit.PublishCommand(cmd);
 

@@ -28,7 +28,7 @@ namespace Pregiato.Core.Entities
         public DateTime UpdatedAtUtc { get; set; } = DateTime.UtcNow;
 
         [Timestamp]
-        public byte[] RowVersion { get; set; } = null!;
+        public byte[]? RowVersion { get; set; }
     }
 }
 

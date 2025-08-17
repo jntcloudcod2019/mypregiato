@@ -105,24 +105,7 @@ export const useWhatsAppConnection = () => {
     }
   }, [isGeneratingQR]);
 
-  useEffect(() => {
-    let isSubscribed = true;
-    let timeoutId: NodeJS.Timeout | null = null;
-
-    const loop = async () => {
-      if (!isSubscribed) return;
-      try {
-        await checkStatus();
-        const interval = connectionState.isConnected ? 60000 : 30000;
-        if (isSubscribed) timeoutId = setTimeout(loop, interval);
-      } catch {
-        if (isSubscribed) timeoutId = setTimeout(loop, 10000);
-      }
-    };
-
-    loop();
-    return () => { isSubscribed = false; if (timeoutId) clearTimeout(timeoutId); };
-  }, [connectionState.isConnected, checkStatus]);
+  // Removido polling automático: status só será verificado quando o usuário clicar no botão
 
   useEffect(() => {
     const handleQRCode = (qrCode: string | null) => {

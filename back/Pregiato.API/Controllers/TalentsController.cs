@@ -50,6 +50,8 @@ public class TalentsController : ControllerBase
         }
     }
 
+
+
     /// <summary>
     /// Obtém um talento por ID
     /// </summary>
@@ -139,6 +141,31 @@ public class TalentsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro ao deletar talento {Id}", id);
+            return StatusCode(500, new { error = "Erro interno do servidor" });
+        }
+    }
+
+    /// <summary>
+    /// Verifica se um talento existe por email ou documento
+    /// </summary>
+    [HttpGet("check-exists")]
+    public async Task<ActionResult<bool>> CheckTalentExists(
+        [FromQuery] string? email = null,
+        [FromQuery] string? document = null)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(email) && string.IsNullOrEmpty(document))
+            {
+                return BadRequest(new { error = "Email ou documento deve ser fornecido" });
+            }
+
+            var exists = await _talentService.CheckExistsAsync(email, document);
+            return Ok(exists);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao verificar existência de talento");
             return StatusCode(500, new { error = "Erro interno do servidor" });
         }
     }

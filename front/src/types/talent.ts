@@ -85,6 +85,7 @@ export interface ProducerData {
   code: string
 }
 
+// Simplificado para corresponder exatamente ao CreateTalentDto do backend
 export interface CreateTalentData {
   producerId?: string
   fullName: string

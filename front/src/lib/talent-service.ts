@@ -24,7 +24,7 @@ export const getTalentsPaginated = async (
   sortDescending: boolean = false
 ): Promise<PaginatedTalentsResponse> => {
   try {
-    const params: Record<string, any> = {
+    const params: Record<string, string | number | boolean> = {
       page,
       pageSize,
       sortBy,
@@ -35,7 +35,7 @@ export const getTalentsPaginated = async (
       params.search = search;
     }
     
-    const data = await get<PaginatedTalentsResponse>('/talents', params)
+    const data = await get<PaginatedTalentsResponse>('/api/talents', params)
     return data
   } catch (error) {
     console.error('Error fetching talents:', error)
@@ -45,7 +45,7 @@ export const getTalentsPaginated = async (
 
 export const getTalents = async (): Promise<TalentData[]> => {
   try {
-    const data = await get<TalentData[]>('/talents')
+    const data = await get<TalentData[]>('/api/talents')
     return data
   } catch (error) {
     console.error('Error fetching talents:', error)
@@ -55,7 +55,7 @@ export const getTalents = async (): Promise<TalentData[]> => {
 
 export const getTalentById = async (id: string): Promise<TalentData | null> => {
   try {
-    const data = await get<TalentData>(`/talents/${id}`)
+    const data = await get<TalentData>(`/api/talents/${id}`)
     return data
   } catch (error) {
     console.error('Error fetching talent:', error)
@@ -65,19 +65,21 @@ export const getTalentById = async (id: string): Promise<TalentData | null> => {
 
 export const createTalent = async (data: CreateTalentData): Promise<TalentData> => {
   try {
-    const talent = await post<TalentData>('/talents', {
+    const talent = await post<TalentData>('/api/talents', {
       ...data,
       inviteSent: false,
       status: true,
       dnaStatus: 'UNDEFINED'
     })
     return talent
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating talent:', error)
     
     // Se o erro vem do servidor com uma mensagem específica
-    if (error.response?.data?.error) {
-      throw new Error(error.response.data.error)
+    if (error && typeof error === 'object' && 'response' in error && 
+        error.response && typeof error.response === 'object' && 'data' in error.response &&
+        error.response.data && typeof error.response.data === 'object' && 'error' in error.response.data) {
+      throw new Error((error.response.data as { error: string }).error)
     }
     
     throw new Error('Failed to create talent')
@@ -86,7 +88,7 @@ export const createTalent = async (data: CreateTalentData): Promise<TalentData> 
 
 export const updateTalent = async (id: string, data: UpdateTalentData): Promise<TalentData | null> => {
   try {
-    const talent = await put<TalentData>(`/talents/${id}`, data)
+    const talent = await put<TalentData>(`/api/talents/${id}`, data)
     return talent
   } catch (error) {
     console.error('Error updating talent:', error)
@@ -96,15 +98,25 @@ export const updateTalent = async (id: string, data: UpdateTalentData): Promise<
 
 export const checkTalentExists = async (email?: string, document?: string): Promise<boolean> => {
   try {
-    const params: Record<string, any> = {}
+    const params: Record<string, string> = {}
     if (email) params.email = email
     if (document) params.document = document
     
-    const data = await get<{ exists: boolean }>('/talents/check-exists', params)
-    return data.exists
+    const data = await get<boolean>('/api/talents/check-exists', params)
+    return data
   } catch (error) {
-    console.error('Error checking talent existence:', error)
+    console.error('Error checking talent exists:', error)
     return false
+  }
+}
+
+export const deleteTalent = async (id: string): Promise<boolean> => {
+  try {
+    await del(`/api/talents/${id}`)
+    return true
+  } catch (error) {
+    console.error('Error deleting talent:', error)
+    throw new Error('Failed to delete talent')
   }
 }
 

@@ -5,12 +5,14 @@ namespace Pregiato.Infrastructure.Data;
 
 public class PregiatoDbContext : DbContext
 {
-        public DbSet<Pregiato.Core.Entities.ModuleRecord> ModuleRecords { get; set; }
+ public DbSet<Pregiato.Core.Entities.ModuleRecord> ModuleRecords { get; set; }
+        public DbSet<ImportedFile> ImportedFiles { get; set; }
     public PregiatoDbContext(DbContextOptions<PregiatoDbContext> options) : base(options)
     {
     }
 
-            public DbSet<Talent> Talents { get; set; }
+        public DbSet<Talent> Talent { get; set; }
+        public DbSet<TalentDNA> TalentDNA { get; set; }
         public DbSet<Contract> Contracts { get; set; }
         public DbSet<ContractTemplate> ContractTemplates { get; set; }
         public DbSet<FileUpload> FileUploads { get; set; }
@@ -40,16 +42,62 @@ public class PregiatoDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Id).ValueGeneratedOnAdd();
             
+            entity.Property(e => e.ProducerId)
+                .HasMaxLength(50);
+            
             entity.Property(e => e.FullName)
                 .IsRequired()
                 .HasMaxLength(255);
             
             entity.Property(e => e.Email)
-                .IsRequired()
                 .HasMaxLength(255);
             
-            entity.HasIndex(e => e.Email).IsUnique();
-            entity.HasIndex(e => e.Document).IsUnique();
+            entity.Property(e => e.Phone)
+                .HasMaxLength(20);
+            
+            entity.Property(e => e.Postalcode)
+                .HasMaxLength(10);
+            
+            entity.Property(e => e.Street)
+                .HasMaxLength(255);
+            
+            entity.Property(e => e.Neighborhood)
+                .HasMaxLength(100);
+            
+            entity.Property(e => e.City)
+                .HasMaxLength(100);
+            
+            entity.Property(e => e.NumberAddress)
+                .HasMaxLength(20);
+            
+            entity.Property(e => e.Complement)
+                .HasMaxLength(255);
+            
+            entity.Property(e => e.Uf)
+                .HasMaxLength(2);
+            
+            entity.Property(e => e.Document)
+                .HasMaxLength(20);
+            
+            entity.Property(e => e.Gender)
+                .HasMaxLength(20);
+            
+            entity.Property(e => e.DnaStatus)
+                .HasMaxLength(20)
+                .HasDefaultValue("UNDEFINED");
+            
+            entity.Property(e => e.InviteToken)
+                .HasMaxLength(255);
+            
+            entity.Property(e => e.ClerkInviteId)
+                .HasMaxLength(255);
+            
+            entity.Property(e => e.InviteSentAt)
+                .HasColumnType("datetime");
+            
+            // Índices
+            entity.HasIndex(e => e.Email).IsUnique().HasFilter("\"Email\" IS NOT NULL");
+            entity.HasIndex(e => e.Document).IsUnique().HasFilter("\"Document\" IS NOT NULL");
             
             entity.Property(e => e.Age)
                 .IsRequired();
@@ -61,6 +109,111 @@ public class PregiatoDbContext : DbContext
             entity.Property(e => e.UpdatedAt)
                 .HasColumnType("datetime")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+        });
+
+        // Configuração da entidade TalentDNA
+        modelBuilder.Entity<TalentDNA>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            
+            entity.Property(e => e.TalentId)
+                .IsRequired();
+            
+            entity.Property(e => e.Height)
+                .HasMaxLength(191);
+            
+            entity.Property(e => e.Weight)
+                .HasMaxLength(191);
+            
+            entity.Property(e => e.HairColor)
+                .HasMaxLength(191);
+            
+            entity.Property(e => e.HairType)
+                .HasMaxLength(191);
+            
+            entity.Property(e => e.HairLength)
+                .HasMaxLength(191);
+            
+            entity.Property(e => e.EyeColor)
+                .HasMaxLength(191);
+            
+            entity.Property(e => e.SkinTone)
+                .HasMaxLength(191);
+            
+            entity.Property(e => e.ChestSize)
+                .HasMaxLength(191);
+            
+            entity.Property(e => e.WaistSize)
+                .HasMaxLength(191);
+            
+            entity.Property(e => e.HipSize)
+                .HasMaxLength(191);
+            
+            entity.Property(e => e.ShoeSize)
+                .HasMaxLength(191);
+            
+            entity.Property(e => e.DressSize)
+                .HasMaxLength(191);
+            
+            entity.Property(e => e.PantsSize)
+                .HasMaxLength(191);
+            
+            entity.Property(e => e.ShirtSize)
+                .HasMaxLength(191);
+            
+            entity.Property(e => e.JacketSize)
+                .HasMaxLength(191);
+            
+            entity.Property(e => e.FaceShape)
+                .HasMaxLength(191);
+            
+            entity.Property(e => e.EthnicFeatures)
+                .HasMaxLength(191);
+            
+            entity.Property(e => e.BodyType)
+                .HasMaxLength(191);
+            
+            entity.Property(e => e.SpecialFeatures)
+                .HasMaxLength(191);
+            
+            entity.Property(e => e.Accent)
+                .HasMaxLength(191);
+            
+            entity.Property(e => e.Languages)
+                .HasMaxLength(191);
+            
+            entity.Property(e => e.IntellectualDisability)
+                .HasMaxLength(191);
+            
+            entity.Property(e => e.PhysicalDisability)
+                .HasMaxLength(191);
+            
+            entity.Property(e => e.Religion)
+                .HasMaxLength(191);
+            
+            entity.Property(e => e.TravelAvailability)
+                .HasDefaultValue(false);
+            
+            entity.Property(e => e.VisualDisability)
+                .HasMaxLength(191);
+            
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+            
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+            
+            // Relacionamento com Talent
+            entity.HasOne(e => e.Talent)
+                .WithOne(t => t.Dna)
+                .HasForeignKey<TalentDNA>(e => e.TalentId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            // Índice único no TalentId
+            entity.HasIndex(e => e.TalentId).IsUnique();
         });
 
         // Configuração da entidade Contract
@@ -315,6 +468,16 @@ public class PregiatoDbContext : DbContext
             entity.Property(e => e.LastMessagePreview).HasMaxLength(200);
             entity.Property(e => e.CreatedAt).HasColumnType("datetime").HasDefaultValueSql("CURRENT_TIMESTAMP");
             entity.Property(e => e.UpdatedAt).HasColumnType("datetime").HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+            
+            // Novos campos adicionados
+            entity.Property(e => e.ChatId);
+            entity.Property(e => e.PhoneNumber).HasMaxLength(20);
+            entity.Property(e => e.MessageId).HasMaxLength(50);
+            entity.Property(e => e.Direction).HasMaxLength(10);
+            entity.Property(e => e.Content).HasColumnType("TEXT");
+            entity.Property(e => e.ContentType).HasMaxLength(20);
+            entity.Property(e => e.Timestamp).HasColumnType("datetime");
+            entity.Property(e => e.LastMessageUtc).HasColumnType("datetime");
         });
 
         modelBuilder.Entity<AttendanceTicket>(entity =>
@@ -537,11 +700,21 @@ public class PregiatoDbContext : DbContext
                 entity.Property(e => e.Title).HasMaxLength(180);
                 entity.Property(e => e.Status).HasMaxLength(60);
                 entity.Property(e => e.Tags).HasMaxLength(180);
-                entity.Property(e => e.PayloadJson).HasColumnType("LONGTEXT");
+                entity.Property(e => e.PayloadJson).IsRequired().HasColumnType("LONGTEXT");
                 entity.Property(e => e.CreatedAtUtc).HasColumnType("datetime").HasDefaultValueSql("CURRENT_TIMESTAMP");
                 entity.Property(e => e.UpdatedAtUtc).HasColumnType("datetime").HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
                 entity.Property(e => e.RowVersion).IsRowVersion();
                 entity.HasIndex(e => e.ModuleSlug);
+            });
+
+            modelBuilder.Entity<ImportedFile>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).ValueGeneratedOnAdd();
+                entity.Property(e => e.FileName).HasMaxLength(200);
+                entity.Property(e => e.PayloadJson).HasColumnType("LONGTEXT");
+                entity.Property(e => e.CreatedAtUtc).HasColumnType("datetime").HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.Property(e => e.UpdatedAtUtc).HasColumnType("datetime").HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
             });
     }
 } 

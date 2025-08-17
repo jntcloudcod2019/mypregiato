@@ -188,11 +188,34 @@ export default function NovoTalento() {
 
   // Format CPF/CNPJ
   const formatDocument = (value: string) => {
+    // Remove todos os caracteres não numéricos
     const numbers = value.replace(/\D/g, "")
+    
+    // Se tem 11 dígitos ou menos, formata como CPF: 000.000.000-00
     if (numbers.length <= 11) {
-      return numbers.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4")
-    } else {
-      return numbers.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5")
+      if (numbers.length <= 3) {
+        return numbers
+      } else if (numbers.length <= 6) {
+        return numbers.replace(/(\d{3})(\d{0,3})/, "$1.$2")
+      } else if (numbers.length <= 9) {
+        return numbers.replace(/(\d{3})(\d{3})(\d{0,3})/, "$1.$2.$3")
+      } else {
+        return numbers.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/, "$1.$2.$3-$4")
+      }
+    } 
+    // Se tem mais de 11 dígitos, formata como CNPJ: 00.000.000/0000-00
+    else {
+      if (numbers.length <= 2) {
+        return numbers
+      } else if (numbers.length <= 5) {
+        return numbers.replace(/(\d{2})(\d{0,3})/, "$1.$2")
+      } else if (numbers.length <= 8) {
+        return numbers.replace(/(\d{2})(\d{3})(\d{0,3})/, "$1.$2.$3")
+      } else if (numbers.length <= 12) {
+        return numbers.replace(/(\d{2})(\d{3})(\d{3})(\d{0,4})/, "$1.$2.$3/$4")
+      } else {
+        return numbers.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{0,2})/, "$1.$2.$3/$4-$5")
+      }
     }
   }
 
@@ -252,8 +275,8 @@ export default function NovoTalento() {
       // Calculate age from birth date
       const age = differenceInYears(new Date(), data.birthDate)
 
-      // Create talent data
-      const talentData = {
+      // Create talent data - apenas campos que o backend espera
+      const talentData: CreateTalentData = {
         producerId: data.producerId,
         fullName: data.fullName,
         email: data.email || undefined,
@@ -268,10 +291,7 @@ export default function NovoTalento() {
         document: data.document,
         birthDate: data.birthDate,
         age,
-        gender: data.gender,
-        inviteSent: false,
-        status: true,
-        dnaStatus: 'UNDEFINED' as const
+        gender: data.gender
       }
 
       // Create talent
@@ -308,11 +328,12 @@ export default function NovoTalento() {
       // Navigate to talent profile
       navigate(`/talentos/perfil/${newTalent.id}`)
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erro ao criar talento:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Erro ao criar talento'
       setAlert({
         type: 'error',
-        message: error.message || 'Erro ao criar talento',
+        message: errorMessage,
         isVisible: true
       })
     } finally {
@@ -410,7 +431,7 @@ export default function NovoTalento() {
                        <FormLabel>CPF/CNPJ *</FormLabel>
                        <FormControl>
                          <Input 
-                           placeholder="000.000.000-00" 
+                           placeholder="000.000.000-00 ou 00.000.000/0000-00" 
                            {...field}
                            onChange={(e) => {
                              const formatted = formatDocument(e.target.value)

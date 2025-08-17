@@ -1,4 +1,61 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
+
+// Interfaces completas para os tipos de dados
+interface ChatMessageDto {
+  id: string;
+  externalMessageId?: string;
+  direction: 'in' | 'out';
+  text: string;
+  ts: string;
+  type?: 'text' | 'image' | 'file' | 'audio';
+  status: 'pending' | 'sent' | 'delivered' | 'read' | 'failed';
+  attachment?: {
+    dataUrl: string;
+    mimeType: string;
+    fileName?: string;
+  } | null;
+}
+
+// Interfaces para os eventos SignalR
+interface ChatEvent {
+  chatId: string;
+  chat?: Partial<ChatListItem>;
+}
+
+interface MessageEvent {
+  chatId: string;
+  message?: {
+    id?: string;
+    externalMessageId?: string;
+    fromMe?: boolean;
+    text?: string;
+    body?: string;
+    ts?: string;
+    timestamp?: string;
+    type?: string;
+    attachment?: {
+      dataUrl?: string;
+      mimeType?: string;
+      fileName?: string;
+    };
+  };
+}
+
+interface MessageStatusEvent {
+  chatId: string;
+  messageId?: string;
+  status?: string;
+}
+
+interface TypingEvent {
+  chatId: string;
+  isTyping?: boolean;
+}
+
+interface ReadEvent {
+  chatId: string;
+  readUpTo?: string;
+}
 import { Card, CardContent } from '@/components/ui/card';
 import { CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,15 +64,18 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { chatsApi, ChatListItem, ChatMessageDto } from '@/services/chat-service';
+import { chatsApi, ChatListItem } from '@/services/chat-service';
+import axios from 'axios';
 import { HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
 import { useChatStore } from '@/store/chat-store';
 import { BotStatusCard } from '@/components/whatsapp/bot-status-card';
 import { OperatorStatusCard } from '@/components/whatsapp/operator-status-card';
 import { AnimatedList } from '@/components/ui/animated-list';
-import { Minus, X, Check, UserPlus, PhoneCall, Clock3, MoreVertical, Trash2, Mic, Square, Paperclip, CheckCheck } from 'lucide-react';
+import { Minus, X, Check, UserPlus, PhoneCall, Phone, Clock3, MoreVertical, Trash2, Mic, Square, Paperclip, CheckCheck } from 'lucide-react';
 import { TextAnimate } from '@/components/magicui/text-animate';
 import { useOperatorStatus } from '@/hooks/useOperatorStatus';
+import { useTwilioPhone } from '@/hooks/useTwilioPhone';
+import { toast } from '@/hooks/use-toast';
 import Dock, { DockItem } from '@/components/ui/dock';
 import { Search, Plus, Download, RefreshCw } from 'lucide-react';
 import crmIconUrl from '@/../public/icons/crm.svg';
@@ -117,6 +177,7 @@ function DashboardChamados({ inQueue, inService, avgLabel }: { inQueue: number; 
 
 export default function AtendimentoPage() {
   const { currentOperator } = useOperatorStatus();
+  const { makeCall, isCallInProgress, callStatus, callDuration } = useTwilioPhone();
 
   const [search, setSearch] = useState('');
   const [chats, setChats] = useState<ChatListItem[]>([]);
@@ -126,6 +187,7 @@ export default function AtendimentoPage() {
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const [isChatMinimized, setIsChatMinimized] = useState(false);
   const [nowTick, setNowTick] = useState<number>(Date.now());
+  const [activeCall, setActiveCall] = useState<(() => void) | null>(null);
   const [optionsOpen, setOptionsOpen] = useState<boolean>(false);
   const [historyLoaded, setHistoryLoaded] = useState<boolean>(false);
 
@@ -213,38 +275,74 @@ export default function AtendimentoPage() {
   useEffect(() => {
     try {
       localStorage.setItem('atd.tickets', JSON.stringify(tickets));
-    } catch {}
+    } catch (error) {
+      console.warn('Falha ao salvar tickets no localStorage:', error);
+    }
   }, [tickets]);
 
-  const refreshChats = async () => {
-    const { items } = await chatsApi.list(search, 1, 50);
-    // deduplicação por id e por título/telefone para evitar entradas repetidas
-    const byId = new Map<string, ChatListItem>();
-    const byKey = new Map<string, string>();
-    for (const c of items) {
-      const key = `${c.contactPhoneE164 || ''}|${c.title || ''}`;
-      if (!byKey.has(key) && !byId.has(c.id)) {
-        byKey.set(key, c.id);
-        byId.set(c.id, c);
+  // Debounce para o refreshChats para evitar múltiplas chamadas em sequência
+  const refreshChatsRef = useRef<NodeJS.Timeout | null>(null);
+  const lastRefreshTimeRef = useRef<number>(0);
+  
+  // Usar useCallback para evitar recriação da função a cada renderização
+  const refreshChats = useCallback(async () => {
+    const now = Date.now();
+    const timeSinceLastRefresh = now - lastRefreshTimeRef.current;
+    const isDebugEnabled = localStorage.getItem('debug.chat') === 'true';
+    
+    // Limitar a frequência de refresh para no máximo uma vez a cada 2 segundos
+    if (timeSinceLastRefresh < 2000) {
+      if (refreshChatsRef.current) {
+        clearTimeout(refreshChatsRef.current);
       }
+      
+      if (isDebugEnabled) console.debug(`[chat] Debouncing refreshChats (${timeSinceLastRefresh}ms desde último refresh)`);
+      
+      refreshChatsRef.current = setTimeout(() => {
+        refreshChatsRef.current = null;
+        refreshChats();
+      }, 2000 - timeSinceLastRefresh);
+      
+      return;
     }
-    const unique = Array.from(byId.values())
-      .sort((a, b) => new Date(b.lastMessageAt || b['updatedAt'] || 0).getTime() - new Date(a.lastMessageAt || a['updatedAt'] || 0).getTime());
-
-    setTickets(prev => {
-      const next = { ...prev } as Record<string, TicketState>;
-      unique.forEach(c => {
-        if (!next[c.id]) {
-          next[c.id] = { status: 'novo', step: 1 };
+    
+    if (isDebugEnabled) console.debug('[chat] Executando refreshChats');
+    lastRefreshTimeRef.current = now;
+    
+    try {
+      const { items } = await chatsApi.list(search, 1, 50);
+      // deduplicação por id e por título/telefone para evitar entradas repetidas
+      const byId = new Map<string, ChatListItem>();
+      const byKey = new Map<string, string>();
+      for (const c of items) {
+        const key = `${c.contactPhoneE164 || ''}|${c.title || ''}`;
+        if (!byKey.has(key) && !byId.has(c.id)) {
+          byKey.set(key, c.id);
+          byId.set(c.id, c);
         }
+      }
+      const unique = Array.from(byId.values())
+        .sort((a, b) => new Date(b.lastMessageAt || b['updatedAt'] || 0).getTime() - new Date(a.lastMessageAt || a['updatedAt'] || 0).getTime());
+
+      setTickets(prev => {
+        const next = { ...prev } as Record<string, TicketState>;
+        unique.forEach(c => {
+          if (!next[c.id]) {
+            next[c.id] = { status: 'novo', step: 1 };
+          }
+        });
+        // remover tickets órfãos que não existem mais nos chats visíveis
+        const ids = new Set(unique.map(c => c.id));
+        Object.keys(next).forEach(id => { if (!ids.has(id)) delete next[id]; });
+        return next;
       });
-      // remover tickets órfãos que não existem mais nos chats visíveis
-      const ids = new Set(unique.map(c => c.id));
-      Object.keys(next).forEach(id => { if (!ids.has(id)) delete next[id]; });
-      return next;
-    });
-    setChats(unique);
-  };
+      setChats(unique);
+      
+      if (isDebugEnabled) console.debug(`[chat] refreshChats concluído: ${unique.length} chats`);
+    } catch (error) {
+      console.error('[chat] Erro ao atualizar lista de chats:', error);
+    }
+  }, [search, setChats, setTickets]);
 
   // Commit em lote de alterações da lista de chats para evitar re-render excessivo
   const scheduleCommitChats = () => {
@@ -280,16 +378,52 @@ export default function AtendimentoPage() {
     }, 120); // agrega atualizações próximas (reduz oscilação)
   };
 
-  const queueChatPatch = (chatId: string, patch: Partial<ChatListItem>) => {
+  const queueChatPatch = useCallback((chatId: string, patch: Partial<ChatListItem>) => {
     const merged = { ...(pendingChatPatchesRef.current.get(chatId) || {}), ...patch };
     pendingChatPatchesRef.current.set(chatId, merged);
     scheduleCommitChats();
-  };
+  }, []);
 
   const loadHistory = async (id: string) => {
     const data = await chatsApi.history(id, undefined, 50);
     setMessages(data.messages.sort((a, b) => new Date(a.ts).getTime() - new Date(b.ts).getTime()));
     requestAnimationFrame(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }));
+  };
+  
+  // Função para iniciar/encerrar chamada telefônica
+  const handlePhoneCall = (phoneNumber: string) => {
+    // Se já existe uma chamada ativa, encerra
+    if (activeCall) {
+      activeCall();
+      setActiveCall(null);
+      return;
+    }
+
+    // Inicia uma nova chamada
+    try {
+      // Formata o número para o padrão internacional se necessário
+      if (!phoneNumber.startsWith('+')) {
+        phoneNumber = `+${phoneNumber.replace(/\D/g, '')}`;
+      }
+      
+      toast({
+        title: "Iniciando chamada",
+        description: `Ligando para ${phoneNumber}...`,
+      });
+      
+      const endCallFn = makeCall(phoneNumber);
+      setActiveCall(() => endCallFn);
+      
+      // Log para debug
+      console.log("Chamada iniciada para:", phoneNumber);
+    } catch (error) {
+      console.error('Erro ao iniciar chamada:', error);
+      toast({
+        title: "Erro na chamada",
+        description: "Não foi possível iniciar a chamada. Verifique o número e tente novamente.",
+        variant: "destructive"
+      });
+    }
   };
 
   const sendMessage = async (file?: File) => {
@@ -311,7 +445,19 @@ export default function AtendimentoPage() {
       attachment = { dataUrl, mimeType, fileName: file.name, mediaType };
     }
     // Otimista: adicionar mensagem pendente imediatamente
-    const optimistic: ChatMessageDto = { id: clientMessageId, direction: 'out', text, status: 'pending', ts: new Date().toISOString(), type: optimisticType, attachment: attachment ? { dataUrl: attachment.dataUrl, mimeType: attachment.mimeType, fileName: attachment.fileName } : null } as any;
+    const optimistic: ChatMessageDto = { 
+      id: clientMessageId, 
+      direction: 'out', 
+      text, 
+      status: 'pending', 
+      ts: new Date().toISOString(), 
+      type: optimisticType, 
+      attachment: attachment ? { 
+        dataUrl: attachment.dataUrl, 
+        mimeType: attachment.mimeType, 
+        fileName: attachment.fileName 
+      } : null 
+    } as ChatMessageDto;
     setMessages(prev => [...prev, optimistic]);
     try {
       await chatsApi.send(selectedChatId, text, clientMessageId, attachment);
@@ -333,7 +479,7 @@ export default function AtendimentoPage() {
       ts: new Date().toISOString(),
       type: 'audio',
       attachment: { dataUrl, mimeType, fileName }
-    } as any;
+    } as ChatMessageDto;
     setMessages(prev => [...prev, optimistic]);
     try {
       await chatsApi.send(selectedChatId!, '', clientMessageId, { dataUrl, mimeType, fileName, mediaType: 'audio' });
@@ -346,7 +492,11 @@ export default function AtendimentoPage() {
     if (isRecording) return;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mimeType = (window as any).MediaRecorder && (MediaRecorder as any).isTypeSupported && MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : undefined;
+      // Verificação segura do suporte a tipos de mídia
+      const mediaRecorderSupported = typeof window !== 'undefined' && 'MediaRecorder' in window;
+      const mimeType = mediaRecorderSupported && 
+                      typeof MediaRecorder.isTypeSupported === 'function' && 
+                      MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : undefined;
       const mr = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
       audioChunksRef.current = [];
       mr.ondataavailable = (e: BlobEvent) => { if (e.data && e.data.size > 0) audioChunksRef.current.push(e.data); };
@@ -377,43 +527,157 @@ export default function AtendimentoPage() {
   const stopRecording = () => {
     try {
       mediaRecorderRef.current?.stop();
-    } catch {}
+    } catch (error) {
+      console.error('Erro ao parar gravação de áudio:', error);
+    }
   };
 
-  useEffect(() => { refreshChats(); }, [search]);
+  useEffect(() => { 
+    refreshChats(); 
+  }, [search, refreshChats]);
 
   // não carregar histórico automaticamente ao mudar seleção
+
+  // Função para carregar dados de mock quando o backend não estiver disponível
+  const loadMockData = () => {
+    console.log("Carregando dados de mock para desenvolvimento");
+    
+    // Dados de exemplo para os chats
+    const mockChats: ChatListItem[] = [
+      {
+        id: "1",
+        title: "Maria Silva",
+        contactPhoneE164: "5511999887766",
+        lastMessagePreview: "Olá, gostaria de mais informações",
+        unreadCount: 2,
+        lastMessageAt: new Date().toISOString()
+      },
+      {
+        id: "2",
+        title: "João Santos",
+        contactPhoneE164: "5511988776655",
+        lastMessagePreview: "Quando posso agendar?",
+        unreadCount: 0,
+        lastMessageAt: new Date(Date.now() - 1000 * 60 * 5).toISOString() // 5 minutos atrás
+      },
+      {
+        id: "3",
+        title: "Ana Ferreira",
+        contactPhoneE164: "5511977665544",
+        lastMessagePreview: "Obrigada pelo atendimento!",
+        unreadCount: 0,
+        lastMessageAt: new Date(Date.now() - 1000 * 60 * 30).toISOString() // 30 minutos atrás
+      }
+    ];
+    
+    setChats(mockChats);
+    
+    // Inicializar tickets para os chats de mock
+    setTickets(prev => {
+      const next = { ...prev };
+      mockChats.forEach((c, idx) => {
+        next[c.id] = { 
+          status: idx === 0 ? 'novo' : idx === 1 ? 'em_atendimento' : 'finalizado',
+          step: idx === 0 ? 1 : idx === 1 ? 2 : 4,
+          assignedTo: idx === 1 ? 'Operador Teste' : undefined,
+          verified: idx === 2,
+          startedAt: idx >= 1 ? new Date(Date.now() - 1000 * 60 * 10).toISOString() : undefined,
+          endedAt: idx === 2 ? new Date().toISOString() : undefined
+        };
+      });
+      return next;
+    });
+  };
+
+  // Referência para throttle de refresh
+  const throttledRefreshRef = useRef<{lastTime: number, timer: NodeJS.Timeout | null}>({ lastTime: 0, timer: null });
 
   // Conexão SignalR única (monta/desmonta 1x) + deduplicação de mensagens
   useEffect(() => {
     if (connRef.current) return; // já conectado
-    const connection = new HubConnectionBuilder()
-      .withUrl('http://localhost:5656/whatsappHub')
-      .withAutomaticReconnect([0, 2000, 10000, 30000])
-      .configureLogging(LogLevel.Information)
-      .build();
+    
+    try {
+      // Verificar se o serviço de backend está disponível
+      fetch('http://localhost:5656/api/health', { method: 'GET' })
+        .then(response => {
+          if (response.ok) {
+            console.log("Backend conectado, ativando SignalR");
+            initSignalR();
+          } else {
+            console.log("Backend não está disponível, SignalR desativado");
+            // Carregar dados estáticos de teste
+            loadMockData();
+          }
+        })
+        .catch(error => {
+          console.log("Erro ao conectar com backend, usando dados estáticos", error);
+          loadMockData();
+        });
+    } catch (e) {
+      console.log("SignalR desativado para desenvolvimento - usando dados estáticos");
+      loadMockData();
+    }
+    
+    // Função para inicializar SignalR
+    function initSignalR() {
+      try {
+        const connection = new HubConnectionBuilder()
+          .withUrl('http://localhost:5656/whatsappHub')
+          .withAutomaticReconnect([0, 2000, 10000, 30000])
+          .configureLogging(LogLevel.Information)
+          .build();
 
-    connection.onreconnected(() => {
-      connection.invoke('JoinWhatsAppGroup').catch(() => {});
-    });
+        connection.onreconnected(() => {
+          connection.invoke('JoinWhatsAppGroup').catch(() => {});
+        });
 
-    // limpar potenciais handlers antigos antes de registrar
-    connection.off('chat.created');
-    connection.off('chat.updated');
-    connection.off('message.inbound');
-    connection.off('message.outbound');
-    connection.off('message.status');
-    connection.off('presence.typing');
-    connection.off('chat.read');
-
-    let lastRefresh = 0;
-    const throttledRefresh = async (ms = 5000) => {
+        // limpar potenciais handlers antigos antes de registrar
+        connection.off('chat.created');
+        connection.off('chat.updated');
+        connection.off('message.inbound');
+        connection.off('message.outbound');
+        connection.off('message.status');
+        connection.off('presence.typing');
+        connection.off('chat.read');
+       
+        
+        const throttledRefresh = async (ms = 5000) => {
+      const isDebugEnabled = localStorage.getItem('debug.chat') === 'true';
       const now = Date.now();
-      if (now - lastRefresh < ms) return;
-      lastRefresh = now;
+      const timeSinceLastRefresh = now - throttledRefreshRef.current.lastTime;
+      
+      if (timeSinceLastRefresh < ms) {
+        if (throttledRefreshRef.current.timer) {
+          clearTimeout(throttledRefreshRef.current.timer);
+        }
+        
+        if (isDebugEnabled) console.debug(`[chat] Throttling refreshChats (${timeSinceLastRefresh}ms / ${ms}ms)`);
+        
+        throttledRefreshRef.current.timer = setTimeout(() => {
+          throttledRefreshRef.current.timer = null;
+          throttledRefreshRef.current.lastTime = Date.now();
+          if (isDebugEnabled) console.debug('[chat] Executando refreshChats após throttle');
+          refreshChats().catch(e => console.error('[chat] Erro em refreshChats throttled:', e));
+        }, ms - timeSinceLastRefresh);
+        
+        return;
+      }
+      
+      throttledRefreshRef.current.lastTime = now;
+      if (isDebugEnabled) console.debug('[chat] Executando refreshChats imediatamente');
       await refreshChats();
     };
-    connection.on('chat.created', (evt: any) => {
+    connection.on('chat.created', (evt: ChatEvent) => {
+      const chat: Partial<ChatListItem> | undefined = evt?.chat;
+      const id: string | undefined = chat?.id || evt?.chatId;
+      if (id && chat) {
+        queueChatPatch(id, chat as Partial<ChatListItem>);
+      } else {
+        // refresh apenas quando faltar dados
+        throttledRefresh(5000);
+      }
+    });
+    connection.on('chat.updated', (evt: ChatEvent) => {
       const chat: Partial<ChatListItem> | undefined = evt?.chat;
       const id: string | undefined = chat?.id || evt?.chatId;
       if (id && chat) {
@@ -422,82 +686,160 @@ export default function AtendimentoPage() {
         throttledRefresh(5000);
       }
     });
-    connection.on('chat.updated', (evt: any) => {
-      const chat: Partial<ChatListItem> | undefined = evt?.chat;
-      const id: string | undefined = chat?.id || evt?.chatId;
-      if (id && chat) {
-        queueChatPatch(id, chat as Partial<ChatListItem>);
-      } else {
-        throttledRefresh(5000);
+    connection.on('message.inbound', async (evt: MessageEvent) => {
+      // Ativar logs de debug quando localStorage.debug.chat = true
+      const isDebugEnabled = localStorage.getItem('debug.chat') === 'true';
+      if (isDebugEnabled) {
+        console.debug('[chat] message.inbound recebido:', JSON.stringify({
+          chatId: evt?.chatId,
+          messageId: evt?.message?.id || evt?.message?.externalMessageId,
+          fromMe: evt?.message?.fromMe,
+          type: evt?.message?.type
+        }));
       }
-    });
-    connection.on('message.inbound', async (evt: any) => {
+      
+      // Ignorar mensagens fromMe para evitar loops
+      if (evt?.message?.fromMe === true) {
+        if (isDebugEnabled) console.debug('[chat] Ignorando mensagem fromMe:', evt?.message?.id);
+        return;
+      }
+      
       const id: string | undefined = evt?.message?.id || evt?.message?.externalMessageId;
       const ts: string | undefined = evt?.message?.ts || evt?.message?.timestamp;
       const text: string | undefined = evt?.message?.text || evt?.message?.body;
       const chatId: string = evt?.chatId;
-      // chave de fallback caso não exista id único
-      const fallbackKey = `${text || ''}|${ts || ''}`;
-      const dedupeKey = id || fallbackKey;
-      if (id) {
-        if (processedInboundIdsRef.current.has(id)) return;
-        processedInboundIdsRef.current.add(id);
-        // limitar memória
-        if (processedInboundIdsRef.current.size > 5000) {
-          processedInboundIdsRef.current = new Set(Array.from(processedInboundIdsRef.current).slice(-1000));
-        }
+      
+      if (!id || !chatId) {
+        if (isDebugEnabled) console.debug('[chat] Mensagem sem ID ou chatId, ignorando');
+        return;
       }
-      // guarda por chat para evitar re-render de mesma mensagem
+      
+      // Deduplicação por ID exato da mensagem
+      if (processedInboundIdsRef.current.has(id)) {
+        if (isDebugEnabled) console.debug('[chat] Mensagem já processada (ID duplicado):', id);
+        return;
+      }
+      
+      // Adicionar ao conjunto de IDs processados
+      processedInboundIdsRef.current.add(id);
+      
+      // Limitar memória do conjunto de IDs
+      if (processedInboundIdsRef.current.size > 5000) {
+        processedInboundIdsRef.current = new Set(Array.from(processedInboundIdsRef.current).slice(-1000));
+      }
+      
+      // Deduplicação adicional por chat+conteúdo para casos onde o ID possa ser diferente mas a mensagem é a mesma
+      const fallbackKey = `${chatId}|${text || ''}|${ts || ''}`;
       const lastKey = lastMessageKeyByChatRef.current[chatId];
-      if (lastKey === dedupeKey) return;
-      lastMessageKeyByChatRef.current[chatId] = dedupeKey;
+      if (lastKey === fallbackKey) {
+        if (isDebugEnabled) console.debug('[chat] Mensagem com conteúdo duplicado, ignorando:', fallbackKey);
+        return;
+      }
+      
+      // Registrar a última chave de mensagem para este chat
+      lastMessageKeyByChatRef.current[chatId] = fallbackKey;
+      
+      // Atualizar o estado do ticket
       const currentSelected = selectedChatIdRef.current;
-      setTickets(prev => ({ ...prev, [evt.chatId]: prev[evt.chatId] || { status: 'novo', step: 1 } }));
-      if (evt.chatId === currentSelected) {
-        setMessages(prev => [...prev, evt.message]);
+      setTickets(prev => ({ ...prev, [chatId]: prev[chatId] || { status: 'novo', step: 1 } }));
+      
+      // Adicionar a mensagem à lista de mensagens se o chat estiver aberto
+      if (chatId === currentSelected && evt.message) {
+        // Converter para o formato ChatMessageDto correto
+        const chatMessage: ChatMessageDto = {
+          id: evt.message.id || crypto.randomUUID(),
+          externalMessageId: evt.message.externalMessageId,
+          direction: 'in',
+          text: evt.message.text || evt.message.body || '',
+          ts: evt.message.ts || evt.message.timestamp || new Date().toISOString(),
+          type: (evt.message.type as 'text' | 'image' | 'file' | 'audio') || 'text',
+          status: 'delivered',
+          attachment: evt.message.attachment ? {
+            dataUrl: evt.message.attachment.dataUrl || '',
+            mimeType: evt.message.attachment.mimeType || 'application/octet-stream',
+            fileName: evt.message.attachment.fileName
+          } : null
+        };
+        
+        setMessages(prev => [...prev, chatMessage]);
         requestAnimationFrame(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }));
       }
+      
       // Atualização local do item da lista para evitar full refresh
-      const preview = (evt?.message?.text || evt?.message?.body) ? (evt?.message?.text || evt?.message?.body) : (evt?.message?.type === 'image' ? 'Imagem' : evt?.message?.type === 'audio' ? 'Áudio' : evt?.message?.type === 'file' ? (evt?.message?.attachment?.fileName || 'Arquivo') : 'Mensagem');
-      const tsVal = evt?.message?.ts || evt?.message?.timestamp || new Date().toISOString();
-      const isCurrentOpen = evt?.chatId === selectedChatIdRef.current;
-      queueChatPatch(evt?.chatId, {
+      const preview = (text) ? text : (evt?.message?.type === 'image' ? 'Imagem' : 
+                                      evt?.message?.type === 'audio' ? 'Áudio' : 
+                                      evt?.message?.type === 'file' ? (evt?.message?.attachment?.fileName || 'Arquivo') : 
+                                      'Mensagem');
+      const tsVal = ts || new Date().toISOString();
+      const isCurrentOpen = chatId === selectedChatIdRef.current;
+      
+      queueChatPatch(chatId, {
         lastMessageAt: tsVal,
         lastMessagePreview: preview,
         unreadCount: isCurrentOpen ? 0 : undefined
       } as Partial<ChatListItem>);
+      
+      if (isDebugEnabled) console.debug('[chat] Mensagem processada com sucesso:', id);
+      // Não chamar refresh aqui para evitar loop
     });
 
     // quando API confirma criação da mensagem (pendente), garantir presença/consistência
-    connection.on('message.outbound', (evt: any) => {
+    connection.on('message.outbound', (evt: MessageEvent) => {
       const currentSelected = selectedChatIdRef.current;
       if (evt?.chatId !== currentSelected) return;
       const msg = evt?.message;
       if (!msg?.id) return;
+      
+      // Converter a mensagem para o formato ChatMessageDto apropriado
+      const chatMessage: ChatMessageDto = {
+        id: msg.id,
+        externalMessageId: msg.externalMessageId,
+        direction: 'out',
+        text: msg.text || msg.body || '',
+        ts: msg.ts || msg.timestamp || new Date().toISOString(),
+        type: (msg.type as 'text' | 'image' | 'file' | 'audio') || 'text',
+        status: 'sent',
+        attachment: msg.attachment ? {
+          dataUrl: msg.attachment.dataUrl || '',
+          mimeType: msg.attachment.mimeType || 'application/octet-stream',
+          fileName: msg.attachment.fileName
+        } : null
+      };
+      
       setMessages(prev => {
         const exists = prev.some(m => m.id === msg.id);
-        return exists ? prev : [...prev, msg];
+        return exists ? prev : [...prev, chatMessage];
       });
       requestAnimationFrame(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }));
     });
 
     // atualização de status (sent/failed/delivered/read)
-    connection.on('message.status', (evt: any) => {
+    connection.on('message.status', (evt: MessageStatusEvent) => {
       const currentSelected = selectedChatIdRef.current;
       if (evt?.chatId !== currentSelected) return;
       const { messageId, status } = evt || {};
       if (!messageId || !status) return;
-      setMessages(prev => prev.map(m => m.id === messageId ? { ...m, status } : m));
+      
+      // Garantir que o status está dentro dos valores permitidos
+      const validStatus = (status === 'pending' || 
+                          status === 'sent' || 
+                          status === 'delivered' || 
+                          status === 'read' || 
+                          status === 'failed') ? status : 'sent';
+      
+      setMessages(prev => prev.map(m => 
+        m.id === messageId ? { ...m, status: validStatus } : m
+      ));
     });
 
     // estado de digitação do outro lado
-    connection.on('presence.typing', (evt: any) => {
+    connection.on('presence.typing', (evt: TypingEvent) => {
       if (!evt?.chatId) return;
       setTyping(evt.chatId, Boolean(evt?.isTyping));
     });
 
     // leitura (confirmação de leitura em grupo whatsapp -> refletir na UI)
-    connection.on('chat.read', (evt: any) => {
+    connection.on('chat.read', (evt: ReadEvent) => {
       if (!evt?.chatId || !evt?.readUpTo) return;
       setLastReadAt(evt.chatId, String(evt.readUpTo));
       if (evt.chatId === selectedChatIdRef.current) {
@@ -505,18 +847,29 @@ export default function AtendimentoPage() {
       }
     });
 
-    connection.start()
-      .then(() => connection.invoke('JoinWhatsAppGroup'))
-      .catch(console.error);
-
-    connRef.current = connection;
+        // Configurar conexão
+        connRef.current = connection;
+        
+        // Iniciar conexão
+        connection.start()
+          .then(() => connection.invoke('JoinWhatsAppGroup'))
+          .catch(console.error);
+          
+      } catch (error) {
+        console.error("Erro ao inicializar SignalR:", error);
+        // Carregar dados de mock se SignalR falhar
+        loadMockData();
+      }
+    }
+    
+    // Retornar função de limpeza
     return () => {
       processedInboundIdsRef.current.clear();
       lastMessageKeyByChatRef.current = {};
       connRef.current?.stop().catch(() => {});
       connRef.current = null;
     };
-  }, []);
+  }, [queueChatPatch, refreshChats, setLastReadAt, setTyping]);
 
   // tick a cada 1s para atualizar tempo médio em tempo real
   useEffect(() => {
@@ -529,7 +882,34 @@ export default function AtendimentoPage() {
 
   const handleAttend = async (chatId: string) => {
     const name = currentOperator?.name || 'Operador';
-    setTickets(prev => ({ ...prev, [chatId]: { ...(prev[chatId]||{step:1}), status: 'em_atendimento', assignedTo: name, step: 1, verified: false, startedAt: new Date().toISOString(), endedAt: undefined } }));
+    const operatorId = currentOperator?.id || 'anonymous';
+    
+    // Atualizar estado local para UI responsiva
+    setTickets(prev => ({ 
+      ...prev, 
+      [chatId]: { 
+        ...(prev[chatId]||{step:1}), 
+        status: 'em_atendimento', 
+        assignedTo: name, 
+        step: 1, 
+        verified: false, 
+        startedAt: new Date().toISOString(), 
+        endedAt: undefined 
+      } 
+    }));
+    
+    // Chamar a API do backend em paralelo com o carregamento da UI
+    try {
+      axios.post(`http://localhost:5656/api/attendances/${chatId}/assign`, {
+        operatorId: operatorId,
+        operatorName: name
+      }).catch(error => {
+        console.error(`Erro ao atribuir chat ${chatId} ao operador ${name}:`, error);
+      });
+    } catch (error) {
+      console.error(`Erro ao atribuir chat ${chatId}:`, error);
+    }
+    
     // Prefetch de histórico com cache para tornar imperceptível
     let history = historyCacheRef.current[chatId];
     if (!history) {
@@ -541,6 +921,8 @@ export default function AtendimentoPage() {
         history = [] as ChatMessageDto[];
       }
     }
+    
+    // Atualizar UI
     setSelectedChatId(chatId);
     setIsChatMinimized(false);
     setMessages(history || []);
@@ -548,15 +930,62 @@ export default function AtendimentoPage() {
     requestAnimationFrame(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }));
   };
 
-  const handleStep = (chatId: string, step: 1 | 2 | 3 | 4) => {
-    setTickets(prev => ({ ...prev, [chatId]: { ...(prev[chatId]||{status:'em_atendimento'}), step, verified: false } }));
+  const handleStep = async (chatId: string, step: 1 | 2 | 3 | 4) => {
+    // Atualizar estado local para UI responsiva
+    setTickets(prev => ({ 
+      ...prev, 
+      [chatId]: { 
+        ...(prev[chatId]||{status:'em_atendimento'}), 
+        step, 
+        verified: false 
+      } 
+    }));
+    
+    try {
+      // Chamar a API do backend para persistir o passo atual
+      await axios.post(`http://localhost:5656/api/attendances/${chatId}/step`, {
+        step: step
+      });
+      
+      console.log(`Passo ${step} do chat ${chatId} atualizado no servidor`);
+    } catch (error) {
+      console.error(`Erro ao atualizar passo ${step} do chat ${chatId}:`, error);
+      // Mesmo em caso de erro, mantemos a UI atualizada localmente
+    }
   };
 
-  const handleFinalize = (chatId: string) => {
-    setTickets(prev => ({ ...prev, [chatId]: { ...(prev[chatId]||{}), status: 'finalizado', step: 4, verified: true, endedAt: new Date().toISOString() } }));
-    // sair da fila automaticamente: esconder da lista e fechar janela
-    setSelectedChatId(null);
-    setMessages([]);
+  const handleFinalize = async (chatId: string) => {
+    const activeTicket = tickets[chatId];
+    const description = activeTicket?.description || "";
+    
+    // Atualizar estado local primeiro (UI responsiva)
+    setTickets(prev => ({ 
+      ...prev, 
+      [chatId]: { 
+        ...(prev[chatId]||{}), 
+        status: 'finalizado', 
+        step: 4, 
+        verified: true, 
+        endedAt: new Date().toISOString() 
+      } 
+    }));
+    
+    try {
+      // Chamar a API do backend para persistir os dados
+      await axios.post(`http://localhost:5656/api/attendances/${chatId}/finalize`, {
+        description: description,
+        verified: true
+      });
+      
+      console.log(`Chat ${chatId} finalizado e salvo no servidor`);
+    } catch (error) {
+      console.error("Erro ao finalizar atendimento no servidor:", error);
+      // Não reverte o estado local mesmo em caso de erro para não confundir o usuário
+    } finally {
+      // Sair da fila automaticamente: esconder da lista e fechar janela
+      setSelectedChatId(null);
+      setMessages([]);
+    }
   };
 
   // métricas para dashboard
@@ -804,6 +1233,26 @@ export default function AtendimentoPage() {
                   ) : (
                     <Button type="button" variant="destructive" size="icon" onClick={stopRecording} title={`Parar gravação (${new Date(recordMs).toISOString().substring(14, 19)})`}>
                       <Square className="h-4 w-4" />
+                    </Button>
+                  )}
+                  {/* Botão de ligação telefônica */}
+                  {selectedChatId && activeChat?.contactPhoneE164 && (
+                    <Button 
+                      type="button" 
+                      variant={activeCall ? "destructive" : "outline"}
+                      size="icon" 
+                      onClick={() => handlePhoneCall(activeChat.contactPhoneE164)} 
+                      title={activeCall ? `Encerrar chamada (${callDuration}s)` : "Ligar para contato"}
+                      className={`${activeCall 
+                        ? "animate-pulse" 
+                        : "text-green-600 hover:text-green-700 hover:bg-green-50"}`}
+                    >
+                      <Phone className="h-4 w-4" />
+                      {activeCall && callDuration > 0 && (
+                        <span className="absolute top-0 right-0 -mt-1 -mr-1 bg-red-500 text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center">
+                          {Math.floor(callDuration / 60)}:{String(callDuration % 60).padStart(2, '0')}
+                        </span>
+                      )}
                     </Button>
                   )}
                   <Input className="flex-1" placeholder="Digite sua mensagem" value={composer} onChange={e=>setComposer(e.target.value)} onKeyDown={e=>{ if(e.key==='Enter'){ e.preventDefault(); sendMessage(); } }} />

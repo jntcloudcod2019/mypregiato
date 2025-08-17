@@ -1,22 +1,30 @@
 import { create } from 'zustand'
 
-type TypingState = {
+interface ChatState {
+  // Status de digitação por chat
   byChat: Record<string, boolean>
-  setTyping: (chatId: string, isTyping: boolean) => void
-}
-
-type ReadState = {
+  // Último timestamp de leitura por chat
   lastReadAtByChat: Record<string, string>
-  setLastReadAt: (chatId: string, iso: string) => void
+  // Ações
+  setTyping: (chatId: string, isTyping: boolean) => void
+  setLastReadAt: (chatId: string, timestamp: string) => void
 }
 
-type ChatStore = TypingState & ReadState
-
-export const useChatStore = create<ChatStore>((set) => ({
+export const useChatStore = create<ChatState>((set) => ({
   byChat: {},
-  setTyping: (chatId, isTyping) => set((s) => ({ byChat: { ...s.byChat, [chatId]: isTyping } })),
   lastReadAtByChat: {},
-  setLastReadAt: (chatId, iso) => set((s) => ({ lastReadAtByChat: { ...s.lastReadAtByChat, [chatId]: iso } })),
+  
+  setTyping: (chatId, isTyping) => set(state => ({
+    byChat: {
+      ...state.byChat,
+      [chatId]: isTyping
+    }
+  })),
+  
+  setLastReadAt: (chatId, timestamp) => set(state => ({
+    lastReadAtByChat: {
+      ...state.lastReadAtByChat,
+      [chatId]: timestamp
+    }
+  }))
 }))
-
-

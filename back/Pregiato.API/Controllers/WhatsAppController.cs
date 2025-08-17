@@ -15,6 +15,8 @@ namespace Pregiato.API.Controllers
         private readonly IWhatsAppService _whatsAppService;
         private readonly RabbitBackgroundService _rabbit;
         private readonly IHubContext<WhatsAppHub> _hub;
+        private static bool _sessionInitialized = false;
+        private static DateTime _lastSessionUpdateUtc = DateTime.MinValue;
 
         public WhatsAppController(ILogger<WhatsAppController> logger, IWhatsAppService whatsAppService, RabbitBackgroundService rabbit, IHubContext<WhatsAppHub> hub)
         {
@@ -84,9 +86,24 @@ namespace Pregiato.API.Controllers
         [HttpPost("session/updated")]
         public IActionResult SessionUpdated([FromBody] SessionUpdatedRequest req)
         {
+            var current = _rabbit.GetSessionStatus();
+            // Ignorar chamadas repetidas com mesmo estado (somente 1x no início, ou quando houver mudança)
+            var isSame = current.sessionConnected == req.sessionConnected
+                         && string.Equals(current.connectedNumber ?? string.Empty, req.connectedNumber ?? string.Empty, StringComparison.Ordinal)
+                         && current.isFullyValidated == req.isFullyValidated;
+
+            // Se já inicializado e não houve mudança, ignorar (responder OK e não logar)
+            if (_sessionInitialized && isSame)
+            {
+                return Ok(new { success = true, skipped = true });
+            }
+
+            // Atualizar somente quando houver mudança real ou primeira vez
             _rabbit.SetSessionStatus(req.sessionConnected, req.connectedNumber, req.isFullyValidated);
+            _sessionInitialized = true;
+            _lastSessionUpdateUtc = DateTime.UtcNow;
             _logger.LogInformation("📥 Webhook session/updated: connected={Connected} number={Number} validated={Validated}", req.sessionConnected, req.connectedNumber, req.isFullyValidated);
-            return Ok(new { success = true });
+            return Ok(new { success = true, updated = true });
         }
 
         [HttpGet("status")]

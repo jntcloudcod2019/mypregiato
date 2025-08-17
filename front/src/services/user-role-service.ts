@@ -9,6 +9,20 @@ export interface UserRole {
   isActive: boolean;
 }
 
+// Interface para usuário do Clerk (simplificada)
+interface ClerkUser {
+  id: string;
+  emailAddresses: Array<{ emailAddress: string }>;
+}
+
+// Valores padrão para quando não temos acesso ao Clerk
+const DEFAULT_ROLE: UserRole = {
+  id: 'local-operator',
+  email: 'operador@local.dev',
+  role: 'OPERATOR',
+  isActive: true
+};
+
 export class UserRoleService {
   static async getUserRoleByEmail(email: string): Promise<UserRole | null> {
     try {
@@ -39,20 +53,52 @@ export class UserRoleService {
   }
 }
 
+// Hook seguro que tenta usar Clerk, mas não falha se não estiver disponível
+const useSafeClerkUser = (): { user: ClerkUser | null } => {
+  try {
+    // Tentar usar o hook do Clerk
+    return useUser();
+  } catch (error) {
+    console.warn('Clerk não está disponível no useUserRole, usando modo anônimo', error);
+    
+    // Registrar falha no session storage para próximos carregamentos
+    try {
+      sessionStorage.setItem('clerk_failed', 'true');
+    } catch (e) {
+      console.error('Error saving clerk_failed:', e);
+    }
+    
+    // Retornar valores padrão
+    return { user: null };
+  }
+};
+
 export const useUserRole = () => {
-  const { user } = useUser();
+  // Usar o hook seguro para Clerk
+  const { user } = useSafeClerkUser();
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Flag para indicar se estamos em modo anônimo
+  const isAnonymousMode = !user;
 
   useEffect(() => {
     const fetchUserRole = async () => {
-      if (!user) {
-        setLoading(false);
-        return;
-      }
-
       try {
         setLoading(true);
+        
+        // Se estamos em modo anônimo, usar role padrão
+        if (isAnonymousMode) {
+          console.log('Usando role padrão para modo anônimo');
+          setUserRole(DEFAULT_ROLE);
+          return;
+        }
+        
+        // Se não temos usuário, não há role para buscar
+        if (!user) {
+          return;
+        }
+
         const email = user.emailAddresses[0]?.emailAddress;
         const clerkId = user.id;
 
@@ -65,18 +111,20 @@ export const useUserRole = () => {
         }
       } catch (error) {
         console.error('Erro ao buscar role do usuário:', error);
+        // Em caso de erro, usar role padrão
+        setUserRole(DEFAULT_ROLE);
       } finally {
         setLoading(false);
       }
     };
 
     fetchUserRole();
-  }, [user]);
+  }, [user, isAnonymousMode]);
 
   return {
     userRole,
     loading,
     isAdmin: userRole ? UserRoleService.isAdmin(userRole.role) : false,
-    isOperator: userRole ? UserRoleService.isOperator(userRole.role) : false
+    isOperator: userRole ? UserRoleService.isOperator(userRole.role) : isAnonymousMode // Em modo anônimo, consideramos como operador
   };
-}; 
+};

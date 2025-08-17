@@ -15,6 +15,7 @@
 /Users/worldgames/Documents/PREGIATO/mypregiato/backend/Pregiato.Infrastructure/obj/Debug/net8.0/Pregiato.Infrastructure.pdb
 /Users/worldgames/Documents/PREGIATO/mypregiato/backend/Pregiato.Infrastructure/obj/Debug/net8.0/ref/Pregiato.Infrastructure.dll
 /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Infrastructure/bin/Debug/net8.0/Pregiato.Infrastructure.deps.json
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Infrastructure/bin/Debug/net8.0/Pregiato.Infrastructure.runtimeconfig.json
 /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Infrastructure/bin/Debug/net8.0/Pregiato.Infrastructure.dll
 /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Infrastructure/bin/Debug/net8.0/Pregiato.Infrastructure.pdb
 /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Infrastructure/bin/Debug/net8.0/Pregiato.Core.dll
@@ -29,4 +30,5 @@
 /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Infrastructure/obj/Debug/net8.0/Pregiato.Infrastructure.dll
 /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Infrastructure/obj/Debug/net8.0/refint/Pregiato.Infrastructure.dll
 /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Infrastructure/obj/Debug/net8.0/Pregiato.Infrastructure.pdb
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Infrastructure/obj/Debug/net8.0/Pregiato.Infrastructure.genruntimeconfig.cache
 /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Infrastructure/obj/Debug/net8.0/ref/Pregiato.Infrastructure.dll

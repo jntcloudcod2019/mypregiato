@@ -187,6 +187,7 @@
 /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/bin/Debug/net8.0/Microsoft.EntityFrameworkCore.dll
 /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/bin/Debug/net8.0/Microsoft.EntityFrameworkCore.Abstractions.dll
 /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/bin/Debug/net8.0/Microsoft.EntityFrameworkCore.Design.dll
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/bin/Debug/net8.0/Microsoft.EntityFrameworkCore.InMemory.dll
 /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/bin/Debug/net8.0/Microsoft.EntityFrameworkCore.Relational.dll
 /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/bin/Debug/net8.0/Microsoft.EntityFrameworkCore.Sqlite.dll
 /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/bin/Debug/net8.0/Microsoft.Extensions.DependencyModel.dll

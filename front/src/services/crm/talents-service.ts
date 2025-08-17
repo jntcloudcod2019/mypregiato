@@ -1,100 +1,86 @@
-import { modulesApi } from '@/services/modules-service';
+import api from '../whatsapp-api';
 
-export type TalentStatus = 'novo' | 'avaliacao' | 'aprovado' | 'rejeitado';
-
-export type Talent = {
+export interface Talent {
   id: string;
-  fullName: string;
+  fullName?: string;
   email?: string;
   phone?: string;
-  uf?: string;
-  instagram?: string;
   city?: string;
-  age?: number;
-  profession?: string;
-  notes?: string;
-  status: TalentStatus;
-  stage?: 'novo' | 'contato' | 'agendamento' | 'seletiva' | 'contrato' | 'finalizado' | 'perdido';
-  sources?: string[]; // meta, site, formulario, redes
-  score?: number; // 0-100
-  interactionsCount?: number;
-  purchasesCount?: number;
-  measures?: {
-    height?: string; bust?: string; waist?: string; hips?: string; shoes?: string;
-  };
-  photos?: string[]; // dataUrls
-  portfolio?: string[]; // links
-  history?: Array<{ ts: string; type: 'note' | 'email' | 'meeting' | 'message'; text: string }>;
-  createdAt?: string;
+  status?: string;
+  stage?: string;
   updatedAt?: string;
-};
+  createdAt?: string;
+}
 
-const slug = 'crm-talent';
+export interface TalentCreateDto {
+  name: string;
+  email?: string;
+  phone?: string;
+  company?: string;
+  description?: string;
+  source?: string;
+  status?: string;
+  extras?: Record<string, any>;
+}
 
 export const talentsService = {
   async list(): Promise<Talent[]> {
-    const { items } = await modulesApi.list(slug, 1, 1000);
-    return items.map(r => {
-      const t = { id: r.id, ...(JSON.parse(r.payloadJson || '{}')) } as Talent;
-      if (typeof t.score !== 'number') t.score = computeScore(t);
-      return t;
-    });
-  },
-  async get(id: string): Promise<Talent | null> {
-    const { items } = await modulesApi.list(slug, 1, 1000);
-    const rec = items.find(i => i.id === id);
-    if (!rec) return null;
-    const t = { id: rec.id, ...(JSON.parse(rec.payloadJson || '{}')) } as Talent;
-    if (typeof t.score !== 'number') t.score = computeScore(t);
-    return t;
-  },
-  async create(t: Omit<Talent, 'id'|'createdAt'|'updatedAt'>): Promise<Talent> {
-    const payload = { ...t, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
-    const rec = await modulesApi.create({ moduleSlug: slug, title: t.fullName, status: t.status, tags: t.city, payloadJson: JSON.stringify(payload) });
-    return { id: rec.id, ...(JSON.parse(rec.payloadJson)) } as Talent;
-  },
-  async update(id: string, t: Partial<Talent>): Promise<Talent> {
-    const current = await talentsService.get(id);
-    const next = { ...(current||{}), ...t, id, updatedAt: new Date().toISOString() } as Talent;
-    await modulesApi.update(id, { moduleSlug: slug, title: next.fullName, status: next.status, tags: next.city, payloadJson: JSON.stringify(next) });
-    return next;
-  },
-  async remove(id: string): Promise<void> {
-    await modulesApi.delete(id);
-  },
-  async bulkImport(rows: Array<Record<string, any>>): Promise<number> {
-    let imported = 0;
-    for (const r of rows) {
-      const t: Omit<Talent, 'id'|'createdAt'|'updatedAt'> = {
-        fullName: r.nome || r.name || r.fullName || 'Sem nome',
-        email: r.email || r.mail,
-        phone: r.telefone || r.phone,
-        city: r.cidade || r.city,
-        uf: r.uf || r.estado,
-        age: r.idade ? Number(r.idade) : undefined,
-        profession: r.profissao || r.profession,
-        notes: r.observacoes || r.notes,
-        status: (r.status as TalentStatus) || 'novo',
-        stage: r.etapa || 'novo',
-        sources: r.origem ? String(r.origem).split(',').map((s:string)=>s.trim()) : undefined,
-        score: undefined
-      };
-      await talentsService.create(t);
-      imported++;
+    try {
+      const { data } = await api.get('/talents');
+      return Array.isArray(data) ? data : (data?.items || []);
+    } catch (error) {
+      console.error('Error fetching talents:', error);
+      return [];
     }
-    return imported;
+  },
+
+  async getById(id: string): Promise<Talent | null> {
+    try {
+      const { data } = await api.get(`/talents/${id}`);
+      return data;
+    } catch (error) {
+      console.error(`Error fetching talent ${id}:`, error);
+      return null;
+    }
+  },
+
+  async create(talent: TalentCreateDto): Promise<Talent | null> {
+    try {
+      const { data } = await api.post('/talents', talent);
+      return data;
+    } catch (error) {
+      console.error('Error creating talent:', error);
+      return null;
+    }
+  },
+
+  async update(id: string, talent: Partial<Talent>): Promise<Talent | null> {
+    try {
+      const { data } = await api.put(`/talents/${id}`, talent);
+      return data;
+    } catch (error) {
+      console.error(`Error updating talent ${id}:`, error);
+      return null;
+    }
+  },
+
+  async delete(id: string): Promise<boolean> {
+    try {
+      await api.delete(`/talents/${id}`);
+      return true;
+    } catch (error) {
+      console.error(`Error deleting talent ${id}:`, error);
+      return false;
+    }
+  },
+
+  async bulkImport(talents: TalentCreateDto[]): Promise<{ success: number; failed: number }> {
+    try {
+      const { data } = await api.post('/talents/bulk', talents);
+      return data || { success: 0, failed: 0 };
+    } catch (error) {
+      console.error('Error bulk importing talents:', error);
+      return { success: 0, failed: talents.length };
+    }
   }
 };
-
-function computeScore(t: Talent): number {
-  let s = 0;
-  if (t.email) s += 10;
-  if (t.phone) s += 20;
-  if ((t.sources||[]).includes('meta')) s += 20;
-  if ((t.sources||[]).includes('site') || (t.sources||[]).includes('formulario')) s += 10;
-  if (t.interactionsCount) s += Math.min(30, t.interactionsCount * 5);
-  if (t.purchasesCount) s += Math.min(20, t.purchasesCount * 10);
-  return Math.max(0, Math.min(100, s));
-}
-
-
