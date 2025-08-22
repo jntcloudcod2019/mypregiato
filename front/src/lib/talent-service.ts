@@ -1,6 +1,6 @@
 
-import { get, post, put, del } from '@/services/api/api'
-import { TalentData, ProducerData, CreateTalentData, UpdateTalentData } from '@/types/talent'
+import { get, post, put, del } from '../services/api/api'
+import { TalentData, ProducerData, CreateTalentData, UpdateTalentData } from '../types/talent'
 
 export interface PaginatedTalentsResponse {
   data: TalentData[];
@@ -35,7 +35,7 @@ export const getTalentsPaginated = async (
       params.search = search;
     }
     
-    const data = await get<PaginatedTalentsResponse>('/api/talents', params)
+    const data = await get<PaginatedTalentsResponse>('/talents', params)
     return data
   } catch (error) {
     console.error('Error fetching talents:', error)
@@ -45,7 +45,7 @@ export const getTalentsPaginated = async (
 
 export const getTalents = async (): Promise<TalentData[]> => {
   try {
-    const data = await get<TalentData[]>('/api/talents')
+    const data = await get<TalentData[]>('/talents')
     return data
   } catch (error) {
     console.error('Error fetching talents:', error)
@@ -55,7 +55,7 @@ export const getTalents = async (): Promise<TalentData[]> => {
 
 export const getTalentById = async (id: string): Promise<TalentData | null> => {
   try {
-    const data = await get<TalentData>(`/api/talents/${id}`)
+    const data = await get<TalentData>(`/talents/${id}`)
     return data
   } catch (error) {
     console.error('Error fetching talent:', error)
@@ -65,7 +65,7 @@ export const getTalentById = async (id: string): Promise<TalentData | null> => {
 
 export const createTalent = async (data: CreateTalentData): Promise<TalentData> => {
   try {
-    const talent = await post<TalentData>('/api/talents', {
+    const talent = await post<TalentData>('/talents', {
       ...data,
       inviteSent: false,
       status: true,
@@ -88,7 +88,7 @@ export const createTalent = async (data: CreateTalentData): Promise<TalentData> 
 
 export const updateTalent = async (id: string, data: UpdateTalentData): Promise<TalentData | null> => {
   try {
-    const talent = await put<TalentData>(`/api/talents/${id}`, data)
+    const talent = await put<TalentData>(`/talents/${id}`, data)
     return talent
   } catch (error) {
     console.error('Error updating talent:', error)

@@ -4,11 +4,6 @@
         <name>Pregiato.API</name>
     </assembly>
     <members>
-        <member name="M:Pregiato.API.Controllers.PublicController.GetProducers">
-            <summary>
-            Obtém lista de produtores (endpoint público)
-            </summary>
-        </member>
         <member name="M:Pregiato.API.Controllers.TalentsController.GetTalents(System.Int32,System.Int32,System.String,System.String,System.Boolean)">
             <summary>
             Obtém todos os talentos com paginação

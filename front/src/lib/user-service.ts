@@ -1,26 +1,29 @@
 
-import { ProducerData } from '@/types/talent'
-import { getMockUsers } from './mock-database'
+import { get } from '../services/api/api'
 
-export const getProducers = async (): Promise<ProducerData[]> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 300))
-  
-  const users = getMockUsers()
-  const producers = users
-    .filter(user => user.role === 'PRODUCER')
-    .map(user => ({
-      id: user.id,
-      first_name: user.first_name,
-      last_name: user.last_name,
-      email: user.email,
-      code: user.code
-    }))
-  
-  return producers
+export interface UserDto {
+  id: string;
+  clerkId: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  imageUrl: string | null;
+  role: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export const getProducerById = async (id: string): Promise<ProducerData | null> => {
+export const getProducers = async (): Promise<UserDto[]> => {
+  try {
+    const users = await get<UserDto[]>('/users/producers')
+    return users
+  } catch (error) {
+    console.error('Error fetching producers:', error)
+    throw new Error('Failed to fetch producers')
+  }
+}
+
+export const getProducerById = async (id: string): Promise<UserDto | null> => {
   await new Promise(resolve => setTimeout(resolve, 200))
   const producers = await getProducers()
   return producers.find(p => p.id === id) || null

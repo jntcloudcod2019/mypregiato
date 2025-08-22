@@ -1,4 +1,4 @@
-import { get } from '@/services/api/api'
+import { get } from '../services/api/api'
 
 // Interface para o token de autenticação
 interface AuthToken {

@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider } from "../ui/sidebar";
 import { AppSidebar } from "./app-sidebar";
 import { SignedIn, SignedOut, useUser, useClerk } from "@clerk/clerk-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "../ui/button";
 import { LogOut, RotateCcw, User } from "lucide-react";
-import CustomLogin from "@/components/auth/custom-login";
-import { ErrorBoundary } from "@/components/common/error-boundary";
-import { ClerkErrorFallback } from "@/components/auth/clerk-fallback";
-import { LoadingFallback } from "@/components/ui/loading-fallback";
+import CustomLogin from "../auth/custom-login";
+import { ErrorBoundary } from "../common/error-boundary";
+import { ClerkErrorFallback } from "../auth/clerk-fallback";
+import { LoadingFallback } from "../ui/loading-fallback";
 
 interface MainLayoutProps {
   children: React.ReactNode;
