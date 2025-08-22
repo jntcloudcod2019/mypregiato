@@ -1,19 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Pregiato.Application.DTOs;
 using Pregiato.Application.Interfaces;
 using Pregiato.Core.Entities;
-using Pregiato.Core.Interfaces;
 using Pregiato.Infrastructure.Data;
-using RabbitMQ.Client;
-using SystemTask = System.Threading.Tasks.Task;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Pregiato.Application.Services
 {
@@ -21,37 +15,31 @@ namespace Pregiato.Application.Services
     {
         private readonly PregiatoDbContext _context;
         private readonly ILogger<WhatsAppService> _logger;
-        private readonly IHttpClientFactory _httpClientFactory;
-        private readonly IConfiguration _configuration;
 
-        public WhatsAppService(
-            PregiatoDbContext context,
-            ILogger<WhatsAppService> logger,
-            IHttpClientFactory httpClientFactory,
-            IConfiguration configuration)
+        public WhatsAppService(PregiatoDbContext context, ILogger<WhatsAppService> logger)
         {
             _context = context;
             _logger = logger;
-            _httpClientFactory = httpClientFactory;
-            _configuration = configuration;
         }
 
-        public async Task<ContactDto> CreateContactAsync(CreateContactDto dto)
+        public async Task<ContactDto?> GetOrCreateContactAsync(string phone)
         {
-            var contact = new Contact
+            var contact = await _context.Contacts
+                .FirstOrDefaultAsync(c => c.Phone == phone);
+
+            if (contact == null)
             {
-                Name = dto.Name,
-                Phone = dto.Phone,
-                Email = dto.Email,
-                OriginCRM = dto.OriginCRM,
-                Tags = dto.Tags,
-                BusinessName = dto.BusinessName
-            };
+                contact = new Contact
+                {
+                    Phone = phone,
+                    Name = $"Contato {phone}",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
 
-            _context.Contacts.Add(contact);
-            await _context.SaveChangesAsync();
-
-            _logger.LogInformation($"📞 Contato criado: {contact.Name} ({contact.Phone})");
+                _context.Contacts.Add(contact);
+                await _context.SaveChangesAsync();
+            }
 
             return new ContactDto
             {
@@ -68,105 +56,89 @@ namespace Pregiato.Application.Services
             };
         }
 
-        public async Task<ContactDto> GetOrCreateContactAsync(string phone)
-        {
-            // Buscar contato existente
-            var contact = await _context.Contacts.FirstOrDefaultAsync(c => c.Phone == phone);
-            
-            if (contact != null)
-            {
-                return new ContactDto
-                {
-                    Id = contact.Id,
-                    Name = contact.Name,
-                    Phone = contact.Phone,
-                    Email = contact.Email,
-                    OriginCRM = contact.OriginCRM,
-                    Tags = contact.Tags,
-                    BusinessName = contact.BusinessName,
-                    IsActive = contact.IsActive,
-                    CreatedAt = contact.CreatedAt,
-                    UpdatedAt = contact.UpdatedAt
-                };
-            }
-
-            // Criar novo contato
-            var createContactDto = new CreateContactDto
-            {
-                Name = $"Contato {phone}",
-                Phone = phone,
-                OriginCRM = "WhatsApp"
-            };
-
-            return await CreateContactAsync(createContactDto);
-        }
-
         public async Task<ConversationDto> GetOrCreateConversationAsync(Guid contactId)
         {
-            // Buscar conversa ativa existente
             var conversation = await _context.Conversations
                 .Include(c => c.Contact)
-                .FirstOrDefaultAsync(c => c.ContactId == contactId && 
-                                        (c.Status == ConversationStatus.Queued || 
-                                         c.Status == ConversationStatus.Assigned));
+                .Include(c => c.Operator)
+                .Include(c => c.Messages.OrderByDescending(m => m.CreatedAt).Take(1))
+                .FirstOrDefaultAsync(c => c.ContactId == contactId && c.Status != ConversationStatus.Closed);
 
-            if (conversation != null)
+            if (conversation == null)
             {
-                return await GetConversationByIdAsync(conversation.Id);
+                conversation = new Conversation
+                {
+                    ContactId = contactId,
+                    Channel = "whatsapp",
+                    Status = ConversationStatus.Queued,
+                    Priority = ConversationPriority.Normal,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                _context.Conversations.Add(conversation);
+                await _context.SaveChangesAsync();
+
+                // Recarregar com relacionamentos
+                conversation = await _context.Conversations
+                    .Include(c => c.Contact)
+                    .Include(c => c.Operator)
+                    .Include(c => c.Messages.OrderByDescending(m => m.CreatedAt).Take(1))
+                    .FirstAsync(c => c.Id == conversation.Id);
             }
 
-            // Criar nova conversa
-            var createConversationDto = new CreateConversationDto
+            return new ConversationDto
             {
-                ContactId = contactId,
-                Channel = "whatsapp",
-                Priority = ConversationPriority.Normal
+                Id = conversation.Id,
+                ContactId = conversation.ContactId,
+                Contact = new ContactDto
+                {
+                    Id = conversation.Contact.Id,
+                    Name = conversation.Contact.Name,
+                    Phone = conversation.Contact.Phone,
+                    Email = conversation.Contact.Email,
+                    OriginCRM = conversation.Contact.OriginCRM,
+                    Tags = conversation.Contact.Tags,
+                    BusinessName = conversation.Contact.BusinessName,
+                    IsActive = conversation.Contact.IsActive,
+                    CreatedAt = conversation.Contact.CreatedAt,
+                    UpdatedAt = conversation.Contact.UpdatedAt
+                },
+                OperatorId = conversation.OperatorId,
+                Operator = conversation.Operator != null ? new OperatorDto
+                {
+                    Id = conversation.Operator.Id,
+                    Name = $"{conversation.Operator.FirstName} {conversation.Operator.LastName}",
+                    Email = conversation.Operator.Email,
+                    Role = OperatorRole.Agent,
+                    Status = OperatorStatus.Online,
+                    MaxConcurrentConversations = 5,
+                    CreatedAt = conversation.Operator.CreatedAt,
+                    UpdatedAt = conversation.Operator.UpdatedAt
+                } : null,
+                Channel = conversation.Channel,
+                Status = conversation.Status,
+                Priority = conversation.Priority,
+                CloseReason = conversation.CloseReason,
+                CreatedAt = conversation.CreatedAt,
+                AssignedAt = conversation.AssignedAt,
+                ClosedAt = conversation.ClosedAt,
+                UpdatedAt = conversation.UpdatedAt,
+                LastMessage = conversation.Messages.FirstOrDefault() != null ? new MessageDto
+                {
+                    Id = conversation.Messages.First().Id,
+                    ConversationId = conversation.Messages.First().ConversationId,
+                    Direction = conversation.Messages.First().Direction,
+                    Type = conversation.Messages.First().Type,
+                    Body = conversation.Messages.First().Body,
+                    MediaUrl = conversation.Messages.First().MediaUrl,
+                    CreatedAt = conversation.Messages.First().CreatedAt
+                } : null
             };
-
-            return await CreateConversationAsync(createConversationDto);
-        }
-
-        public async Task<ConversationDto> CreateConversationAsync(CreateConversationDto dto)
-        {
-            var contact = await _context.Contacts.FindAsync(dto.ContactId);
-            if (contact == null)
-                throw new ArgumentException("Contato não encontrado");
-
-            var conversation = new Conversation
-            {
-                ContactId = dto.ContactId,
-                Channel = dto.Channel,
-                Status = ConversationStatus.Queued,
-                Priority = dto.Priority
-            };
-
-            _context.Conversations.Add(conversation);
-            await _context.SaveChangesAsync();
-
-            // Criar evento de fila
-            var queueEvent = new QueueEvent
-            {
-                ConversationId = conversation.Id,
-                EventType = QueueEventType.Queued
-            };
-
-            _context.QueueEvents.Add(queueEvent);
-            await _context.SaveChangesAsync();
-
-            _logger.LogInformation($"💬 Conversa criada: {conversation.Id} para {contact.Name}");
-
-            return await GetConversationByIdAsync(conversation.Id);
         }
 
         public async Task<MessageDto> CreateMessageAsync(CreateMessageDto dto)
         {
-            var conversation = await _context.Conversations
-                .Include(c => c.Contact)
-                .FirstOrDefaultAsync(c => c.Id == dto.ConversationId);
-
-            if (conversation == null)
-                throw new ArgumentException("Conversa não encontrada");
-
             var message = new Message
             {
                 ConversationId = dto.ConversationId,
@@ -174,25 +146,14 @@ namespace Pregiato.Application.Services
                 Type = dto.Type,
                 Body = dto.Body,
                 MediaUrl = dto.MediaUrl,
-                FileName = dto.FileName,
                 ClientMessageId = dto.ClientMessageId,
-                InternalNote = dto.InternalNote
+                Status = MessageStatus.Sent,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
 
             _context.Messages.Add(message);
             await _context.SaveChangesAsync();
-
-            _logger.LogInformation($"📨 Mensagem criada: {message.Id} na conversa {dto.ConversationId}");
-
-            // Se for mensagem de entrada, processar roteamento
-            if (dto.Direction == MessageDirection.In)
-            {
-                await ProcessIncomingMessageAsync(conversation, message);
-            }
-            else if (dto.Direction == MessageDirection.Out)
-            {
-                await SendMessageToWhatsAppAsync(message);
-            }
 
             return new MessageDto
             {
@@ -202,21 +163,13 @@ namespace Pregiato.Application.Services
                 Type = message.Type,
                 Body = message.Body,
                 MediaUrl = message.MediaUrl,
-                FileName = message.FileName,
-                ClientMessageId = message.ClientMessageId,
-                WhatsAppMessageId = message.WhatsAppMessageId,
-                Status = message.Status,
-                InternalNote = message.InternalNote,
-                CreatedAt = message.CreatedAt,
-                UpdatedAt = message.UpdatedAt
+                CreatedAt = message.CreatedAt
             };
         }
 
-        public async Task<ConversationDto?> AssignConversationToOperatorAsync(Guid conversationId, Guid operatorId)
+        public async Task<ConversationDto?> AssignConversationToOperatorAsync(Guid conversationId, string operatorId)
         {
             var conversation = await _context.Conversations
-                .Include(c => c.Contact)
-                .Include(c => c.Operator)
                 .FirstOrDefaultAsync(c => c.Id == conversationId);
 
             if (conversation == null)
@@ -230,7 +183,8 @@ namespace Pregiato.Application.Services
             var activeConversations = await _context.Conversations
                 .CountAsync(c => c.OperatorId == operatorId && c.Status == ConversationStatus.Assigned);
 
-            if (activeConversations >= operator_.MaxConcurrentConversations)
+            // Por enquanto, vamos usar um limite fixo de 5 conversas
+            if (activeConversations >= 5)
                 throw new InvalidOperationException("Operador atingiu limite de conversas simultâneas");
 
             conversation.OperatorId = operatorId;
@@ -249,7 +203,7 @@ namespace Pregiato.Application.Services
             _context.QueueEvents.Add(queueEvent);
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation($"👤 Conversa {conversationId} atribuída ao operador {operator_.Name}");
+            _logger.LogInformation($"👤 Conversa {conversationId} atribuída ao operador {operator_.FirstName} {operator_.LastName}");
 
             return await GetConversationByIdAsync(conversationId);
         }
@@ -322,7 +276,7 @@ namespace Pregiato.Application.Services
                 AssignedAt = c.AssignedAt,
                 ClosedAt = c.ClosedAt,
                 UpdatedAt = c.UpdatedAt,
-                Contact = c.Contact != null ? new ContactDto
+                Contact = new ContactDto
                 {
                     Id = c.Contact.Id,
                     Name = c.Contact.Name,
@@ -334,37 +288,18 @@ namespace Pregiato.Application.Services
                     IsActive = c.Contact.IsActive,
                     CreatedAt = c.Contact.CreatedAt,
                     UpdatedAt = c.Contact.UpdatedAt
-                } : null,
+                },
                 Operator = c.Operator != null ? new OperatorDto
                 {
                     Id = c.Operator.Id,
-                    Name = c.Operator.Name,
+                    Name = $"{c.Operator.FirstName} {c.Operator.LastName}",
                     Email = c.Operator.Email,
-                    Role = OperatorRole.Agent, // Default role
-                    Status = OperatorStatus.Online, // Default status
-                    Skills = c.Operator.Skills,
-                    MaxConcurrentConversations = c.Operator.MaxConcurrentConversations,
+                    Role = OperatorRole.Agent,
+                    Status = OperatorStatus.Online,
+                    MaxConcurrentConversations = 5,
                     CreatedAt = c.Operator.CreatedAt,
-                    UpdatedAt = c.Operator.UpdatedAt,
-                    LastActivityAt = c.Operator.LastActivityAt
+                    UpdatedAt = c.Operator.UpdatedAt
                 } : null,
-                Messages = c.Messages.Select(m => new MessageDto
-                {
-                    Id = m.Id,
-                    ConversationId = m.ConversationId,
-                    Direction = m.Direction,
-                    Type = m.Type,
-                    Body = m.Body,
-                    MediaUrl = m.MediaUrl,
-                    FileName = m.FileName,
-                    ClientMessageId = m.ClientMessageId,
-                    WhatsAppMessageId = m.WhatsAppMessageId,
-                    Status = m.Status,
-                    InternalNote = m.InternalNote,
-                    CreatedAt = m.CreatedAt,
-                    UpdatedAt = m.UpdatedAt
-                }).ToList(),
-                UnreadCount = c.Messages.Count(m => m.Direction == MessageDirection.In && m.Status != MessageStatus.Read),
                 LastMessage = c.Messages.FirstOrDefault() != null ? new MessageDto
                 {
                     Id = c.Messages.First().Id,
@@ -373,49 +308,27 @@ namespace Pregiato.Application.Services
                     Type = c.Messages.First().Type,
                     Body = c.Messages.First().Body,
                     MediaUrl = c.Messages.First().MediaUrl,
-                    FileName = c.Messages.First().FileName,
-                    ClientMessageId = c.Messages.First().ClientMessageId,
-                    WhatsAppMessageId = c.Messages.First().WhatsAppMessageId,
-                    Status = c.Messages.First().Status,
-                    InternalNote = c.Messages.First().InternalNote,
-                    CreatedAt = c.Messages.First().CreatedAt,
-                    UpdatedAt = c.Messages.First().UpdatedAt
+                    CreatedAt = c.Messages.First().CreatedAt
                 } : null
             }).ToList();
         }
 
-        public async Task<ConversationDto?> GetConversationByIdAsync(Guid id)
+        public async Task<ConversationDto?> GetConversationByIdAsync(Guid conversationId)
         {
             var conversation = await _context.Conversations
                 .Include(c => c.Contact)
                 .Include(c => c.Operator)
-                .Include(c => c.Messages.OrderByDescending(m => m.CreatedAt).Take(50))
-                .FirstOrDefaultAsync(c => c.Id == id);
+                .Include(c => c.Messages.OrderByDescending(m => m.CreatedAt).Take(1))
+                .FirstOrDefaultAsync(c => c.Id == conversationId);
 
             if (conversation == null)
                 return null;
-
-            var unreadCount = conversation.Messages
-                .Count(m => m.Direction == MessageDirection.In && m.Status != MessageStatus.Read);
-
-            var lastMessage = conversation.Messages
-                .OrderByDescending(m => m.CreatedAt)
-                .FirstOrDefault();
 
             return new ConversationDto
             {
                 Id = conversation.Id,
                 ContactId = conversation.ContactId,
-                OperatorId = conversation.OperatorId,
-                Channel = conversation.Channel,
-                Status = conversation.Status,
-                Priority = conversation.Priority,
-                CloseReason = conversation.CloseReason,
-                CreatedAt = conversation.CreatedAt,
-                AssignedAt = conversation.AssignedAt,
-                ClosedAt = conversation.ClosedAt,
-                UpdatedAt = conversation.UpdatedAt,
-                Contact = conversation.Contact != null ? new ContactDto
+                Contact = new ContactDto
                 {
                     Id = conversation.Contact.Id,
                     Name = conversation.Contact.Name,
@@ -427,315 +340,41 @@ namespace Pregiato.Application.Services
                     IsActive = conversation.Contact.IsActive,
                     CreatedAt = conversation.Contact.CreatedAt,
                     UpdatedAt = conversation.Contact.UpdatedAt
-                } : null,
+                },
+                OperatorId = conversation.OperatorId,
                 Operator = conversation.Operator != null ? new OperatorDto
                 {
                     Id = conversation.Operator.Id,
-                    Name = conversation.Operator.Name,
+                    Name = $"{conversation.Operator.FirstName} {conversation.Operator.LastName}",
                     Email = conversation.Operator.Email,
-                    Role = OperatorRole.Agent, // Mapear do User para OperatorRole
-                    Status = OperatorStatus.Online, // Mapear do User para OperatorStatus
-                    Skills = conversation.Operator.Skills,
-                    MaxConcurrentConversations = conversation.Operator.MaxConcurrentConversations,
+                    Role = OperatorRole.Agent,
+                    Status = OperatorStatus.Online,
+                    MaxConcurrentConversations = 5,
                     CreatedAt = conversation.Operator.CreatedAt,
-                    UpdatedAt = conversation.Operator.UpdatedAt,
-                    LastActivityAt = conversation.Operator.LastActivityAt
+                    UpdatedAt = conversation.Operator.UpdatedAt
                 } : null,
-                Messages = conversation.Messages.Select(m => new MessageDto
+                Channel = conversation.Channel,
+                Status = conversation.Status,
+                Priority = conversation.Priority,
+                CloseReason = conversation.CloseReason,
+                CreatedAt = conversation.CreatedAt,
+                AssignedAt = conversation.AssignedAt,
+                ClosedAt = conversation.ClosedAt,
+                UpdatedAt = conversation.UpdatedAt,
+                LastMessage = conversation.Messages.FirstOrDefault() != null ? new MessageDto
                 {
-                    Id = m.Id,
-                    ConversationId = m.ConversationId,
-                    Direction = m.Direction,
-                    Type = m.Type,
-                    Body = m.Body,
-                    MediaUrl = m.MediaUrl,
-                    FileName = m.FileName,
-                    ClientMessageId = m.ClientMessageId,
-                    WhatsAppMessageId = m.WhatsAppMessageId,
-                    Status = m.Status,
-                    InternalNote = m.InternalNote,
-                    CreatedAt = m.CreatedAt,
-                    UpdatedAt = m.UpdatedAt
-                }).ToList(),
-                UnreadCount = unreadCount,
-                LastMessage = lastMessage != null ? new MessageDto
-                {
-                    Id = lastMessage.Id,
-                    ConversationId = lastMessage.ConversationId,
-                    Direction = lastMessage.Direction,
-                    Type = lastMessage.Type,
-                    Body = lastMessage.Body,
-                    MediaUrl = lastMessage.MediaUrl,
-                    FileName = lastMessage.FileName,
-                    ClientMessageId = lastMessage.ClientMessageId,
-                    WhatsAppMessageId = lastMessage.WhatsAppMessageId,
-                    Status = lastMessage.Status,
-                    InternalNote = lastMessage.InternalNote,
-                    CreatedAt = lastMessage.CreatedAt,
-                    UpdatedAt = lastMessage.UpdatedAt
+                    Id = conversation.Messages.First().Id,
+                    ConversationId = conversation.Messages.First().ConversationId,
+                    Direction = conversation.Messages.First().Direction,
+                    Type = conversation.Messages.First().Type,
+                    Body = conversation.Messages.First().Body,
+                    MediaUrl = conversation.Messages.First().MediaUrl,
+                    CreatedAt = conversation.Messages.First().CreatedAt
                 } : null
             };
         }
 
-        public async Task<List<ConversationDto>> GetAllConversationsAsync()
-        {
-            var conversations = await _context.Conversations
-                .Include(c => c.Contact)
-                .Include(c => c.Operator)
-                .Include(c => c.Messages.OrderByDescending(m => m.CreatedAt).Take(1))
-                .OrderByDescending(c => c.UpdatedAt)
-                .ToListAsync();
-
-            return conversations.Select(c => new ConversationDto
-            {
-                Id = c.Id,
-                ContactId = c.ContactId,
-                OperatorId = c.OperatorId,
-                Channel = c.Channel,
-                Status = c.Status,
-                Priority = c.Priority,
-                CloseReason = c.CloseReason,
-                CreatedAt = c.CreatedAt,
-                AssignedAt = c.AssignedAt,
-                ClosedAt = c.ClosedAt,
-                UpdatedAt = c.UpdatedAt,
-                Contact = c.Contact != null ? new ContactDto
-                {
-                    Id = c.Contact.Id,
-                    Name = c.Contact.Name,
-                    Phone = c.Contact.Phone,
-                    Email = c.Contact.Email,
-                    OriginCRM = c.Contact.OriginCRM,
-                    Tags = c.Contact.Tags,
-                    BusinessName = c.Contact.BusinessName,
-                    IsActive = c.Contact.IsActive,
-                    CreatedAt = c.Contact.CreatedAt,
-                    UpdatedAt = c.Contact.UpdatedAt
-                } : null,
-                Operator = c.Operator != null ? new OperatorDto
-                {
-                    Id = c.Operator.Id,
-                    Name = c.Operator.Name,
-                    Email = c.Operator.Email,
-                    Role = OperatorRole.Agent,
-                    Status = OperatorStatus.Online,
-                    Skills = c.Operator.Skills,
-                    MaxConcurrentConversations = c.Operator.MaxConcurrentConversations,
-                    CreatedAt = c.Operator.CreatedAt,
-                    UpdatedAt = c.Operator.UpdatedAt,
-                    LastActivityAt = c.Operator.LastActivityAt
-                } : null,
-                Messages = c.Messages.Select(m => new MessageDto
-                {
-                    Id = m.Id,
-                    ConversationId = m.ConversationId,
-                    Direction = m.Direction,
-                    Type = m.Type,
-                    Body = m.Body,
-                    MediaUrl = m.MediaUrl,
-                    FileName = m.FileName,
-                    ClientMessageId = m.ClientMessageId,
-                    WhatsAppMessageId = m.WhatsAppMessageId,
-                    Status = m.Status,
-                    InternalNote = m.InternalNote,
-                    CreatedAt = m.CreatedAt,
-                    UpdatedAt = m.UpdatedAt
-                }).ToList(),
-                UnreadCount = c.Messages.Count(m => m.Direction == MessageDirection.In && m.Status != MessageStatus.Read),
-                LastMessage = c.Messages.FirstOrDefault() != null ? new MessageDto
-                {
-                    Id = c.Messages.First().Id,
-                    ConversationId = c.Messages.First().ConversationId,
-                    Direction = c.Messages.First().Direction,
-                    Type = c.Messages.First().Type,
-                    Body = c.Messages.First().Body,
-                    MediaUrl = c.Messages.First().MediaUrl,
-                    FileName = c.Messages.First().FileName,
-                    ClientMessageId = c.Messages.First().ClientMessageId,
-                    WhatsAppMessageId = c.Messages.First().WhatsAppMessageId,
-                    Status = c.Messages.First().Status,
-                    InternalNote = c.Messages.First().InternalNote,
-                    CreatedAt = c.Messages.First().CreatedAt,
-                    UpdatedAt = c.Messages.First().UpdatedAt
-                } : null
-            }).ToList();
-        }
-
-        public async Task<List<ConversationDto>> GetConversationsByStatusAsync(ConversationStatus status)
-        {
-            var conversations = await _context.Conversations
-                .Include(c => c.Contact)
-                .Include(c => c.Operator)
-                .Include(c => c.Messages.OrderByDescending(m => m.CreatedAt).Take(1))
-                .Where(c => c.Status == status)
-                .OrderByDescending(c => c.UpdatedAt)
-                .ToListAsync();
-
-            return conversations.Select(c => new ConversationDto
-            {
-                Id = c.Id,
-                ContactId = c.ContactId,
-                OperatorId = c.OperatorId,
-                Channel = c.Channel,
-                Status = c.Status,
-                Priority = c.Priority,
-                CloseReason = c.CloseReason,
-                CreatedAt = c.CreatedAt,
-                AssignedAt = c.AssignedAt,
-                ClosedAt = c.ClosedAt,
-                UpdatedAt = c.UpdatedAt,
-                Contact = c.Contact != null ? new ContactDto
-                {
-                    Id = c.Contact.Id,
-                    Name = c.Contact.Name,
-                    Phone = c.Contact.Phone,
-                    Email = c.Contact.Email,
-                    OriginCRM = c.Contact.OriginCRM,
-                    Tags = c.Contact.Tags,
-                    BusinessName = c.Contact.BusinessName,
-                    IsActive = c.Contact.IsActive,
-                    CreatedAt = c.Contact.CreatedAt,
-                    UpdatedAt = c.Contact.UpdatedAt
-                } : null,
-                Operator = c.Operator != null ? new OperatorDto
-                {
-                    Id = c.Operator.Id,
-                    Name = c.Operator.Name,
-                    Email = c.Operator.Email,
-                    Role = OperatorRole.Agent,
-                    Status = OperatorStatus.Online,
-                    Skills = c.Operator.Skills,
-                    MaxConcurrentConversations = c.Operator.MaxConcurrentConversations,
-                    CreatedAt = c.Operator.CreatedAt,
-                    UpdatedAt = c.Operator.UpdatedAt,
-                    LastActivityAt = c.Operator.LastActivityAt
-                } : null,
-                Messages = c.Messages.Select(m => new MessageDto
-                {
-                    Id = m.Id,
-                    ConversationId = m.ConversationId,
-                    Direction = m.Direction,
-                    Type = m.Type,
-                    Body = m.Body,
-                    MediaUrl = m.MediaUrl,
-                    FileName = m.FileName,
-                    ClientMessageId = m.ClientMessageId,
-                    WhatsAppMessageId = m.WhatsAppMessageId,
-                    Status = m.Status,
-                    InternalNote = m.InternalNote,
-                    CreatedAt = m.CreatedAt,
-                    UpdatedAt = m.UpdatedAt
-                }).ToList(),
-                UnreadCount = c.Messages.Count(m => m.Direction == MessageDirection.In && m.Status != MessageStatus.Read),
-                LastMessage = c.Messages.FirstOrDefault() != null ? new MessageDto
-                {
-                    Id = c.Messages.First().Id,
-                    ConversationId = c.Messages.First().ConversationId,
-                    Direction = c.Messages.First().Direction,
-                    Type = c.Messages.First().Type,
-                    Body = c.Messages.First().Body,
-                    MediaUrl = c.Messages.First().MediaUrl,
-                    FileName = c.Messages.First().FileName,
-                    ClientMessageId = c.Messages.First().ClientMessageId,
-                    WhatsAppMessageId = c.Messages.First().WhatsAppMessageId,
-                    Status = c.Messages.First().Status,
-                    InternalNote = c.Messages.First().InternalNote,
-                    CreatedAt = c.Messages.First().CreatedAt,
-                    UpdatedAt = c.Messages.First().UpdatedAt
-                } : null
-            }).ToList();
-        }
-
-        private async SystemTask ProcessIncomingMessageAsync(Conversation conversation, Message message)
-        {
-            // Se a conversa não tem operador, colocar na fila
-            if (conversation.OperatorId == null)
-            {
-                conversation.Status = ConversationStatus.Queued;
-                conversation.UpdatedAt = DateTime.UtcNow;
-                await _context.SaveChangesAsync();
-
-                _logger.LogInformation($"📋 Conversa {conversation.Id} colocada na fila");
-            }
-        }
-
-        private async SystemTask SendMessageToWhatsAppAsync(Message message)
-        {
-            try
-            {
-                var conversation = await _context.Conversations
-                    .Include(c => c.Contact)
-                    .FirstOrDefaultAsync(c => c.Id == message.ConversationId);
-
-                if (conversation == null)
-                    throw new ArgumentException("Conversa não encontrada");
-
-                var sendMessageDto = new SendMessageDto
-                {
-                    To = conversation.Contact.Phone,
-                    Content = message.Body,
-                    Type = message.Type.ToString().ToLower(),
-                    MediaUrl = message.MediaUrl,
-                    FileName = message.FileName,
-                    ClientMessageId = message.ClientMessageId ?? Guid.NewGuid().ToString()
-                };
-
-                var httpClient = _httpClientFactory.CreateClient();
-                var gatewayUrl = _configuration["WhatsAppGateway:Url"] ?? "http://localhost:3001";
-                
-                var json = JsonSerializer.Serialize(sendMessageDto);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-                var response = await httpClient.PostAsync($"{gatewayUrl}/messages/send", content);
-                
-                if (response.IsSuccessStatusCode)
-                {
-                    message.Status = MessageStatus.Sent;
-                    message.UpdatedAt = DateTime.UtcNow;
-                    await _context.SaveChangesAsync();
-
-                    _logger.LogInformation($"📤 Mensagem enviada via WhatsApp: {message.Id}");
-                }
-                else
-                {
-                    message.Status = MessageStatus.Failed;
-                    message.UpdatedAt = DateTime.UtcNow;
-                    await _context.SaveChangesAsync();
-
-                    _logger.LogError($"❌ Falha ao enviar mensagem via WhatsApp: {message.Id}");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"❌ Erro ao enviar mensagem via WhatsApp: {message.Id}");
-                message.Status = MessageStatus.Failed;
-                message.UpdatedAt = DateTime.UtcNow;
-                await _context.SaveChangesAsync();
-            }
-        }
-
-        public async Task<ContactDto> GetContactByIdAsync(Guid id)
-        {
-            var contact = await _context.Contacts.FindAsync(id);
-            
-            if (contact == null)
-                return null!;
-
-            return new ContactDto
-            {
-                Id = contact.Id,
-                Name = contact.Name,
-                Phone = contact.Phone,
-                Email = contact.Email,
-                OriginCRM = contact.OriginCRM,
-                Tags = contact.Tags,
-                BusinessName = contact.BusinessName,
-                IsActive = contact.IsActive,
-                CreatedAt = contact.CreatedAt,
-                UpdatedAt = contact.UpdatedAt
-            };
-        }
-
-        public async Task<ConversationDto?> AssignConversationAsync(Guid conversationId, Guid operatorId)
+        public async Task<ConversationDto?> AssignConversationAsync(Guid conversationId, string operatorId)
         {
             var conversation = await _context.Conversations
                 .Include(c => c.Contact)
@@ -779,7 +418,7 @@ namespace Pregiato.Application.Services
                 Operator = conversation.Operator != null ? new OperatorDto
                 {
                     Id = conversation.Operator.Id,
-                    Name = conversation.Operator.Name,
+                    Name = $"{conversation.Operator.FirstName} {conversation.Operator.LastName}",
                     Email = conversation.Operator.Email,
                     Role = OperatorRole.Agent,
                     Status = OperatorStatus.Online,
@@ -844,7 +483,7 @@ namespace Pregiato.Application.Services
                 Operator = conversation.Operator != null ? new OperatorDto
                 {
                     Id = conversation.Operator.Id,
-                    Name = conversation.Operator.Name,
+                    Name = $"{conversation.Operator.FirstName} {conversation.Operator.LastName}",
                     Email = conversation.Operator.Email,
                     Role = OperatorRole.Agent,
                     Status = OperatorStatus.Online,
@@ -868,7 +507,7 @@ namespace Pregiato.Application.Services
             };
         }
 
-        public async SystemTask ProcessIncomingMessageAsync(WhatsAppMessageDto message)
+        public async System.Threading.Tasks.Task ProcessIncomingMessageAsync(WhatsAppMessageDto message)
         {
             try
             {

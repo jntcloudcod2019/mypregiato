@@ -11,15 +11,15 @@ using Pregiato.Infrastructure.Data;
 namespace Pregiato.Infrastructure.Migrations
 {
     [DbContext(typeof(PregiatoDbContext))]
-    [Migration("20250815065858_AddNewColumnsToChatsLog")]
-    partial class AddNewColumnsToChatsLog
+    [Migration("20250821191114_InitialDatabaseSetup")]
+    partial class InitialDatabaseSetup
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.6")
+                .HasAnnotation("ProductVersion", "8.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             modelBuilder.Entity("Pregiato.Core.Entities.AttendanceTicket", b =>
@@ -345,30 +345,30 @@ namespace Pregiato.Infrastructure.Migrations
 
             modelBuilder.Entity("Pregiato.Core.Entities.Contract", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<Guid>("ContractId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
-                    b.Property<string>("CompanyAddress")
-                        .HasColumnType("longtext");
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
 
-                    b.Property<string>("CompanyDocument")
-                        .HasColumnType("longtext");
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
 
-                    b.Property<string>("CompanyEmail")
-                        .HasColumnType("longtext");
+                    b.Property<string>("CodProducers")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
 
-                    b.Property<string>("CompanyName")
-                        .HasColumnType("longtext");
+                    b.Property<byte[]>("Content")
+                        .IsRequired()
+                        .HasColumnType("LONGBLOB");
 
-                    b.Property<string>("CompanyPhone")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Conditions")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("ContractNumber")
-                        .HasColumnType("longtext");
+                    b.Property<string>("ContractFilePath")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
 
                     b.Property<string>("ContractType")
                         .IsRequired()
@@ -377,72 +377,71 @@ namespace Pregiato.Infrastructure.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                        .HasColumnType("datetime(3)")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP(3)");
 
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("longtext");
+                    b.Property<string>("Day")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("varchar(2)");
 
-                    b.Property<DateTime?>("EndDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<Guid?>("LeadId")
-                        .HasColumnType("char(36)");
-
-                    b.Property<string>("PaymentTerms")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("PdfPath")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Services")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("SignedPdfPath")
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime?>("StartDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("Status")
+                    b.Property<string>("DurationContract")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
 
-                    b.Property<string>("TalentAddress")
-                        .HasColumnType("longtext");
+                    b.Property<Guid?>("LeadId")
+                        .HasColumnType("char(36)");
 
-                    b.Property<string>("TalentDocument")
-                        .HasColumnType("longtext");
+                    b.Property<string>("Month")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("varchar(2)");
 
-                    b.Property<string>("TalentEmail")
-                        .HasColumnType("longtext");
+                    b.Property<string>("PaymentMethod")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("PaymentStatus")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("StatusContratc")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasDefaultValue("Active");
 
                     b.Property<Guid?>("TalentId")
+                        .IsRequired()
                         .HasColumnType("char(36)");
 
                     b.Property<string>("TalentName")
-                        .HasColumnType("longtext");
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
 
-                    b.Property<string>("TalentPhone")
-                        .HasColumnType("longtext");
+                    b.Property<string>("Uf")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("varchar(2)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+                        .HasColumnType("datetime(3)")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP(3)");
 
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("longtext");
+                    b.Property<string>("Year")
+                        .IsRequired()
+                        .HasMaxLength(4)
+                        .HasColumnType("varchar(4)");
 
-                    b.Property<decimal?>("Value")
-                        .HasColumnType("decimal(65,30)");
-
-                    b.HasKey("Id");
+                    b.HasKey("ContractId");
 
                     b.HasIndex("LeadId");
-
-                    b.HasIndex("TalentId");
 
                     b.ToTable("Contracts");
                 });
@@ -490,7 +489,7 @@ namespace Pregiato.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ContractTemplates");
+                    b.ToTable("ContractTemplate");
                 });
 
             modelBuilder.Entity("Pregiato.Core.Entities.Conversation", b =>
@@ -500,48 +499,48 @@ namespace Pregiato.Infrastructure.Migrations
                         .HasColumnType("char(36)");
 
                     b.Property<DateTime?>("AssignedAt")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("datetime(3)");
 
                     b.Property<string>("Channel")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)");
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<string>("CloseReason")
                         .HasMaxLength(500)
                         .HasColumnType("varchar(500)");
 
                     b.Property<DateTime?>("ClosedAt")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("datetime(3)");
 
                     b.Property<Guid>("ContactId")
                         .HasColumnType("char(36)");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                        .HasColumnType("datetime(3)")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP(3)");
 
-                    b.Property<Guid?>("OperatorId")
-                        .HasColumnType("char(36)");
+                    b.Property<string>("OperatorId")
+                        .HasMaxLength(191)
+                        .HasColumnType("varchar(191)");
 
-                    b.Property<Guid?>("OperatorId1")
-                        .HasColumnType("char(36)");
-
-                    b.Property<int>("Priority")
-                        .HasColumnType("int");
+                    b.Property<string>("Priority")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<byte[]>("RowVersion")
                         .IsRequired()
                         .HasColumnType("longblob");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+                        .HasColumnType("datetime(3)")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP(3)");
 
                     b.HasKey("Id");
 
@@ -549,9 +548,7 @@ namespace Pregiato.Infrastructure.Migrations
 
                     b.HasIndex("OperatorId");
 
-                    b.HasIndex("OperatorId1");
-
-                    b.ToTable("Conversations");
+                    b.ToTable("Conversations", (string)null);
                 });
 
             modelBuilder.Entity("Pregiato.Core.Entities.CrmTask", b =>
@@ -1104,52 +1101,56 @@ namespace Pregiato.Infrastructure.Migrations
 
             modelBuilder.Entity("Pregiato.Core.Entities.Operator", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
+                    b.Property<string>("Id")
+                        .HasMaxLength(191)
+                        .HasColumnType("varchar(191)");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                        .HasColumnType("datetime(3)")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP(3)");
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
 
                     b.Property<DateTime?>("LastActivityAt")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("datetime(3)");
 
                     b.Property<int>("MaxConcurrentConversations")
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(5);
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
 
-                    b.Property<int>("Role")
-                        .HasColumnType("int");
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Skills")
                         .HasMaxLength(500)
-                        .HasColumnType("varchar(500)");
+                        .HasColumnType("text");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+                        .HasColumnType("datetime(3)")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP(3)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Operators");
+                    b.ToTable("Operators", (string)null);
                 });
 
             modelBuilder.Entity("Pregiato.Core.Entities.QueueEvent", b =>
@@ -1163,14 +1164,16 @@ namespace Pregiato.Infrastructure.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                        .HasColumnType("datetime(3)")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP(3)");
 
-                    b.Property<int>("EventType")
-                        .HasColumnType("int");
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
-                    b.Property<Guid?>("OperatorId")
-                        .HasColumnType("char(36)");
+                    b.Property<string>("OperatorId")
+                        .HasMaxLength(191)
+                        .HasColumnType("varchar(191)");
 
                     b.Property<string>("Reason")
                         .HasMaxLength(500)
@@ -1180,18 +1183,11 @@ namespace Pregiato.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
 
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("char(36)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("ConversationId");
 
-                    b.HasIndex("OperatorId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("QueueEvents");
+                    b.ToTable("QueueEvents", (string)null);
                 });
 
             modelBuilder.Entity("Pregiato.Core.Entities.Talent", b =>
@@ -1200,24 +1196,23 @@ namespace Pregiato.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
-                    b.Property<string>("Address")
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)");
-
                     b.Property<int>("Age")
                         .HasColumnType("int");
 
-                    b.Property<string>("Availability")
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)");
-
-                    b.Property<string>("Bust")
-                        .HasMaxLength(10)
-                        .HasColumnType("varchar(10)");
+                    b.Property<DateTime?>("BirthDate")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("City")
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
+
+                    b.Property<string>("ClerkInviteId")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("Complement")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -1225,199 +1220,274 @@ namespace Pregiato.Infrastructure.Migrations
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("DnaStatus")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasDefaultValue("UNDEFINED");
 
                     b.Property<string>("Document")
                         .HasMaxLength(20)
                         .HasColumnType("varchar(20)");
 
                     b.Property<string>("Email")
-                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("varchar(255)");
-
-                    b.Property<string>("Ethnicity")
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
-
-                    b.Property<string>("Experience")
-                        .HasMaxLength(1000)
-                        .HasColumnType("varchar(1000)");
-
-                    b.Property<string>("EyeColor")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
 
                     b.Property<string>("FullName")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("varchar(255)");
 
-                    b.Property<string>("HairColor")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<string>("Height")
-                        .HasMaxLength(10)
-                        .HasColumnType("varchar(10)");
-
-                    b.Property<string>("Hip")
-                        .HasMaxLength(10)
-                        .HasColumnType("varchar(10)");
-
-                    b.Property<string>("Instagram")
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
+                    b.Property<string>("Gender")
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
 
                     b.Property<bool>("InviteSent")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<string>("Languages")
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)");
+                    b.Property<DateTime?>("InviteSentAt")
+                        .HasColumnType("datetime");
 
-                    b.Property<string>("Nationality")
+                    b.Property<string>("InviteToken")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("Neighborhood")
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
 
-                    b.Property<string>("Notes")
-                        .HasMaxLength(2000)
-                        .HasColumnType("varchar(2000)");
-
-                    b.Property<string>("OtherSocialMedia")
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)");
+                    b.Property<string>("NumberAddress")
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
 
                     b.Property<string>("Phone")
                         .HasMaxLength(20)
                         .HasColumnType("varchar(20)");
 
-                    b.Property<string>("Rate")
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
+                    b.Property<string>("Postalcode")
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)");
 
-                    b.Property<string>("ShoeSize")
-                        .HasMaxLength(5)
-                        .HasColumnType("varchar(5)");
-
-                    b.Property<string>("Skills")
-                        .HasMaxLength(1000)
-                        .HasColumnType("varchar(1000)");
-
-                    b.Property<string>("SkinTone")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<string>("State")
+                    b.Property<string>("ProducerId")
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
 
                     b.Property<bool>("Status")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<string>("TikTok")
+                    b.Property<string>("Street")
                         .HasMaxLength(255)
                         .HasColumnType("varchar(255)");
 
-                    b.Property<string>("TravelAvailability")
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)");
+                    b.Property<string>("Uf")
+                        .HasMaxLength(2)
+                        .HasColumnType("varchar(2)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
 
-                    b.Property<string>("Waist")
-                        .HasMaxLength(10)
-                        .HasColumnType("varchar(10)");
-
-                    b.Property<string>("Weight")
-                        .HasMaxLength(10)
-                        .HasColumnType("varchar(10)");
-
-                    b.Property<string>("YouTube")
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<string>("ZipCode")
-                        .HasMaxLength(10)
-                        .HasColumnType("varchar(10)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("Document")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("\"Document\" IS NOT NULL");
 
                     b.HasIndex("Email")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("\"Email\" IS NOT NULL");
 
-                    b.ToTable("Talents");
+                    b.ToTable("Talent");
                 });
 
-            modelBuilder.Entity("Pregiato.Core.Entities.User", b =>
+            modelBuilder.Entity("Pregiato.Core.Entities.TalentDNA", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
+
+                    b.Property<string>("Accent")
+                        .HasMaxLength(191)
+                        .HasColumnType("varchar(191)");
+
+                    b.Property<string>("BodyType")
+                        .HasMaxLength(191)
+                        .HasColumnType("varchar(191)");
+
+                    b.Property<string>("ChestSize")
+                        .HasMaxLength(191)
+                        .HasColumnType("varchar(191)");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
+                    b.Property<string>("DressSize")
+                        .HasMaxLength(191)
+                        .HasColumnType("varchar(191)");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("tinyint(1)");
+                    b.Property<string>("EthnicFeatures")
+                        .HasMaxLength(191)
+                        .HasColumnType("varchar(191)");
 
-                    b.Property<bool>("IsOperator")
-                        .HasColumnType("tinyint(1)");
+                    b.Property<string>("EyeColor")
+                        .HasMaxLength(191)
+                        .HasColumnType("varchar(191)");
 
-                    b.Property<DateTime?>("LastActivityAt")
-                        .HasColumnType("datetime(6)");
+                    b.Property<string>("FaceShape")
+                        .HasMaxLength(191)
+                        .HasColumnType("varchar(191)");
 
-                    b.Property<DateTime?>("LastLoginAt")
-                        .HasColumnType("datetime(6)");
+                    b.Property<string>("HairColor")
+                        .HasMaxLength(191)
+                        .HasColumnType("varchar(191)");
 
-                    b.Property<int>("MaxConcurrentConversations")
-                        .HasColumnType("int");
+                    b.Property<string>("HairLength")
+                        .HasMaxLength(191)
+                        .HasColumnType("varchar(191)");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
+                    b.Property<string>("HairType")
+                        .HasMaxLength(191)
+                        .HasColumnType("varchar(191)");
 
-                    b.Property<string>("OperatorStatus")
-                        .HasColumnType("longtext");
+                    b.Property<string>("Height")
+                        .HasMaxLength(191)
+                        .HasColumnType("varchar(191)");
 
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
+                    b.Property<string>("HipSize")
+                        .HasMaxLength(191)
+                        .HasColumnType("varchar(191)");
 
-                    b.Property<string>("Role")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
+                    b.Property<string>("IntellectualDisability")
+                        .HasMaxLength(191)
+                        .HasColumnType("varchar(191)");
 
-                    b.Property<string>("Skills")
-                        .HasColumnType("longtext");
+                    b.Property<string>("JacketSize")
+                        .HasMaxLength(191)
+                        .HasColumnType("varchar(191)");
+
+                    b.Property<string>("Languages")
+                        .HasMaxLength(191)
+                        .HasColumnType("varchar(191)");
+
+                    b.Property<string>("PantsSize")
+                        .HasMaxLength(191)
+                        .HasColumnType("varchar(191)");
+
+                    b.Property<string>("PhysicalDisability")
+                        .HasMaxLength(191)
+                        .HasColumnType("varchar(191)");
+
+                    b.Property<string>("Religion")
+                        .HasMaxLength(191)
+                        .HasColumnType("varchar(191)");
+
+                    b.Property<string>("ShirtSize")
+                        .HasMaxLength(191)
+                        .HasColumnType("varchar(191)");
+
+                    b.Property<string>("ShoeSize")
+                        .HasMaxLength(191)
+                        .HasColumnType("varchar(191)");
+
+                    b.Property<string>("SkinTone")
+                        .HasMaxLength(191)
+                        .HasColumnType("varchar(191)");
+
+                    b.Property<string>("SpecialFeatures")
+                        .HasMaxLength(191)
+                        .HasColumnType("varchar(191)");
+
+                    b.Property<Guid>("TalentId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<bool>("TravelAvailability")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(false);
 
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
 
+                    b.Property<string>("VisualDisability")
+                        .HasMaxLength(191)
+                        .HasColumnType("varchar(191)");
+
+                    b.Property<string>("WaistSize")
+                        .HasMaxLength(191)
+                        .HasColumnType("varchar(191)");
+
+                    b.Property<string>("Weight")
+                        .HasMaxLength(191)
+                        .HasColumnType("varchar(191)");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("TalentId")
+                        .IsUnique();
+
+                    b.ToTable("TalentDNA");
+                });
+
+            modelBuilder.Entity("Pregiato.Core.Entities.User", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(191)
+                        .HasColumnType("varchar(191)");
+
+                    b.Property<string>("ClerkId")
+                        .IsRequired()
+                        .HasMaxLength(191)
+                        .HasColumnType("varchar(191)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(3)")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP(3)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(191)
+                        .HasColumnType("varchar(191)");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(191)
+                        .HasColumnType("varchar(191)");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(191)
+                        .HasColumnType("varchar(191)");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(191)
+                        .HasColumnType("varchar(191)");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(3)")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP(3)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClerkId")
+                        .IsUnique();
 
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("Pregiato.Core.Entities.AttendanceTicket", b =>
@@ -1433,15 +1503,12 @@ namespace Pregiato.Infrastructure.Migrations
 
             modelBuilder.Entity("Pregiato.Core.Entities.Contract", b =>
                 {
-                    b.HasOne("Pregiato.Core.Entities.Lead", null)
+                    b.HasOne("Pregiato.Core.Entities.Lead", "Lead")
                         .WithMany("Contracts")
-                        .HasForeignKey("LeadId");
+                        .HasForeignKey("LeadId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("Pregiato.Core.Entities.Talent", "Talent")
-                        .WithMany()
-                        .HasForeignKey("TalentId");
-
-                    b.Navigation("Talent");
+                    b.Navigation("Lead");
                 });
 
             modelBuilder.Entity("Pregiato.Core.Entities.Conversation", b =>
@@ -1453,13 +1520,8 @@ namespace Pregiato.Infrastructure.Migrations
                         .IsRequired();
 
                     b.HasOne("Pregiato.Core.Entities.User", "Operator")
-                        .WithMany("AssignedConversations")
-                        .HasForeignKey("OperatorId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("Pregiato.Core.Entities.Operator", null)
-                        .WithMany("AssignedConversations")
-                        .HasForeignKey("OperatorId1");
+                        .WithMany()
+                        .HasForeignKey("OperatorId");
 
                     b.Navigation("Contact");
 
@@ -1528,18 +1590,18 @@ namespace Pregiato.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Pregiato.Core.Entities.Operator", "Operator")
-                        .WithMany("QueueEvents")
-                        .HasForeignKey("OperatorId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("Pregiato.Core.Entities.User", null)
-                        .WithMany("QueueEvents")
-                        .HasForeignKey("UserId");
-
                     b.Navigation("Conversation");
+                });
 
-                    b.Navigation("Operator");
+            modelBuilder.Entity("Pregiato.Core.Entities.TalentDNA", b =>
+                {
+                    b.HasOne("Pregiato.Core.Entities.Talent", "Talent")
+                        .WithOne("Dna")
+                        .HasForeignKey("Pregiato.Core.Entities.TalentDNA", "TalentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Talent");
                 });
 
             modelBuilder.Entity("Pregiato.Core.Entities.Campaign", b =>
@@ -1568,18 +1630,9 @@ namespace Pregiato.Infrastructure.Migrations
                     b.Navigation("Tasks");
                 });
 
-            modelBuilder.Entity("Pregiato.Core.Entities.Operator", b =>
+            modelBuilder.Entity("Pregiato.Core.Entities.Talent", b =>
                 {
-                    b.Navigation("AssignedConversations");
-
-                    b.Navigation("QueueEvents");
-                });
-
-            modelBuilder.Entity("Pregiato.Core.Entities.User", b =>
-                {
-                    b.Navigation("AssignedConversations");
-
-                    b.Navigation("QueueEvents");
+                    b.Navigation("Dna");
                 });
 #pragma warning restore 612, 618
         }

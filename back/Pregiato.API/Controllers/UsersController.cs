@@ -12,7 +12,7 @@ namespace Pregiato.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [ClerkAuthorize] // Requer autenticação para todos os endpoints
+   // [ClerkAuthorize]
     public class UsersController : ControllerBase
     {
         private readonly PregiatoDbContext _context;
@@ -39,11 +39,15 @@ namespace Pregiato.API.Controllers
 
                 var userDto = new UserDto
                 {
-                    Id = user.Id.ToString(),
+                    Id = user.Id,
+                    ClerkId = user.ClerkId,
                     Email = user.Email,
-                    Name = user.Name,
-                    Role = user.Role ?? "USER",
-                    IsActive = user.IsActive
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    ImageUrl = user.ImageUrl,
+                    Role = user.Role,
+                    CreatedAt = user.CreatedAt,
+                    UpdatedAt = user.UpdatedAt
                 };
 
                 return Ok(userDto);
@@ -59,10 +63,8 @@ namespace Pregiato.API.Controllers
         {
             try
             {
-                // Por enquanto, vamos simular a busca por Clerk ID
-                // Em uma implementação real, você teria uma tabela de mapeamento
                 var user = await _context.Users
-                    .FirstOrDefaultAsync(u => u.Email.Contains("@") && u.IsActive);
+                    .FirstOrDefaultAsync(u => u.ClerkId == clerkId);
 
                 if (user == null)
                 {
@@ -71,11 +73,15 @@ namespace Pregiato.API.Controllers
 
                 var userDto = new UserDto
                 {
-                    Id = user.Id.ToString(),
+                    Id = user.Id,
+                    ClerkId = user.ClerkId,
                     Email = user.Email,
-                    Name = user.Name,
-                    Role = user.Role ?? "USER",
-                    IsActive = user.IsActive
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    ImageUrl = user.ImageUrl,
+                    Role = user.Role,
+                    CreatedAt = user.CreatedAt,
+                    UpdatedAt = user.UpdatedAt
                 };
 
                 return Ok(userDto);
@@ -129,13 +135,20 @@ namespace Pregiato.API.Controllers
                 if (user == null)
                 {
                     // Se o usuário não existe no banco, criar um novo
+                    var nameParts = currentUserName?.Split(' ') ?? new[] { "Usuário" };
+                    var firstName = nameParts[0];
+                    var lastName = nameParts.Length > 1 ? string.Join(" ", nameParts.Skip(1)) : "";
+
                     user = new User
                     {
+                        Id = Guid.NewGuid().ToString(),
+                        ClerkId = currentUserId ?? Guid.NewGuid().ToString(),
                         Email = currentUserEmail,
-                        Name = currentUserName ?? "Usuário",
-                        Role = "USER",
-                        IsActive = true,
-                        CreatedAt = DateTime.UtcNow
+                        FirstName = firstName,
+                        LastName = lastName,
+                        Role = "USER", // Valor padrão para novos usuários
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
                     };
 
                     _context.Users.Add(user);
@@ -144,14 +157,48 @@ namespace Pregiato.API.Controllers
 
                 var userDto = new UserDto
                 {
-                    Id = user.Id.ToString(),
+                    Id = user.Id,
+                    ClerkId = user.ClerkId,
                     Email = user.Email,
-                    Name = user.Name,
-                    Role = user.Role ?? "USER",
-                    IsActive = user.IsActive
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    ImageUrl = user.ImageUrl,
+                    Role = user.Role,
+                    CreatedAt = user.CreatedAt,
+                    UpdatedAt = user.UpdatedAt
                 };
 
                 return Ok(userDto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Erro interno do servidor: {ex.Message}");
+            }
+        }
+
+        [HttpGet("producers")]
+        public async Task<ActionResult<List<UserDto>>> GetProducers()
+        {
+            try
+            {
+                var producers = await _context.Users
+                    .Where(u => u.Role == "PRODUCER")
+                    .OrderBy(u => u.FirstName)
+                    .ThenBy(u => u.LastName)
+                    .Select(u => new UserDto
+                    {
+                        Id = u.Id,
+                        ClerkId = u.ClerkId,
+                        Email = u.Email,
+                        FirstName = u.FirstName,
+                        LastName = u.LastName,
+                        Role = u.Role,
+                        CreatedAt = u.CreatedAt,
+                        UpdatedAt = u.UpdatedAt
+                    })
+                    .ToListAsync();
+
+                return Ok(producers);
             }
             catch (Exception ex)
             {

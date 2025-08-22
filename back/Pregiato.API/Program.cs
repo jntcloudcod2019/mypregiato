@@ -53,7 +53,7 @@ var conn = builder.Configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrWhiteSpace(conn))
 {
     builder.Services.AddDbContext<PregiatoDbContext>(options => options.UseInMemoryDatabase("Pregiato"));
-    builder.Services.AddSingleton<RuntimePregiatoDbContextFactory>(provider => 
+    builder.Services.AddScoped<RuntimePregiatoDbContextFactory>(provider => 
         new RuntimePregiatoDbContextFactory(provider.GetRequiredService<DbContextOptions<PregiatoDbContext>>()));
 }
 else
@@ -68,7 +68,7 @@ else
                 errorNumbersToAdd: null)
         ));
     
-    builder.Services.AddSingleton<RuntimePregiatoDbContextFactory>(provider => 
+    builder.Services.AddScoped<RuntimePregiatoDbContextFactory>(provider => 
         new RuntimePregiatoDbContextFactory(provider.GetRequiredService<DbContextOptions<PregiatoDbContext>>()));
 }
 
@@ -84,7 +84,6 @@ builder.Services.AddScoped<IValidator<UpdateTalentDto>, UpdateTalentDtoValidator
 
 // Services
 builder.Services.AddScoped<ITalentService, TalentService>();
-builder.Services.AddScoped<IContractService, ContractService>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IWhatsAppService, WhatsAppService>();
 builder.Services.AddScoped<ILeadService, LeadService>();

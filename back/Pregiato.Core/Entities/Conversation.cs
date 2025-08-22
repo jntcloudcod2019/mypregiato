@@ -24,7 +24,7 @@ namespace Pregiato.Core.Entities
         [Required]
         public Guid ContactId { get; set; }
         
-        public Guid? OperatorId { get; set; }
+        public string? OperatorId { get; set; } // Será o ID do User que é um Operator
         
         [Required]
         [StringLength(20)]
@@ -51,7 +51,7 @@ namespace Pregiato.Core.Entities
         
         // Relacionamentos
         public virtual Contact Contact { get; set; } = null!;
-        public virtual User? Operator { get; set; }
+        public virtual User? Operator { get; set; } // User com role "OPERATOR"
         public virtual ICollection<Message> Messages { get; set; } = new List<Message>();
         public virtual ICollection<QueueEvent> QueueEvents { get; set; } = new List<QueueEvent>();
     }

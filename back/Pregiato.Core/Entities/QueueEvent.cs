@@ -19,7 +19,7 @@ namespace Pregiato.Core.Entities
         [Required]
         public Guid ConversationId { get; set; }
         
-        public Guid? OperatorId { get; set; }
+        public string? OperatorId { get; set; } // Será o ID do User que é um Operator
         
         [Required]
         public QueueEventType EventType { get; set; }
@@ -34,6 +34,5 @@ namespace Pregiato.Core.Entities
         
         // Relacionamentos
         public virtual Conversation Conversation { get; set; } = null!;
-        public virtual Operator? Operator { get; set; }
     }
 } 

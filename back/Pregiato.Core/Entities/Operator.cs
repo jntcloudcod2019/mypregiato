@@ -20,7 +20,7 @@ namespace Pregiato.Core.Entities
     public class Operator
     {
         [Key]
-        public Guid Id { get; set; }
+        public string Id { get; set; } = string.Empty; // Será o mesmo ID do User
         
         [Required]
         [StringLength(100)]
@@ -46,9 +46,5 @@ namespace Pregiato.Core.Entities
         public DateTime? UpdatedAt { get; set; }
         
         public DateTime? LastActivityAt { get; set; }
-        
-        // Relacionamentos
-        public virtual ICollection<Conversation> AssignedConversations { get; set; } = new List<Conversation>();
-        public virtual ICollection<QueueEvent> QueueEvents { get; set; } = new List<QueueEvent>();
     }
 } 

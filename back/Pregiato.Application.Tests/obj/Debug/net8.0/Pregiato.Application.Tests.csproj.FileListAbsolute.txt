@@ -370,3 +370,4 @@
 /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application.Tests/obj/Debug/net8.0/Pregiato.4C83E459.Up2Date
 /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application.Tests/obj/Debug/net8.0/Pregiato.Application.Tests.genruntimeconfig.cache
 /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application.Tests/obj/Debug/net8.0/ref/Pregiato.Application.Tests.dll
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application.Tests/bin/Debug/net8.0/Microsoft.EntityFrameworkCore.InMemory.dll

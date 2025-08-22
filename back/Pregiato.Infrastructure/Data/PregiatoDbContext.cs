@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Pregiato.Core.Entities;
+using Pregiato.Core.Enums;
 
 namespace Pregiato.Infrastructure.Data;
 
@@ -14,7 +15,6 @@ public class PregiatoDbContext : DbContext
         public DbSet<Talent> Talent { get; set; }
         public DbSet<TalentDNA> TalentDNA { get; set; }
         public DbSet<Contract> Contracts { get; set; }
-        public DbSet<ContractTemplate> ContractTemplates { get; set; }
         public DbSet<FileUpload> FileUploads { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<Contact> Contacts { get; set; }
@@ -216,27 +216,82 @@ public class PregiatoDbContext : DbContext
             entity.HasIndex(e => e.TalentId).IsUnique();
         });
 
-        // Configuração da entidade Contract
+                // Configuração da entidade Contract
         modelBuilder.Entity<Contract>(entity =>
         {
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.HasKey(e => e.ContractId);
+            entity.Property(e => e.ContractId).ValueGeneratedOnAdd();
+            
+            entity.Property(e => e.City)
+                .HasMaxLength(100);
+            
+            entity.Property(e => e.Uf)
+                .HasMaxLength(2);
+            
+            entity.Property(e => e.Day)
+                .HasMaxLength(2);
+            
+            entity.Property(e => e.Month)
+                .HasMaxLength(2);
+            
+            entity.Property(e => e.Year)
+                .HasMaxLength(4);
+            
+            entity.Property(e => e.DurationContract)
+                .HasMaxLength(50);
             
             entity.Property(e => e.ContractType)
                 .IsRequired()
                 .HasMaxLength(50);
             
-            entity.Property(e => e.Status)
-                .IsRequired()
-                .HasMaxLength(50);
+            entity.Property(e => e.CodProducers)
+                .HasMaxLength(100);
             
             entity.Property(e => e.CreatedAt)
-                .HasColumnType("datetime")
-                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                .HasColumnType("datetime(3)")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP(3)");
             
             entity.Property(e => e.UpdatedAt)
-                .HasColumnType("datetime")
-                .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+                .HasColumnType("datetime(3)")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP(3)");
+            
+            entity.Property(e => e.Amount)
+                .HasColumnType("decimal(18,2)");
+            
+            entity.Property(e => e.PaymentMethod)
+                .HasMaxLength(50);
+            
+            entity.Property(e => e.PaymentStatus)
+                .HasConversion<string>()
+                .IsRequired()
+                .HasMaxLength(20);
+            
+            entity.Property(e => e.ContractFilePath)
+                .IsRequired()
+                .HasMaxLength(500);
+            
+            entity.Property(e => e.Content)
+                .HasColumnType("LONGBLOB");
+            
+            entity.Property(e => e.StatusContratc)
+                .HasConversion<string>()
+                .HasMaxLength(20)
+                .HasDefaultValue(StatusContratc.Active);
+            
+            entity.Property(e => e.TalentId)
+                .HasColumnType("char(36)");
+            
+            entity.Property(e => e.TalentName)
+                .HasMaxLength(255);
+            
+            entity.Property(e => e.LeadId)
+                .HasColumnType("char(36)");
+            
+            // Relacionamento com Lead
+            entity.HasOne(e => e.Lead)
+                .WithMany(l => l.Contracts)
+                .HasForeignKey(e => e.LeadId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         // Configuração da entidade ContractTemplate
@@ -287,26 +342,104 @@ public class PregiatoDbContext : DbContext
         // Configuração da entidade User
         modelBuilder.Entity<User>(entity =>
         {
+            entity.ToTable("Users");
             entity.HasKey(e => e.Id);
-            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            
+            entity.Property(e => e.Id)
+                .HasColumnType("varchar(191)")
+                .HasMaxLength(191);
+            
+            entity.Property(e => e.ClerkId)
+                .IsRequired()
+                .HasColumnType("varchar(191)")
+                .HasMaxLength(191);
+            
+            entity.Property(e => e.Email)
+                .IsRequired()
+                .HasColumnType("varchar(191)")
+                .HasMaxLength(191);
+            
+            entity.Property(e => e.FirstName)
+                .IsRequired()
+                .HasColumnType("varchar(191)")
+                .HasMaxLength(191);
+            
+            entity.Property(e => e.LastName)
+                .IsRequired()
+                .HasColumnType("varchar(191)")
+                .HasMaxLength(191);
+            
+            entity.Property(e => e.ImageUrl)
+                .HasColumnType("varchar(191)")
+                .HasMaxLength(191);
+            
+            entity.Property(e => e.Role)
+                .IsRequired()
+                .HasColumnType("varchar(20)")
+                .HasMaxLength(20);
+            
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("datetime(3)")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP(3)");
+            
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnType("datetime(3)")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP(3)");
+            
+            // Índices únicos
+            entity.HasIndex(e => e.ClerkId).IsUnique();
+            entity.HasIndex(e => e.Email).IsUnique();
+        });
+
+        // Configuração da entidade Operator
+        modelBuilder.Entity<Operator>(entity =>
+        {
+            entity.ToTable("Operators");
+            entity.HasKey(e => e.Id);
+            
+            entity.Property(e => e.Id)
+                .HasColumnType("varchar(191)")
+                .HasMaxLength(191);
             
             entity.Property(e => e.Name)
                 .IsRequired()
+                .HasColumnType("varchar(255)")
                 .HasMaxLength(255);
             
             entity.Property(e => e.Email)
                 .IsRequired()
+                .HasColumnType("varchar(255)")
                 .HasMaxLength(255);
             
-            entity.HasIndex(e => e.Email).IsUnique();
+            entity.Property(e => e.Role)
+                .IsRequired()
+                .HasConversion<string>();
+            
+            entity.Property(e => e.Status)
+                .IsRequired()
+                .HasConversion<string>();
+            
+            entity.Property(e => e.Skills)
+                .HasColumnType("text");
+            
+            entity.Property(e => e.MaxConcurrentConversations)
+                .HasDefaultValue(5);
             
             entity.Property(e => e.CreatedAt)
-                .HasColumnType("datetime")
-                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                .HasColumnType("datetime(3)")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP(3)");
             
             entity.Property(e => e.UpdatedAt)
-                .HasColumnType("datetime")
-                .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+                .HasColumnType("datetime(3)")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP(3)");
+            
+            entity.Property(e => e.LastActivityAt)
+                .HasColumnType("datetime(3)");
+            
+            // Relacionamento removido para simplificar
+            
+            // Índice único no email
+            entity.HasIndex(e => e.Email).IsUnique();
         });
 
         // Configuração das entidades WhatsApp
@@ -339,35 +472,55 @@ public class PregiatoDbContext : DbContext
                 .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
         });
 
+        // Configuração da entidade Conversation
         modelBuilder.Entity<Conversation>(entity =>
         {
+            entity.ToTable("Conversations");
             entity.HasKey(e => e.Id);
-            entity.Property(e => e.Id).ValueGeneratedOnAdd();
             
-            entity.Property(e => e.ContactId).IsRequired();
-            entity.Property(e => e.Channel).IsRequired().HasMaxLength(20);
-            entity.Property(e => e.Status).IsRequired();
-            entity.Property(e => e.Priority).IsRequired();
-            entity.Property(e => e.CloseReason).HasMaxLength(500);
+            entity.Property(e => e.ContactId)
+                .IsRequired();
+            
+            entity.Property(e => e.OperatorId)
+                .HasColumnType("varchar(191)")
+                .HasMaxLength(191);
+            
+            entity.Property(e => e.Channel)
+                .IsRequired()
+                .HasColumnType("varchar(50)")
+                .HasMaxLength(50);
+            
+            entity.Property(e => e.Status)
+                .IsRequired()
+                .HasConversion<string>();
+            
+            entity.Property(e => e.Priority)
+                .IsRequired()
+                .HasConversion<string>();
+            
+            entity.Property(e => e.CloseReason)
+                .HasColumnType("varchar(500)")
+                .HasMaxLength(500);
             
             entity.Property(e => e.CreatedAt)
-                .HasColumnType("datetime")
-                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                .HasColumnType("datetime(3)")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP(3)");
+            
+            entity.Property(e => e.AssignedAt)
+                .HasColumnType("datetime(3)");
+            
+            entity.Property(e => e.ClosedAt)
+                .HasColumnType("datetime(3)");
             
             entity.Property(e => e.UpdatedAt)
-                .HasColumnType("datetime")
-                .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+                .HasColumnType("datetime(3)")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP(3)");
             
             // Relacionamentos
             entity.HasOne(e => e.Contact)
                 .WithMany(c => c.Conversations)
                 .HasForeignKey(e => e.ContactId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
-            entity.HasOne(e => e.Operator)
-                .WithMany(u => u.AssignedConversations)
-                .HasForeignKey(e => e.OperatorId)
-                .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<Message>(entity =>
@@ -401,47 +554,34 @@ public class PregiatoDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
-        modelBuilder.Entity<Operator>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Id).ValueGeneratedOnAdd();
-            
-            entity.Property(e => e.Name)
-                .IsRequired()
-                .HasMaxLength(100);
-            
-            entity.Property(e => e.Email)
-                .IsRequired()
-                .HasMaxLength(100);
-            
-            entity.HasIndex(e => e.Email).IsUnique();
-            
-            entity.Property(e => e.Role).IsRequired();
-            entity.Property(e => e.Status).IsRequired();
-            entity.Property(e => e.Skills).HasMaxLength(500);
-            
-            entity.Property(e => e.CreatedAt)
-                .HasColumnType("datetime")
-                .HasDefaultValueSql("CURRENT_TIMESTAMP");
-            
-            entity.Property(e => e.UpdatedAt)
-                .HasColumnType("datetime")
-                .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
-        });
-
+        // Configuração da entidade QueueEvent
         modelBuilder.Entity<QueueEvent>(entity =>
         {
+            entity.ToTable("QueueEvents");
             entity.HasKey(e => e.Id);
-            entity.Property(e => e.Id).ValueGeneratedOnAdd();
             
-            entity.Property(e => e.ConversationId).IsRequired();
-            entity.Property(e => e.EventType).IsRequired();
-            entity.Property(e => e.Reason).HasMaxLength(500);
-            entity.Property(e => e.TransferredTo).HasMaxLength(100);
+            entity.Property(e => e.ConversationId)
+                .IsRequired();
+            
+            entity.Property(e => e.OperatorId)
+                .HasColumnType("varchar(191)")
+                .HasMaxLength(191);
+            
+            entity.Property(e => e.EventType)
+                .IsRequired()
+                .HasConversion<string>();
+            
+            entity.Property(e => e.Reason)
+                .HasColumnType("varchar(500)")
+                .HasMaxLength(500);
+            
+            entity.Property(e => e.TransferredTo)
+                .HasColumnType("varchar(100)")
+                .HasMaxLength(100);
             
             entity.Property(e => e.CreatedAt)
-                .HasColumnType("datetime")
-                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                .HasColumnType("datetime(3)")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP(3)");
             
             // Relacionamentos
             entity.HasOne(e => e.Conversation)
@@ -449,10 +589,7 @@ public class PregiatoDbContext : DbContext
                 .HasForeignKey(e => e.ConversationId)
                 .OnDelete(DeleteBehavior.Cascade);
             
-            entity.HasOne(e => e.Operator)
-                .WithMany(u => u.QueueEvents)
-                .HasForeignKey(e => e.OperatorId)
-                .OnDelete(DeleteBehavior.SetNull);
+            // Relacionamento removido para simplificar
         });
 
         modelBuilder.Entity<ChatLog>(entity =>

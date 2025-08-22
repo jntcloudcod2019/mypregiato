@@ -4,7 +4,7 @@ namespace Pregiato.Application.DTOs
 {
     public class OperatorDto
     {
-        public Guid Id { get; set; }
+        public string Id { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public OperatorRole Role { get; set; }

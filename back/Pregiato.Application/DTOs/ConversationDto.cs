@@ -6,7 +6,7 @@ namespace Pregiato.Application.DTOs
     {
         public Guid Id { get; set; }
         public Guid ContactId { get; set; }
-        public Guid? OperatorId { get; set; }
+        public string? OperatorId { get; set; }
         public string Channel { get; set; } = string.Empty;
         public ConversationStatus Status { get; set; }
         public ConversationPriority Priority { get; set; }
@@ -33,7 +33,7 @@ namespace Pregiato.Application.DTOs
 
     public class UpdateConversationDto
     {
-        public Guid? OperatorId { get; set; }
+        public string? OperatorId { get; set; }
         public ConversationStatus? Status { get; set; }
         public ConversationPriority? Priority { get; set; }
         public string? CloseReason { get; set; }
