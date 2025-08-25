@@ -1,0 +1,158 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Pregiato.API</name>
+    </assembly>
+    <members>
+        <member name="M:Pregiato.API.Controllers.ContractsController.GetContracts">
+            <summary>
+            Obtém todos os contratos
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.ContractsController.GetContract(System.Guid)">
+            <summary>
+            Obtém um contrato por ID
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.ContractsController.CreateContract(Pregiato.Application.DTOs.CreateContractDto)">
+            <summary>
+            Cria um novo contrato
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.ContractsController.UpdateContract(System.Guid,Pregiato.Application.DTOs.UpdateContractDto)">
+            <summary>
+            Atualiza um contrato
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.ContractsController.DeleteContract(System.Guid)">
+            <summary>
+            Remove um contrato
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.ContractsController.GenerateContractPdf(System.Guid,System.String)">
+            <summary>
+            Gera PDF do contrato
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.ContractsController.GetContractTemplates">
+            <summary>
+            Obtém templates de contrato
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.ContractsController.CreateContractTemplate(Pregiato.Application.DTOs.CreateContractTemplateDto)">
+            <summary>
+            Cria um novo template de contrato
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TalentsController.GetTalents(System.Int32,System.Int32,System.String,System.String,System.Boolean)">
+            <summary>
+            Obtém todos os talentos com paginação
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TalentsController.GetTalent(System.Guid)">
+            <summary>
+            Obtém um talento por ID
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TalentsController.CreateTalent(Pregiato.Application.DTOs.CreateTalentDto)">
+            <summary>
+            Cria um novo talento
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TalentsController.UpdateTalent(System.Guid,Pregiato.Application.DTOs.UpdateTalentDto)">
+            <summary>
+            Atualiza um talento
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TalentsController.DeleteTalent(System.Guid)">
+            <summary>
+            Remove um talento
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.WhatsAppController.GenerateQRCode">
+            <summary>
+            Gera QR code para conectar o WhatsApp
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.WhatsAppController.GetQRCode">
+            <summary>
+            Obtém o QR code atual
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.WhatsAppController.ReceiveQRCode(Pregiato.API.Controllers.QRCodeRequest)">
+            <summary>
+            Webhook para receber QR code do bot
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.WhatsAppController.GetStatus">
+            <summary>
+            Obtém o status da conexão WhatsApp
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.WhatsAppController.SendMessage(Pregiato.API.Controllers.WhatsAppController.SendMessageRequest)">
+            <summary>
+            Envia mensagem via RabbitMQ
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.WhatsAppController.GetQueueMetrics">
+            <summary>
+            Obtém métricas da fila
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.WhatsAppController.GetQueueConversations">
+            <summary>
+            Obtém conversas na fila
+            </summary>
+        </member>
+        <member name="F:Pregiato.API.Controllers.WhatsAppController._lastQueueCheck">
+            <summary>
+            Obtém mensagens da fila
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.WhatsAppController.GetCurrentQRCode">
+            <summary>
+            Obtém QR code atual (para compatibilidade)
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.WhatsAppController.CreateContact(Pregiato.Application.DTOs.CreateContactDto)">
+            <summary>
+            Cria um novo contato
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.WhatsAppController.GetContact(System.Guid)">
+            <summary>
+            Obtém um contato por ID
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.WhatsAppController.CreateConversation(Pregiato.Application.DTOs.CreateConversationDto)">
+            <summary>
+            Cria uma nova conversa
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.WhatsAppController.GetConversation(System.Guid)">
+            <summary>
+            Obtém uma conversa por ID
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.WhatsAppController.AssignConversation(System.Guid,System.Guid)">
+            <summary>
+            Atribui uma conversa a um operador
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.WhatsAppController.CloseConversation(System.Guid,System.String)">
+            <summary>
+            Fecha uma conversa
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.WhatsAppController.GetConversations(System.String)">
+            <summary>
+            Obtém conversas por status
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.WhatsAppController.ProcessWebhookMessage(Pregiato.Application.DTOs.WhatsAppMessageDto)">
+            <summary>
+            Processa webhook de mensagem recebida
+            </summary>
+        </member>
+    </members>
+</doc>

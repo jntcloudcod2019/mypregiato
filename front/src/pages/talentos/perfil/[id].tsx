@@ -1,29 +1,29 @@
 
 import { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { Switch } from "@/components/ui/switch"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Button } from "../../../components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card"
+import { Input } from "../../../components/ui/input"
+import { Label } from "../../../components/ui/label"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs"
+import { Alert, AlertDescription } from "../../../components/ui/alert"
+import { Badge } from "../../../components/ui/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../components/ui/select"
+import { Textarea } from "../../../components/ui/textarea"
+import { Switch } from "../../../components/ui/switch"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../../../components/ui/dialog"
+import { Calendar } from "../../../components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "../../../components/ui/popover"
 import { CheckCircle, Edit, Plus, Trash2, Upload, Calendar as CalendarIcon, ArrowLeft, User, Mail, Phone, MapPin, CreditCard, Users, Plane, Camera, Home, Loader2 } from "lucide-react"
 import { format, differenceInYears } from "date-fns"
-import { cn } from "@/lib/utils"
-import { CompositeTemplates } from "@/components/composite-templates"
-import { getTalentById, updateTalent } from "@/lib/talent-service"
-import { getTalentDNA, createOrUpdateTalentDNA } from "@/lib/dna-service"
-import { uploadPhoto, getTalentPhotos, deletePhoto } from "@/lib/file-service"
-import { TalentData } from "@/types/talent"
-import { useToast } from "@/hooks/use-toast"
-import { compressImage, validateImageFile, fileToBase64 } from "@/utils/image-compression"
+import { cn } from "../../../lib/utils"
+import { CompositeTemplates } from "../../../components/composite-templates"
+import { getTalentById, updateTalent } from "../../../lib/talent-service"
+import { getTalentDNA, createOrUpdateTalentDNA } from "../../../lib/dna-service"
+import { uploadPhoto, getTalentPhotos, deletePhoto } from "../../../lib/file-service"
+import { TalentData } from "../../../types/talent"
+import { useToast } from "../../../hooks/use-toast"
+import { compressImage, validateImageFile, fileToBase64 } from "../../../utils/image-compression"
 
 export default function TalentProfile() {
   const { id } = useParams()
@@ -32,6 +32,7 @@ export default function TalentProfile() {
   const [talent, setTalent] = useState<TalentData | null>(null)
   const [loading, setLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [editedTalent, setEditedTalent] = useState<any>({})
   const [showAlert, setShowAlert] = useState(false)
   const [activeTab, setActiveTab] = useState("fotos")
@@ -40,6 +41,7 @@ export default function TalentProfile() {
   const [selectedDate, setSelectedDate] = useState<Date>()
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
   const [loadingPhotos, setLoadingPhotos] = useState(false)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [dnaData, setDnaData] = useState<any>({})
   const [savingDNA, setSavingDNA] = useState(false)
 
@@ -98,7 +100,7 @@ export default function TalentProfile() {
     }
     
     fetchTalentData()
-  }, [id])
+  }, [id, navigate, toast])
 
   const handleSave = async () => {
     if (!talent || !id) return
@@ -207,6 +209,7 @@ export default function TalentProfile() {
         description: `${files.length} foto(s) carregada(s) com sucesso`,
       })
       
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error('Erro ao fazer upload:', error)
       toast({

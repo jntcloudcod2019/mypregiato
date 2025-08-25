@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { SignInButton, SignUpButton, useSignIn, useSignUp } from "@clerk/clerk-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
+import { Button } from "../ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { Separator } from "../ui/separator";
 import { Eye, EyeOff, Mail, Lock, User, Building2, AlertCircle } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription } from "../ui/alert";
 
 export default function CustomLogin() {
   const [isLogin, setIsLogin] = useState(true);

@@ -1,9 +1,9 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
+import { Badge } from "../ui/badge"
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
 import { Users, Clock, MessageSquare, Activity } from "lucide-react"
-import { useOperatorStatus } from "@/hooks/useOperatorStatus"
+import { useOperatorStatus } from "../../hooks/useOperatorStatus"
 
 export const OperatorsDashboard = () => {
   const { operators, currentOperator } = useOperatorStatus()

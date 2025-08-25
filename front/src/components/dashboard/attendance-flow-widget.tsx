@@ -1,8 +1,8 @@
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
+import { Badge } from "../ui/badge"
+import { Button } from "../ui/button"
+import { Avatar, AvatarFallback } from "../ui/avatar"
 import { 
   Clock, 
   MessageSquare, 
@@ -13,12 +13,12 @@ import {
   ChevronRight,
   Eye
 } from "lucide-react"
-import { useAttendanceQueue } from "@/hooks/useAttendanceQueue"
-import { useActiveAttendance } from "@/hooks/useActiveAttendance"
-import { useOperatorStatus } from "@/hooks/useOperatorStatus"
-import { AnimatedList } from "@/components/ui/animated-list"
+import { useAttendanceQueue } from "../../hooks/useAttendanceQueue"
+import { useActiveAttendance } from "../../hooks/useActiveAttendance"
+import { useOperatorStatus } from "../../hooks/useOperatorStatus"
+import { AnimatedList } from "../ui/animated-list"
 import { Link } from "react-router-dom"
-import { cn } from "@/lib/utils"
+import { cn } from "../../lib/utils"
 
 export default function AttendanceFlowWidget() {
   const { queue, totalInQueue, averageWaitTime } = useAttendanceQueue()

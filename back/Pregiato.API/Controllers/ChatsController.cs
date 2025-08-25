@@ -74,7 +74,7 @@ namespace Pregiato.API.Controllers
             public string? mediaType { get; set; } // image | file
         }
 
-        [HttpPost("{id:guid}/messages")]
+        [HttpPost("{id:guid}/send")]
         public async Task<IActionResult> Send(Guid id, [FromBody] SendRequest req)
         {
             if (string.IsNullOrWhiteSpace(req.text) || string.IsNullOrWhiteSpace(req.clientMessageId))
@@ -101,21 +101,71 @@ namespace Pregiato.API.Controllers
             {
                 return BadRequest(new { error = "Telefone do contato não encontrado para este chat." });
             }
+            
+            // CORREÇÃO: Usar normalização consistente para evitar duplicação
             // Heurística para grupos: IDs de grupo podem vir como "...@g.us" ou iniciar com 120 e ter >= 18 dígitos
             var isGroup = (to?.EndsWith("@g.us") ?? false) || (to?.StartsWith("120") == true && to!.Length >= 18);
-            var toNormalized = to ?? string.Empty;
             
             // Remover sufixo @g.us ou @c.us para normalização
-            if (toNormalized.EndsWith("@g.us") || toNormalized.EndsWith("@c.us")) {
-                toNormalized = toNormalized.Split('@')[0];
+            var toClean = to ?? string.Empty;
+            if (toClean.EndsWith("@g.us") || toClean.EndsWith("@c.us")) {
+                toClean = toClean.Split('@')[0];
             }
             
+            // Aplicar normalização consistente
+            var toNormalized = NormalizePhoneE164Br(toClean, isGroup);
+            
             // Log para debug de normalização
-            _logger.LogDebug($"Normalização em Send: original={to}, normalizado={toNormalized}, isGroup={isGroup}");
-            var cmd = new { command = "send_message", toNormalized = toNormalized, isGroup, body = req.text, clientMessageId = req.clientMessageId, chatId = updatedChat.Id, attachment = req.attachment };
-            _rabbit.PublishCommand(cmd);
-
-            return Ok(new { success = true, message = msg });
+            _logger.LogDebug($"🔧 Normalização em Send: original={to}, limpo={toClean}, normalizado={toNormalized}, isGroup={isGroup}");
+            
+            // Publicar comando para RabbitMQ
+            var cmd = new
+            {
+                command = "send_message",
+                to = toNormalized,
+                isGroup = isGroup,
+                body = req.text,
+                clientMessageId = req.clientMessageId,
+                chatId = updatedChat.ChatId,
+                attachment = req.attachment
+            };
+            
+            await _rabbit.PublishAsync("whatsapp.outgoing", cmd);
+            
+            return Ok(new { success = true, messageId = req.clientMessageId });
+        }
+        
+        /// <summary>
+        /// Normaliza um número de telefone ou ID de grupo para um formato padrão
+        /// CORRIGIDA para evitar duplicação de chats - conforme análise de engenharia reversa
+        /// </summary>
+        /// <param name="phone">Número de telefone ou ID de grupo</param>
+        /// <param name="isGroup">Se é um ID de grupo</param>
+        /// <returns>Número normalizado</returns>
+        private static string NormalizePhoneE164Br(string phone, bool isGroup = false)
+        {
+            if (string.IsNullOrWhiteSpace(phone))
+                return string.Empty;
+            
+            // Remover todos os caracteres não numéricos
+            var digits = new string(phone.Where(char.IsDigit).ToArray());
+            
+            // Para grupos, sempre retornar apenas os dígitos (sem @g.us)
+            // O @g.us será adicionado apenas quando necessário
+            if (isGroup || (digits.StartsWith("120") && digits.Length >= 18))
+            {
+                return digits;
+            }
+            
+            // Para números individuais brasileiros, aplicar formato E.164 BR
+            // Números brasileiros: 10 ou 11 dígitos (DDD + número)
+            if (digits.Length == 10 || digits.Length == 11)
+            {
+                return $"55{digits}";
+            }
+            
+            // Se já tiver código do país (12+ dígitos) ou outro formato, retornar como está
+            return digits;
         }
 
         public class ReadRequest { public long readUpToTs { get; set; } }

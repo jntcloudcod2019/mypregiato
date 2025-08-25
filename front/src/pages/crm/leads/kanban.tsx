@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { talentsService, Talent } from '@/services/crm/talents-service';
 import api from '@/services/whatsapp-api';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { LeadCard } from '@/components/crm/lead-card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui/card';
+import { LeadCard } from '../../../components/crm/lead-card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select';
 import { toast } from '@/hooks/use-toast';
 
 const columns = [

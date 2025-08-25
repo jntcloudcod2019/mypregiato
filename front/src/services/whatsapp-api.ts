@@ -1,4 +1,39 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
+
+// Interfaces para tipos específicos
+export interface TemplateData {
+  [key: string]: string | number | boolean;
+}
+
+export interface SendMessageData {
+  phone: string;
+  message?: string;
+  template?: string;
+  data?: TemplateData;
+}
+
+export interface TalentData {
+  id?: string;
+  name: string;
+  email: string;
+  phone: string;
+  producerId: string;
+  [key: string]: unknown;
+}
+
+export interface ContractData {
+  id?: string;
+  leadId: string;
+  talentId: string;
+  contractType: string;
+  status: string;
+  [key: string]: unknown;
+}
+
+export interface ApiError {
+  status: number;
+  data: unknown;
+}
 
 // Configuração do axios para o backend .NET
 const api = axios.create({
@@ -12,7 +47,7 @@ const api = axios.create({
 // Configuração do axios para o RabbitMQ via backend
 const rabbitMQService = {
   // Enviar mensagem
-  sendMessage: async (phone: string, message: string, template?: string, data?: any) => {
+  sendMessage: async (phone: string, message: string, template?: string, data?: TemplateData) => {
     const response = await api.post('/whatsapp/messages/send', {
       phone,
       message,
@@ -69,11 +104,23 @@ const rabbitMQService = {
       };
     } catch (error) {
       console.error('Erro ao gerar QR code:', error);
-      if ((error as any).response) {
+      const axiosError = error as AxiosError;
+      if (axiosError.response) {
         console.error('Detalhes do erro:', {
-          status: (error as any).response.status,
-          data: (error as any).response.data
+          status: axiosError.response.status,
+          data: axiosError.response.data
         });
+        
+        // Tratar especificamente o erro 409 (Conflict)
+        if (axiosError.response.status === 409) {
+          const errorData = axiosError.response.data as { requestId?: string; message?: string };
+          return {
+            success: false,
+            status: 'pending',
+            requestId: errorData?.requestId,
+            message: errorData?.message || 'Há um pedido de QR pendente'
+          };
+        }
       }
       return {
         success: false,
@@ -87,7 +134,7 @@ const rabbitMQService = {
   getQRCode: async () => {
     try {
       console.log('Solicitando QR code atual...');
-      const response = await api.get('/whatsapp/qr-code');
+      const response = await api.get('/whatsapp/qr-code/current');
       console.log('Resposta da API (get qr-code):', response.data);
       const data = response.data;
       
@@ -103,10 +150,11 @@ const rabbitMQService = {
       };
     } catch (error) {
       console.error('Erro ao obter QR code:', error);
-      if ((error as any).response) {
+      const axiosError = error as AxiosError;
+      if (axiosError.response) {
         console.error('Detalhes do erro:', {
-          status: (error as any).response.status,
-          data: (error as any).response.data
+          status: axiosError.response.status,
+          data: axiosError.response.data
         });
       }
       throw error;
@@ -150,12 +198,12 @@ export const talentsApi = {
     return response.data;
   },
 
-  create: async (talent: any) => {
+  create: async (talent: TalentData) => {
     const response = await api.post('/talents', talent);
     return response.data;
   },
 
-  update: async (id: string, talent: any) => {
+  update: async (id: string, talent: Partial<TalentData>) => {
     const response = await api.put(`/talents/${id}`, talent);
     return response.data;
   },
@@ -178,12 +226,12 @@ export const contractsApi = {
     return response.data;
   },
 
-  create: async (contract: any) => {
+  create: async (contract: ContractData) => {
     const response = await api.post('/contracts', contract);
     return response.data;
   },
 
-  update: async (id: string, contract: any) => {
+  update: async (id: string, contract: Partial<ContractData>) => {
     const response = await api.put(`/contracts/${id}`, contract);
     return response.data;
   },
@@ -223,7 +271,7 @@ export interface SendMessageRequest {
   phone: string;
   message?: string;
   template?: string;
-  data?: any;
+  data?: TemplateData;
 }
 
 export interface WhatsAppStatus {

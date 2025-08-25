@@ -37,7 +37,7 @@ namespace Pregiato.API.Controllers
             {
                 return Conflict(new { success = false, status = "pending", message = "Há um pedido de QR pendente.", requestId });
             }
-            var cmd = new { command = "generate_qr", requestId, timestamp = DateTime.UtcNow };
+            var cmd = new { command = "generate_qr", requestId, timestamp = DateTime.UtcNow.ToString("O") };
             _rabbit.PublishCommand(cmd);
             return Ok(new { success = true, status = "command_sent", requestId });
         }
@@ -47,7 +47,7 @@ namespace Pregiato.API.Controllers
         {
             _logger.LogInformation("📥 Requisição de desconexão recebida");
             _rabbit.CancelQrRequest();
-            var cmd = new { command = "disconnect", timestamp = DateTime.UtcNow };
+            var cmd = new { command = "disconnect", timestamp = DateTime.UtcNow.ToString("O") };
             _rabbit.PublishCommand(cmd);
             return Ok(new { success = true, status = "command_sent" });
         }
@@ -102,7 +102,11 @@ namespace Pregiato.API.Controllers
             _rabbit.SetSessionStatus(req.sessionConnected, req.connectedNumber, req.isFullyValidated);
             _sessionInitialized = true;
             _lastSessionUpdateUtc = DateTime.UtcNow;
-            _logger.LogInformation("📥 Webhook session/updated: connected={Connected} number={Number} validated={Validated}", req.sessionConnected, req.connectedNumber, req.isFullyValidated);
+            
+            // Log apenas quando houver mudança real
+            _logger.LogInformation("📥 Webhook session/updated: connected={Connected} number={Number} validated={Validated} (mudança detectada)", 
+                req.sessionConnected, req.connectedNumber, req.isFullyValidated);
+            
             return Ok(new { success = true, updated = true });
         }
 

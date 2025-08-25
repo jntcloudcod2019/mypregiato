@@ -28,7 +28,7 @@ export function stripNonDigits(input: string): string {
 
 /**
  * Normaliza um número de telefone ou ID de grupo para um formato padrão
- * Compatível com a normalização usada no backend
+ * CORRIGIDA para ser consistente com o backend e evitar duplicação - conforme análise de engenharia reversa
  * 
  * @param phone Número de telefone ou ID de grupo
  * @returns Número normalizado
@@ -41,16 +41,20 @@ export function normalizePhone(phone: string): string {
   
   // Para grupos, apenas retornar os dígitos (sem adicionar prefixo)
   if (isGroupId(phone)) {
+    console.log(`🔧 Frontend Normalização GRUPO: ${phone} -> ${digits}`);
     return digits;
   }
   
-  // Para números individuais, aplicar formato E.164 BR se necessário
+  // Para números individuais brasileiros, aplicar formato E.164 BR
   // Números brasileiros: 10 ou 11 dígitos (DDD + número)
   if (digits.length === 10 || digits.length === 11) {
-    return `55${digits}`;
+    const normalized = `55${digits}`;
+    console.log(`🔧 Frontend Normalização INDIVIDUAL BR: ${phone} -> ${normalized}`);
+    return normalized;
   }
   
-  // Se já tiver código do país ou outro formato, retornar como está
+  // Se já tiver código do país (12+ dígitos) ou outro formato, retornar como está
+  console.log(`🔧 Frontend Normalização MANTIDA: ${phone} -> ${digits}`);
   return digits;
 }
 

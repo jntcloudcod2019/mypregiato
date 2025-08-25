@@ -29,12 +29,17 @@ namespace Pregiato.API.Controllers
         {
             try
             {
+                // Decodificar o email da URL
+                var decodedEmail = Uri.UnescapeDataString(email);
+                Console.WriteLine($"Email original: {email}");
+                Console.WriteLine($"Email decodificado: {decodedEmail}");
+                
                 var user = await _context.Users
-                    .FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
+                    .FirstOrDefaultAsync(u => u.Email.ToLower() == decodedEmail.ToLower());
 
                 if (user == null)
                 {
-                    return NotFound($"Usuário com email {email} não encontrado");
+                    return NotFound($"Usuário com email {decodedEmail} não encontrado");
                 }
 
                 var userDto = new UserDto
@@ -97,12 +102,15 @@ namespace Pregiato.API.Controllers
         {
             try
             {
+                // Decodificar o email da URL
+                var decodedEmail = Uri.UnescapeDataString(email);
+                
                 var user = await _context.Users
-                    .FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
+                    .FirstOrDefaultAsync(u => u.Email.ToLower() == decodedEmail.ToLower());
 
                 if (user == null)
                 {
-                    return NotFound($"Usuário com email {email} não encontrado");
+                    return NotFound($"Usuário com email {decodedEmail} não encontrado");
                 }
 
                 var isAdmin = user.Role?.ToUpper() == "ADMIN";

@@ -20,7 +20,7 @@ namespace Pregiato.API.Services
             _context = context;
         }
 
-        public async Task<AttendanceTicket> AssignAsync(Guid chatId, string operatorId, string operatorName)
+        public async Task<AttendanceTicket> AssignAsync(Guid chatId, string operatorId, string operatorName, Guid chatLogId)
         {
             var ticket = await _context.AttendanceTickets
                 .FirstOrDefaultAsync(t => t.ChatId == chatId && t.EndedAtUtc == null);
@@ -31,10 +31,12 @@ namespace Pregiato.API.Services
                 {
                     Id = Guid.NewGuid(),
                     ChatId = chatId,
+                    ChatLogId = chatLogId,
                     StartedAtUtc = DateTime.UtcNow,
                     OperatorId = operatorId,
                     OperatorName = operatorName,
-                    CurrentStep = 0
+                    CurrentStep = 0,
+                    Status = AttendanceStatus.Novo
                 };
 
                 await _context.AttendanceTickets.AddAsync(ticket);
@@ -58,6 +60,19 @@ namespace Pregiato.API.Services
             if (ticket != null)
             {
                 ticket.CurrentStep = step;
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task CloseAsync(Guid chatId, string? reason = null)
+        {
+            var ticket = await _context.AttendanceTickets
+                .FirstOrDefaultAsync(t => t.ChatId == chatId && t.EndedAtUtc == null);
+
+            if (ticket != null)
+            {
+                ticket.EndedAtUtc = DateTime.UtcNow;
+                ticket.Description = reason ?? "Atendimento encerrado";
                 await _context.SaveChangesAsync();
             }
         }

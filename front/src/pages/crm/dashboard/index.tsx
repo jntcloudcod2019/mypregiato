@@ -1,12 +1,12 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { modules } from "@/pages/modules/data"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../components/ui/card"
+import { modules } from "../../../pages/modules/data"
 import { Link } from 'react-router-dom'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import LeadsPage from '@/pages/crm/leads'
 import LeadsKanban from '@/pages/crm/leads/kanban'
 import NovoLead from '@/pages/crm/leads/novo'
 import EventosPage from '@/pages/crm/eventos'
-import RecordsTable from "@/components/modules/records-table"
+import RecordsTable from "../../../components/modules/records-table"
 import { useState } from "react"
 
 export default function CRMDashboard() {

@@ -49,11 +49,43 @@ namespace Pregiato.API.Services
                 MessageId = message.Id.ToString(),
                 Direction = message.IsInbound ? "inbound" : "outbound",
                 Content = message.Content,
-                ContentType = message.ContentType ?? "text",
+                ContentType = GetShortContentType(message.ContentType ?? "text"),
                 Timestamp = message.Timestamp
             };
 
             await _chatLogRepository.AddAsync(chatLog);
+        }
+
+        /// <summary>
+        /// Converte tipos de conteúdo longos para versões curtas que cabem no banco
+        /// </summary>
+        private static string GetShortContentType(string contentType)
+        {
+            if (string.IsNullOrEmpty(contentType))
+                return "text";
+                
+            // Mapear tipos longos para versões curtas
+            return contentType.ToLower() switch
+            {
+                "application/octet-stream" => "file",
+                "image/jpeg" => "image",
+                "image/png" => "image", 
+                "image/gif" => "image",
+                "image/webp" => "image",
+                "video/mp4" => "video",
+                "video/avi" => "video",
+                "video/mov" => "video",
+                "audio/mpeg" => "audio",
+                "audio/wav" => "audio",
+                "audio/ogg" => "audio",
+                "audio/webm" => "audio",
+                "application/pdf" => "doc",
+                "application/msword" => "doc",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document" => "doc",
+                "text/plain" => "text",
+                "text/html" => "text",
+                _ => contentType.Length > 20 ? contentType.Substring(0, 20) : contentType
+            };
         }
 
         public async Task<IEnumerable<ChatLog>> GetChatHistoryAsync(Guid chatId)
@@ -150,7 +182,7 @@ namespace Pregiato.API.Services
             
             chat.PayloadJson = JsonSerializer.Serialize(payload);
             chat.LastMessageUtc = timestamp;
-            chat.LastMessagePreview = text;
+            chat.LastMessagePreview = text?.Length > 200 ? text.Substring(0, 200) : text;
             chat.LastMessageAt = timestamp;
             
             await _chatLogRepository.UpdateAsync(chat);

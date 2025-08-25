@@ -1,7 +1,7 @@
 
 import { useState } from "react"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog"
+import { Button } from "../ui/button"
 import { X, Send, Trash2, Download } from "lucide-react"
 
 interface PDFPreviewModalProps {

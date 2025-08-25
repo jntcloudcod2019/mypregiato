@@ -4,6 +4,15 @@
         <name>Pregiato.API</name>
     </assembly>
     <members>
+        <member name="M:Pregiato.API.Controllers.ChatsController.NormalizePhoneE164Br(System.String,System.Boolean)">
+            <summary>
+            Normaliza um número de telefone ou ID de grupo para um formato padrão
+            CORRIGIDA para evitar duplicação de chats - conforme análise de engenharia reversa
+            </summary>
+            <param name="phone">Número de telefone ou ID de grupo</param>
+            <param name="isGroup">Se é um ID de grupo</param>
+            <returns>Número normalizado</returns>
+        </member>
         <member name="M:Pregiato.API.Controllers.TalentsController.GetTalents(System.Int32,System.Int32,System.String,System.String,System.Boolean)">
             <summary>
             Obtém todos os talentos com paginação
@@ -33,6 +42,40 @@
             <summary>
             Verifica se um talento existe por email ou documento
             </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatLogService.GetShortContentType(System.String)">
+            <summary>
+            Converte tipos de conteúdo longos para versões curtas que cabem no banco
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ConversationService.GetOrCreateWhatsAppConversationAsync(System.String,System.String,System.Boolean,System.String)">
+            <summary>
+            Obtém ou cria uma conversa para um número específico (WhatsApp)
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ConversationService.ListConversationsAsync(System.String,System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Lista conversas com paginação (suporta tanto conversas originais quanto WhatsApp)
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ConversationService.AddMessageAsync(System.Guid,System.String,System.String,System.String,System.Boolean,System.String)">
+            <summary>
+            Adiciona uma mensagem a uma conversa
+            </summary>
+        </member>
+        <member name="T:Pregiato.API.Services.ContentTypeHelper">
+            <summary>
+            Converte tipos de conteúdo longos para versões curtas que cabem no banco
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ContentTypeHelper.NormalizePhoneE164Br(System.String,System.Boolean)">
+            <summary>
+            Normaliza um número de telefone ou ID de grupo para um formato padrão
+            CORRIGIDA para evitar duplicação de chats - conforme análise de engenharia reversa
+            </summary>
+            <param name="phone">Número de telefone ou ID de grupo</param>
+            <param name="isGroup">Se é um ID de grupo</param>
+            <returns>Número normalizado</returns>
         </member>
     </members>
 </doc>

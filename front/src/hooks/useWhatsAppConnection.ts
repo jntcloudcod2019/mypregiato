@@ -4,6 +4,16 @@ import { rabbitMQService, WhatsAppStatus, QRCodeResponse } from '../services/wha
 import { qrCodeQueueService } from '@/services/qr-code-queue-service';
 import { toast } from '@/components/ui/sonner';
 
+// Interface para o status do bot
+interface BotStatusUpdate {
+  sessionConnected: boolean;
+  connectedNumber?: string;
+  isFullyValidated: boolean;
+  lastActivity: string;
+  instanceId: string;
+  timestamp: number;
+}
+
 export enum ConnectionStatus {
   disconnected = 'disconnected',
   connecting = 'connecting',
@@ -61,6 +71,33 @@ export const useWhatsAppConnection = () => {
     }
   }, []);
 
+  // Listener para atualizações de status via SignalR
+  useEffect(() => {
+    const handleStatusUpdate = (statusData: BotStatusUpdate) => {
+      const isActuallyConnected = Boolean(statusData.sessionConnected);
+      const nextStatus = isActuallyConnected
+        ? ConnectionStatus.connected
+        : ConnectionStatus.disconnected;
+
+      setConnectionState(prev => ({
+        ...prev,
+        status: nextStatus,
+        isConnected: isActuallyConnected,
+        lastActivity: statusData.lastActivity,
+        error: undefined, // Limpar erro quando status for atualizado
+        canGenerateQR: !isActuallyConnected,
+        connectedNumber: statusData.connectedNumber || prev.connectedNumber
+      }));
+    };
+
+    // Registrar listener para bot.status.update
+    qrCodeQueueService.addListener('bot.status.update', handleStatusUpdate);
+    
+    return () => {
+      qrCodeQueueService.removeListener('bot.status.update', handleStatusUpdate);
+    };
+  }, []);
+
   const getQRCode = useCallback(async () => {
     try {
       const qrResponse: QRCodeResponse = await rabbitMQService.getQRCode();
@@ -81,25 +118,48 @@ export const useWhatsAppConnection = () => {
   }, [checkStatus]);
 
   const disconnect = useCallback(async () => {
-    try { await rabbitMQService.disconnect(); } catch {}
+    try { 
+      await rabbitMQService.disconnect(); 
+    } catch (error) {
+      console.error('Erro ao desconectar:', error);
+    }
     setConnectionState({ status: ConnectionStatus.disconnected, isConnected: false, canGenerateQR: true });
   }, []);
 
   const generateQR = useCallback(async () => {
-    try { await qrCodeQueueService.startQRCodeConsumer(); } catch {}
+    try { 
+      await qrCodeQueueService.startQRCodeConsumer(); 
+    } catch (error) {
+      console.error('Erro ao iniciar consumidor QR:', error);
+    }
     if (isGeneratingQR) return;
     setIsGeneratingQR(true);
     setConnectionState(prev => ({ ...prev, status: ConnectionStatus.generating, error: undefined }));
     try {
       const result = await rabbitMQService.generateQR();
       if (!result.success) {
-        toast?.(result.message || 'Falha ao gerar QR code');
-        setConnectionState(prev => ({ ...prev, error: result.message || 'Falha ao gerar QR code', status: ConnectionStatus.disconnected }));
+        // Tratar especificamente o erro 409 (Conflict - pedido pendente)
+        if (result.status === 'pending' || result.message?.includes('pendente')) {
+          toast?.('Já há um pedido de QR code em andamento. Aguarde...');
+          setConnectionState(prev => ({ 
+            ...prev, 
+            status: ConnectionStatus.generating, 
+            error: 'QR code já está sendo gerado. Aguarde...' 
+          }));
+        } else {
+          toast?.(result.message || 'Falha ao gerar QR code');
+          setConnectionState(prev => ({ 
+            ...prev, 
+            error: result.message || 'Falha ao gerar QR code', 
+            status: ConnectionStatus.disconnected 
+          }));
+        }
         return;
       }
       toast?.('Comando enviado. Aguardando QR...');
-    } catch (error: any) {
-      setConnectionState(prev => ({ ...prev, error: 'Erro ao comunicar com o servidor', status: ConnectionStatus.disconnected }));
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro ao comunicar com o servidor';
+      setConnectionState(prev => ({ ...prev, error: errorMessage, status: ConnectionStatus.disconnected }));
     } finally {
       setIsGeneratingQR(false);
     }

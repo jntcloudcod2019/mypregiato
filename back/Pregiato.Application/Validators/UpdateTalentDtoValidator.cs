@@ -65,8 +65,9 @@ public class UpdateTalentDtoValidator : AbstractValidator<UpdateTalentDto>
             .MaximumLength(255).WithMessage("Complemento deve ter no máximo 255 caracteres")
             .When(x => !string.IsNullOrEmpty(x.Complement));
 
+        // ProducerId não é obrigatório na atualização, apenas na criação
         RuleFor(x => x.ProducerId)
-            .NotEmpty().WithMessage("Produtor é obrigatório")
-            .MaximumLength(50).WithMessage("ID do produtor deve ter no máximo 50 caracteres");
+            .MaximumLength(50).WithMessage("ID do produtor deve ter no máximo 50 caracteres")
+            .When(x => !string.IsNullOrEmpty(x.ProducerId));
     }
 }

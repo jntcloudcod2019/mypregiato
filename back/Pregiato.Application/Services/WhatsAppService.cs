@@ -35,10 +35,10 @@ namespace Pregiato.Application.Services
                     Name = $"Contato {phone}",
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
-                };
+            };
 
-                _context.Contacts.Add(contact);
-                await _context.SaveChangesAsync();
+            _context.Contacts.Add(contact);
+            await _context.SaveChangesAsync();
             }
 
             return new ContactDto
@@ -67,17 +67,17 @@ namespace Pregiato.Application.Services
             if (conversation == null)
             {
                 conversation = new Conversation
-                {
-                    ContactId = contactId,
-                    Channel = "whatsapp",
-                    Status = ConversationStatus.Queued,
+            {
+                ContactId = contactId,
+                Channel = "whatsapp",
+                Status = ConversationStatus.Queued,
                     Priority = ConversationPriority.Normal,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
-                };
+            };
 
-                _context.Conversations.Add(conversation);
-                await _context.SaveChangesAsync();
+            _context.Conversations.Add(conversation);
+            await _context.SaveChangesAsync();
 
                 // Recarregar com relacionamentos
                 conversation = await _context.Conversations

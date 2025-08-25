@@ -24,7 +24,7 @@ import {
 } from 'lucide-react'
 import { TalentData } from '@/types/talent'
 import { useTalentChat, Message } from '@/hooks/useTalentChat'
-import { cn } from '@/lib/utils'
+import { cn } from '../../lib/utils'
 
 interface TalentChatProps {
   talent: TalentData
@@ -40,11 +40,11 @@ export const TalentChat: React.FC<TalentChatProps> = ({ talent, onClose }) => {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   
-  const { conversation, sendMessage, markAsRead, isLoading } = useTalentChat(talent.id)
+  const { conversation, messages, loading, error, sending, sendMessage, markAsRead, refresh } = useTalentChat(talent.id)
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [conversation?.messages])
+  }, [messages])
 
   useEffect(() => {
     if (conversation) {
@@ -54,16 +54,16 @@ export const TalentChat: React.FC<TalentChatProps> = ({ talent, onClose }) => {
 
   // Detectar nova mensagem e aplicar animação
   useEffect(() => {
-    if (conversation?.messages && conversation.messages.length > 0) {
-      const lastMessage = conversation.messages[conversation.messages.length - 1]
-      if (lastMessage.direction === 'in') {
+    if (messages && messages.length > 0) {
+      const lastMessage = messages[messages.length - 1]
+      if (lastMessage.direction === 'incoming') {
         setNewMessageAnimation(lastMessage.id)
         setTimeout(() => {
           setNewMessageAnimation(null)
         }, 2000)
       }
     }
-  }, [conversation?.messages])
+  }, [messages])
 
   // Auto-resize textarea
   useEffect(() => {
@@ -75,7 +75,7 @@ export const TalentChat: React.FC<TalentChatProps> = ({ talent, onClose }) => {
   }, [message])
 
   const handleSendMessage = async () => {
-    if (!message.trim() || isLoading) return
+    if (!message.trim() || loading) return
 
     try {
       await sendMessage(message)
@@ -103,7 +103,7 @@ export const TalentChat: React.FC<TalentChatProps> = ({ talent, onClose }) => {
     if (!file) return
 
     try {
-      await sendMessage('', 'file', file)
+      await sendMessage('', 'document', file.name)
     } catch (error) {
       console.error('Error uploading file:', error)
     }
@@ -115,8 +115,6 @@ export const TalentChat: React.FC<TalentChatProps> = ({ talent, onClose }) => {
 
   const getMessageStatusIcon = (status: Message['status']) => {
     switch (status) {
-      case 'sending':
-        return <Clock className="h-3 w-3 text-muted-foreground" />
       case 'sent':
         return <Check className="h-3 w-3 text-muted-foreground" />
       case 'delivered':
@@ -158,22 +156,16 @@ export const TalentChat: React.FC<TalentChatProps> = ({ talent, onClose }) => {
                   <User className="h-6 w-6" />
                 </AvatarFallback>
               </Avatar>
-              {conversation?.isOnline && (
-                <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-background animate-pulse" />
-              )}
+              <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-background animate-pulse" />
             </div>
             
             <div className="flex-1">
               <h3 className="font-semibold text-lg text-foreground">{talent.fullName}</h3>
               <div className="flex items-center gap-2 text-sm">
                 <span className="text-muted-foreground">{talent.phone}</span>
-                {conversation?.isOnline ? (
-                  <Badge className="bg-green-500/20 text-green-700 dark:text-green-300 border-green-500/30 px-2 py-0.5">
-                    Online
-                  </Badge>
-                ) : (
-                  <span className="text-xs text-muted-foreground">Última vez há 2min</span>
-                )}
+                <Badge className="bg-green-500/20 text-green-700 dark:text-green-300 border-green-500/30 px-2 py-0.5">
+                  Online
+                </Badge>
               </div>
             </div>
           </div>
@@ -211,32 +203,32 @@ export const TalentChat: React.FC<TalentChatProps> = ({ talent, onClose }) => {
       {/* Messages com scroll suave */}
       <ScrollArea className="flex-1 bg-gradient-to-b from-muted/10 to-muted/30">
         <div className="p-4 space-y-4">
-          {conversation?.messages.map((msg, index) => (
+          {messages.map((msg, index) => (
             <div
               key={msg.id}
               className={cn(
                 "flex animate-fade-in",
-                msg.direction === 'out' ? 'justify-end' : 'justify-start',
-                newMessageAnimation === msg.id && msg.direction === 'in' && "animate-pulse"
+                msg.direction === 'outgoing' ? 'justify-end' : 'justify-start',
+                newMessageAnimation === msg.id && msg.direction === 'incoming' && "animate-pulse"
               )}
               style={{ animationDelay: `${index * 50}ms` }}
             >
               <div
                 className={cn(
                   "group relative max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-sm transition-all duration-200 hover:shadow-md",
-                  msg.direction === 'out'
+                  msg.direction === 'outgoing'
                     ? 'bg-gradient-to-br from-primary to-primary/90 text-primary-foreground rounded-br-md'
                     : 'bg-gradient-to-br from-card to-muted/50 border border-border/50 rounded-bl-md',
-                  newMessageAnimation === msg.id && msg.direction === 'in' && "ring-2 ring-primary/50 ring-offset-2 ring-offset-background"
+                  newMessageAnimation === msg.id && msg.direction === 'incoming' && "ring-2 ring-primary/50 ring-offset-2 ring-offset-background"
                 )}
               >
-                {msg.file && (
+                {msg.mediaUrl && (
                   <div className="mb-3">
-                    {msg.file.type.startsWith('image/') ? (
+                    {msg.type === 'image' ? (
                       <div className="relative">
                         <img 
-                          src={msg.file.url} 
-                          alt={msg.file.name}
+                          src={msg.mediaUrl} 
+                          alt={msg.fileName || 'imagem'}
                           className="max-w-full h-auto rounded-xl shadow-sm"
                         />
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-xl" />
@@ -245,25 +237,25 @@ export const TalentChat: React.FC<TalentChatProps> = ({ talent, onClose }) => {
                       <div className="flex items-center gap-3 p-3 bg-white/10 rounded-lg border border-white/20">
                         <Paperclip className="w-5 h-5 opacity-70" />
                         <div>
-                          <p className="text-sm font-medium">{msg.file.name}</p>
-                          <p className="text-xs opacity-70">{msg.file.size ? `${(msg.file.size / 1024).toFixed(1)} KB` : 'Arquivo'}</p>
+                          <p className="text-sm font-medium">{msg.fileName || 'Arquivo'}</p>
+                          <p className="text-xs opacity-70">Arquivo anexado</p>
                         </div>
                       </div>
                     )}
                   </div>
                 )}
                 
-                <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.body}</p>
                 
                 <div className="flex items-center justify-between mt-2 pt-1">
                   <span className={cn(
                     "text-xs opacity-70",
-                    msg.direction === 'out' ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                    msg.direction === 'outgoing' ? 'text-primary-foreground/70' : 'text-muted-foreground'
                   )}>
-                    {formatTime(msg.timestamp)}
+                    {formatTime(msg.createdAt)}
                   </span>
                   
-                  {msg.direction === 'out' && (
+                  {msg.direction === 'outgoing' && (
                     <div className="ml-2">
                       {getMessageStatusIcon(msg.status)}
                     </div>
@@ -292,9 +284,9 @@ export const TalentChat: React.FC<TalentChatProps> = ({ talent, onClose }) => {
       {/* Quick replies */}
       <div className="px-4 py-2 bg-muted/30 border-t border-border/30">
         <div className="flex gap-2 overflow-x-auto pb-2">
-          {quickReplies.map((reply) => (
+          {quickReplies.map((reply, index) => (
             <Button
-              key={reply.text}
+              key={`${reply.text}-${index}`}
               variant="outline"
               size="sm"
               onClick={() => setMessage(reply.text)}
@@ -314,7 +306,7 @@ export const TalentChat: React.FC<TalentChatProps> = ({ talent, onClose }) => {
               variant="ghost" 
               size="icon" 
               onClick={() => fileInputRef.current?.click()}
-              disabled={isLoading}
+              disabled={loading}
               className="hover:bg-primary/10 text-primary"
             >
               <Paperclip className="h-5 w-5" />
@@ -323,7 +315,7 @@ export const TalentChat: React.FC<TalentChatProps> = ({ talent, onClose }) => {
             <Button 
               variant="ghost" 
               size="icon"
-              disabled={isLoading}
+              disabled={loading}
               className="hover:bg-primary/10 text-primary"
             >
               <ImageIcon className="h-5 w-5" />
@@ -338,7 +330,7 @@ export const TalentChat: React.FC<TalentChatProps> = ({ talent, onClose }) => {
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
               className="min-h-[44px] max-h-[120px] resize-none rounded-full border-border/50 bg-muted/30 px-4 py-3 pr-12 focus:bg-background focus:border-primary/50 transition-all duration-200"
-              disabled={isLoading}
+              disabled={loading}
             />
             <Button
               variant="ghost"
@@ -353,7 +345,7 @@ export const TalentChat: React.FC<TalentChatProps> = ({ talent, onClose }) => {
             {message.trim() ? (
               <Button 
                 onClick={handleSendMessage}
-                disabled={!message.trim() || isLoading}
+                disabled={!message.trim() || loading}
                 className="rounded-full w-11 h-11 p-0 bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all duration-200"
               >
                 <Send className="h-5 w-5" />

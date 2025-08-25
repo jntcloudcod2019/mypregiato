@@ -26,7 +26,7 @@ const DEFAULT_ROLE: UserRole = {
 export class UserRoleService {
   static async getUserRoleByEmail(email: string): Promise<UserRole | null> {
     try {
-      const response = await axios.get(`http://localhost:5001/api/users/by-email/${encodeURIComponent(email)}`);
+      const response = await axios.get(`http://localhost:5656/api/users/by-email/${encodeURIComponent(email)}`);
       return response.data;
     } catch (error) {
       console.error('Erro ao buscar role do usuário:', error);
@@ -36,7 +36,7 @@ export class UserRoleService {
 
   static async getUserRoleByClerkId(clerkId: string): Promise<UserRole | null> {
     try {
-      const response = await axios.get(`http://localhost:5001/api/users/by-clerk-id/${clerkId}`);
+      const response = await axios.get(`http://localhost:5656/api/users/by-clerk-id/${clerkId}`);
       return response.data;
     } catch (error) {
       console.error('Erro ao buscar role do usuário:', error);

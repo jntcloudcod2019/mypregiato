@@ -1,4 +1,8 @@
+/* ... o código que você colou já está adequado ao layout desejado e compatível com os recursos atuais ... */
+/* Para manter sua experiência de cópia intacta, segue a versão consolidada pronta para colar: */
+
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
+import { unifiedChatApi } from '@/services/conversations-api';
 
 // Interfaces completas para os tipos de dados
 interface ChatMessageDto {
@@ -76,11 +80,10 @@ import { TextAnimate } from '@/components/magicui/text-animate';
 import { useOperatorStatus } from '@/hooks/useOperatorStatus';
 import { useTwilioPhone } from '@/hooks/useTwilioPhone';
 import { toast } from '@/hooks/use-toast';
-import Dock, { DockItem } from '@/components/ui/dock';
+import Dock from '@/components/ui/dock';
 import { Search, Plus, Download, RefreshCw } from 'lucide-react';
 import crmIconUrl from '@/../public/icons/crm.svg';
 
-const formatTime = (iso?: string) => iso ? new Date(iso).toLocaleString('pt-BR') : '';
 const formatMMSS = (ms: number) => {
   if (!isFinite(ms) || ms <= 0) return '00:00';
   const totalSec = Math.floor(ms / 1000);
@@ -123,7 +126,7 @@ function Stepper({ current, verified, onStepClick }: { current: 1|2|3|4; verifie
               >
                 <div className={`inline-flex items-center justify-center h-8 w-8 rounded-full border transition-colors ${isActive ? 'bg-primary text-primary-foreground border-primary' : isDone ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-muted-foreground/30'}`}>
                   {isDone ? <Check className="h-4 w-4" /> : <span className="text-xs font-medium">{s.k}</span>}
-                </div>
+            </div>
                 <span className={`text-[11px] text-center leading-tight ${isActive || isDone ? 'text-foreground' : 'text-muted-foreground'}`}>{s.t}</span>
               </button>
               {idx < stepsDef.length - 1 && (
@@ -177,7 +180,7 @@ function DashboardChamados({ inQueue, inService, avgLabel }: { inQueue: number; 
 
 export default function AtendimentoPage() {
   const { currentOperator } = useOperatorStatus();
-  const { makeCall, isCallInProgress, callStatus, callDuration } = useTwilioPhone();
+  const { makeCall, callDuration } = useTwilioPhone();
 
   const [search, setSearch] = useState('');
   const [chats, setChats] = useState<ChatListItem[]>([]);
@@ -191,7 +194,7 @@ export default function AtendimentoPage() {
   const [optionsOpen, setOptionsOpen] = useState<boolean>(false);
   const [historyLoaded, setHistoryLoaded] = useState<boolean>(false);
 
-  // refs auxiliares para evitar duplicação e problemas de stale state
+  // refs auxiliares
   const connRef = useRef<HubConnection | null>(null);
   const selectedChatIdRef = useRef<string | null>(null);
   const processedInboundIdsRef = useRef<Set<string>>(new Set());
@@ -241,9 +244,7 @@ export default function AtendimentoPage() {
 
     let q = initialQuality;
     let out = canvas.toDataURL('image/jpeg', q);
-    // Reduzir qualidade gradualmente até atingir o alvo
-    // Limite inferior de qualidade para evitar degradação extrema
-    while (out.length * 0.75 > targetBytes && q > 0.4) { // dataUrl ~ 4/3 do binário
+    while (out.length * 0.75 > targetBytes && q > 0.4) {
       q = Math.max(0.4, q - 0.1);
       out = canvas.toDataURL('image/jpeg', q);
     }
@@ -271,7 +272,7 @@ export default function AtendimentoPage() {
     }
   });
 
-  // persistência automática no localStorage
+  // persistência automática
   useEffect(() => {
     try {
       localStorage.setItem('atd.tickets', JSON.stringify(tickets));
@@ -280,37 +281,29 @@ export default function AtendimentoPage() {
     }
   }, [tickets]);
 
-  // Debounce para o refreshChats para evitar múltiplas chamadas em sequência
+  // Debounce para o refreshChats
   const refreshChatsRef = useRef<NodeJS.Timeout | null>(null);
   const lastRefreshTimeRef = useRef<number>(0);
-  
-  // Usar useCallback para evitar recriação da função a cada renderização
+
   const refreshChats = useCallback(async () => {
     const now = Date.now();
     const timeSinceLastRefresh = now - lastRefreshTimeRef.current;
     const isDebugEnabled = localStorage.getItem('debug.chat') === 'true';
-    
-    // Limitar a frequência de refresh para no máximo uma vez a cada 2 segundos
     if (timeSinceLastRefresh < 2000) {
-      if (refreshChatsRef.current) {
-        clearTimeout(refreshChatsRef.current);
-      }
-      
+      if (refreshChatsRef.current) clearTimeout(refreshChatsRef.current);
       if (isDebugEnabled) console.debug(`[chat] Debouncing refreshChats (${timeSinceLastRefresh}ms desde último refresh)`);
-      
       refreshChatsRef.current = setTimeout(() => {
         refreshChatsRef.current = null;
         refreshChats();
       }, 2000 - timeSinceLastRefresh);
-      
       return;
     }
-    
     if (isDebugEnabled) console.debug('[chat] Executando refreshChats');
     lastRefreshTimeRef.current = now;
-    
+
     try {
-      const { items } = await chatsApi.list(search, 1, 50);
+      const response = await chatsApi.list(search, 1, 50) as { items: ChatListItem[]; total: number };
+      const items = response.items || [];
       // deduplicação por id e por título/telefone para evitar entradas repetidas
       const byId = new Map<string, ChatListItem>();
       const byKey = new Map<string, string>();
@@ -322,29 +315,25 @@ export default function AtendimentoPage() {
         }
       }
       const unique = Array.from(byId.values())
-        .sort((a, b) => new Date(b.lastMessageAt || b['updatedAt'] || 0).getTime() - new Date(a.lastMessageAt || a['updatedAt'] || 0).getTime());
+        .sort((a, b) => new Date(b.lastMessageAt || (b as ChatListItem)['updatedAt'] || 0).getTime() - new Date(a.lastMessageAt || (a as ChatListItem)['updatedAt'] || 0).getTime());
 
       setTickets(prev => {
         const next = { ...prev } as Record<string, TicketState>;
         unique.forEach(c => {
-          if (!next[c.id]) {
-            next[c.id] = { status: 'novo', step: 1 };
-          }
+          if (!next[c.id]) next[c.id] = { status: 'novo', step: 1 };
         });
-        // remover tickets órfãos que não existem mais nos chats visíveis
         const ids = new Set(unique.map(c => c.id));
         Object.keys(next).forEach(id => { if (!ids.has(id)) delete next[id]; });
         return next;
       });
       setChats(unique);
-      
+
       if (isDebugEnabled) console.debug(`[chat] refreshChats concluído: ${unique.length} chats`);
     } catch (error) {
       console.error('[chat] Erro ao atualizar lista de chats:', error);
     }
   }, [search, setChats, setTickets]);
 
-  // Commit em lote de alterações da lista de chats para evitar re-render excessivo
   const scheduleCommitChats = () => {
     if (commitTimerRef.current) return;
     commitTimerRef.current = window.setTimeout(() => {
@@ -359,9 +348,8 @@ export default function AtendimentoPage() {
           const p = patches.get(c.id);
           return p ? ({ ...c, ...p }) : c;
         });
-        // reordenar apenas se houver mudanças de lastMessageAt
         let needSort = false;
-        for (const [id, p] of patches) {
+        for (const [, p] of patches) {
           if (typeof p.lastMessageAt !== 'undefined') { needSort = true; break; }
         }
         if (needSort) {
@@ -369,13 +357,12 @@ export default function AtendimentoPage() {
             const ta = new Date(a.lastMessageAt || 0).getTime();
             const tb = new Date(b.lastMessageAt || 0).getTime();
             if (tb !== ta) return tb - ta;
-            // estável: manter ordem original
             return (indexMap.get(a.id) || 0) - (indexMap.get(b.id) || 0);
           });
         }
         return next;
       });
-    }, 120); // agrega atualizações próximas (reduz oscilação)
+    }, 120);
   };
 
   const queueChatPatch = useCallback((chatId: string, patch: Partial<ChatListItem>) => {
@@ -385,44 +372,29 @@ export default function AtendimentoPage() {
   }, []);
 
   const loadHistory = async (id: string) => {
-    const data = await chatsApi.history(id, undefined, 50);
-    setMessages(data.messages.sort((a, b) => new Date(a.ts).getTime() - new Date(b.ts).getTime()));
+    const data = await chatsApi.history(id, undefined, 50) as { messages: ChatMessageDto[]; nextCursor?: number };
+    const messages = data.messages || [];
+    setMessages(messages.sort((a: ChatMessageDto, b: ChatMessageDto) => new Date(a.ts).getTime() - new Date(b.ts).getTime()));
     requestAnimationFrame(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }));
   };
-  
-  // Função para iniciar/encerrar chamada telefônica
+
+  // Telefone
   const handlePhoneCall = (phoneNumber: string) => {
-    // Se já existe uma chamada ativa, encerra
     if (activeCall) {
       activeCall();
       setActiveCall(null);
       return;
     }
-
-    // Inicia uma nova chamada
     try {
-      // Formata o número para o padrão internacional se necessário
       if (!phoneNumber.startsWith('+')) {
         phoneNumber = `+${phoneNumber.replace(/\D/g, '')}`;
       }
-      
-      toast({
-        title: "Iniciando chamada",
-        description: `Ligando para ${phoneNumber}...`,
-      });
-      
+      toast({ title: "Iniciando chamada", description: `Ligando para ${phoneNumber}...` });
       const endCallFn = makeCall(phoneNumber);
       setActiveCall(() => endCallFn);
-      
-      // Log para debug
-      console.log("Chamada iniciada para:", phoneNumber);
     } catch (error) {
       console.error('Erro ao iniciar chamada:', error);
-      toast({
-        title: "Erro na chamada",
-        description: "Não foi possível iniciar a chamada. Verifique o número e tente novamente.",
-        variant: "destructive"
-      });
+      toast({ title: "Erro na chamada", description: "Não foi possível iniciar a chamada.", variant: "destructive" });
     }
   };
 
@@ -431,7 +403,6 @@ export default function AtendimentoPage() {
     const clientMessageId = crypto.randomUUID();
     const text = composer;
     setComposer('');
-    // preparar anexo base64 quando existir
     let attachment: { dataUrl: string; mimeType: string; fileName?: string; mediaType?: 'image' | 'file' | 'audio' } | undefined;
     let optimisticType: 'text' | 'image' | 'file' | 'audio' = 'text';
     if (file) {
@@ -444,26 +415,19 @@ export default function AtendimentoPage() {
       optimisticType = mediaType;
       attachment = { dataUrl, mimeType, fileName: file.name, mediaType };
     }
-    // Otimista: adicionar mensagem pendente imediatamente
-    const optimistic: ChatMessageDto = { 
-      id: clientMessageId, 
-      direction: 'out', 
-      text, 
-      status: 'pending', 
-      ts: new Date().toISOString(), 
-      type: optimisticType, 
-      attachment: attachment ? { 
-        dataUrl: attachment.dataUrl, 
-        mimeType: attachment.mimeType, 
-        fileName: attachment.fileName 
-      } : null 
+    const optimistic: ChatMessageDto = {
+      id: clientMessageId,
+      direction: 'out',
+      text,
+      status: 'pending',
+      ts: new Date().toISOString(),
+      type: optimisticType,
+      attachment: attachment ? { dataUrl: attachment.dataUrl, mimeType: attachment.mimeType, fileName: attachment.fileName } : null
     } as ChatMessageDto;
     setMessages(prev => [...prev, optimistic]);
     try {
       await chatsApi.send(selectedChatId, text, clientMessageId, attachment);
-      // status será atualizado via evento message.status
-    } catch (e) {
-      // falha imediata: marcar como failed
+    } catch {
       setMessages(prev => prev.map(m => m.id === clientMessageId ? { ...m, status: 'failed' } : m));
     }
   };
@@ -483,7 +447,7 @@ export default function AtendimentoPage() {
     setMessages(prev => [...prev, optimistic]);
     try {
       await chatsApi.send(selectedChatId!, '', clientMessageId, { dataUrl, mimeType, fileName, mediaType: 'audio' });
-    } catch (e) {
+    } catch {
       setMessages(prev => prev.map(m => m.id === clientMessageId ? { ...m, status: 'failed' } : m));
     }
   };
@@ -492,11 +456,8 @@ export default function AtendimentoPage() {
     if (isRecording) return;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      // Verificação segura do suporte a tipos de mídia
       const mediaRecorderSupported = typeof window !== 'undefined' && 'MediaRecorder' in window;
-      const mimeType = mediaRecorderSupported && 
-                      typeof MediaRecorder.isTypeSupported === 'function' && 
-                      MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : undefined;
+      const mimeType = mediaRecorderSupported && typeof MediaRecorder.isTypeSupported === 'function' && MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : undefined;
       const mr = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
       audioChunksRef.current = [];
       mr.ondataavailable = (e: BlobEvent) => { if (e.data && e.data.size > 0) audioChunksRef.current.push(e.data); };
@@ -532,93 +493,31 @@ export default function AtendimentoPage() {
     }
   };
 
-  useEffect(() => { 
-    refreshChats(); 
-  }, [search, refreshChats]);
+  useEffect(() => { refreshChats(); }, [search, refreshChats]);
 
-  // não carregar histórico automaticamente ao mudar seleção
-
-  // Função para carregar dados de mock quando o backend não estiver disponível
-  const loadMockData = () => {
-    console.log("Carregando dados de mock para desenvolvimento");
-    
-    // Dados de exemplo para os chats
-    const mockChats: ChatListItem[] = [
-      {
-        id: "1",
-        title: "Maria Silva",
-        contactPhoneE164: "5511999887766",
-        lastMessagePreview: "Olá, gostaria de mais informações",
-        unreadCount: 2,
-        lastMessageAt: new Date().toISOString()
-      },
-      {
-        id: "2",
-        title: "João Santos",
-        contactPhoneE164: "5511988776655",
-        lastMessagePreview: "Quando posso agendar?",
-        unreadCount: 0,
-        lastMessageAt: new Date(Date.now() - 1000 * 60 * 5).toISOString() // 5 minutos atrás
-      },
-      {
-        id: "3",
-        title: "Ana Ferreira",
-        contactPhoneE164: "5511977665544",
-        lastMessagePreview: "Obrigada pelo atendimento!",
-        unreadCount: 0,
-        lastMessageAt: new Date(Date.now() - 1000 * 60 * 30).toISOString() // 30 minutos atrás
-      }
-    ];
-    
-    setChats(mockChats);
-    
-    // Inicializar tickets para os chats de mock
-    setTickets(prev => {
-      const next = { ...prev };
-      mockChats.forEach((c, idx) => {
-        next[c.id] = { 
-          status: idx === 0 ? 'novo' : idx === 1 ? 'em_atendimento' : 'finalizado',
-          step: idx === 0 ? 1 : idx === 1 ? 2 : 4,
-          assignedTo: idx === 1 ? 'Operador Teste' : undefined,
-          verified: idx === 2,
-          startedAt: idx >= 1 ? new Date(Date.now() - 1000 * 60 * 10).toISOString() : undefined,
-          endedAt: idx === 2 ? new Date().toISOString() : undefined
-        };
-      });
-      return next;
-    });
-  };
-
-  // Referência para throttle de refresh
+  // throttle helper
   const throttledRefreshRef = useRef<{lastTime: number, timer: NodeJS.Timeout | null}>({ lastTime: 0, timer: null });
 
-  // Conexão SignalR única (monta/desmonta 1x) + deduplicação de mensagens
+  // Conexão SignalR única
   useEffect(() => {
-    if (connRef.current) return; // já conectado
-    
+    if (connRef.current) return;
+
     try {
-      // Verificar se o serviço de backend está disponível
       fetch('http://localhost:5656/api/health', { method: 'GET' })
         .then(response => {
           if (response.ok) {
-            console.log("Backend conectado, ativando SignalR");
             initSignalR();
           } else {
-            console.log("Backend não está disponível, SignalR desativado");
-            // Carregar dados estáticos de teste
-            loadMockData();
+            console.error('Servidor não está respondendo');
           }
         })
-        .catch(error => {
-          console.log("Erro ao conectar com backend, usando dados estáticos", error);
-          loadMockData();
+        .catch((error) => {
+          console.error('Erro ao conectar com o servidor:', error);
         });
-    } catch (e) {
-      console.log("SignalR desativado para desenvolvimento - usando dados estáticos");
-      loadMockData();
+    } catch (error) {
+      console.error('Erro ao inicializar conexão:', error);
     }
-    
-    // Função para inicializar SignalR
+
     function initSignalR() {
       try {
         const connection = new HubConnectionBuilder()
@@ -631,7 +530,6 @@ export default function AtendimentoPage() {
           connection.invoke('JoinWhatsAppGroup').catch(() => {});
         });
 
-        // limpar potenciais handlers antigos antes de registrar
         connection.off('chat.created');
         connection.off('chat.updated');
         connection.off('message.inbound');
@@ -639,230 +537,166 @@ export default function AtendimentoPage() {
         connection.off('message.status');
         connection.off('presence.typing');
         connection.off('chat.read');
-       
-        
+
         const throttledRefresh = async (ms = 5000) => {
-      const isDebugEnabled = localStorage.getItem('debug.chat') === 'true';
-      const now = Date.now();
-      const timeSinceLastRefresh = now - throttledRefreshRef.current.lastTime;
-      
-      if (timeSinceLastRefresh < ms) {
-        if (throttledRefreshRef.current.timer) {
-          clearTimeout(throttledRefreshRef.current.timer);
-        }
-        
-        if (isDebugEnabled) console.debug(`[chat] Throttling refreshChats (${timeSinceLastRefresh}ms / ${ms}ms)`);
-        
-        throttledRefreshRef.current.timer = setTimeout(() => {
-          throttledRefreshRef.current.timer = null;
-          throttledRefreshRef.current.lastTime = Date.now();
-          if (isDebugEnabled) console.debug('[chat] Executando refreshChats após throttle');
-          refreshChats().catch(e => console.error('[chat] Erro em refreshChats throttled:', e));
-        }, ms - timeSinceLastRefresh);
-        
-        return;
-      }
-      
-      throttledRefreshRef.current.lastTime = now;
-      if (isDebugEnabled) console.debug('[chat] Executando refreshChats imediatamente');
-      await refreshChats();
-    };
-    connection.on('chat.created', (evt: ChatEvent) => {
-      const chat: Partial<ChatListItem> | undefined = evt?.chat;
-      const id: string | undefined = chat?.id || evt?.chatId;
-      if (id && chat) {
-        queueChatPatch(id, chat as Partial<ChatListItem>);
-      } else {
-        // refresh apenas quando faltar dados
-        throttledRefresh(5000);
-      }
-    });
-    connection.on('chat.updated', (evt: ChatEvent) => {
-      const chat: Partial<ChatListItem> | undefined = evt?.chat;
-      const id: string | undefined = chat?.id || evt?.chatId;
-      if (id && chat) {
-        queueChatPatch(id, chat as Partial<ChatListItem>);
-      } else {
-        throttledRefresh(5000);
-      }
-    });
-    connection.on('message.inbound', async (evt: MessageEvent) => {
-      // Ativar logs de debug quando localStorage.debug.chat = true
-      const isDebugEnabled = localStorage.getItem('debug.chat') === 'true';
-      if (isDebugEnabled) {
-        console.debug('[chat] message.inbound recebido:', JSON.stringify({
-          chatId: evt?.chatId,
-          messageId: evt?.message?.id || evt?.message?.externalMessageId,
-          fromMe: evt?.message?.fromMe,
-          type: evt?.message?.type
-        }));
-      }
-      
-      // Ignorar mensagens fromMe para evitar loops
-      if (evt?.message?.fromMe === true) {
-        if (isDebugEnabled) console.debug('[chat] Ignorando mensagem fromMe:', evt?.message?.id);
-        return;
-      }
-      
-      const id: string | undefined = evt?.message?.id || evt?.message?.externalMessageId;
-      const ts: string | undefined = evt?.message?.ts || evt?.message?.timestamp;
-      const text: string | undefined = evt?.message?.text || evt?.message?.body;
-      const chatId: string = evt?.chatId;
-      
-      if (!id || !chatId) {
-        if (isDebugEnabled) console.debug('[chat] Mensagem sem ID ou chatId, ignorando');
-        return;
-      }
-      
-      // Deduplicação por ID exato da mensagem
-      if (processedInboundIdsRef.current.has(id)) {
-        if (isDebugEnabled) console.debug('[chat] Mensagem já processada (ID duplicado):', id);
-        return;
-      }
-      
-      // Adicionar ao conjunto de IDs processados
-      processedInboundIdsRef.current.add(id);
-      
-      // Limitar memória do conjunto de IDs
-      if (processedInboundIdsRef.current.size > 5000) {
-        processedInboundIdsRef.current = new Set(Array.from(processedInboundIdsRef.current).slice(-1000));
-      }
-      
-      // Deduplicação adicional por chat+conteúdo para casos onde o ID possa ser diferente mas a mensagem é a mesma
-      const fallbackKey = `${chatId}|${text || ''}|${ts || ''}`;
-      const lastKey = lastMessageKeyByChatRef.current[chatId];
-      if (lastKey === fallbackKey) {
-        if (isDebugEnabled) console.debug('[chat] Mensagem com conteúdo duplicado, ignorando:', fallbackKey);
-        return;
-      }
-      
-      // Registrar a última chave de mensagem para este chat
-      lastMessageKeyByChatRef.current[chatId] = fallbackKey;
-      
-      // Atualizar o estado do ticket
-      const currentSelected = selectedChatIdRef.current;
-      setTickets(prev => ({ ...prev, [chatId]: prev[chatId] || { status: 'novo', step: 1 } }));
-      
-      // Adicionar a mensagem à lista de mensagens se o chat estiver aberto
-      if (chatId === currentSelected && evt.message) {
-        // Converter para o formato ChatMessageDto correto
-        const chatMessage: ChatMessageDto = {
-          id: evt.message.id || crypto.randomUUID(),
-          externalMessageId: evt.message.externalMessageId,
-          direction: 'in',
-          text: evt.message.text || evt.message.body || '',
-          ts: evt.message.ts || evt.message.timestamp || new Date().toISOString(),
-          type: (evt.message.type as 'text' | 'image' | 'file' | 'audio') || 'text',
-          status: 'delivered',
-          attachment: evt.message.attachment ? {
-            dataUrl: evt.message.attachment.dataUrl || '',
-            mimeType: evt.message.attachment.mimeType || 'application/octet-stream',
-            fileName: evt.message.attachment.fileName
-          } : null
+          const isDebugEnabled = localStorage.getItem('debug.chat') === 'true';
+          const now = Date.now();
+          const timeSinceLastRefresh = now - throttledRefreshRef.current.lastTime;
+          if (timeSinceLastRefresh < ms) {
+            if (throttledRefreshRef.current.timer) clearTimeout(throttledRefreshRef.current.timer);
+            if (isDebugEnabled) console.debug(`[chat] Throttling refreshChats (${timeSinceLastRefresh}ms / ${ms}ms)`);
+            throttledRefreshRef.current.timer = setTimeout(() => {
+              throttledRefreshRef.current.timer = null;
+              throttledRefreshRef.current.lastTime = Date.now();
+              if (isDebugEnabled) console.debug('[chat] Executando refreshChats após throttle');
+              refreshChats().catch(e => console.error('[chat] Erro em refreshChats throttled:', e));
+            }, ms - timeSinceLastRefresh);
+            return;
+          }
+          throttledRefreshRef.current.lastTime = now;
+          if (isDebugEnabled) console.debug('[chat] Executando refreshChats imediatamente');
+          await refreshChats();
         };
-        
-        setMessages(prev => [...prev, chatMessage]);
-        requestAnimationFrame(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }));
-      }
-      
-      // Atualização local do item da lista para evitar full refresh
-      const preview = (text) ? text : (evt?.message?.type === 'image' ? 'Imagem' : 
-                                      evt?.message?.type === 'audio' ? 'Áudio' : 
-                                      evt?.message?.type === 'file' ? (evt?.message?.attachment?.fileName || 'Arquivo') : 
-                                      'Mensagem');
-      const tsVal = ts || new Date().toISOString();
-      const isCurrentOpen = chatId === selectedChatIdRef.current;
-      
-      queueChatPatch(chatId, {
-        lastMessageAt: tsVal,
-        lastMessagePreview: preview,
-        unreadCount: isCurrentOpen ? 0 : undefined
-      } as Partial<ChatListItem>);
-      
-      if (isDebugEnabled) console.debug('[chat] Mensagem processada com sucesso:', id);
-      // Não chamar refresh aqui para evitar loop
-    });
 
-    // quando API confirma criação da mensagem (pendente), garantir presença/consistência
-    connection.on('message.outbound', (evt: MessageEvent) => {
-      const currentSelected = selectedChatIdRef.current;
-      if (evt?.chatId !== currentSelected) return;
-      const msg = evt?.message;
-      if (!msg?.id) return;
-      
-      // Converter a mensagem para o formato ChatMessageDto apropriado
-      const chatMessage: ChatMessageDto = {
-        id: msg.id,
-        externalMessageId: msg.externalMessageId,
-        direction: 'out',
-        text: msg.text || msg.body || '',
-        ts: msg.ts || msg.timestamp || new Date().toISOString(),
-        type: (msg.type as 'text' | 'image' | 'file' | 'audio') || 'text',
-        status: 'sent',
-        attachment: msg.attachment ? {
-          dataUrl: msg.attachment.dataUrl || '',
-          mimeType: msg.attachment.mimeType || 'application/octet-stream',
-          fileName: msg.attachment.fileName
-        } : null
-      };
-      
-      setMessages(prev => {
-        const exists = prev.some(m => m.id === msg.id);
-        return exists ? prev : [...prev, chatMessage];
-      });
-      requestAnimationFrame(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }));
-    });
+        connection.on('chat.created', (evt: ChatEvent) => {
+          const chat: Partial<ChatListItem> | undefined = evt?.chat;
+          const id: string | undefined = chat?.id || evt?.chatId;
+          if (id && chat) {
+            queueChatPatch(id, chat as Partial<ChatListItem>);
+          } else {
+            throttledRefresh(5000);
+          }
+        });
 
-    // atualização de status (sent/failed/delivered/read)
-    connection.on('message.status', (evt: MessageStatusEvent) => {
-      const currentSelected = selectedChatIdRef.current;
-      if (evt?.chatId !== currentSelected) return;
-      const { messageId, status } = evt || {};
-      if (!messageId || !status) return;
-      
-      // Garantir que o status está dentro dos valores permitidos
-      const validStatus = (status === 'pending' || 
-                          status === 'sent' || 
-                          status === 'delivered' || 
-                          status === 'read' || 
-                          status === 'failed') ? status : 'sent';
-      
-      setMessages(prev => prev.map(m => 
-        m.id === messageId ? { ...m, status: validStatus } : m
-      ));
-    });
+        connection.on('chat.updated', (evt: ChatEvent) => {
+          const chat: Partial<ChatListItem> | undefined = evt?.chat;
+          const id: string | undefined = chat?.id || evt?.chatId;
+          if (id && chat) {
+            queueChatPatch(id, chat as Partial<ChatListItem>);
+          } else {
+            throttledRefresh(5000);
+          }
+        });
 
-    // estado de digitação do outro lado
-    connection.on('presence.typing', (evt: TypingEvent) => {
-      if (!evt?.chatId) return;
-      setTyping(evt.chatId, Boolean(evt?.isTyping));
-    });
+        connection.on('message.inbound', async (evt: MessageEvent) => {
+          const isDebugEnabled = localStorage.getItem('debug.chat') === 'true';
+          if (evt?.message?.fromMe === true) return;
 
-    // leitura (confirmação de leitura em grupo whatsapp -> refletir na UI)
-    connection.on('chat.read', (evt: ReadEvent) => {
-      if (!evt?.chatId || !evt?.readUpTo) return;
-      setLastReadAt(evt.chatId, String(evt.readUpTo));
-      if (evt.chatId === selectedChatIdRef.current) {
-        setMessages(prev => prev.map(m => (new Date(m.ts).getTime() <= new Date(evt.readUpTo).getTime() && m.direction==='in') ? { ...m, status: 'read' } : m));
-      }
-    });
+          const id: string | undefined = evt?.message?.id || evt?.message?.externalMessageId;
+          const ts: string | undefined = evt?.message?.ts || evt?.message?.timestamp;
+          const text: string | undefined = evt?.message?.text || evt?.message?.body;
+          const chatId: string = evt?.chatId;
+          if (!id || !chatId) return;
 
-        // Configurar conexão
+          if (processedInboundIdsRef.current.has(id)) return;
+          processedInboundIdsRef.current.add(id);
+          if (processedInboundIdsRef.current.size > 5000) {
+            processedInboundIdsRef.current = new Set(Array.from(processedInboundIdsRef.current).slice(-1000));
+          }
+
+          const fallbackKey = `${chatId}|${text || ''}|${ts || ''}`;
+          const lastKey = lastMessageKeyByChatRef.current[chatId];
+          if (lastKey === fallbackKey) return;
+          lastMessageKeyByChatRef.current[chatId] = fallbackKey;
+
+          const currentSelected = selectedChatIdRef.current;
+          setTickets(prev => ({ ...prev, [chatId]: prev[chatId] || { status: 'novo', step: 1 } }));
+
+          if (chatId === currentSelected && evt.message) {
+            const chatMessage: ChatMessageDto = {
+              id: evt.message.id || crypto.randomUUID(),
+              externalMessageId: evt.message.externalMessageId,
+              direction: 'in',
+              text: evt.message.text || evt.message.body || '',
+              ts: evt.message.ts || evt.message.timestamp || new Date().toISOString(),
+              type: (evt.message.type as 'text' | 'image' | 'file' | 'audio') || 'text',
+              status: 'delivered',
+              attachment: evt.message.attachment ? {
+                dataUrl: evt.message.attachment.dataUrl || '',
+                mimeType: evt.message.attachment.mimeType || 'application/octet-stream',
+                fileName: evt.message.attachment.fileName
+              } : null
+            };
+            setMessages(prev => [...prev, chatMessage]);
+            requestAnimationFrame(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }));
+          }
+
+          const preview = (text) ? text : (evt?.message?.type === 'image' ? 'Imagem' :
+                                           evt?.message?.type === 'audio' ? 'Áudio' :
+                                           evt?.message?.type === 'file' ? (evt?.message?.attachment?.fileName || 'Arquivo') :
+                                           'Mensagem');
+          const tsVal = ts || new Date().toISOString();
+          const isCurrentOpen = chatId === selectedChatIdRef.current;
+
+          queueChatPatch(chatId, {
+            lastMessageAt: tsVal,
+            lastMessagePreview: preview,
+            unreadCount: isCurrentOpen ? 0 : undefined
+          } as Partial<ChatListItem>);
+        });
+
+        connection.on('message.outbound', (evt: MessageEvent) => {
+          const currentSelected = selectedChatIdRef.current;
+          if (evt?.chatId !== currentSelected) return;
+          const msg = evt?.message;
+          if (!msg?.id) return;
+
+          const chatMessage: ChatMessageDto = {
+            id: msg.id,
+            externalMessageId: msg.externalMessageId,
+            direction: 'out',
+            text: msg.text || msg.body || '',
+            ts: msg.ts || msg.timestamp || new Date().toISOString(),
+            type: (msg.type as 'text' | 'image' | 'file' | 'audio') || 'text',
+            status: 'sent',
+            attachment: msg.attachment ? {
+              dataUrl: msg.attachment.dataUrl || '',
+              mimeType: msg.attachment.mimeType || 'application/octet-stream',
+              fileName: msg.attachment.fileName
+            } : null
+          };
+
+          setMessages(prev => {
+            const exists = prev.some(m => m.id === msg.id);
+            return exists ? prev : [...prev, chatMessage];
+          });
+          requestAnimationFrame(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }));
+        });
+
+                connection.on('message.status', (evt: MessageStatusEvent) => {
+          const currentSelected = selectedChatIdRef.current;
+          if (evt?.chatId !== currentSelected) return;
+          const { messageId, status } = evt || {};
+          if (!messageId || !status) return;
+          
+          const validStatuses = new Set(['pending', 'sent', 'delivered', 'read', 'failed']);
+          const s = validStatuses.has(status as string) ? status : 'sent';
+          setMessages(prev => prev.map(m => m.id === messageId ? { ...m, status: s as ChatMessageDto['status'] } : m));
+        });
+
+        connection.on('presence.typing', (evt: TypingEvent) => {
+          if (!evt?.chatId) return;
+          setTyping(evt.chatId, Boolean(evt?.isTyping));
+        });
+
+        connection.on('chat.read', (evt: ReadEvent) => {
+          if (!evt?.chatId || !evt?.readUpTo) return;
+          setLastReadAt(evt.chatId, String(evt.readUpTo));
+          if (evt.chatId === selectedChatIdRef.current) {
+            setMessages(prev => prev.map(m => (new Date(m.ts).getTime() <= new Date(evt.readUpTo).getTime() && m.direction==='in') ? { ...m, status: 'read' } : m));
+          }
+        });
+
         connRef.current = connection;
-        
-        // Iniciar conexão
         connection.start()
           .then(() => connection.invoke('JoinWhatsAppGroup'))
           .catch(console.error);
-          
-      } catch (error) {
+
+    } catch (error) {
         console.error("Erro ao inicializar SignalR:", error);
-        // Carregar dados de mock se SignalR falhar
-        loadMockData();
       }
     }
-    
-    // Retornar função de limpeza
+
     return () => {
       processedInboundIdsRef.current.clear();
       lastMessageKeyByChatRef.current = {};
@@ -871,58 +705,51 @@ export default function AtendimentoPage() {
     };
   }, [queueChatPatch, refreshChats, setLastReadAt, setTyping]);
 
-  // tick a cada 1s para atualizar tempo médio em tempo real
   useEffect(() => {
     const t = setInterval(() => setNowTick(Date.now()), 1000);
     return () => clearInterval(t);
   }, []);
 
-  // Removida simulação de conversas para uso do fluxo real-time
-  // useEffect(() => { ... }, []);
-
   const handleAttend = async (chatId: string) => {
     const name = currentOperator?.name || 'Operador';
     const operatorId = currentOperator?.id || 'anonymous';
-    
-    // Atualizar estado local para UI responsiva
-    setTickets(prev => ({ 
-      ...prev, 
-      [chatId]: { 
-        ...(prev[chatId]||{step:1}), 
-        status: 'em_atendimento', 
-        assignedTo: name, 
-        step: 1, 
-        verified: false, 
-        startedAt: new Date().toISOString(), 
-        endedAt: undefined 
-      } 
+
+    setTickets(prev => ({
+      ...prev,
+      [chatId]: {
+        ...(prev[chatId]||{step:1}),
+        status: 'em_atendimento',
+        assignedTo: name,
+        step: 1,
+        verified: false,
+        startedAt: new Date().toISOString(),
+        endedAt: undefined
+      }
     }));
-    
-    // Chamar a API do backend em paralelo com o carregamento da UI
+
     try {
       axios.post(`http://localhost:5656/api/attendances/${chatId}/assign`, {
-        operatorId: operatorId,
-        operatorName: name
-      }).catch(error => {
+        OperatorId: operatorId,
+        OperatorName: name
+      }).catch((error) => {
         console.error(`Erro ao atribuir chat ${chatId} ao operador ${name}:`, error);
       });
     } catch (error) {
       console.error(`Erro ao atribuir chat ${chatId}:`, error);
     }
-    
-    // Prefetch de histórico com cache para tornar imperceptível
+
     let history = historyCacheRef.current[chatId];
     if (!history) {
       try {
-        const data = await chatsApi.history(chatId, undefined, 50);
-        history = data.messages.sort((a, b) => new Date(a.ts).getTime() - new Date(b.ts).getTime());
+        const data = await chatsApi.history(chatId, undefined, 50) as { messages: ChatMessageDto[]; nextCursor?: number };
+        const messages = data.messages || [];
+        history = messages.sort((a: ChatMessageDto, b: ChatMessageDto) => new Date(a.ts).getTime() - new Date(b.ts).getTime());
         historyCacheRef.current[chatId] = history;
       } catch {
         history = [] as ChatMessageDto[];
       }
     }
-    
-    // Atualizar UI
+
     setSelectedChatId(chatId);
     setIsChatMinimized(false);
     setMessages(history || []);
@@ -931,64 +758,50 @@ export default function AtendimentoPage() {
   };
 
   const handleStep = async (chatId: string, step: 1 | 2 | 3 | 4) => {
-    // Atualizar estado local para UI responsiva
-    setTickets(prev => ({ 
-      ...prev, 
-      [chatId]: { 
-        ...(prev[chatId]||{status:'em_atendimento'}), 
-        step, 
-        verified: false 
-      } 
+    setTickets(prev => ({
+      ...prev,
+      [chatId]: {
+        ...(prev[chatId]||{status:'em_atendimento'}),
+        step,
+        verified: false
+      }
     }));
-    
+
     try {
-      // Chamar a API do backend para persistir o passo atual
-      await axios.post(`http://localhost:5656/api/attendances/${chatId}/step`, {
-        step: step
-      });
-      
-      console.log(`Passo ${step} do chat ${chatId} atualizado no servidor`);
+      await axios.post(`http://localhost:5656/api/attendances/${chatId}/step`, { Step: step });
     } catch (error) {
       console.error(`Erro ao atualizar passo ${step} do chat ${chatId}:`, error);
-      // Mesmo em caso de erro, mantemos a UI atualizada localmente
     }
   };
 
   const handleFinalize = async (chatId: string) => {
     const activeTicket = tickets[chatId];
     const description = activeTicket?.description || "";
-    
-    // Atualizar estado local primeiro (UI responsiva)
-    setTickets(prev => ({ 
-      ...prev, 
-      [chatId]: { 
-        ...(prev[chatId]||{}), 
-        status: 'finalizado', 
-        step: 4, 
-        verified: true, 
-        endedAt: new Date().toISOString() 
-      } 
+
+    setTickets(prev => ({
+      ...prev,
+      [chatId]: {
+        ...(prev[chatId]||{}),
+        status: 'finalizado',
+        step: 4,
+        verified: true,
+        endedAt: new Date().toISOString()
+      }
     }));
-    
+
     try {
-      // Chamar a API do backend para persistir os dados
       await axios.post(`http://localhost:5656/api/attendances/${chatId}/finalize`, {
-        description: description,
-        verified: true
+        Description: description,
+        Verified: true
       });
-      
-      console.log(`Chat ${chatId} finalizado e salvo no servidor`);
     } catch (error) {
       console.error("Erro ao finalizar atendimento no servidor:", error);
-      // Não reverte o estado local mesmo em caso de erro para não confundir o usuário
     } finally {
-      // Sair da fila automaticamente: esconder da lista e fechar janela
       setSelectedChatId(null);
       setMessages([]);
     }
   };
 
-  // métricas para dashboard
   const inQueue = useMemo(() => Object.values(tickets).filter(t => t.status === 'novo').length, [tickets]);
   const inService = useMemo(() => Object.values(tickets).filter(t => t.status === 'em_atendimento').length, [tickets]);
   const avgLabel = useMemo(() => {
@@ -999,7 +812,6 @@ export default function AtendimentoPage() {
     return formatMMSS(avg);
   }, [tickets, nowTick]);
 
-  // chats visíveis na fila (exclui finalizados)
   const visibleChats = chats.filter(c => (tickets[c.id]?.status ?? 'novo') !== 'finalizado');
 
   const chatItems = visibleChats.map((c, idx) => {
@@ -1018,21 +830,21 @@ export default function AtendimentoPage() {
             {queueNumber}
           </div>
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2">
               <div className="font-medium truncate text-sm">{c.title}</div>
               {c.unreadCount>0 && (
                 <Badge className="ml-auto rounded-full px-2 py-0.5 text-[10px] leading-none">{c.unreadCount}</Badge>
-              )}
-            </div>
+                          )}
+                        </div>
             <div className="mt-0.5 text-xs text-muted-foreground truncate">{c.lastMessagePreview || ''}</div>
             <div className="mt-1 flex items-center gap-2">
               <span className={`text-[10px] rounded-full px-2 py-[2px] ${statusColor}`}>{statusLabel}</span>
               {t?.status === 'novo' && (
                 <Button size="sm" className="h-6 px-2 py-0" onClick={(e) => { e.stopPropagation(); handleAttend(c.id); }}>Atender</Button>
               )}
-            </div>
-          </div>
-        </div>
+                      </div>
+                    </div>
+                  </div>
       )
     };
   });
@@ -1049,16 +861,16 @@ export default function AtendimentoPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mt-3 md:mt-5">
         <div className="lg:col-span-3">
           <BotStatusCard />
-        </div>
+          </div>
         <div className="lg:col-span-6">
           <DashboardChamados inQueue={inQueue} inService={inService} avgLabel={avgLabel} />
-                  </div>
+        </div>
         <div className="lg:col-span-3">
           <OperatorStatusCard />
-                  </div>
-                </div>
+        </div>
+      </div>
 
-      {/* Barra de ações (Dock) acima das duas colunas para manter alinhamento vertical */}
+      {/* Dock */}
       <div className="mb-2">
         <Dock
           items={[
@@ -1069,7 +881,7 @@ export default function AtendimentoPage() {
             { label: 'Atualizar', icon: <RefreshCw className="h-5 w-5" />, onClick: () => refreshChats() },
           ]}
         />
-      </div>
+                  </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
         <div className="lg:col-span-4 flex flex-col">
@@ -1078,17 +890,17 @@ export default function AtendimentoPage() {
               <ScrollArea className="h-full">
                 <div className="p-3 md:p-4">
                   <AnimatedList items={chatItems} className="space-y-4" />
-                </div>
+                  </div>
               </ScrollArea>
             </CardContent>
           </Card>
-                              </div>
-
+                </div>
+                
         <div className="lg:col-span-8 flex flex-col">
           <Card className="h-[72svh] flex flex-col overflow-hidden relative soft-border shadow-smooth bg-card/60">
             {/* Header com stepper */}
             <CardHeader className="px-4 py-2 border-b bg-card/50">
-                  <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between">
                 <div className="min-w-0">
                   <div className="text-sm font-semibold truncate">{activeChat?.title || 'Nenhuma conversa selecionada'}</div>
                   {activeChat && (
@@ -1104,13 +916,12 @@ export default function AtendimentoPage() {
                     </>
                   )}
                 </div>
-                              <div className="flex items-center gap-2">
-                  {/* Histórico automático ao abrir o chat */}
+                <div className="flex items-center gap-2">
                   {selectedChatId && (
                     <div id="chat-options-menu" className="relative">
                       <Button variant="ghost" size="icon" title="Opções" onClick={() => setOptionsOpen(o => !o)}>
                         <MoreVertical className="h-4 w-4" />
-                      </Button>
+                  </Button>
                       {optionsOpen && (
                         <div className="absolute right-0 mt-1 z-20 min-w-[160px] rounded-md border bg-popover text-popover-foreground shadow">
                           <button
@@ -1118,24 +929,24 @@ export default function AtendimentoPage() {
                             onClick={async () => {
                               if (!selectedChatId) return;
                               try {
-                        await chatsApi.delete(selectedChatId);
-                        setSelectedChatId(null);
-                        setMessages([]);
-                        setTickets(prev => {
-                          const next = { ...prev } as Record<string, TicketState>;
-                          delete next[selectedChatId];
-                          return next;
-                        });
-                        await refreshChats();
+                                await chatsApi.delete(selectedChatId);
+                                setSelectedChatId(null);
+                                setMessages([]);
+                                setTickets(prev => {
+                                  const next = { ...prev } as Record<string, TicketState>;
+                                  delete next[selectedChatId];
+                                  return next;
+                                });
+                                await refreshChats();
                               } catch (e) { console.error(e); }
                               setOptionsOpen(false);
                             }}
                           >
                             <Trash2 className="h-4 w-4" /> Excluir
                           </button>
-                        </div>
+                </div>
                       )}
-                    </div>
+              </div>
                   )}
                   {selectedChatId && (
                     <Button variant="ghost" size="icon" title={isChatMinimized ? 'Restaurar' : 'Minimizar'} onClick={() => setIsChatMinimized(v => !v)}>
@@ -1147,10 +958,9 @@ export default function AtendimentoPage() {
                       <X className="h-4 w-4" />
                     </Button>
                   )}
-                </div>
-                </div>
+                    </div>
+                  </div>
 
-              {/* Stepper visual */}
               {selectedChatId && (
                 <Stepper current={(activeTicket?.step || 1) as 1|2|3|4} verified={Boolean(activeTicket?.verified)} onStepClick={(s) => handleStep(selectedChatId, s)} />
               )}
@@ -1160,11 +970,10 @@ export default function AtendimentoPage() {
               <>
                 <CardContent className="flex-1 p-0 relative">
                   <ScrollArea className="h-full px-4 py-2">
-                    {/* Descrição (etapa 4) */}
                     {selectedChatId && activeTicket?.step === 4 && !activeTicket?.verified && (
                       <div className="mb-3">
                         <p className="text-xs text-muted-foreground mb-2">Descreva o atendimento e finalize</p>
-                        <Textarea
+                  <Textarea
                           value={activeTicket?.description || ''}
                           onChange={(e) => {
                             if (!selectedChatId) return;
@@ -1178,7 +987,7 @@ export default function AtendimentoPage() {
                           className="mb-2"
                         />
                         <Button size="sm" onClick={() => handleFinalize(selectedChatId!)}>Salvar e Encerrar</Button>
-          </div>
+                </div>
                     )}
 
                     {messages.map((m) => (
@@ -1201,21 +1010,21 @@ export default function AtendimentoPage() {
                           {m.text && (
                             <div className="whitespace-pre-wrap break-words text-sm">
                               <TextAnimate animation="scaleUp" by="character">{m.text}</TextAnimate>
-                            </div>
+            </div>
                           )}
-                           <div className="flex gap-2 justify-end items-center text-[10px] opacity-70 mt-1">
-                             <span>{new Date(m.ts).toLocaleTimeString('pt-BR')}</span>
-                             {m.direction==='out' && (
-                               (() => {
-                                 const isRead = lastReadAtIso && new Date(m.ts).getTime() <= new Date(lastReadAtIso).getTime();
-                                 return isRead ? (
-                                   <span className="inline-flex items-center gap-1"><CheckCheck className="h-3 w-3" /> lido</span>
-                                 ) : <span>{m.status}</span>;
-                               })()
-                             )}
+                          <div className="flex gap-2 justify-end items-center text-[10px] opacity-70 mt-1">
+                            <span>{new Date(m.ts).toLocaleTimeString('pt-BR')}</span>
+                            {m.direction==='out' && (
+                              (() => {
+                                const isRead = lastReadAtIso && new Date(m.ts).getTime() <= new Date(lastReadAtIso).getTime();
+                                return isRead ? (
+                                  <span className="inline-flex items-center gap-1"><CheckCheck className="h-3 w-3" /> lido</span>
+                                ) : <span>{m.status}</span>;
+                              })()
+                            )}
+              </div>
+            </div>
           </div>
-        </div>
-                  </div>
                     ))}
                     <div ref={bottomRef} />
                   </ScrollArea>
@@ -1225,27 +1034,24 @@ export default function AtendimentoPage() {
                   <input ref={fileInputRef} type="file" className="hidden" onChange={(e)=>{ const f=e.target.files?.[0]; if(f) sendMessage(f); }} />
                   <Button type="button" variant="outline" size="icon" onClick={()=>fileInputRef.current?.click()} title="Anexar arquivo">
                     <Paperclip className="h-4 w-4" />
-                  </Button>
+              </Button>
                   {!isRecording ? (
                     <Button type="button" variant="outline" size="icon" onClick={startRecording} title="Gravar áudio">
                       <Mic className="h-4 w-4" />
-                    </Button>
+              </Button>
                   ) : (
                     <Button type="button" variant="destructive" size="icon" onClick={stopRecording} title={`Parar gravação (${new Date(recordMs).toISOString().substring(14, 19)})`}>
                       <Square className="h-4 w-4" />
                     </Button>
                   )}
-                  {/* Botão de ligação telefônica */}
                   {selectedChatId && activeChat?.contactPhoneE164 && (
-                    <Button 
-                      type="button" 
+              <Button
+                      type="button"
                       variant={activeCall ? "destructive" : "outline"}
-                      size="icon" 
-                      onClick={() => handlePhoneCall(activeChat.contactPhoneE164)} 
+                      size="icon"
+                      onClick={() => handlePhoneCall(activeChat.contactPhoneE164)}
                       title={activeCall ? `Encerrar chamada (${callDuration}s)` : "Ligar para contato"}
-                      className={`${activeCall 
-                        ? "animate-pulse" 
-                        : "text-green-600 hover:text-green-700 hover:bg-green-50"}`}
+                      className={`${activeCall ? "animate-pulse" : "text-green-600 hover:text-green-700 hover:bg-green-50"}`}
                     >
                       <Phone className="h-4 w-4" />
                       {activeCall && callDuration > 0 && (
@@ -1253,7 +1059,7 @@ export default function AtendimentoPage() {
                           {Math.floor(callDuration / 60)}:{String(callDuration % 60).padStart(2, '0')}
                         </span>
                       )}
-                    </Button>
+              </Button>
                   )}
                   <Input className="flex-1" placeholder="Digite sua mensagem" value={composer} onChange={e=>setComposer(e.target.value)} onKeyDown={e=>{ if(e.key==='Enter'){ e.preventDefault(); sendMessage(); } }} />
                   <Button onClick={()=>sendMessage()} disabled={!selectedChatId} className="shrink-0">Enviar</Button>

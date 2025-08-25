@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react'
 import { useUser } from '@clerk/clerk-react'
+import axios from 'axios'
 
 export interface OperatorInfo {
   id: string
@@ -12,6 +13,16 @@ export interface OperatorInfo {
   totalAttendancesToday: number
   averageResponseTime: number
   lastActivity: string
+}
+
+// Interface para usuário da API
+interface ApiUser {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  imageUrl?: string;
 }
 
 // Interface para usuário do Clerk (simplificada)
@@ -32,87 +43,100 @@ const notifyOperatorChange = () => {
   operatorListeners.forEach(listener => listener())
 }
 
-// Operador anônimo padrão para quando Clerk não está disponível
-const createAnonymousOperator = (): OperatorInfo => ({
-  id: 'anonymous-' + Math.random().toString(36).substring(2, 9),
-  name: 'Operador Temporário',
-  email: 'temp@pregiato.com',
-  status: 'available',
-  activeAttendances: 0,
-  totalAttendancesToday: 0,
-  averageResponseTime: 0,
-  lastActivity: new Date().toISOString()
-});
-
-// Hook seguro que tenta usar Clerk, mas não falha se não estiver disponível
-const useSafeClerkUser = (): { user: ClerkUser | null, isLoaded: boolean } => {
-  try {
-    // Tentar usar o hook do Clerk
-    return useUser();
-  } catch (error) {
-    console.warn('Clerk não está disponível, usando modo anônimo', error);
-    
-    // Registrar falha no session storage para próximos carregamentos
-    try {
-      sessionStorage.setItem('clerk_failed', 'true');
-    } catch (e) {
-      console.error('Error saving clerk_failed:', e);
-    }
-    
-    // Retornar valores padrão
-    return { user: null, isLoaded: true };
-  }
-};
-
 export const useOperatorStatus = () => {
-  // Usar o hook seguro para Clerk
-  const { user } = useSafeClerkUser();
+  // Usar o hook do Clerk diretamente
+  const { user, isLoaded } = useUser();
   const [operators, setOperators] = useState<OperatorInfo[]>([]);
   const [currentOperator, setCurrentOperator] = useState<OperatorInfo | null>(null);
+  const [loading, setLoading] = useState(false);
   
-  // Verificar se estamos em modo anônimo (sem Clerk)
-  const [isAnonymousMode] = useState(!user);
-
+  // Buscar dados do usuário na API
+  const fetchUserFromApi = async (email: string): Promise<ApiUser | null> => {
+    try {
+      const response = await axios.get(`http://localhost:5656/api/users/by-email/${encodeURIComponent(email)}`);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar usuário na API:', error);
+      return null;
+    }
+  };
+  
   // Registrar operador atual quando componente montar
   useEffect(() => {
-    // Criar operador baseado no usuário do Clerk ou criar um anônimo
-    const operator: OperatorInfo = user ? {
-      id: user.id,
-      name: user.fullName || user.firstName || 'Operador',
-      email: user.emailAddresses[0]?.emailAddress || '',
-      status: 'available',
-      avatar: user.imageUrl,
-      activeAttendances: 0,
-      totalAttendancesToday: 0,
-      averageResponseTime: 0,
-      lastActivity: new Date().toISOString()
-    } : createAnonymousOperator();
+    // Só criar operador se o usuário estiver autenticado
+    if (!user || !isLoaded) {
+      setCurrentOperator(null);
+      return;
+    }
 
-    // Adicionar/atualizar operador na lista global
-    onlineOperators.set(operator.id, operator)
-    setCurrentOperator(operator)
-    
-    console.log(`✅ Operador ${operator.name} conectado com status: ${operator.status}${!user ? ' (modo anônimo)' : ''}`)
-    notifyOperatorChange()
+    let heartbeatInterval: NodeJS.Timeout | null = null;
+    let currentOperatorId: string | null = null;
 
-    // Heartbeat para manter presença ativa
-    const heartbeatInterval = setInterval(() => {
-      const updatedOperator = onlineOperators.get(operator.id)
-      if (updatedOperator) {
-        updatedOperator.lastActivity = new Date().toISOString()
-        onlineOperators.set(operator.id, updatedOperator)
+    const setupOperator = async () => {
+      setLoading(true);
+      try {
+        const userEmail = user.emailAddresses[0]?.emailAddress;
+        if (!userEmail) {
+          console.error('Email do usuário não encontrado');
+          setCurrentOperator(null);
+          return;
+        }
+
+        // Buscar dados do usuário na API
+        const apiUser = await fetchUserFromApi(userEmail);
+        
+        // Criar operador baseado nos dados da API ou fallback para dados do Clerk
+        const operator: OperatorInfo = {
+          id: apiUser?.id || user.id,
+          name: apiUser ? `${apiUser.firstName} ${apiUser.lastName}`.trim() : (user.fullName || user.firstName || 'Operador'),
+          email: apiUser?.email || userEmail,
+          status: 'available',
+          avatar: apiUser?.imageUrl || user.imageUrl,
+          activeAttendances: 0,
+          totalAttendancesToday: 0,
+          averageResponseTime: 0,
+          lastActivity: new Date().toISOString()
+        };
+
+        // Adicionar/atualizar operador na lista global
+        onlineOperators.set(operator.id, operator)
+        setCurrentOperator(operator)
+        currentOperatorId = operator.id;
+        
+        console.log(`✅ Operador ${operator.name} conectado com status: ${operator.status}`)
         notifyOperatorChange()
+
+        // Heartbeat para manter presença ativa
+        heartbeatInterval = setInterval(() => {
+          const updatedOperator = onlineOperators.get(operator.id)
+          if (updatedOperator) {
+            updatedOperator.lastActivity = new Date().toISOString()
+            onlineOperators.set(operator.id, updatedOperator)
+            notifyOperatorChange()
+          }
+        }, 30000) // A cada 30 segundos
+      } catch (error) {
+        console.error('Erro ao configurar operador:', error);
+        setCurrentOperator(null);
+      } finally {
+        setLoading(false);
       }
-    }, 30000) // A cada 30 segundos
+    };
+
+    setupOperator();
 
     // Cleanup ao desmontar
     return () => {
-      clearInterval(heartbeatInterval)
-      onlineOperators.delete(operator.id)
-      console.log(`❌ Operador ${operator.name} desconectado`)
-      notifyOperatorChange()
-    }
-  }, [user])
+      if (heartbeatInterval) {
+        clearInterval(heartbeatInterval);
+      }
+      if (currentOperatorId) {
+        onlineOperators.delete(currentOperatorId);
+        console.log(`❌ Operador desconectado`)
+        notifyOperatorChange();
+      }
+    };
+  }, [user, isLoaded])
 
   // Listener para mudanças na lista de operadores
   useEffect(() => {
@@ -235,6 +259,7 @@ export const useOperatorStatus = () => {
   return {
     operators,
     currentOperator,
+    loading,
     updateOperatorStatus,
     incrementActiveAttendances,
     decrementActiveAttendances,

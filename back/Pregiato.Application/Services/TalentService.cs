@@ -163,14 +163,14 @@ public class TalentService : ITalentService
             }
             
             // Usar AutoMapper para criar o objeto Talent
-            var talent = _mapper.Map<Talent>(dto);
-            talent.Id = Guid.NewGuid();
+        var talent = _mapper.Map<Talent>(dto);
+        talent.Id = Guid.NewGuid();
             talent.InviteSent = false;
             talent.Status = true;
             talent.DnaStatus = "UNDEFINED";
-            talent.CreatedAt = DateTime.UtcNow;
-            talent.UpdatedAt = DateTime.UtcNow;
-            
+        talent.CreatedAt = DateTime.UtcNow;
+        talent.UpdatedAt = DateTime.UtcNow;
+
             var createdTalent = await _talentRepository.CreateAsync(talent);
             var result = _mapper.Map<TalentDto>(createdTalent);
             
@@ -204,7 +204,7 @@ public class TalentService : ITalentService
             if (existingTalent == null)
             {
                 _logger.LogWarning("Talento não encontrado para atualização: {Id}", id);
-                return null;
+            return null;
             }
             
             // Usar AutoMapper para atualizar apenas os campos fornecidos

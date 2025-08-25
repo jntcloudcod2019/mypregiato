@@ -1,7 +1,7 @@
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Button } from "@/components/ui/button"
+import { Alert, AlertDescription } from "../ui/alert"
+import { Button } from "../ui/button"
 import { AlertTriangle, CheckCircle } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn } from "../../lib/utils"
 
 interface ContractAlertProps {
   type: "success" | "warning"

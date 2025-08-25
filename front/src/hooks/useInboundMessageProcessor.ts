@@ -1,7 +1,27 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { ChatMessageDto, ChatListItem } from '@/services/chat-service';
+import { ChatMessageDto, ChatListItem, MessageDirection, MessageStatus, MessageType, mapBackendType } from '@/services/chat-service';
 import { useChatDeduplication } from './useChatDeduplication';
 import { useBatchUpdates } from './useBatchUpdates';
+
+interface InboundMessageEvent {
+  chatId: string;
+  fromNormalized?: string; // Adicionar fromNormalized para consolidação
+  message?: {
+    id?: string;
+    externalMessageId?: string;
+    fromMe?: boolean;
+    text?: string;
+    body?: string;
+    ts?: string;
+    timestamp?: string;
+    type?: string;
+    attachment?: {
+      dataUrl?: string;
+      mimeType?: string;
+      fileName?: string;
+    };
+  };
+}
 
 interface InboundMessageProcessorOptions {
   onMessageReceived?: (chatId: string, message: ChatMessageDto) => void;
@@ -45,7 +65,7 @@ export function useInboundMessageProcessor({
    * @returns true se a mensagem foi processada, false se foi ignorada
    */
   const processInboundMessage = useCallback(
-    (event: any): boolean => {
+    (event: InboundMessageEvent): boolean => {
       const isDebugEnabled = localStorage.getItem('debug.chat') === 'true';
       
       // Log de debug
@@ -71,6 +91,7 @@ export function useInboundMessageProcessor({
       const ts: string | undefined = event?.message?.ts || event?.message?.timestamp;
       const text: string | undefined = event?.message?.text || event?.message?.body;
       const chatId: string = event?.chatId;
+      const fromNormalized: string | undefined = event?.fromNormalized;
       
       // Validar dados básicos
       if (!id || !chatId) {
@@ -80,11 +101,17 @@ export function useInboundMessageProcessor({
         return false;
       }
       
+      // Usar fromNormalized para consolidação se disponível
+      const consolidationKey = fromNormalized || chatId;
+      
       // Chave de fallback para deduplicação por conteúdo
-      const fallbackKey = `${chatId}|${text || ''}|${ts || ''}`;
+      const fallbackKey = `${consolidationKey}|${text || ''}|${ts || ''}`;
       
       // Verificar se é uma mensagem duplicada
-      if (isMessageDuplicate(id, chatId, fallbackKey)) {
+      if (isMessageDuplicate(id, consolidationKey, fallbackKey)) {
+        if (isDebugEnabled) {
+          console.debug('[chat] Mensagem duplicada ignorada:', id);
+        }
         return false;
       }
       
@@ -92,8 +119,33 @@ export function useInboundMessageProcessor({
       const currentSelected = selectedChatIdRef.current;
       
       // Notificar sobre nova mensagem se o chat estiver aberto
-      if (chatId === currentSelected && onMessageReceived) {
-        onMessageReceived(chatId, event.message);
+      if (consolidationKey === currentSelected && onMessageReceived && event.message) {
+        // Converter para ChatMessageDto usando a estrutura correta
+        const chatMessage: ChatMessageDto = {
+          id: event.message.id || crypto.randomUUID(),
+          externalMessageId: event.message.externalMessageId,
+          direction: MessageDirection.In,
+          type: mapBackendType(event.message.type || 'Text'),
+          body: event.message.text || event.message.body || '',
+          text: event.message.text || event.message.body || '',
+          ts: event.message.ts || event.message.timestamp || new Date().toISOString(),
+          status: MessageStatus.Delivered,
+          createdAt: event.message.ts || event.message.timestamp || new Date().toISOString(),
+          // Campos opcionais
+          conversationId: undefined,
+          mediaUrl: event.message.attachment?.dataUrl,
+          fileName: event.message.attachment?.fileName,
+          clientMessageId: undefined,
+          whatsAppMessageId: event.message.externalMessageId,
+          internalNote: undefined,
+          updatedAt: undefined,
+          attachment: event.message.attachment ? {
+            dataUrl: event.message.attachment.dataUrl || '',
+            mimeType: event.message.attachment.mimeType || 'application/octet-stream',
+            fileName: event.message.attachment.fileName
+          } : null
+        };
+        onMessageReceived(chatId, chatMessage);
       }
       
       // Atualizar preview do chat

@@ -1,0 +1,916 @@
+2025-08-25 03:50:28.676 -03:00 [INF] Iniciando Pregiato API...
+2025-08-25 03:50:28.826 -03:00 [INF] RabbitMQ Background Service iniciado
+2025-08-25 03:50:28.827 -03:00 [INF] Tentando conectar ao RabbitMQ...
+2025-08-25 03:50:30.326 -03:00 [INF] ✅ Conexão RabbitMQ estabelecida com amqps://mouse.rmq5.cloudamqp.com:5671
+2025-08-25 03:50:31.722 -03:00 [INF] 📋 Filas RabbitMQ configuradas
+2025-08-25 03:50:31.946 -03:00 [INF] 🎧 Consumidor de QR codes configurado
+2025-08-25 03:50:32.140 -03:00 [INF] 🎧 Consumidor de mensagens WhatsApp configurado
+2025-08-25 03:50:32.334 -03:00 [INF] 🎧 Consumidor de status da sessão configurado
+2025-08-25 03:50:32.335 -03:00 [INF] ✅ RabbitMQ conectado e configurado
+2025-08-25 03:51:38.230 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 03:51:38.229 -03:00 [INF] Request starting GET /api/health
+2025-08-25 03:51:38.229 -03:00 [INF] Request starting GET /api/chats
+2025-08-25 03:51:38.229 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 03:51:38.230 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 03:51:38.237 -03:00 [INF] Request finished GET /api/health - 404 in 8.5640ms
+2025-08-25 03:51:38.245 -03:00 [INF] Request starting GET /api/health
+2025-08-25 03:51:38.246 -03:00 [INF] Request finished GET /api/health - 404 in 0.5740ms
+2025-08-25 03:51:38.263 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 32.8520ms
+2025-08-25 03:51:38.264 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 34.4030ms
+2025-08-25 03:51:38.272 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-25 03:51:38.306 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-25 03:51:41.356 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 03:51:41.515 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 03:51:41.518 -03:00 [INF] Iniciado pedido de QR Code. RequestId: 0d8ea063-c704-4929-8d92-e9dad4c37b9c
+2025-08-25 03:51:41.536 -03:00 [INF] 📤 Comando enviado para RabbitMQ: {"command":"generate_qr","requestId":"0d8ea063-c704-4929-8d92-e9dad4c37b9c","timestamp":"2025-08-25T06:51:41.5192200Z"}
+2025-08-25 03:51:41.556 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 200 in 199.2330ms
+2025-08-25 03:51:42.832 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 4604.3100ms
+2025-08-25 03:51:42.837 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 03:51:43.083 -03:00 [INF] Request finished GET /api/chats - 200 in 4855.0620ms
+2025-08-25 03:51:43.086 -03:00 [INF] Request starting GET /api/chats
+2025-08-25 03:51:43.370 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 533.7040ms
+2025-08-25 03:51:43.372 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 03:51:43.779 -03:00 [INF] Request finished GET /api/chats - 200 in 692.9890ms
+2025-08-25 03:51:43.785 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 412.2580ms
+2025-08-25 03:51:43.790 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 03:51:44.202 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 411.7770ms
+2025-08-25 03:51:44.204 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 03:51:44.617 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 412.7980ms
+2025-08-25 03:51:44.622 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 03:51:45.033 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 411.3970ms
+2025-08-25 03:55:54.640 -03:00 [INF] Request finished GET /whatsappHub - 101 in 256310.7880ms
+2025-08-25 03:55:54.640 -03:00 [INF] Request finished GET /whatsappHub - 101 in 256336.9080ms
+2025-08-25 03:55:56.624 -03:00 [INF] Request starting GET /api/health
+2025-08-25 03:55:56.626 -03:00 [INF] Request finished GET /api/health - 404 in 1.9720ms
+2025-08-25 03:55:56.628 -03:00 [INF] Request starting GET /api/chats
+2025-08-25 03:55:56.629 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 03:55:56.650 -03:00 [INF] Request starting GET /api/health
+2025-08-25 03:55:56.651 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 03:55:56.658 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 7.0030ms
+2025-08-25 03:55:56.663 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 03:55:56.682 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-25 03:55:56.667 -03:00 [INF] Request finished GET /api/health - 404 in 0.2450ms
+2025-08-25 03:55:56.687 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 24.4090ms
+2025-08-25 03:55:56.727 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-25 03:56:00.234 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 3605.0440ms
+2025-08-25 03:56:00.268 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 03:56:00.504 -03:00 [INF] Request finished GET /api/chats - 200 in 3875.2640ms
+2025-08-25 03:56:00.510 -03:00 [INF] Request starting GET /api/chats
+2025-08-25 03:56:00.714 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 446.0510ms
+2025-08-25 03:56:00.724 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 03:56:01.146 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 421.4800ms
+2025-08-25 03:56:01.157 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 03:56:01.247 -03:00 [INF] Request finished GET /api/chats - 200 in 737.0010ms
+2025-08-25 03:56:01.601 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 443.0480ms
+2025-08-25 03:56:01.613 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 03:56:02.043 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 429.4420ms
+2025-08-25 03:56:02.048 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 03:56:02.488 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 439.6030ms
+2025-08-25 03:56:24.910 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 03:56:25.123 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 03:56:25.185 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 409 in 275.3130ms
+2025-08-25 03:56:28.508 -03:00 [INF] Request starting POST /api/whatsapp/disconnect
+2025-08-25 03:56:28.660 -03:00 [INF] 📥 Requisição de desconexão recebida
+2025-08-25 03:56:28.662 -03:00 [INF] Cancelado pedido de QR Code. RequestId: 0d8ea063-c704-4929-8d92-e9dad4c37b9c
+2025-08-25 03:56:28.667 -03:00 [INF] 📤 Comando enviado para RabbitMQ: {"command":"disconnect","timestamp":"2025-08-25T06:56:28.6631540Z"}
+2025-08-25 03:56:28.668 -03:00 [INF] Request finished POST /api/whatsapp/disconnect - 200 in 160.7120ms
+2025-08-25 03:56:34.004 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 03:56:34.154 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 03:56:34.155 -03:00 [INF] Iniciado pedido de QR Code. RequestId: ff18bcc1-d971-4f8b-aaaf-049dd7d11c8a
+2025-08-25 03:56:34.156 -03:00 [INF] 📤 Comando enviado para RabbitMQ: {"command":"generate_qr","requestId":"ff18bcc1-d971-4f8b-aaaf-049dd7d11c8a","timestamp":"2025-08-25T06:56:34.1555340Z"}
+2025-08-25 03:56:34.158 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 200 in 154.2250ms
+2025-08-25 04:00:00.289 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 04:00:01.721 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 04:00:01.755 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 409 in 1465.7910ms
+2025-08-25 04:00:04.457 -03:00 [INF] Request starting POST /api/whatsapp/disconnect
+2025-08-25 04:00:04.601 -03:00 [INF] 📥 Requisição de desconexão recebida
+2025-08-25 04:00:04.601 -03:00 [INF] Cancelado pedido de QR Code. RequestId: ff18bcc1-d971-4f8b-aaaf-049dd7d11c8a
+2025-08-25 04:00:04.603 -03:00 [INF] 📤 Comando enviado para RabbitMQ: {"command":"disconnect","timestamp":"2025-08-25T07:00:04.6025430Z"}
+2025-08-25 04:00:04.604 -03:00 [INF] Request finished POST /api/whatsapp/disconnect - 200 in 147.0150ms
+2025-08-25 04:00:07.741 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 04:00:07.880 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 04:00:07.880 -03:00 [INF] Iniciado pedido de QR Code. RequestId: 827ee6c7-1216-4479-b586-33aea9862455
+2025-08-25 04:00:07.881 -03:00 [INF] 📤 Comando enviado para RabbitMQ: {"command":"generate_qr","requestId":"827ee6c7-1216-4479-b586-33aea9862455","timestamp":"2025-08-25T07:00:07.8811390Z"}
+2025-08-25 04:00:07.881 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 200 in 140.7290ms
+2025-08-25 04:01:39.197 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 04:01:39.374 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 04:01:39.388 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 409 in 191.1640ms
+2025-08-25 04:02:11.726 -03:00 [INF] Request finished GET /whatsappHub - 101 in 374997.1240ms
+2025-08-25 04:02:11.733 -03:00 [INF] Request finished GET /whatsappHub - 101 in 375051.0130ms
+2025-08-25 04:02:14.041 -03:00 [INF] Request starting GET /api/health
+2025-08-25 04:02:14.041 -03:00 [INF] Request finished GET /api/health - 404 in 0.4330ms
+2025-08-25 04:02:14.042 -03:00 [INF] Request starting GET /api/chats
+2025-08-25 04:02:14.043 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:02:14.081 -03:00 [INF] Request starting GET /api/health
+2025-08-25 04:02:14.095 -03:00 [INF] Request finished GET /api/health - 404 in 14.3190ms
+2025-08-25 04:02:14.081 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 04:02:14.092 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 04:02:14.119 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 37.8030ms
+2025-08-25 04:02:14.122 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 30.5070ms
+2025-08-25 04:02:14.125 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-25 04:02:14.143 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-25 04:02:15.638 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 1594.4890ms
+2025-08-25 04:02:15.644 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:02:16.068 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 424.0720ms
+2025-08-25 04:02:16.071 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:02:16.588 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 517.6490ms
+2025-08-25 04:02:16.599 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:02:16.898 -03:00 [INF] Request finished GET /api/chats - 200 in 2855.7350ms
+2025-08-25 04:02:16.907 -03:00 [INF] Request starting GET /api/chats
+2025-08-25 04:02:17.038 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 439.2440ms
+2025-08-25 04:02:17.050 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:02:17.555 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 504.6620ms
+2025-08-25 04:02:17.561 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:02:17.717 -03:00 [INF] Request finished GET /api/chats - 200 in 809.8710ms
+2025-08-25 04:02:18.256 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 694.5830ms
+2025-08-25 04:02:25.463 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 04:02:25.603 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 04:02:25.606 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 409 in 143.3630ms
+2025-08-25 04:03:00.662 -03:00 [INF] Request finished GET /whatsappHub - 101 in 46518.4850ms
+2025-08-25 04:03:00.662 -03:00 [INF] Request finished GET /whatsappHub - 101 in 46537.2500ms
+2025-08-25 04:03:00.708 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 04:03:00.709 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 1.0680ms
+2025-08-25 04:03:00.710 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 04:03:00.710 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.2690ms
+2025-08-25 04:03:00.719 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-25 04:03:30.657 -03:00 [INF] Request finished GET /whatsappHub - 101 in 29937.3350ms
+2025-08-25 04:03:30.666 -03:00 [INF] Desconectando do RabbitMQ...
+2025-08-25 04:06:17.211 -03:00 [INF] Iniciando Pregiato API...
+2025-08-25 04:06:19.860 -03:00 [INF] RabbitMQ Background Service iniciado
+2025-08-25 04:06:19.862 -03:00 [INF] Tentando conectar ao RabbitMQ...
+2025-08-25 04:06:21.853 -03:00 [INF] ✅ Conexão RabbitMQ estabelecida com amqps://mouse.rmq5.cloudamqp.com:5671
+2025-08-25 04:06:23.296 -03:00 [INF] 📋 Filas RabbitMQ configuradas
+2025-08-25 04:06:23.559 -03:00 [INF] 🎧 Consumidor de QR codes configurado
+2025-08-25 04:06:23.755 -03:00 [INF] 🎧 Consumidor de mensagens WhatsApp configurado
+2025-08-25 04:06:23.948 -03:00 [INF] 🎧 Consumidor de status da sessão configurado
+2025-08-25 04:06:23.952 -03:00 [INF] ✅ RabbitMQ conectado e configurado
+2025-08-25 04:07:18.515 -03:00 [INF] Request starting GET /api/health
+2025-08-25 04:07:18.515 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:07:18.515 -03:00 [INF] Request starting GET /api/chats
+2025-08-25 04:07:18.538 -03:00 [INF] Request finished GET /api/health - 404 in 23.4710ms
+2025-08-25 04:07:18.515 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 04:07:18.515 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 04:07:18.588 -03:00 [INF] Request starting GET /api/health
+2025-08-25 04:07:18.589 -03:00 [INF] Request finished GET /api/health - 404 in 0.3550ms
+2025-08-25 04:07:18.600 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 85.2210ms
+2025-08-25 04:07:18.601 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 85.8650ms
+2025-08-25 04:07:18.627 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-25 04:07:18.738 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-25 04:07:27.067 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 8552.8260ms
+2025-08-25 04:07:27.075 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:07:27.304 -03:00 [INF] Request finished GET /api/chats - 200 in 8790.5030ms
+2025-08-25 04:07:27.307 -03:00 [INF] Request starting GET /api/chats
+2025-08-25 04:07:27.601 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 526.5960ms
+2025-08-25 04:07:27.605 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:07:28.001 -03:00 [INF] Request finished GET /api/chats - 200 in 693.8630ms
+2025-08-25 04:07:28.027 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 422.2820ms
+2025-08-25 04:07:28.051 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:07:28.466 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 415.3610ms
+2025-08-25 04:07:28.469 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:07:28.889 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 420.5490ms
+2025-08-25 04:07:28.904 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:07:29.312 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 407.9140ms
+2025-08-25 04:07:48.652 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 04:07:48.818 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 04:07:48.823 -03:00 [INF] Iniciado pedido de QR Code. RequestId: 8babebe2-ab8a-4922-b18a-e52d885a153a
+2025-08-25 04:07:48.834 -03:00 [INF] 📤 Comando enviado para RabbitMQ: {"command":"generate_qr","requestId":"8babebe2-ab8a-4922-b18a-e52d885a153a","timestamp":"2025-08-25T07:07:48.8236220Z"}
+2025-08-25 04:07:48.843 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 200 in 191.6100ms
+2025-08-25 04:17:39.156 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 04:17:40.328 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 04:17:40.345 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 409 in 1188.7280ms
+2025-08-25 04:17:43.419 -03:00 [INF] Request starting POST /api/whatsapp/disconnect
+2025-08-25 04:17:43.566 -03:00 [INF] 📥 Requisição de desconexão recebida
+2025-08-25 04:17:43.566 -03:00 [INF] Cancelado pedido de QR Code. RequestId: 8babebe2-ab8a-4922-b18a-e52d885a153a
+2025-08-25 04:17:43.569 -03:00 [INF] 📤 Comando enviado para RabbitMQ: {"command":"disconnect","timestamp":"2025-08-25T07:17:43.5671340Z"}
+2025-08-25 04:17:43.570 -03:00 [INF] Request finished POST /api/whatsapp/disconnect - 200 in 150.8420ms
+2025-08-25 04:17:46.675 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 04:17:46.819 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 04:17:46.820 -03:00 [INF] Iniciado pedido de QR Code. RequestId: 7cf2c319-43b2-44cb-82da-946820c9e5c0
+2025-08-25 04:17:46.821 -03:00 [INF] 📤 Comando enviado para RabbitMQ: {"command":"generate_qr","requestId":"7cf2c319-43b2-44cb-82da-946820c9e5c0","timestamp":"2025-08-25T07:17:46.8206430Z"}
+2025-08-25 04:17:46.827 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 200 in 151.3600ms
+2025-08-25 04:20:14.668 -03:00 [INF] Request finished GET /whatsappHub - 101 in 775929.4350ms
+2025-08-25 04:20:14.636 -03:00 [INF] Request finished GET /whatsappHub - 101 in 776006.8300ms
+2025-08-25 04:20:16.270 -03:00 [INF] Request starting GET /api/chats
+2025-08-25 04:20:16.270 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:20:16.270 -03:00 [INF] Request starting GET /api/health
+2025-08-25 04:20:16.273 -03:00 [INF] Request finished GET /api/health - 404 in 2.9330ms
+2025-08-25 04:20:16.498 -03:00 [INF] Request starting GET /api/health
+2025-08-25 04:20:16.499 -03:00 [INF] Request finished GET /api/health - 404 in 1.1580ms
+2025-08-25 04:20:16.559 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 04:20:16.560 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 04:20:16.590 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 31.8030ms
+2025-08-25 04:20:16.587 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 27.8410ms
+2025-08-25 04:20:16.598 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-25 04:20:16.616 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-25 04:20:17.903 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 1633.8140ms
+2025-08-25 04:20:17.909 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:20:18.310 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 401.6830ms
+2025-08-25 04:20:18.328 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:20:18.761 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 432.5800ms
+2025-08-25 04:20:18.763 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:20:19.040 -03:00 [INF] Request finished GET /api/chats - 200 in 2769.8290ms
+2025-08-25 04:20:19.043 -03:00 [INF] Request starting GET /api/chats
+2025-08-25 04:20:19.186 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 423.7160ms
+2025-08-25 04:20:19.193 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:20:19.599 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 405.3620ms
+2025-08-25 04:20:19.603 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:20:19.729 -03:00 [INF] Request finished GET /api/chats - 200 in 685.5690ms
+2025-08-25 04:20:20.003 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 400.0500ms
+2025-08-25 04:20:29.062 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 04:20:29.218 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 04:20:29.224 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 409 in 161.7720ms
+2025-08-25 04:21:05.290 -03:00 [INF] Request finished GET /whatsappHub - 101 in 48673.3370ms
+2025-08-25 04:21:05.290 -03:00 [INF] Request finished GET /whatsappHub - 101 in 48691.5760ms
+2025-08-25 04:21:05.370 -03:00 [INF] Desconectando do RabbitMQ...
+2025-08-25 04:22:13.678 -03:00 [INF] Iniciando Pregiato API...
+2025-08-25 04:22:13.994 -03:00 [INF] RabbitMQ Background Service iniciado
+2025-08-25 04:22:14.005 -03:00 [INF] Tentando conectar ao RabbitMQ...
+2025-08-25 04:22:15.813 -03:00 [INF] ✅ Conexão RabbitMQ estabelecida com amqps://mouse.rmq5.cloudamqp.com:5671
+2025-08-25 04:22:17.292 -03:00 [INF] 📋 Filas RabbitMQ configuradas
+2025-08-25 04:22:17.498 -03:00 [INF] 🎧 Consumidor de QR codes configurado
+2025-08-25 04:22:17.691 -03:00 [INF] 🎧 Consumidor de mensagens WhatsApp configurado
+2025-08-25 04:22:17.884 -03:00 [INF] 🎧 Consumidor de status da sessão configurado
+2025-08-25 04:22:17.887 -03:00 [INF] ✅ RabbitMQ conectado e configurado
+2025-08-25 04:22:25.101 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 04:22:25.141 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 41.3910ms
+2025-08-25 04:22:25.170 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-25 04:22:25.293 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 04:22:29.552 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 04:22:29.561 -03:00 [INF] Iniciado pedido de QR Code. RequestId: 6e6aef65-f262-49e0-a02a-86cfbefd25c5
+2025-08-25 04:22:29.563 -03:00 [INF] 🔍 Tentando publicar comando no RabbitMQ...
+2025-08-25 04:22:29.585 -03:00 [INF] 📤 Publicando comando: {"command":"generate_qr","requestId":"6e6aef65-f262-49e0-a02a-86cfbefd25c5","timestamp":"2025-08-25T07:22:29.5619570Z"}
+2025-08-25 04:22:29.586 -03:00 [INF] 📤 Routing Key: whatsapp.outgoing
+2025-08-25 04:22:29.586 -03:00 [INF] 📤 Body length: 119 bytes
+2025-08-25 04:22:29.589 -03:00 [INF] ✅ Comando enviado para RabbitMQ com sucesso: {"command":"generate_qr","requestId":"6e6aef65-f262-49e0-a02a-86cfbefd25c5","timestamp":"2025-08-25T07:22:29.5619570Z"}
+2025-08-25 04:22:29.626 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 200 in 4331.9910ms
+2025-08-25 04:27:34.668 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 04:27:35.883 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 04:27:35.905 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 409 in 1237.5020ms
+2025-08-25 04:27:39.231 -03:00 [INF] Request starting POST /api/whatsapp/disconnect
+2025-08-25 04:27:39.390 -03:00 [INF] 📥 Requisição de desconexão recebida
+2025-08-25 04:27:39.391 -03:00 [INF] Cancelado pedido de QR Code. RequestId: 6e6aef65-f262-49e0-a02a-86cfbefd25c5
+2025-08-25 04:27:39.391 -03:00 [INF] 🔍 Tentando publicar comando no RabbitMQ...
+2025-08-25 04:27:39.393 -03:00 [INF] 📤 Publicando comando: {"command":"disconnect","timestamp":"2025-08-25T07:27:39.3915780Z"}
+2025-08-25 04:27:39.393 -03:00 [INF] 📤 Routing Key: whatsapp.outgoing
+2025-08-25 04:27:39.394 -03:00 [INF] 📤 Body length: 67 bytes
+2025-08-25 04:27:39.394 -03:00 [INF] ✅ Comando enviado para RabbitMQ com sucesso: {"command":"disconnect","timestamp":"2025-08-25T07:27:39.3915780Z"}
+2025-08-25 04:27:39.398 -03:00 [INF] Request finished POST /api/whatsapp/disconnect - 200 in 166.4920ms
+2025-08-25 04:27:42.529 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 04:27:42.667 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 04:27:42.668 -03:00 [INF] Iniciado pedido de QR Code. RequestId: c021c6ec-b2ef-446e-bdc1-f1bf2617964d
+2025-08-25 04:27:42.668 -03:00 [INF] 🔍 Tentando publicar comando no RabbitMQ...
+2025-08-25 04:27:42.668 -03:00 [INF] 📤 Publicando comando: {"command":"generate_qr","requestId":"c021c6ec-b2ef-446e-bdc1-f1bf2617964d","timestamp":"2025-08-25T07:27:42.6685470Z"}
+2025-08-25 04:27:42.669 -03:00 [INF] 📤 Routing Key: whatsapp.outgoing
+2025-08-25 04:27:42.669 -03:00 [INF] 📤 Body length: 119 bytes
+2025-08-25 04:27:42.670 -03:00 [INF] ✅ Comando enviado para RabbitMQ com sucesso: {"command":"generate_qr","requestId":"c021c6ec-b2ef-446e-bdc1-f1bf2617964d","timestamp":"2025-08-25T07:27:42.6685470Z"}
+2025-08-25 04:27:42.670 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 200 in 141.1460ms
+2025-08-25 04:28:34.874 -03:00 [INF] Request finished GET /whatsappHub - 101 in 369703.4690ms
+2025-08-25 04:28:34.939 -03:00 [INF] Desconectando do RabbitMQ...
+2025-08-25 04:29:09.933 -03:00 [INF] Iniciando Pregiato API...
+2025-08-25 04:29:10.177 -03:00 [INF] RabbitMQ Background Service iniciado
+2025-08-25 04:29:10.179 -03:00 [INF] Tentando conectar ao RabbitMQ...
+2025-08-25 04:29:11.817 -03:00 [INF] ✅ Conexão RabbitMQ estabelecida com amqps://mouse.rmq5.cloudamqp.com:5671
+2025-08-25 04:29:13.207 -03:00 [INF] 📋 Filas RabbitMQ configuradas
+2025-08-25 04:29:13.407 -03:00 [INF] 🎧 Consumidor de QR codes configurado
+2025-08-25 04:29:13.599 -03:00 [INF] 🎧 Consumidor de mensagens WhatsApp configurado
+2025-08-25 04:29:13.794 -03:00 [INF] 🎧 Consumidor de status da sessão configurado
+2025-08-25 04:29:13.796 -03:00 [INF] ✅ RabbitMQ conectado e configurado
+2025-08-25 04:29:19.615 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 04:29:19.632 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 17.8750ms
+2025-08-25 04:29:19.674 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-25 04:29:34.218 -03:00 [INF] Request finished GET /whatsappHub - 101 in 14543.9390ms
+2025-08-25 04:29:37.246 -03:00 [INF] Request starting GET /api/health
+2025-08-25 04:29:37.255 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:29:37.256 -03:00 [INF] Request starting GET /api/chats
+2025-08-25 04:29:37.259 -03:00 [INF] Request finished GET /api/health - 404 in 12.7470ms
+2025-08-25 04:29:37.324 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 04:29:37.324 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 04:29:37.331 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 6.7550ms
+2025-08-25 04:29:37.359 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 34.5220ms
+2025-08-25 04:29:37.364 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-25 04:29:37.369 -03:00 [INF] Request starting GET /api/health
+2025-08-25 04:29:37.369 -03:00 [INF] Request finished GET /api/health - 404 in 0.2560ms
+2025-08-25 04:29:37.383 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-25 04:29:43.283 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 6028.2750ms
+2025-08-25 04:29:43.299 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:29:43.502 -03:00 [INF] Request finished GET /api/chats - 200 in 6246.5650ms
+2025-08-25 04:29:43.505 -03:00 [INF] Request starting GET /api/chats
+2025-08-25 04:29:43.894 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 595.1140ms
+2025-08-25 04:29:43.941 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:29:44.284 -03:00 [INF] Request finished GET /api/chats - 200 in 778.5760ms
+2025-08-25 04:29:44.554 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 613.0510ms
+2025-08-25 04:29:44.561 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:29:45.145 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 583.6310ms
+2025-08-25 04:29:45.153 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:29:45.563 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 410.0190ms
+2025-08-25 04:29:45.569 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:29:45.980 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 410.5640ms
+2025-08-25 04:29:46.859 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 04:29:47.011 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 04:29:47.018 -03:00 [INF] Iniciado pedido de QR Code. RequestId: 944e5720-e60c-4f5b-b644-c601920519a5
+2025-08-25 04:29:47.020 -03:00 [INF] 🔍 Tentando publicar comando no RabbitMQ...
+2025-08-25 04:29:47.028 -03:00 [INF] 📤 Publicando comando: {"command":"generate_qr","requestId":"944e5720-e60c-4f5b-b644-c601920519a5","timestamp":"2025-08-25T07:29:47.0184210Z"}
+2025-08-25 04:29:47.028 -03:00 [INF] 📤 Routing Key: whatsapp.outgoing
+2025-08-25 04:29:47.028 -03:00 [INF] 📤 Body length: 119 bytes
+2025-08-25 04:29:47.029 -03:00 [INF] 📤 Body as string: {"command":"generate_qr","requestId":"944e5720-e60c-4f5b-b644-c601920519a5","timestamp":"2025-08-25T07:29:47.0184210Z"}
+2025-08-25 04:29:47.029 -03:00 [INF] 📤 Body hex: 7B-22-63-6F-6D-6D-61-6E-64-22-3A-22-67-65-6E-65-72-61-74-65-5F-71-72-22-2C-22-72-65-71-75-65-73-74-49-64-22-3A-22-39-34-34-65-35-37-32-30-2D-65-36-30-63-2D-34-66-35-62-2D-62-36-34-34-2D-63-36-30-31-39-32-30-35-31-39-61-35-22-2C-22-74-69-6D-65-73-74-61-6D-70-22-3A-22-32-30-32-35-2D-30-38-2D-32-35-54-30-37-3A-32-39-3A-34-37-2E-30-31-38-34-32-31-30-5A-22-7D
+2025-08-25 04:29:47.034 -03:00 [INF] ✅ Comando enviado para RabbitMQ com sucesso: {"command":"generate_qr","requestId":"944e5720-e60c-4f5b-b644-c601920519a5","timestamp":"2025-08-25T07:29:47.0184210Z"}
+2025-08-25 04:29:47.046 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 200 in 187.2380ms
+2025-08-25 04:34:24.956 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 04:34:26.147 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 04:34:26.208 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 409 in 1252.0750ms
+2025-08-25 04:34:29.467 -03:00 [INF] Request starting POST /api/whatsapp/disconnect
+2025-08-25 04:34:29.627 -03:00 [INF] 📥 Requisição de desconexão recebida
+2025-08-25 04:34:29.628 -03:00 [INF] Cancelado pedido de QR Code. RequestId: 944e5720-e60c-4f5b-b644-c601920519a5
+2025-08-25 04:34:29.628 -03:00 [INF] 🔍 Tentando publicar comando no RabbitMQ...
+2025-08-25 04:34:29.632 -03:00 [INF] 📤 Publicando comando: {"command":"disconnect","timestamp":"2025-08-25T07:34:29.6288190Z"}
+2025-08-25 04:34:29.632 -03:00 [INF] 📤 Routing Key: whatsapp.outgoing
+2025-08-25 04:34:29.632 -03:00 [INF] 📤 Body length: 67 bytes
+2025-08-25 04:34:29.632 -03:00 [INF] 📤 Body as string: {"command":"disconnect","timestamp":"2025-08-25T07:34:29.6288190Z"}
+2025-08-25 04:34:29.633 -03:00 [INF] 📤 Body hex: 7B-22-63-6F-6D-6D-61-6E-64-22-3A-22-64-69-73-63-6F-6E-6E-65-63-74-22-2C-22-74-69-6D-65-73-74-61-6D-70-22-3A-22-32-30-32-35-2D-30-38-2D-32-35-54-30-37-3A-33-34-3A-32-39-2E-36-32-38-38-31-39-30-5A-22-7D
+2025-08-25 04:34:29.633 -03:00 [INF] ✅ Comando enviado para RabbitMQ com sucesso: {"command":"disconnect","timestamp":"2025-08-25T07:34:29.6288190Z"}
+2025-08-25 04:34:29.636 -03:00 [INF] Request finished POST /api/whatsapp/disconnect - 200 in 168.5900ms
+2025-08-25 04:34:31.922 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 04:34:32.141 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 04:34:32.142 -03:00 [INF] Iniciado pedido de QR Code. RequestId: 47d31d88-015e-411f-ba1b-8e199e6c140e
+2025-08-25 04:34:32.142 -03:00 [INF] 🔍 Tentando publicar comando no RabbitMQ...
+2025-08-25 04:34:32.142 -03:00 [INF] 📤 Publicando comando: {"command":"generate_qr","requestId":"47d31d88-015e-411f-ba1b-8e199e6c140e","timestamp":"2025-08-25T07:34:32.1426210Z"}
+2025-08-25 04:34:32.142 -03:00 [INF] 📤 Routing Key: whatsapp.outgoing
+2025-08-25 04:34:32.144 -03:00 [INF] 📤 Body length: 119 bytes
+2025-08-25 04:34:32.240 -03:00 [INF] 📤 Body as string: {"command":"generate_qr","requestId":"47d31d88-015e-411f-ba1b-8e199e6c140e","timestamp":"2025-08-25T07:34:32.1426210Z"}
+2025-08-25 04:34:32.240 -03:00 [INF] 📤 Body hex: 7B-22-63-6F-6D-6D-61-6E-64-22-3A-22-67-65-6E-65-72-61-74-65-5F-71-72-22-2C-22-72-65-71-75-65-73-74-49-64-22-3A-22-34-37-64-33-31-64-38-38-2D-30-31-35-65-2D-34-31-31-66-2D-62-61-31-62-2D-38-65-31-39-39-65-36-63-31-34-30-65-22-2C-22-74-69-6D-65-73-74-61-6D-70-22-3A-22-32-30-32-35-2D-30-38-2D-32-35-54-30-37-3A-33-34-3A-33-32-2E-31-34-32-36-32-31-30-5A-22-7D
+2025-08-25 04:34:32.345 -03:00 [INF] ✅ Comando enviado para RabbitMQ com sucesso: {"command":"generate_qr","requestId":"47d31d88-015e-411f-ba1b-8e199e6c140e","timestamp":"2025-08-25T07:34:32.1426210Z"}
+2025-08-25 04:34:32.400 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 200 in 477.8050ms
+2025-08-25 04:34:39.543 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-25 04:34:40.030 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 488.1340ms
+2025-08-25 04:35:06.460 -03:00 [INF] Request starting POST /api/whatsapp/webhook/qr-code
+2025-08-25 04:35:06.666 -03:00 [INF] 📱 QR Code recebido via RabbitMQ
+2025-08-25 04:35:06.697 -03:00 [INF] 📤 QR Code emitido via SignalR (webhook) requestId=47d31d88-015e-411f-ba1b-8e199e6c140e
+2025-08-25 04:35:06.699 -03:00 [INF] Request finished POST /api/whatsapp/webhook/qr-code - 200 in 239.5240ms
+2025-08-25 04:35:28.124 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 04:35:28.266 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 04:35:28.271 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 409 in 147.7180ms
+2025-08-25 04:35:31.381 -03:00 [INF] Request starting POST /api/whatsapp/disconnect
+2025-08-25 04:35:31.518 -03:00 [INF] 📥 Requisição de desconexão recebida
+2025-08-25 04:35:31.519 -03:00 [INF] Cancelado pedido de QR Code. RequestId: 47d31d88-015e-411f-ba1b-8e199e6c140e
+2025-08-25 04:35:31.519 -03:00 [INF] 🔍 Tentando publicar comando no RabbitMQ...
+2025-08-25 04:35:31.519 -03:00 [INF] 📤 Publicando comando: {"command":"disconnect","timestamp":"2025-08-25T07:35:31.5191320Z"}
+2025-08-25 04:35:31.519 -03:00 [INF] 📤 Routing Key: whatsapp.outgoing
+2025-08-25 04:35:31.519 -03:00 [INF] 📤 Body length: 67 bytes
+2025-08-25 04:35:31.519 -03:00 [INF] 📤 Body as string: {"command":"disconnect","timestamp":"2025-08-25T07:35:31.5191320Z"}
+2025-08-25 04:35:31.520 -03:00 [INF] 📤 Body hex: 7B-22-63-6F-6D-6D-61-6E-64-22-3A-22-64-69-73-63-6F-6E-6E-65-63-74-22-2C-22-74-69-6D-65-73-74-61-6D-70-22-3A-22-32-30-32-35-2D-30-38-2D-32-35-54-30-37-3A-33-35-3A-33-31-2E-35-31-39-31-33-32-30-5A-22-7D
+2025-08-25 04:35:31.520 -03:00 [INF] ✅ Comando enviado para RabbitMQ com sucesso: {"command":"disconnect","timestamp":"2025-08-25T07:35:31.5191320Z"}
+2025-08-25 04:35:31.520 -03:00 [INF] Request finished POST /api/whatsapp/disconnect - 200 in 138.7580ms
+2025-08-25 04:35:34.675 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 04:35:34.821 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 04:35:34.821 -03:00 [INF] Iniciado pedido de QR Code. RequestId: cd3e67ea-f17d-42cb-8370-47d04d2bb765
+2025-08-25 04:35:34.822 -03:00 [INF] 🔍 Tentando publicar comando no RabbitMQ...
+2025-08-25 04:35:34.822 -03:00 [INF] 📤 Publicando comando: {"command":"generate_qr","requestId":"cd3e67ea-f17d-42cb-8370-47d04d2bb765","timestamp":"2025-08-25T07:35:34.8220940Z"}
+2025-08-25 04:35:34.822 -03:00 [INF] 📤 Routing Key: whatsapp.outgoing
+2025-08-25 04:35:34.822 -03:00 [INF] 📤 Body length: 119 bytes
+2025-08-25 04:35:34.822 -03:00 [INF] 📤 Body as string: {"command":"generate_qr","requestId":"cd3e67ea-f17d-42cb-8370-47d04d2bb765","timestamp":"2025-08-25T07:35:34.8220940Z"}
+2025-08-25 04:35:34.822 -03:00 [INF] 📤 Body hex: 7B-22-63-6F-6D-6D-61-6E-64-22-3A-22-67-65-6E-65-72-61-74-65-5F-71-72-22-2C-22-72-65-71-75-65-73-74-49-64-22-3A-22-63-64-33-65-36-37-65-61-2D-66-31-37-64-2D-34-32-63-62-2D-38-33-37-30-2D-34-37-64-30-34-64-32-62-62-37-36-35-22-2C-22-74-69-6D-65-73-74-61-6D-70-22-3A-22-32-30-32-35-2D-30-38-2D-32-35-54-30-37-3A-33-35-3A-33-34-2E-38-32-32-30-39-34-30-5A-22-7D
+2025-08-25 04:35:34.822 -03:00 [INF] ✅ Comando enviado para RabbitMQ com sucesso: {"command":"generate_qr","requestId":"cd3e67ea-f17d-42cb-8370-47d04d2bb765","timestamp":"2025-08-25T07:35:34.8220940Z"}
+2025-08-25 04:35:34.823 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 200 in 148.5340ms
+2025-08-25 04:35:56.519 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-25 04:35:56.834 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 315.0080ms
+2025-08-25 04:36:00.614 -03:00 [INF] Request starting GET /api/whatsapp/qr-code/current
+2025-08-25 04:36:00.794 -03:00 [INF] Request finished GET /api/whatsapp/qr-code/current - 200 in 180.5710ms
+2025-08-25 04:36:08.847 -03:00 [INF] Request starting POST /api/whatsapp/webhook/qr-code
+2025-08-25 04:36:08.999 -03:00 [INF] 📤 QR Code emitido via SignalR (webhook) requestId=cd3e67ea-f17d-42cb-8370-47d04d2bb765
+2025-08-25 04:36:09.000 -03:00 [INF] Request finished POST /api/whatsapp/webhook/qr-code - 200 in 153.0120ms
+2025-08-25 04:36:09.042 -03:00 [INF] 📱 QR Code recebido via RabbitMQ
+2025-08-25 04:36:09.124 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-25 04:36:09.261 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 137.5140ms
+2025-08-25 04:36:13.874 -03:00 [INF] Request starting POST /api/whatsapp/disconnect
+2025-08-25 04:36:14.021 -03:00 [INF] 📥 Requisição de desconexão recebida
+2025-08-25 04:36:14.021 -03:00 [INF] Cancelado pedido de QR Code. RequestId: cd3e67ea-f17d-42cb-8370-47d04d2bb765
+2025-08-25 04:36:14.021 -03:00 [INF] 🔍 Tentando publicar comando no RabbitMQ...
+2025-08-25 04:36:14.022 -03:00 [INF] 📤 Publicando comando: {"command":"disconnect","timestamp":"2025-08-25T07:36:14.0217640Z"}
+2025-08-25 04:36:14.022 -03:00 [INF] 📤 Routing Key: whatsapp.outgoing
+2025-08-25 04:36:14.022 -03:00 [INF] 📤 Body length: 67 bytes
+2025-08-25 04:36:14.022 -03:00 [INF] 📤 Body as string: {"command":"disconnect","timestamp":"2025-08-25T07:36:14.0217640Z"}
+2025-08-25 04:36:14.023 -03:00 [INF] 📤 Body hex: 7B-22-63-6F-6D-6D-61-6E-64-22-3A-22-64-69-73-63-6F-6E-6E-65-63-74-22-2C-22-74-69-6D-65-73-74-61-6D-70-22-3A-22-32-30-32-35-2D-30-38-2D-32-35-54-30-37-3A-33-36-3A-31-34-2E-30-32-31-37-36-34-30-5A-22-7D
+2025-08-25 04:36:14.025 -03:00 [INF] ✅ Comando enviado para RabbitMQ com sucesso: {"command":"disconnect","timestamp":"2025-08-25T07:36:14.0217640Z"}
+2025-08-25 04:36:14.030 -03:00 [INF] Request finished POST /api/whatsapp/disconnect - 200 in 155.6040ms
+2025-08-25 04:36:17.173 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 04:36:17.311 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 04:36:17.312 -03:00 [INF] Iniciado pedido de QR Code. RequestId: 86b291e5-df0f-4255-b2af-31a3dc06a0ac
+2025-08-25 04:36:17.314 -03:00 [INF] 🔍 Tentando publicar comando no RabbitMQ...
+2025-08-25 04:36:17.317 -03:00 [INF] 📤 Publicando comando: {"command":"generate_qr","requestId":"86b291e5-df0f-4255-b2af-31a3dc06a0ac","timestamp":"2025-08-25T07:36:17.3146570Z"}
+2025-08-25 04:36:17.317 -03:00 [INF] 📤 Routing Key: whatsapp.outgoing
+2025-08-25 04:36:17.317 -03:00 [INF] 📤 Body length: 119 bytes
+2025-08-25 04:36:17.317 -03:00 [INF] 📤 Body as string: {"command":"generate_qr","requestId":"86b291e5-df0f-4255-b2af-31a3dc06a0ac","timestamp":"2025-08-25T07:36:17.3146570Z"}
+2025-08-25 04:36:17.318 -03:00 [INF] 📤 Body hex: 7B-22-63-6F-6D-6D-61-6E-64-22-3A-22-67-65-6E-65-72-61-74-65-5F-71-72-22-2C-22-72-65-71-75-65-73-74-49-64-22-3A-22-38-36-62-32-39-31-65-35-2D-64-66-30-66-2D-34-32-35-35-2D-62-32-61-66-2D-33-31-61-33-64-63-30-36-61-30-61-63-22-2C-22-74-69-6D-65-73-74-61-6D-70-22-3A-22-32-30-32-35-2D-30-38-2D-32-35-54-30-37-3A-33-36-3A-31-37-2E-33-31-34-36-35-37-30-5A-22-7D
+2025-08-25 04:36:17.318 -03:00 [INF] ✅ Comando enviado para RabbitMQ com sucesso: {"command":"generate_qr","requestId":"86b291e5-df0f-4255-b2af-31a3dc06a0ac","timestamp":"2025-08-25T07:36:17.3146570Z"}
+2025-08-25 04:36:17.319 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 200 in 145.9790ms
+2025-08-25 04:36:22.505 -03:00 [INF] Request starting GET /api/whatsapp/qr-code/current
+2025-08-25 04:36:22.669 -03:00 [INF] Request finished GET /api/whatsapp/qr-code/current - 200 in 166.3450ms
+2025-08-25 04:36:54.451 -03:00 [INF] Request finished GET /whatsappHub - 101 in 437066.3310ms
+2025-08-25 04:36:54.451 -03:00 [INF] Request finished GET /whatsappHub - 101 in 437087.3930ms
+2025-08-25 04:36:57.000 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:36:57.003 -03:00 [INF] Request starting GET /api/chats
+2025-08-25 04:36:57.003 -03:00 [INF] Request starting GET /api/health
+2025-08-25 04:36:57.080 -03:00 [INF] Request finished GET /api/health - 404 in 77.0640ms
+2025-08-25 04:36:57.081 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 04:36:57.090 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 04:36:57.091 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 1.2790ms
+2025-08-25 04:36:57.092 -03:00 [INF] Request starting GET /api/health
+2025-08-25 04:36:57.102 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 20.5200ms
+2025-08-25 04:36:57.105 -03:00 [INF] Request finished GET /api/health - 404 in 12.3430ms
+2025-08-25 04:36:57.119 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-25 04:36:57.138 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-25 04:36:59.001 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 2001.1500ms
+2025-08-25 04:36:59.045 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:36:59.574 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 529.4220ms
+2025-08-25 04:36:59.592 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:36:59.985 -03:00 [INF] Request finished GET /api/chats - 200 in 2982.0500ms
+2025-08-25 04:37:00.023 -03:00 [INF] Request starting GET /api/chats
+2025-08-25 04:37:00.110 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 518.8270ms
+2025-08-25 04:37:00.117 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:37:00.555 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 438.2680ms
+2025-08-25 04:37:00.571 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:37:00.882 -03:00 [INF] Request finished GET /api/chats - 200 in 859.2970ms
+2025-08-25 04:37:00.981 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 409.5090ms
+2025-08-25 04:37:00.988 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:37:01.390 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 402.2430ms
+2025-08-25 04:37:18.560 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 04:37:18.720 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 04:37:18.724 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 409 in 164.2820ms
+2025-08-25 04:38:14.156 -03:00 [INF] Request finished GET /whatsappHub - 101 in 77036.7870ms
+2025-08-25 04:38:14.427 -03:00 [INF] Request finished GET /whatsappHub - 101 in 77289.2480ms
+2025-08-25 04:38:16.741 -03:00 [INF] Request starting GET /api/chats
+2025-08-25 04:38:16.740 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:38:16.741 -03:00 [INF] Request starting GET /api/health
+2025-08-25 04:38:16.745 -03:00 [INF] Request finished GET /api/health - 404 in 4.2930ms
+2025-08-25 04:38:16.757 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 04:38:16.760 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 2.6500ms
+2025-08-25 04:38:16.760 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 04:38:16.760 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.2910ms
+2025-08-25 04:38:16.765 -03:00 [INF] Request starting GET /api/health
+2025-08-25 04:38:16.765 -03:00 [INF] Request finished GET /api/health - 404 in 0.1290ms
+2025-08-25 04:38:16.778 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-25 04:38:16.797 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-25 04:38:17.204 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 463.8130ms
+2025-08-25 04:38:17.206 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:38:17.446 -03:00 [INF] Request finished GET /api/chats - 200 in 706.4850ms
+2025-08-25 04:38:17.638 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 432.4750ms
+2025-08-25 04:38:17.641 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:38:18.067 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 426.5630ms
+2025-08-25 04:38:18.068 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:38:18.584 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 515.6110ms
+2025-08-25 04:38:18.587 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:38:19.030 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 443.1500ms
+2025-08-25 04:38:19.033 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:38:19.472 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 438.9810ms
+2025-08-25 04:38:26.418 -03:00 [INF] Request finished GET /whatsappHub - 101 in 9639.6130ms
+2025-08-25 04:38:26.418 -03:00 [INF] Request finished GET /whatsappHub - 101 in 9620.5840ms
+2025-08-25 04:38:26.433 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 04:38:26.433 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 04:38:26.434 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.7740ms
+2025-08-25 04:38:26.434 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.8370ms
+2025-08-25 04:38:26.441 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 04:38:26.442 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.4450ms
+2025-08-25 04:38:26.446 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-25 04:38:26.551 -03:00 [INF] Request finished GET /whatsappHub - 200 in 105.2400ms
+2025-08-25 04:38:26.562 -03:00 [INF] Desconectando do RabbitMQ...
+2025-08-25 04:39:15.086 -03:00 [INF] Iniciando Pregiato API...
+2025-08-25 04:39:15.308 -03:00 [INF] RabbitMQ Background Service iniciado
+2025-08-25 04:39:15.309 -03:00 [INF] Tentando conectar ao RabbitMQ...
+2025-08-25 04:39:16.939 -03:00 [INF] ✅ Conexão RabbitMQ estabelecida com amqps://mouse.rmq5.cloudamqp.com:5671
+2025-08-25 04:39:18.463 -03:00 [INF] 📋 Filas RabbitMQ configuradas
+2025-08-25 04:39:18.668 -03:00 [INF] 🎧 Consumidor de QR codes configurado
+2025-08-25 04:39:18.866 -03:00 [INF] 🎧 Consumidor de mensagens WhatsApp configurado
+2025-08-25 04:39:19.058 -03:00 [INF] 🎧 Consumidor de status da sessão configurado
+2025-08-25 04:39:19.059 -03:00 [INF] ✅ RabbitMQ conectado e configurado
+2025-08-25 04:39:29.580 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 04:39:29.591 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 11.7570ms
+2025-08-25 04:39:29.602 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-25 04:39:29.642 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 04:39:35.586 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 04:39:35.596 -03:00 [INF] Iniciado pedido de QR Code. RequestId: 05c0c304-2ca4-4639-81e9-cac52a6b8e03
+2025-08-25 04:39:35.601 -03:00 [INF] 🔍 Tentando publicar comando no RabbitMQ...
+2025-08-25 04:39:35.617 -03:00 [INF] 📤 Publicando comando: {"command":"generate_qr","requestId":"05c0c304-2ca4-4639-81e9-cac52a6b8e03","timestamp":"2025-08-25T07:39:35.5983720Z"}
+2025-08-25 04:39:35.617 -03:00 [INF] 📤 Routing Key: whatsapp.outgoing
+2025-08-25 04:39:35.618 -03:00 [INF] 📤 Body length: 119 bytes
+2025-08-25 04:39:35.618 -03:00 [INF] 📤 Body as string: {"command":"generate_qr","requestId":"05c0c304-2ca4-4639-81e9-cac52a6b8e03","timestamp":"2025-08-25T07:39:35.5983720Z"}
+2025-08-25 04:39:35.618 -03:00 [INF] 📤 Body hex: 7B-22-63-6F-6D-6D-61-6E-64-22-3A-22-67-65-6E-65-72-61-74-65-5F-71-72-22-2C-22-72-65-71-75-65-73-74-49-64-22-3A-22-30-35-63-30-63-33-30-34-2D-32-63-61-34-2D-34-36-33-39-2D-38-31-65-39-2D-63-61-63-35-32-61-36-62-38-65-30-33-22-2C-22-74-69-6D-65-73-74-61-6D-70-22-3A-22-32-30-32-35-2D-30-38-2D-32-35-54-30-37-3A-33-39-3A-33-35-2E-35-39-38-33-37-32-30-5A-22-7D
+2025-08-25 04:39:35.622 -03:00 [INF] ✅ Comando enviado para RabbitMQ com sucesso: {"command":"generate_qr","requestId":"05c0c304-2ca4-4639-81e9-cac52a6b8e03","timestamp":"2025-08-25T07:39:35.5983720Z"}
+2025-08-25 04:39:35.638 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 200 in 5995.3760ms
+2025-08-25 04:42:25.663 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-25 04:42:26.005 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 341.1610ms
+2025-08-25 04:43:06.410 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 04:43:06.564 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 04:43:06.577 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 409 in 166.9520ms
+2025-08-25 04:43:10.396 -03:00 [INF] Request starting POST /api/whatsapp/disconnect
+2025-08-25 04:43:10.545 -03:00 [INF] 📥 Requisição de desconexão recebida
+2025-08-25 04:43:10.546 -03:00 [INF] Cancelado pedido de QR Code. RequestId: 05c0c304-2ca4-4639-81e9-cac52a6b8e03
+2025-08-25 04:43:10.546 -03:00 [INF] 🔍 Tentando publicar comando no RabbitMQ...
+2025-08-25 04:43:10.550 -03:00 [INF] 📤 Publicando comando: {"command":"disconnect","timestamp":"2025-08-25T07:43:10.5464840Z"}
+2025-08-25 04:43:10.551 -03:00 [INF] 📤 Routing Key: whatsapp.outgoing
+2025-08-25 04:43:10.551 -03:00 [INF] 📤 Body length: 67 bytes
+2025-08-25 04:43:10.551 -03:00 [INF] 📤 Body as string: {"command":"disconnect","timestamp":"2025-08-25T07:43:10.5464840Z"}
+2025-08-25 04:43:10.551 -03:00 [INF] 📤 Body hex: 7B-22-63-6F-6D-6D-61-6E-64-22-3A-22-64-69-73-63-6F-6E-6E-65-63-74-22-2C-22-74-69-6D-65-73-74-61-6D-70-22-3A-22-32-30-32-35-2D-30-38-2D-32-35-54-30-37-3A-34-33-3A-31-30-2E-35-34-36-34-38-34-30-5A-22-7D
+2025-08-25 04:43:10.552 -03:00 [INF] ✅ Comando enviado para RabbitMQ com sucesso: {"command":"disconnect","timestamp":"2025-08-25T07:43:10.5464840Z"}
+2025-08-25 04:43:10.553 -03:00 [INF] Request finished POST /api/whatsapp/disconnect - 200 in 157.7400ms
+2025-08-25 04:43:13.762 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 04:43:13.900 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 04:43:13.900 -03:00 [INF] Iniciado pedido de QR Code. RequestId: 8108d75b-13d8-4895-8489-afc1429dcdd0
+2025-08-25 04:43:13.900 -03:00 [INF] 🔍 Tentando publicar comando no RabbitMQ...
+2025-08-25 04:43:13.901 -03:00 [INF] 📤 Publicando comando: {"command":"generate_qr","requestId":"8108d75b-13d8-4895-8489-afc1429dcdd0","timestamp":"2025-08-25T07:43:13.9007760Z"}
+2025-08-25 04:43:13.901 -03:00 [INF] 📤 Routing Key: whatsapp.outgoing
+2025-08-25 04:43:13.901 -03:00 [INF] 📤 Body length: 119 bytes
+2025-08-25 04:43:13.901 -03:00 [INF] 📤 Body as string: {"command":"generate_qr","requestId":"8108d75b-13d8-4895-8489-afc1429dcdd0","timestamp":"2025-08-25T07:43:13.9007760Z"}
+2025-08-25 04:43:13.901 -03:00 [INF] 📤 Body hex: 7B-22-63-6F-6D-6D-61-6E-64-22-3A-22-67-65-6E-65-72-61-74-65-5F-71-72-22-2C-22-72-65-71-75-65-73-74-49-64-22-3A-22-38-31-30-38-64-37-35-62-2D-31-33-64-38-2D-34-38-39-35-2D-38-34-38-39-2D-61-66-63-31-34-32-39-64-63-64-64-30-22-2C-22-74-69-6D-65-73-74-61-6D-70-22-3A-22-32-30-32-35-2D-30-38-2D-32-35-54-30-37-3A-34-33-3A-31-33-2E-39-30-30-37-37-36-30-5A-22-7D
+2025-08-25 04:43:13.902 -03:00 [INF] ✅ Comando enviado para RabbitMQ com sucesso: {"command":"generate_qr","requestId":"8108d75b-13d8-4895-8489-afc1429dcdd0","timestamp":"2025-08-25T07:43:13.9007760Z"}
+2025-08-25 04:43:13.903 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 200 in 141.3810ms
+2025-08-25 04:45:06.076 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 04:45:06.222 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 04:45:06.226 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 409 in 149.8010ms
+2025-08-25 04:45:10.979 -03:00 [INF] Request starting POST /api/whatsapp/disconnect
+2025-08-25 04:45:11.123 -03:00 [INF] 📥 Requisição de desconexão recebida
+2025-08-25 04:45:11.123 -03:00 [INF] Cancelado pedido de QR Code. RequestId: 8108d75b-13d8-4895-8489-afc1429dcdd0
+2025-08-25 04:45:11.124 -03:00 [INF] 🔍 Tentando publicar comando no RabbitMQ...
+2025-08-25 04:45:11.127 -03:00 [INF] 📤 Publicando comando: {"command":"disconnect","timestamp":"2025-08-25T07:45:11.1239400Z"}
+2025-08-25 04:45:11.127 -03:00 [INF] 📤 Routing Key: whatsapp.outgoing
+2025-08-25 04:45:11.127 -03:00 [INF] 📤 Body length: 67 bytes
+2025-08-25 04:45:11.127 -03:00 [INF] 📤 Body as string: {"command":"disconnect","timestamp":"2025-08-25T07:45:11.1239400Z"}
+2025-08-25 04:45:11.127 -03:00 [INF] 📤 Body hex: 7B-22-63-6F-6D-6D-61-6E-64-22-3A-22-64-69-73-63-6F-6E-6E-65-63-74-22-2C-22-74-69-6D-65-73-74-61-6D-70-22-3A-22-32-30-32-35-2D-30-38-2D-32-35-54-30-37-3A-34-35-3A-31-31-2E-31-32-33-39-34-30-30-5A-22-7D
+2025-08-25 04:45:11.129 -03:00 [INF] ✅ Comando enviado para RabbitMQ com sucesso: {"command":"disconnect","timestamp":"2025-08-25T07:45:11.1239400Z"}
+2025-08-25 04:45:11.132 -03:00 [INF] Request finished POST /api/whatsapp/disconnect - 200 in 153.4680ms
+2025-08-25 04:45:14.205 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 04:45:14.339 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 04:45:14.339 -03:00 [INF] Iniciado pedido de QR Code. RequestId: 0b04bab2-9930-435a-990a-2a2429dc15a6
+2025-08-25 04:45:14.339 -03:00 [INF] 🔍 Tentando publicar comando no RabbitMQ...
+2025-08-25 04:45:14.339 -03:00 [INF] 📤 Publicando comando: {"command":"generate_qr","requestId":"0b04bab2-9930-435a-990a-2a2429dc15a6","timestamp":"2025-08-25T07:45:14.3394140Z"}
+2025-08-25 04:45:14.340 -03:00 [INF] 📤 Routing Key: whatsapp.outgoing
+2025-08-25 04:45:14.340 -03:00 [INF] 📤 Body length: 119 bytes
+2025-08-25 04:45:14.340 -03:00 [INF] 📤 Body as string: {"command":"generate_qr","requestId":"0b04bab2-9930-435a-990a-2a2429dc15a6","timestamp":"2025-08-25T07:45:14.3394140Z"}
+2025-08-25 04:45:14.340 -03:00 [INF] 📤 Body hex: 7B-22-63-6F-6D-6D-61-6E-64-22-3A-22-67-65-6E-65-72-61-74-65-5F-71-72-22-2C-22-72-65-71-75-65-73-74-49-64-22-3A-22-30-62-30-34-62-61-62-32-2D-39-39-33-30-2D-34-33-35-61-2D-39-39-30-61-2D-32-61-32-34-32-39-64-63-31-35-61-36-22-2C-22-74-69-6D-65-73-74-61-6D-70-22-3A-22-32-30-32-35-2D-30-38-2D-32-35-54-30-37-3A-34-35-3A-31-34-2E-33-33-39-34-31-34-30-5A-22-7D
+2025-08-25 04:45:14.340 -03:00 [INF] ✅ Comando enviado para RabbitMQ com sucesso: {"command":"generate_qr","requestId":"0b04bab2-9930-435a-990a-2a2429dc15a6","timestamp":"2025-08-25T07:45:14.3394140Z"}
+2025-08-25 04:45:14.340 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 200 in 134.7770ms
+2025-08-25 04:45:38.869 -03:00 [INF] Request starting GET /api/whatsapp/qr-code/current
+2025-08-25 04:45:39.027 -03:00 [INF] Request finished GET /api/whatsapp/qr-code/current - 404 in 157.1710ms
+2025-08-25 04:46:26.731 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 04:46:26.886 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 04:46:26.895 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 409 in 163.0250ms
+2025-08-25 04:48:50.710 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 04:48:50.847 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 04:48:50.852 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 409 in 141.8780ms
+2025-08-25 04:48:54.713 -03:00 [INF] Request starting POST /api/whatsapp/disconnect
+2025-08-25 04:48:54.850 -03:00 [INF] 📥 Requisição de desconexão recebida
+2025-08-25 04:48:54.850 -03:00 [INF] Cancelado pedido de QR Code. RequestId: 0b04bab2-9930-435a-990a-2a2429dc15a6
+2025-08-25 04:48:54.850 -03:00 [INF] 🔍 Tentando publicar comando no RabbitMQ...
+2025-08-25 04:48:54.851 -03:00 [INF] 📤 Publicando comando: {"command":"disconnect","timestamp":"2025-08-25T07:48:54.8508980Z"}
+2025-08-25 04:48:54.851 -03:00 [INF] 📤 Routing Key: whatsapp.outgoing
+2025-08-25 04:48:54.851 -03:00 [INF] 📤 Body length: 67 bytes
+2025-08-25 04:48:54.851 -03:00 [INF] 📤 Body as string: {"command":"disconnect","timestamp":"2025-08-25T07:48:54.8508980Z"}
+2025-08-25 04:48:54.851 -03:00 [INF] 📤 Body hex: 7B-22-63-6F-6D-6D-61-6E-64-22-3A-22-64-69-73-63-6F-6E-6E-65-63-74-22-2C-22-74-69-6D-65-73-74-61-6D-70-22-3A-22-32-30-32-35-2D-30-38-2D-32-35-54-30-37-3A-34-38-3A-35-34-2E-38-35-30-38-39-38-30-5A-22-7D
+2025-08-25 04:48:54.851 -03:00 [INF] ✅ Comando enviado para RabbitMQ com sucesso: {"command":"disconnect","timestamp":"2025-08-25T07:48:54.8508980Z"}
+2025-08-25 04:48:54.852 -03:00 [INF] Request finished POST /api/whatsapp/disconnect - 200 in 139.1820ms
+2025-08-25 04:48:57.948 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 04:48:58.085 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 04:48:58.085 -03:00 [INF] Iniciado pedido de QR Code. RequestId: 3e68d6ee-79cc-4413-9243-21382576c2fd
+2025-08-25 04:48:58.085 -03:00 [INF] 🔍 Tentando publicar comando no RabbitMQ...
+2025-08-25 04:48:58.085 -03:00 [INF] 📤 Publicando comando: {"command":"generate_qr","requestId":"3e68d6ee-79cc-4413-9243-21382576c2fd","timestamp":"2025-08-25T07:48:58.0856350Z"}
+2025-08-25 04:48:58.085 -03:00 [INF] 📤 Routing Key: whatsapp.outgoing
+2025-08-25 04:48:58.087 -03:00 [INF] 📤 Body length: 119 bytes
+2025-08-25 04:48:58.087 -03:00 [INF] 📤 Body as string: {"command":"generate_qr","requestId":"3e68d6ee-79cc-4413-9243-21382576c2fd","timestamp":"2025-08-25T07:48:58.0856350Z"}
+2025-08-25 04:48:58.087 -03:00 [INF] 📤 Body hex: 7B-22-63-6F-6D-6D-61-6E-64-22-3A-22-67-65-6E-65-72-61-74-65-5F-71-72-22-2C-22-72-65-71-75-65-73-74-49-64-22-3A-22-33-65-36-38-64-36-65-65-2D-37-39-63-63-2D-34-34-31-33-2D-39-32-34-33-2D-32-31-33-38-32-35-37-36-63-32-66-64-22-2C-22-74-69-6D-65-73-74-61-6D-70-22-3A-22-32-30-32-35-2D-30-38-2D-32-35-54-30-37-3A-34-38-3A-35-38-2E-30-38-35-36-33-35-30-5A-22-7D
+2025-08-25 04:48:58.088 -03:00 [INF] ✅ Comando enviado para RabbitMQ com sucesso: {"command":"generate_qr","requestId":"3e68d6ee-79cc-4413-9243-21382576c2fd","timestamp":"2025-08-25T07:48:58.0856350Z"}
+2025-08-25 04:48:58.089 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 200 in 140.9030ms
+2025-08-25 04:49:21.606 -03:00 [INF] Request starting GET /api/whatsapp/qr-code/current
+2025-08-25 04:49:21.745 -03:00 [INF] Request finished GET /api/whatsapp/qr-code/current - 404 in 139.4610ms
+2025-08-25 04:49:25.506 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-25 04:49:25.659 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 152.9480ms
+2025-08-25 04:50:03.358 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 04:50:03.506 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 04:50:03.508 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 409 in 149.3890ms
+2025-08-25 04:50:06.897 -03:00 [INF] Request starting POST /api/whatsapp/disconnect
+2025-08-25 04:50:07.031 -03:00 [INF] 📥 Requisição de desconexão recebida
+2025-08-25 04:50:07.031 -03:00 [INF] Cancelado pedido de QR Code. RequestId: 3e68d6ee-79cc-4413-9243-21382576c2fd
+2025-08-25 04:50:07.031 -03:00 [INF] 🔍 Tentando publicar comando no RabbitMQ...
+2025-08-25 04:50:07.032 -03:00 [INF] 📤 Publicando comando: {"command":"disconnect","timestamp":"2025-08-25T07:50:07.0318710Z"}
+2025-08-25 04:50:07.032 -03:00 [INF] 📤 Routing Key: whatsapp.outgoing
+2025-08-25 04:50:07.032 -03:00 [INF] 📤 Body length: 67 bytes
+2025-08-25 04:50:07.032 -03:00 [INF] 📤 Body as string: {"command":"disconnect","timestamp":"2025-08-25T07:50:07.0318710Z"}
+2025-08-25 04:50:07.032 -03:00 [INF] 📤 Body hex: 7B-22-63-6F-6D-6D-61-6E-64-22-3A-22-64-69-73-63-6F-6E-6E-65-63-74-22-2C-22-74-69-6D-65-73-74-61-6D-70-22-3A-22-32-30-32-35-2D-30-38-2D-32-35-54-30-37-3A-35-30-3A-30-37-2E-30-33-31-38-37-31-30-5A-22-7D
+2025-08-25 04:50:07.032 -03:00 [INF] ✅ Comando enviado para RabbitMQ com sucesso: {"command":"disconnect","timestamp":"2025-08-25T07:50:07.0318710Z"}
+2025-08-25 04:50:07.032 -03:00 [INF] Request finished POST /api/whatsapp/disconnect - 200 in 135.4370ms
+2025-08-25 04:50:10.221 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 04:50:10.356 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 04:50:10.357 -03:00 [INF] Iniciado pedido de QR Code. RequestId: cd933e67-1b02-4490-93f9-d3f68bb5e2b4
+2025-08-25 04:50:10.357 -03:00 [INF] 🔍 Tentando publicar comando no RabbitMQ...
+2025-08-25 04:50:10.357 -03:00 [INF] 📤 Publicando comando: {"command":"generate_qr","requestId":"cd933e67-1b02-4490-93f9-d3f68bb5e2b4","timestamp":"2025-08-25T07:50:10.3573540Z"}
+2025-08-25 04:50:10.357 -03:00 [INF] 📤 Routing Key: whatsapp.outgoing
+2025-08-25 04:50:10.357 -03:00 [INF] 📤 Body length: 119 bytes
+2025-08-25 04:50:10.357 -03:00 [INF] 📤 Body as string: {"command":"generate_qr","requestId":"cd933e67-1b02-4490-93f9-d3f68bb5e2b4","timestamp":"2025-08-25T07:50:10.3573540Z"}
+2025-08-25 04:50:10.357 -03:00 [INF] 📤 Body hex: 7B-22-63-6F-6D-6D-61-6E-64-22-3A-22-67-65-6E-65-72-61-74-65-5F-71-72-22-2C-22-72-65-71-75-65-73-74-49-64-22-3A-22-63-64-39-33-33-65-36-37-2D-31-62-30-32-2D-34-34-39-30-2D-39-33-66-39-2D-64-33-66-36-38-62-62-35-65-32-62-34-22-2C-22-74-69-6D-65-73-74-61-6D-70-22-3A-22-32-30-32-35-2D-30-38-2D-32-35-54-30-37-3A-35-30-3A-31-30-2E-33-35-37-33-35-34-30-5A-22-7D
+2025-08-25 04:50:10.358 -03:00 [INF] ✅ Comando enviado para RabbitMQ com sucesso: {"command":"generate_qr","requestId":"cd933e67-1b02-4490-93f9-d3f68bb5e2b4","timestamp":"2025-08-25T07:50:10.3573540Z"}
+2025-08-25 04:50:10.358 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 200 in 137.3720ms
+2025-08-25 04:50:37.785 -03:00 [INF] Request starting GET /api/whatsapp/qr-code/current
+2025-08-25 04:50:37.922 -03:00 [INF] Request finished GET /api/whatsapp/qr-code/current - 404 in 136.9740ms
+2025-08-25 04:50:45.831 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-25 04:50:45.970 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 138.6990ms
+2025-08-25 04:53:01.515 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 04:53:01.691 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 04:53:01.698 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 409 in 183.5120ms
+2025-08-25 04:53:06.038 -03:00 [INF] Request starting POST /api/whatsapp/disconnect
+2025-08-25 04:53:06.180 -03:00 [INF] 📥 Requisição de desconexão recebida
+2025-08-25 04:53:06.180 -03:00 [INF] Cancelado pedido de QR Code. RequestId: cd933e67-1b02-4490-93f9-d3f68bb5e2b4
+2025-08-25 04:53:06.180 -03:00 [INF] 🔍 Tentando publicar comando no RabbitMQ...
+2025-08-25 04:53:06.181 -03:00 [INF] 📤 Publicando comando: {"command":"disconnect","timestamp":"2025-08-25T07:53:06.1806010Z"}
+2025-08-25 04:53:06.181 -03:00 [INF] 📤 Routing Key: whatsapp.outgoing
+2025-08-25 04:53:06.181 -03:00 [INF] 📤 Body length: 67 bytes
+2025-08-25 04:53:06.181 -03:00 [INF] 📤 Body as string: {"command":"disconnect","timestamp":"2025-08-25T07:53:06.1806010Z"}
+2025-08-25 04:53:06.181 -03:00 [INF] 📤 Body hex: 7B-22-63-6F-6D-6D-61-6E-64-22-3A-22-64-69-73-63-6F-6E-6E-65-63-74-22-2C-22-74-69-6D-65-73-74-61-6D-70-22-3A-22-32-30-32-35-2D-30-38-2D-32-35-54-30-37-3A-35-33-3A-30-36-2E-31-38-30-36-30-31-30-5A-22-7D
+2025-08-25 04:53:06.181 -03:00 [INF] ✅ Comando enviado para RabbitMQ com sucesso: {"command":"disconnect","timestamp":"2025-08-25T07:53:06.1806010Z"}
+2025-08-25 04:53:06.182 -03:00 [INF] Request finished POST /api/whatsapp/disconnect - 200 in 144.2570ms
+2025-08-25 04:53:09.489 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 04:53:09.625 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 04:53:09.625 -03:00 [INF] Iniciado pedido de QR Code. RequestId: e705efc1-2f89-4879-a165-7a00900162a8
+2025-08-25 04:53:09.626 -03:00 [INF] 🔍 Tentando publicar comando no RabbitMQ...
+2025-08-25 04:53:09.626 -03:00 [INF] 📤 Publicando comando: {"command":"generate_qr","requestId":"e705efc1-2f89-4879-a165-7a00900162a8","timestamp":"2025-08-25T07:53:09.6261910Z"}
+2025-08-25 04:53:09.626 -03:00 [INF] 📤 Routing Key: whatsapp.outgoing
+2025-08-25 04:53:09.626 -03:00 [INF] 📤 Body length: 119 bytes
+2025-08-25 04:53:09.626 -03:00 [INF] 📤 Body as string: {"command":"generate_qr","requestId":"e705efc1-2f89-4879-a165-7a00900162a8","timestamp":"2025-08-25T07:53:09.6261910Z"}
+2025-08-25 04:53:09.627 -03:00 [INF] 📤 Body hex: 7B-22-63-6F-6D-6D-61-6E-64-22-3A-22-67-65-6E-65-72-61-74-65-5F-71-72-22-2C-22-72-65-71-75-65-73-74-49-64-22-3A-22-65-37-30-35-65-66-63-31-2D-32-66-38-39-2D-34-38-37-39-2D-61-31-36-35-2D-37-61-30-30-39-30-30-31-36-32-61-38-22-2C-22-74-69-6D-65-73-74-61-6D-70-22-3A-22-32-30-32-35-2D-30-38-2D-32-35-54-30-37-3A-35-33-3A-30-39-2E-36-32-36-31-39-31-30-5A-22-7D
+2025-08-25 04:53:09.627 -03:00 [INF] ✅ Comando enviado para RabbitMQ com sucesso: {"command":"generate_qr","requestId":"e705efc1-2f89-4879-a165-7a00900162a8","timestamp":"2025-08-25T07:53:09.6261910Z"}
+2025-08-25 04:53:09.627 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 200 in 137.8860ms
+2025-08-25 04:53:38.129 -03:00 [INF] Request starting GET /api/whatsapp/qr-code/current
+2025-08-25 04:53:38.267 -03:00 [INF] Request finished GET /api/whatsapp/qr-code/current - 404 in 138.0080ms
+2025-08-25 04:56:30.943 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 04:56:30.960 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 17.0130ms
+2025-08-25 04:56:30.981 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-25 04:56:31.030 -03:00 [INF] Request finished GET /whatsappHub - 101 in 1021427.2720ms
+2025-08-25 04:56:32.045 -03:00 [INF] Request finished GET /whatsappHub - 101 in 1058.2690ms
+2025-08-25 04:56:36.970 -03:00 [INF] Request starting GET /api/chats
+2025-08-25 04:56:36.971 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:56:36.975 -03:00 [INF] Request starting GET /api/health
+2025-08-25 04:56:36.981 -03:00 [INF] Request finished GET /api/health - 404 in 6.3270ms
+2025-08-25 04:56:36.984 -03:00 [INF] Request starting GET /api/health
+2025-08-25 04:56:36.984 -03:00 [INF] Request finished GET /api/health - 404 in 0.5140ms
+2025-08-25 04:56:36.989 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 04:56:36.989 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 04:56:36.991 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 1.8600ms
+2025-08-25 04:56:36.991 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 1.8670ms
+2025-08-25 04:56:37.011 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-25 04:56:37.029 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-25 04:56:40.837 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 3867.1720ms
+2025-08-25 04:56:40.852 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:56:41.071 -03:00 [INF] Request finished GET /api/chats - 200 in 4100.4750ms
+2025-08-25 04:56:41.072 -03:00 [INF] Request starting GET /api/chats
+2025-08-25 04:56:41.342 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 490.1300ms
+2025-08-25 04:56:41.344 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:56:41.798 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 453.2870ms
+2025-08-25 04:56:41.798 -03:00 [INF] Request finished GET /api/chats - 200 in 725.8780ms
+2025-08-25 04:56:41.874 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:56:42.436 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 562.2550ms
+2025-08-25 04:56:42.441 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:56:42.858 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 417.0990ms
+2025-08-25 04:56:42.859 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:56:43.272 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 412.7340ms
+2025-08-25 04:57:55.908 -03:00 [INF] Request finished GET /whatsappHub - 101 in 78897.0270ms
+2025-08-25 04:57:55.915 -03:00 [INF] Request finished GET /whatsappHub - 101 in 78886.0050ms
+2025-08-25 04:57:57.544 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:57:57.544 -03:00 [INF] Request starting GET /api/health
+2025-08-25 04:57:57.544 -03:00 [INF] Request starting GET /api/chats
+2025-08-25 04:57:57.548 -03:00 [INF] Request finished GET /api/health - 404 in 3.4780ms
+2025-08-25 04:57:57.554 -03:00 [INF] Request starting GET /api/health
+2025-08-25 04:57:57.555 -03:00 [INF] Request finished GET /api/health - 404 in 0.7380ms
+2025-08-25 04:57:57.631 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 04:57:57.632 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 04:57:57.637 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 4.8170ms
+2025-08-25 04:57:57.637 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 5.9660ms
+2025-08-25 04:57:57.644 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-25 04:57:57.660 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-25 04:57:58.041 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 496.4580ms
+2025-08-25 04:57:58.043 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:57:58.312 -03:00 [INF] Request finished GET /api/chats - 200 in 767.8590ms
+2025-08-25 04:57:58.503 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 460.8410ms
+2025-08-25 04:57:58.520 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:57:59.016 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 496.0190ms
+2025-08-25 04:57:59.021 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:57:59.440 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 418.5370ms
+2025-08-25 04:57:59.442 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:57:59.843 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 401.7300ms
+2025-08-25 04:57:59.846 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 04:58:00.255 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 408.6240ms
+2025-08-25 04:58:02.524 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 04:58:02.667 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 04:58:02.671 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 409 in 146.4260ms
+2025-08-25 05:01:48.569 -03:00 [INF] Request finished GET /whatsappHub - 101 in 230908.9610ms
+2025-08-25 05:01:48.569 -03:00 [INF] Request finished GET /whatsappHub - 101 in 230924.7940ms
+2025-08-25 05:01:48.595 -03:00 [INF] Desconectando do RabbitMQ...
+2025-08-25 05:02:38.744 -03:00 [INF] Iniciando Pregiato API...
+2025-08-25 05:02:38.905 -03:00 [INF] RabbitMQ Background Service iniciado
+2025-08-25 05:02:38.908 -03:00 [INF] Tentando conectar ao RabbitMQ...
+2025-08-25 05:02:41.074 -03:00 [INF] ✅ Conexão RabbitMQ estabelecida com amqps://mouse.rmq5.cloudamqp.com:5671
+2025-08-25 05:02:42.461 -03:00 [INF] 📋 Filas RabbitMQ configuradas
+2025-08-25 05:02:42.666 -03:00 [INF] 🎧 Consumidor de QR codes configurado
+2025-08-25 05:02:42.857 -03:00 [INF] 🎧 Consumidor de mensagens WhatsApp configurado
+2025-08-25 05:02:43.068 -03:00 [INF] 🎧 Consumidor de status da sessão configurado
+2025-08-25 05:02:43.073 -03:00 [INF] ✅ RabbitMQ conectado e configurado
+2025-08-25 05:02:51.576 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 05:02:51.593 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 17.9070ms
+2025-08-25 05:02:51.612 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-25 05:02:51.686 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 05:02:53.098 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 05:02:53.099 -03:00 [INF] Iniciado pedido de QR Code. RequestId: 5ad8d40a-8691-4ffa-ba4c-f0dc5e8bbb9c
+2025-08-25 05:02:53.100 -03:00 [INF] 🔍 Tentando publicar comando no RabbitMQ...
+2025-08-25 05:02:53.106 -03:00 [INF] 📤 Publicando comando: {"command":"generate_qr","requestId":"5ad8d40a-8691-4ffa-ba4c-f0dc5e8bbb9c","timestamp":"2025-08-25T08:02:53.0999030Z"}
+2025-08-25 05:02:53.106 -03:00 [INF] 📤 Routing Key: whatsapp.outgoing
+2025-08-25 05:02:53.106 -03:00 [INF] 📤 Body length: 119 bytes
+2025-08-25 05:02:53.106 -03:00 [INF] 📤 Body as string: {"command":"generate_qr","requestId":"5ad8d40a-8691-4ffa-ba4c-f0dc5e8bbb9c","timestamp":"2025-08-25T08:02:53.0999030Z"}
+2025-08-25 05:02:53.106 -03:00 [INF] 📤 Body hex: 7B-22-63-6F-6D-6D-61-6E-64-22-3A-22-67-65-6E-65-72-61-74-65-5F-71-72-22-2C-22-72-65-71-75-65-73-74-49-64-22-3A-22-35-61-64-38-64-34-30-61-2D-38-36-39-31-2D-34-66-66-61-2D-62-61-34-63-2D-66-30-64-63-35-65-38-62-62-62-39-63-22-2C-22-74-69-6D-65-73-74-61-6D-70-22-3A-22-32-30-32-35-2D-30-38-2D-32-35-54-30-38-3A-30-32-3A-35-33-2E-30-39-39-39-30-33-30-5A-22-7D
+2025-08-25 05:02:53.108 -03:00 [INF] ✅ Comando enviado para RabbitMQ com sucesso: {"command":"generate_qr","requestId":"5ad8d40a-8691-4ffa-ba4c-f0dc5e8bbb9c","timestamp":"2025-08-25T08:02:53.0999030Z"}
+2025-08-25 05:02:53.128 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 200 in 1441.3080ms
+2025-08-25 05:05:51.545 -03:00 [INF] Request finished GET /whatsappHub - 101 in 179932.7060ms
+2025-08-25 05:05:54.997 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 05:05:54.997 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 05:05:54.997 -03:00 [INF] Request starting GET /api/chats
+2025-08-25 05:05:54.997 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 05:05:54.999 -03:00 [INF] Request starting GET /api/health
+2025-08-25 05:05:55.001 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 4.2280ms
+2025-08-25 05:05:55.001 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 4.2190ms
+2025-08-25 05:05:55.002 -03:00 [INF] Request finished GET /api/health - 404 in 2.8650ms
+2025-08-25 05:05:55.006 -03:00 [INF] Request starting GET /api/health
+2025-08-25 05:05:55.008 -03:00 [INF] Request finished GET /api/health - 404 in 2.0480ms
+2025-08-25 05:05:55.015 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-25 05:05:55.039 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-25 05:06:04.809 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 9812.0050ms
+2025-08-25 05:06:04.906 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 05:06:04.938 -03:00 [INF] Request finished GET /api/chats - 200 in 9941.2370ms
+2025-08-25 05:06:04.939 -03:00 [INF] Request starting GET /api/chats
+2025-08-25 05:06:05.921 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 1014.3310ms
+2025-08-25 05:06:05.931 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 05:06:06.178 -03:00 [INF] Request finished GET /api/chats - 200 in 1238.3280ms
+2025-08-25 05:06:06.365 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 434.1280ms
+2025-08-25 05:06:06.367 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 05:06:06.765 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 398.2980ms
+2025-08-25 05:06:06.767 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 05:06:07.179 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 412.1180ms
+2025-08-25 05:06:07.181 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 05:06:07.719 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 538.3900ms
+2025-08-25 05:10:02.479 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 05:10:03.901 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 05:10:03.917 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 409 in 1438.9570ms
+2025-08-25 05:13:20.989 -03:00 [INF] Request finished GET /whatsappHub - 101 in 445949.9300ms
+2025-08-25 05:13:20.989 -03:00 [INF] Request finished GET /whatsappHub - 101 in 445974.0100ms
+2025-08-25 05:13:21.044 -03:00 [INF] Desconectando do RabbitMQ...
+2025-08-25 05:23:44.444 -03:00 [INF] Iniciando Pregiato API...
+2025-08-25 05:23:44.646 -03:00 [INF] RabbitMQ Background Service iniciado
+2025-08-25 05:23:44.648 -03:00 [INF] Tentando conectar ao RabbitMQ...
+2025-08-25 05:23:46.458 -03:00 [INF] ✅ Conexão RabbitMQ estabelecida com amqps://mouse.rmq5.cloudamqp.com:5671
+2025-08-25 05:23:47.878 -03:00 [INF] 📋 Filas RabbitMQ configuradas
+2025-08-25 05:23:48.144 -03:00 [INF] 🎧 Consumidor de QR codes configurado
+2025-08-25 05:23:48.336 -03:00 [INF] 🎧 Consumidor de mensagens WhatsApp configurado
+2025-08-25 05:23:48.533 -03:00 [INF] 🎧 Consumidor de status da sessão configurado
+2025-08-25 05:23:48.534 -03:00 [INF] ✅ RabbitMQ conectado e configurado
+2025-08-25 05:23:58.559 -03:00 [INF] Request starting GET /api/chats
+2025-08-25 05:23:58.560 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 05:23:58.559 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 05:23:58.559 -03:00 [INF] Request starting GET /api/health
+2025-08-25 05:23:58.560 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 05:23:58.562 -03:00 [INF] Request finished GET /api/health - 404 in 4.1140ms
+2025-08-25 05:23:58.568 -03:00 [INF] Request starting GET /api/health
+2025-08-25 05:23:58.568 -03:00 [INF] Request finished GET /api/health - 404 in 0.2620ms
+2025-08-25 05:23:58.575 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 15.1020ms
+2025-08-25 05:23:58.576 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 15.2120ms
+2025-08-25 05:23:58.581 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-25 05:23:58.605 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-25 05:24:04.670 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 6111.4420ms
+2025-08-25 05:24:04.675 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 05:24:04.848 -03:00 [INF] Request finished GET /api/chats - 200 in 6289.6840ms
+2025-08-25 05:24:04.850 -03:00 [INF] Request starting GET /api/chats
+2025-08-25 05:24:05.232 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 556.7240ms
+2025-08-25 05:24:05.235 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 05:24:05.553 -03:00 [INF] Request finished GET /api/chats - 200 in 702.6200ms
+2025-08-25 05:24:05.652 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 417.4060ms
+2025-08-25 05:24:05.654 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 05:24:06.087 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 433.5000ms
+2025-08-25 05:24:06.089 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 05:24:06.723 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 634.1650ms
+2025-08-25 05:24:06.742 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 05:24:07.167 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 425.5160ms
+2025-08-25 05:24:19.119 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 05:24:19.287 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 05:24:19.291 -03:00 [INF] Iniciado pedido de QR Code. RequestId: 8602f921-e7f3-4243-85f8-8a6393b9eeac
+2025-08-25 05:24:19.293 -03:00 [INF] 🔍 Tentando publicar comando no RabbitMQ...
+2025-08-25 05:24:19.298 -03:00 [INF] 📤 Publicando comando: {"command":"generate_qr","requestId":"8602f921-e7f3-4243-85f8-8a6393b9eeac","timestamp":"2025-08-25T08:24:19.2922060Z"}
+2025-08-25 05:24:19.298 -03:00 [INF] 📤 Routing Key: whatsapp.outgoing
+2025-08-25 05:24:19.299 -03:00 [INF] 📤 Body length: 119 bytes
+2025-08-25 05:24:19.299 -03:00 [INF] 📤 Body as string: {"command":"generate_qr","requestId":"8602f921-e7f3-4243-85f8-8a6393b9eeac","timestamp":"2025-08-25T08:24:19.2922060Z"}
+2025-08-25 05:24:19.299 -03:00 [INF] 📤 Body hex: 7B-22-63-6F-6D-6D-61-6E-64-22-3A-22-67-65-6E-65-72-61-74-65-5F-71-72-22-2C-22-72-65-71-75-65-73-74-49-64-22-3A-22-38-36-30-32-66-39-32-31-2D-65-37-66-33-2D-34-32-34-33-2D-38-35-66-38-2D-38-61-36-33-39-33-62-39-65-65-61-63-22-2C-22-74-69-6D-65-73-74-61-6D-70-22-3A-22-32-30-32-35-2D-30-38-2D-32-35-54-30-38-3A-32-34-3A-31-39-2E-32-39-32-32-30-36-30-5A-22-7D
+2025-08-25 05:24:19.303 -03:00 [INF] ✅ Comando enviado para RabbitMQ com sucesso: {"command":"generate_qr","requestId":"8602f921-e7f3-4243-85f8-8a6393b9eeac","timestamp":"2025-08-25T08:24:19.2922060Z"}
+2025-08-25 05:24:19.313 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 200 in 194.1550ms
+2025-08-25 05:27:52.709 -03:00 [INF] Request finished GET /whatsappHub - 101 in 234103.3030ms
+2025-08-25 05:27:52.709 -03:00 [INF] Request finished GET /whatsappHub - 101 in 234127.5550ms
+2025-08-25 05:27:57.814 -03:00 [INF] Request starting GET /api/health
+2025-08-25 05:27:57.814 -03:00 [INF] Request starting GET /api/chats
+2025-08-25 05:27:57.814 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 05:27:57.821 -03:00 [INF] Request finished GET /api/health - 404 in 7.7490ms
+2025-08-25 05:27:57.830 -03:00 [INF] Request starting GET /api/health
+2025-08-25 05:27:57.830 -03:00 [INF] Request finished GET /api/health - 404 in 0.2570ms
+2025-08-25 05:27:57.868 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 05:27:57.870 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 05:27:57.900 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 31.5120ms
+2025-08-25 05:27:57.900 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 29.9560ms
+2025-08-25 05:27:57.990 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-25 05:27:58.017 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-25 05:27:58.353 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 539.5930ms
+2025-08-25 05:27:58.356 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 05:27:58.623 -03:00 [INF] Request finished GET /api/chats - 200 in 809.4700ms
+2025-08-25 05:27:58.816 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 460.1750ms
+2025-08-25 05:27:58.823 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 05:27:59.327 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 503.5840ms
+2025-08-25 05:27:59.331 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 05:27:59.763 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 431.6320ms
+2025-08-25 05:27:59.833 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 05:28:00.298 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 464.6660ms
+2025-08-25 05:28:00.303 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-25 05:28:00.711 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 408.0960ms
+2025-08-25 05:28:02.064 -03:00 [INF] Request finished GET /whatsappHub - 101 in 4072.6660ms
+2025-08-25 05:28:02.064 -03:00 [INF] Request finished GET /whatsappHub - 101 in 4046.8370ms
+2025-08-25 05:28:02.108 -03:00 [INF] Desconectando do RabbitMQ...
+2025-08-25 05:28:28.106 -03:00 [INF] Iniciando Pregiato API...
+2025-08-25 05:28:28.291 -03:00 [INF] RabbitMQ Background Service iniciado
+2025-08-25 05:28:28.292 -03:00 [INF] Tentando conectar ao RabbitMQ...
+2025-08-25 05:28:30.551 -03:00 [INF] ✅ Conexão RabbitMQ estabelecida com amqps://mouse.rmq5.cloudamqp.com:5671
+2025-08-25 05:28:31.951 -03:00 [INF] 📋 Filas RabbitMQ configuradas
+2025-08-25 05:28:32.156 -03:00 [INF] 🎧 Consumidor de QR codes configurado
+2025-08-25 05:28:32.347 -03:00 [INF] 🎧 Consumidor de mensagens WhatsApp configurado
+2025-08-25 05:28:32.622 -03:00 [INF] 🎧 Consumidor de status da sessão configurado
+2025-08-25 05:28:32.623 -03:00 [INF] ✅ RabbitMQ conectado e configurado
+2025-08-25 05:28:42.293 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 05:28:42.304 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 11.3230ms
+2025-08-25 05:28:42.319 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-25 05:28:42.395 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 05:28:44.127 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 05:28:44.135 -03:00 [INF] Iniciado pedido de QR Code. RequestId: c2ea3b5e-2811-4670-b658-af1f3448a259
+2025-08-25 05:28:44.140 -03:00 [INF] 🔍 Tentando publicar comando no RabbitMQ...
+2025-08-25 05:28:44.157 -03:00 [INF] 📤 Publicando comando: {"command":"generate_qr","requestId":"c2ea3b5e-2811-4670-b658-af1f3448a259","timestamp":"2025-08-25T08:28:44.1367700Z"}
+2025-08-25 05:28:44.158 -03:00 [INF] 📤 Routing Key: whatsapp.outgoing
+2025-08-25 05:28:44.158 -03:00 [INF] 📤 Body length: 119 bytes
+2025-08-25 05:28:44.158 -03:00 [INF] 📤 Body as string: {"command":"generate_qr","requestId":"c2ea3b5e-2811-4670-b658-af1f3448a259","timestamp":"2025-08-25T08:28:44.1367700Z"}
+2025-08-25 05:28:44.158 -03:00 [INF] 📤 Body hex: 7B-22-63-6F-6D-6D-61-6E-64-22-3A-22-67-65-6E-65-72-61-74-65-5F-71-72-22-2C-22-72-65-71-75-65-73-74-49-64-22-3A-22-63-32-65-61-33-62-35-65-2D-32-38-31-31-2D-34-36-37-30-2D-62-36-35-38-2D-61-66-31-66-33-34-34-38-61-32-35-39-22-2C-22-74-69-6D-65-73-74-61-6D-70-22-3A-22-32-30-32-35-2D-30-38-2D-32-35-54-30-38-3A-32-38-3A-34-34-2E-31-33-36-37-37-30-30-5A-22-7D
+2025-08-25 05:28:44.162 -03:00 [INF] ✅ Comando enviado para RabbitMQ com sucesso: {"command":"generate_qr","requestId":"c2ea3b5e-2811-4670-b658-af1f3448a259","timestamp":"2025-08-25T08:28:44.1367700Z"}
+2025-08-25 05:28:44.188 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 200 in 1793.1770ms
+2025-08-25 05:28:45.905 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 05:28:45.906 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 05:28:45.907 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 1.6640ms
+2025-08-25 05:28:45.907 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 1.0830ms
+2025-08-25 05:28:45.919 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-25 05:28:45.934 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-25 05:53:36.225 -03:00 [INF] Request finished GET /whatsappHub - 101 in 1490303.8790ms
+2025-08-25 05:53:36.225 -03:00 [INF] Request finished GET /whatsappHub - 101 in 1490288.9530ms
+2025-08-25 05:53:36.225 -03:00 [INF] Request finished GET /whatsappHub - 101 in 1493904.4850ms
+2025-08-25 05:53:36.278 -03:00 [INF] Desconectando do RabbitMQ...
+2025-08-25 05:55:04.095 -03:00 [INF] Iniciando Pregiato API...
+2025-08-25 05:55:04.643 -03:00 [INF] RabbitMQ Background Service iniciado
+2025-08-25 05:55:04.647 -03:00 [INF] Tentando conectar ao RabbitMQ...
+2025-08-25 05:55:07.059 -03:00 [INF] ✅ Conexão RabbitMQ estabelecida com amqps://mouse.rmq5.cloudamqp.com:5671
+2025-08-25 05:55:08.636 -03:00 [INF] 📋 Filas RabbitMQ configuradas
+2025-08-25 05:55:08.838 -03:00 [INF] 🎧 Consumidor de QR codes configurado
+2025-08-25 05:55:09.345 -03:00 [INF] 🎧 Consumidor de mensagens WhatsApp configurado
+2025-08-25 05:55:10.117 -03:00 [INF] 🎧 Consumidor de status da sessão configurado
+2025-08-25 05:55:10.125 -03:00 [INF] ✅ RabbitMQ conectado e configurado
+2025-08-25 06:04:38.082 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 06:04:38.082 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-25 06:04:38.145 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 65.3140ms
+2025-08-25 06:04:38.145 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 65.4530ms
+2025-08-25 06:04:38.185 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-25 06:04:38.239 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-25 06:04:38.345 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 06:04:38.425 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-25 06:04:40.976 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 06:04:40.976 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-25 06:04:40.981 -03:00 [INF] Iniciado pedido de QR Code. RequestId: a244612c-78d4-4243-ae1c-ef7a8bb6e696
+2025-08-25 06:04:40.983 -03:00 [INF] 🔍 Tentando publicar comando no RabbitMQ...
+2025-08-25 06:04:40.996 -03:00 [INF] 📤 Publicando comando: {"command":"generate_qr","requestId":"a244612c-78d4-4243-ae1c-ef7a8bb6e696","timestamp":"2025-08-25T09:04:40.9813810Z"}
+2025-08-25 06:04:40.996 -03:00 [INF] 📤 Routing Key: whatsapp.outgoing
+2025-08-25 06:04:40.996 -03:00 [INF] 📤 Body length: 119 bytes
+2025-08-25 06:04:40.996 -03:00 [INF] 📤 Body as string: {"command":"generate_qr","requestId":"a244612c-78d4-4243-ae1c-ef7a8bb6e696","timestamp":"2025-08-25T09:04:40.9813810Z"}
+2025-08-25 06:04:40.996 -03:00 [INF] 📤 Body hex: 7B-22-63-6F-6D-6D-61-6E-64-22-3A-22-67-65-6E-65-72-61-74-65-5F-71-72-22-2C-22-72-65-71-75-65-73-74-49-64-22-3A-22-61-32-34-34-36-31-32-63-2D-37-38-64-34-2D-34-32-34-33-2D-61-65-31-63-2D-65-66-37-61-38-62-62-36-65-36-39-36-22-2C-22-74-69-6D-65-73-74-61-6D-70-22-3A-22-32-30-32-35-2D-30-38-2D-32-35-54-30-39-3A-30-34-3A-34-30-2E-39-38-31-33-38-31-30-5A-22-7D
+2025-08-25 06:04:40.998 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 409 in 2573.2560ms
+2025-08-25 06:04:41.000 -03:00 [INF] ✅ Comando enviado para RabbitMQ com sucesso: {"command":"generate_qr","requestId":"a244612c-78d4-4243-ae1c-ef7a8bb6e696","timestamp":"2025-08-25T09:04:40.9813810Z"}
+2025-08-25 06:04:41.001 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 200 in 2656.4460ms
+2025-08-25 06:05:27.817 -03:00 [INF] Request starting POST /api/whatsapp/webhook/qr-code
+2025-08-25 06:05:28.011 -03:00 [INF] 📱 QR Code recebido via RabbitMQ
+2025-08-25 06:05:28.085 -03:00 [INF] 📤 QR Code emitido via SignalR (webhook) requestId=a244612c-78d4-4243-ae1c-ef7a8bb6e696
+2025-08-25 06:05:28.087 -03:00 [INF] Request finished POST /api/whatsapp/webhook/qr-code - 200 in 269.8730ms
+2025-08-25 06:06:26.916 -03:00 [INF] Request starting POST /api/whatsapp/webhook/qr-code
+2025-08-25 06:06:27.058 -03:00 [INF] 📱 QR Code recebido via RabbitMQ
+2025-08-25 06:06:27.124 -03:00 [INF] 📤 QR Code emitido via SignalR (webhook) requestId=a244612c-78d4-4243-ae1c-ef7a8bb6e696
+2025-08-25 06:06:27.136 -03:00 [INF] Request finished POST /api/whatsapp/webhook/qr-code - 200 in 219.9660ms
+2025-08-25 06:06:46.549 -03:00 [INF] Request starting POST /api/whatsapp/webhook/qr-code
+2025-08-25 06:06:46.694 -03:00 [INF] 📤 QR Code emitido via SignalR (webhook) requestId=a244612c-78d4-4243-ae1c-ef7a8bb6e696
+2025-08-25 06:06:46.697 -03:00 [INF] Request finished POST /api/whatsapp/webhook/qr-code - 200 in 148.2910ms
+2025-08-25 06:06:46.743 -03:00 [INF] 📱 QR Code recebido via RabbitMQ
+2025-08-25 06:07:07.072 -03:00 [INF] Request starting POST /api/whatsapp/webhook/qr-code
+2025-08-25 06:07:07.220 -03:00 [INF] 📤 QR Code emitido via SignalR (webhook) requestId=a244612c-78d4-4243-ae1c-ef7a8bb6e696
+2025-08-25 06:07:07.222 -03:00 [INF] Request finished POST /api/whatsapp/webhook/qr-code - 200 in 149.5860ms
+2025-08-25 06:07:07.399 -03:00 [INF] 📱 QR Code recebido via RabbitMQ
+2025-08-25 06:07:16.241 -03:00 [INF] Request finished GET /whatsappHub - 101 in 157997.8200ms
+2025-08-25 06:07:16.242 -03:00 [INF] Request finished GET /whatsappHub - 101 in 158051.8810ms
+2025-08-25 06:07:19.737 -03:00 [INF] Desconectando do RabbitMQ...

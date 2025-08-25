@@ -5,6 +5,8 @@ namespace Pregiato.Application.DTOs
     public class ConversationDto
     {
         public Guid Id { get; set; }
+        
+        // Campos originais para compatibilidade
         public Guid ContactId { get; set; }
         public string? OperatorId { get; set; }
         public string Channel { get; set; } = string.Empty;
@@ -16,27 +18,70 @@ namespace Pregiato.Application.DTOs
         public DateTime? ClosedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         
+        // Novos campos para WhatsApp
+        public string? InstanceId { get; set; }
+        public string? PeerE164 { get; set; }
+        public bool IsGroup { get; set; }
+        public string? Title { get; set; }
+        public Guid? CurrentSessionId { get; set; }
+        public DateTime? LastMessageAt { get; set; }
+        
         // Propriedades de navegação
         public ContactDto? Contact { get; set; }
         public OperatorDto? Operator { get; set; }
         public List<MessageDto> Messages { get; set; } = new();
+        public List<ChatSessionDto> Sessions { get; set; } = new();
         public int UnreadCount { get; set; }
         public MessageDto? LastMessage { get; set; }
     }
 
     public class CreateConversationDto
     {
+        // Campos originais
         public Guid ContactId { get; set; }
         public string Channel { get; set; } = "whatsapp";
         public ConversationPriority Priority { get; set; } = ConversationPriority.Normal;
+        
+        // Novos campos para WhatsApp
+        public string? InstanceId { get; set; }
+        public string? PeerE164 { get; set; }
+        public bool IsGroup { get; set; } = false;
+        public string? Title { get; set; }
     }
 
     public class UpdateConversationDto
     {
+        // Campos originais
         public string? OperatorId { get; set; }
         public ConversationStatus? Status { get; set; }
         public ConversationPriority? Priority { get; set; }
         public string? CloseReason { get; set; }
+        
+        // Novos campos para WhatsApp
+        public string? Title { get; set; }
+        public Guid? CurrentSessionId { get; set; }
+    }
+
+    public class ChatSessionDto
+    {
+        public Guid Id { get; set; }
+        public Guid ConversationId { get; set; }
+        public DateTime OpenedAt { get; set; }
+        public DateTime? ClosedAt { get; set; }
+        public string? OpenedBy { get; set; }
+        public string? ClosedBy { get; set; }
+    }
+
+    public class ConversationListItemDto
+    {
+        public Guid ConversationId { get; set; }
+        public string? InstanceId { get; set; }
+        public string? PeerE164 { get; set; }
+        public bool IsGroup { get; set; }
+        public string? Title { get; set; }
+        public DateTime? LastMessageAt { get; set; }
+        public string? LastMessagePayloadJson { get; set; }
+        public Guid? CurrentSessionId { get; set; }
     }
 
     public class QueueItemDto

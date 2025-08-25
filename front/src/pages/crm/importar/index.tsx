@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { FileUp, FileDown, AlertTriangle, CheckCircle, XCircle, Download, RefreshCw } from 'lucide-react';
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
+import { Button } from '../../../components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../components/ui/tabs';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../components/ui/table';
+import { ScrollArea } from '../../../components/ui/scroll-area';
+import { Alert, AlertDescription, AlertTitle } from '../../../components/ui/alert';
+import { FileUp, FileDown, AlertTriangle, CheckCircle, XCircle, Download, RefreshCw, X } from 'lucide-react';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select';
+import { Input } from '../../../components/ui/input';
+import { Label } from '../../../components/ui/label';
+import { Badge } from '../../../components/ui/badge';
 import Papa from 'papaparse';
 import api from '@/services/whatsapp-api';
 import { useNavigate } from 'react-router-dom';
@@ -44,6 +44,30 @@ interface ImportResult {
   errors: number;
   errorSamples: string[];
   timestamp?: string;
+}
+
+// Interface para erros da API
+interface ApiError {
+  response?: {
+    status?: number;
+    data?: {
+      message?: string;
+      errors?: Record<string, string[] | string>;
+    };
+  };
+  message?: string;
+}
+
+// Interface para erros da API
+interface ApiError {
+  response?: {
+    status?: number;
+    data?: {
+      message?: string;
+      errors?: Record<string, string[] | string>;
+    };
+  };
+  message?: string;
 }
 
 // Interface para metadados detectados da planilha
@@ -354,6 +378,97 @@ export default function ImportarDadosPage() {
     });
   };
   
+  // Função para traduzir mensagens de erro da API
+  const translateApiError = (error: ApiError): string => {
+    const status = error?.response?.status;
+    const data = error?.response?.data;
+    const message = error?.message;
+
+    // Mapear códigos de status para mensagens amigáveis
+    const statusMessages: Record<number, string> = {
+      400: 'Dados inválidos enviados. Verifique as informações e tente novamente.',
+      401: 'Acesso não autorizado. Faça login novamente.',
+      403: 'Acesso negado. Você não tem permissão para esta ação.',
+      404: 'Recurso não encontrado.',
+      409: 'Conflito de dados. O registro já existe.',
+      422: 'Dados inválidos. Verifique os campos obrigatórios.',
+      500: 'Erro interno do servidor. Tente novamente mais tarde.',
+      502: 'Servidor temporariamente indisponível.',
+      503: 'Serviço temporariamente indisponível.',
+      504: 'Tempo limite excedido. Tente novamente.'
+    };
+
+    // Verificar erros de validação específicos
+    if (data?.errors) {
+      const validationErrors = data.errors;
+      
+      if (validationErrors.items) {
+        return 'Lista de itens é obrigatória. Verifique se o arquivo contém dados válidos.';
+      }
+      
+      if (validationErrors['$[0].phone']) {
+        return 'Formato de telefone inválido. Use apenas números e caracteres especiais como parênteses, hífens ou espaços.';
+      }
+      
+      if (validationErrors['$[0].email']) {
+        return 'Formato de e-mail inválido. Verifique se o e-mail está correto.';
+      }
+      
+      if (validationErrors['$[0].name']) {
+        return 'Nome é obrigatório. Verifique se todos os registros possuem nome.';
+      }
+      
+      // Retornar o primeiro erro de validação
+      const firstError = Object.values(validationErrors)[0];
+      if (Array.isArray(firstError) && firstError.length > 0) {
+        return String(firstError[0]);
+      }
+    }
+
+    if (data?.message) {
+      return data.message;
+    }
+
+    if (status && statusMessages[status]) {
+      return statusMessages[status];
+    }
+
+    if (message?.includes('Network Error')) {
+      return 'Erro de conexão. Verifique sua internet e tente novamente.';
+    }
+
+    return 'Ocorreu um erro inesperado. Tente novamente ou entre em contato com o suporte.';
+  };
+
+  // Função para extrair detalhes de erros de importação
+  const extractImportErrors = (error: ApiError): string[] => {
+    const errors: string[] = [];
+    
+    if (error?.response?.data?.errors) {
+      const validationErrors = error.response.data.errors;
+      
+      Object.entries(validationErrors).forEach(([field, messages]) => {
+        if (Array.isArray(messages)) {
+          messages.forEach((msg: string) => {
+            errors.push(`${field}: ${msg}`);
+          });
+        } else if (typeof messages === 'string') {
+          errors.push(`${field}: ${messages}`);
+        }
+      });
+    }
+    
+    if (error?.response?.data?.message) {
+      errors.push(error.response.data.message);
+    }
+    
+    if (errors.length === 0) {
+      errors.push(translateApiError(error));
+    }
+    
+    return errors;
+  };
+
   // Processa os dados para importação
   const processData = async () => {
     if (rows.length === 0 || mappings.length === 0) {
@@ -390,8 +505,13 @@ export default function ImportarDadosPage() {
             if (type === 'string') {
               value = String(value);
             } else if (type === 'number') {
-              const numValue = typeof value === 'string' ? Number(value.replace(',', '.')) : Number(value);
-              value = isNaN(numValue) ? 0 : numValue;
+              // Para campos como telefone que podem ser detectados como número mas devem ser string
+              if (targetField === 'phone') {
+                value = String(value);
+              } else {
+                const numValue = typeof value === 'string' ? Number(value.replace(',', '.')) : Number(value);
+                value = isNaN(numValue) ? 0 : numValue;
+              }
             } else if (type === 'boolean') {
               if (typeof value === 'string') {
                 const normalized = value.trim().toLowerCase();
@@ -449,11 +569,15 @@ export default function ImportarDadosPage() {
       
     } catch (error) {
       console.error('Error processing data:', error);
+      
+      // Extrair erros detalhados
+      const errorDetails = extractImportErrors(error as unknown);
+      
       setResult({
         created: 0,
         skipped: 0,
         errors: rows.length,
-        errorSamples: ['Erro ao processar os dados: ' + (error as Error).message],
+        errorSamples: errorDetails,
         timestamp: new Date().toISOString()
       });
     } finally {
@@ -506,7 +630,7 @@ export default function ImportarDadosPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                <div className="flex flex-col gap-4 md:flex-row md:items-center">
+                <div className="flex flex-col gap-4 md:flex-row md:items-end">
                   <div className="space-y-2">
                     <Label htmlFor="import-type">Tipo de importação</Label>
                     <Select value={importTarget} onValueChange={setImportTarget}>
@@ -529,15 +653,15 @@ export default function ImportarDadosPage() {
                       accept=".csv,.txt,.xlsx,.xls"
                       onChange={handleFileUpload}
                     />
-                    <Button onClick={() => document.getElementById('file-upload')?.click()}>
+                    <Button variant="outline" onClick={() => document.getElementById('file-upload')?.click()}>
                       <FileUp className="mr-2 h-4 w-4" />
                       Importar CSV/Excel
                     </Button>
                     
-                    {file && (
-                      <span className="text-sm">
-                        Arquivo selecionado: <strong>{file.name}</strong>
-                      </span>
+                    {rows.length > 0 && (
+                      <Button variant="outline" onClick={processData} disabled={processing}>
+                        {processing ? 'Processando...' : `Importar ${rows.length} linhas`}
+                      </Button>
                     )}
                   </div>
                 </div>
@@ -566,56 +690,56 @@ export default function ImportarDadosPage() {
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-4">
-                          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                            {mappings.map((mapping, index) => (
-                              <div key={index} className="border rounded-md p-3 space-y-2">
-                                <div className="flex justify-between items-center">
-                                  <Badge variant={mapping.required ? "destructive" : "outline"} className="text-xs">
-                                    {mapping.sourceColumn}
-                                  </Badge>
-                                  <Badge variant="secondary" className="text-xs">
-                                    {sheetMetadata?.columnTypes[mapping.sourceColumn] || 'texto'}
-                                  </Badge>
-                                </div>
-                                
-                                <div>
-                                  <Label htmlFor={`map-${index}`} className="text-xs">Mapear para</Label>
-                                  <Select 
-                                    value={mapping.targetField} 
-                                    onValueChange={(value) => updateMapping(index, { targetField: value })}
-                                  >
-                                    <SelectTrigger id={`map-${index}`} className="mt-1">
-                                      <SelectValue placeholder="Selecione o campo" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {/* Campos predefinidos do tipo selecionado */}
-                                      <SelectGroup>
-                                        <SelectItem value={`extra_${mapping.sourceColumn.replace(/\s+/g, '_').toLowerCase()}`}>
-                                          {mapping.sourceColumn} (Manter original)
-                                        </SelectItem>
-                                        {targetFields.map(field => (
-                                          <SelectItem key={field.fieldId} value={field.fieldId}>
-                                            {field.name} {field.required && '*'}
-                                          </SelectItem>
-                                        ))}
-                                      </SelectGroup>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                                
-                                {/* Amostra de valores */}
-                                <div className="mt-2">
-                                  <p className="text-xs text-muted-foreground">Exemplos:</p>
-                                  <div className="text-xs max-h-10 overflow-y-auto">
-                                    {sheetMetadata?.sampleValues[mapping.sourceColumn]?.slice(0, 3).map((value, i) => (
-                                      <div key={i} className="truncate">
-                                        {String(value)}
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
+                          <div className="border rounded-md">
+                            <ScrollArea className="h-[400px] w-full">
+                              <Table>
+                                <TableHeader className="sticky top-0 bg-background z-10">
+                                  <TableRow>
+                                    <TableHead className="w-[200px]">Coluna da Planilha</TableHead>
+                                    <TableHead className="w-[250px]">Mapear para</TableHead>
+                                    <TableHead className="w-[100px]">Obrigatório</TableHead>
+                                  </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                  {mappings.map((mapping, index) => (
+                                    <TableRow key={index}>
+                                      <TableCell>
+                                        <Badge variant="outline" className="text-xs">
+                                          {mapping.sourceColumn}
+                                        </Badge>
+                                      </TableCell>
+                                      <TableCell>
+                                        <Select 
+                                          value={mapping.targetField} 
+                                          onValueChange={(value) => updateMapping(index, { targetField: value })}
+                                        >
+                                          <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Selecione o campo" />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            <SelectGroup>
+                                              <SelectItem value={`extra_${mapping.sourceColumn.replace(/\s+/g, '_').toLowerCase()}`}>
+                                                {mapping.sourceColumn} (Manter original)
+                                              </SelectItem>
+                                              {targetFields.map(field => (
+                                                <SelectItem key={field.fieldId} value={field.fieldId}>
+                                                  {field.name} {field.required && '*'}
+                                                </SelectItem>
+                                              ))}
+                                            </SelectGroup>
+                                          </SelectContent>
+                                        </Select>
+                                      </TableCell>
+                                      <TableCell>
+                                        <Badge variant={mapping.required ? "destructive" : "secondary"} className="text-xs">
+                                          {mapping.required ? 'Sim' : 'Não'}
+                                        </Badge>
+                                      </TableCell>
+                                    </TableRow>
+                                  ))}
+                                </TableBody>
+                              </Table>
+                            </ScrollArea>
                           </div>
                           
                           <Button 
@@ -628,7 +752,7 @@ export default function ImportarDadosPage() {
                             }}
                           >
                             <RefreshCw className="h-4 w-4 mr-1" />
-                            Remapear automaticamente
+                            Mapear automaticamente
                           </Button>
                         </div>
                       </CardContent>
@@ -693,51 +817,62 @@ export default function ImportarDadosPage() {
                       </CardContent>
                     </Card>
                     
-                    <div className="flex items-center gap-4 justify-end">
-                      <Button onClick={processData} disabled={processing}>
-                        {processing ? 'Processando...' : `Importar ${rows.length} linhas`}
-                      </Button>
-                    </div>
+                    {/* Botão removido - agora está no topo junto com o botão de importar arquivo */}
                   </div>
                 )}
                 
                 {result && (
                   <div className="space-y-4">
-                    <Alert>
-                      <AlertTitle>Importação concluída</AlertTitle>
-                      <AlertDescription>
-                        <div className="space-y-2 mt-2">
-                          <div className="flex items-center gap-2">
-                            <CheckCircle className="h-4 w-4 text-green-500" />
-                            <span>{result.created} registros criados com sucesso</span>
+                    {result.errors > 0 ? (
+                      <Alert variant="destructive" className="relative">
+                        <div className="flex items-start gap-3">
+                          <XCircle className="h-4 w-4 mt-0.5" />
+                          <div className="flex-1">
+                            <AlertTitle>Erro na importação</AlertTitle>
+                            <AlertDescription className="mt-1">
+                              <div className="space-y-2">
+                                <p>Não foi possível importar {result.errors} registros. Verifique os detalhes abaixo:</p>
+                                {result.errorSamples.length > 0 && (
+                                  <div className="mt-3 space-y-1">
+                                    {result.errorSamples.map((error, index) => (
+                                      <div key={index} className="text-sm bg-red-50 dark:bg-red-950/20 p-2 rounded border-l-2 border-red-500">
+                                        {error}
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </AlertDescription>
                           </div>
-                          
-                          {result.skipped > 0 && (
-                            <div className="flex items-center gap-2">
-                              <AlertTriangle className="h-4 w-4 text-amber-500" />
-                              <span>{result.skipped} registros ignorados (já existem)</span>
-                            </div>
-                          )}
-                          
-                          {result.errors > 0 && (
-                            <div className="flex items-center gap-2">
-                              <XCircle className="h-4 w-4 text-red-500" />
-                              <span>{result.errors} erros encontrados</span>
-                            </div>
-                          )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 shrink-0"
+                            onClick={() => setResult(null)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
                         </div>
-                      </AlertDescription>
-                    </Alert>
-                    
-                    {result.errorSamples.length > 0 && (
-                      <div className="border rounded-md p-4 space-y-2">
-                        <h3 className="font-medium">Exemplos de erros:</h3>
-                        <ul className="list-disc pl-5 space-y-1">
-                          {result.errorSamples.map((error, index) => (
-                            <li key={index} className="text-sm text-red-500">{error}</li>
-                          ))}
-                        </ul>
-                      </div>
+                      </Alert>
+                    ) : (
+                      <Alert>
+                        <AlertTitle>Importação concluída com sucesso</AlertTitle>
+                        <AlertDescription>
+                          <div className="space-y-2 mt-2">
+                            <div className="flex items-center gap-2">
+                              <CheckCircle className="h-4 w-4 text-green-500" />
+                              <span>{result.created} registros criados com sucesso</span>
+                            </div>
+                            
+                            {result.skipped > 0 && (
+                              <div className="flex items-center gap-2">
+                                <AlertTriangle className="h-4 w-4 text-amber-500" />
+                                <span>{result.skipped} registros ignorados (já existem)</span>
+                              </div>
+                            )}
+                          </div>
+                        </AlertDescription>
+                      </Alert>
                     )}
                     
                     <div className="flex items-center gap-4">

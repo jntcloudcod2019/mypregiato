@@ -1,18 +1,23 @@
 import { useAuth } from '@clerk/clerk-react';
-import { useCallback } from 'react';
 
 export const useClerkAuth = () => {
-  const { getToken } = useAuth();
+  const { getToken, isSignedIn } = useAuth();
 
-  const getAuthToken = useCallback(async (): Promise<string | null> => {
+  const getClerkToken = async (): Promise<string | null> => {
     try {
+      if (!isSignedIn) {
+        return null;
+      }
       const token = await getToken();
       return token;
     } catch (error) {
       console.error('Erro ao obter token do Clerk:', error);
       return null;
     }
-  }, [getToken]);
+  };
 
-  return { getAuthToken };
+  return {
+    getClerkToken,
+    isSignedIn
+  };
 };

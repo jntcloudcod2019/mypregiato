@@ -1,9 +1,9 @@
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
+import { Button } from "./ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
+import { Checkbox } from "./ui/checkbox"
+import { Badge } from "./ui/badge"
+import { Progress } from "./ui/progress"
 import { Download, Share, Eye, X } from "lucide-react"
 import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'

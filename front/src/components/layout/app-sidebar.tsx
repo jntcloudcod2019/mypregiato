@@ -1,8 +1,8 @@
 import { useState } from "react"
 import { FileText, Home, Users, Settings, ChevronDown, Star, DollarSign, BarChart3, Headphones, BookOpen, Clock } from "lucide-react"
 import { NavLink, useLocation } from "react-router-dom"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { AuroraText } from "@/components/magicui/aurora-text"
+import { ThemeToggle } from "../../components/theme-toggle"
+import { AuroraText } from "../../components/magicui/aurora-text"
 
 import {
   Sidebar,
@@ -15,7 +15,7 @@ import {
   SidebarMenuItem,
   SidebarTrigger,
   useSidebar,
-} from "@/components/ui/sidebar"
+} from "../ui/sidebar"
 
 const menuItems = [
   { title: "Dashboard", url: "/dashboard", icon: Home },

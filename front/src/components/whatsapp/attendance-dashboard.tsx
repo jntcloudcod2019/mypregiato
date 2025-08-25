@@ -1,15 +1,15 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
+import { Button } from "../ui/button"
+import { Badge } from "../ui/badge"
+import { ScrollArea } from "../ui/scroll-area"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs"
 import { Clock, MessageSquare, PlayCircle, StopCircle, Phone, User, AlertCircle } from "lucide-react"
-import { useAttendanceQueue } from "@/hooks/useAttendanceQueue"
-import { useActiveAttendance } from "@/hooks/useActiveAttendance"
-import { useOperatorStatus } from "@/hooks/useOperatorStatus"
-import { AnimatedList } from "@/components/ui/animated-list"
-import { cn } from "@/lib/utils"
+import { useAttendanceQueue } from "../../hooks/useAttendanceQueue"
+import { useActiveAttendance } from "../../hooks/useActiveAttendance"
+import { useOperatorStatus } from "../../hooks/useOperatorStatus"
+import { AnimatedList } from "../ui/animated-list"
+import { cn } from "../../lib/utils"
 
 interface AttendanceDashboardProps {
   onStartAttendance?: (conversationId: string, operatorId: string) => void

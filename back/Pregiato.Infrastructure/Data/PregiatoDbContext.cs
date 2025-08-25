@@ -6,7 +6,7 @@ namespace Pregiato.Infrastructure.Data;
 
 public class PregiatoDbContext : DbContext
 {
- public DbSet<Pregiato.Core.Entities.ModuleRecord> ModuleRecords { get; set; }
+        public DbSet<Pregiato.Core.Entities.ModuleRecord> ModuleRecords { get; set; }
         public DbSet<ImportedFile> ImportedFiles { get; set; }
     public PregiatoDbContext(DbContextOptions<PregiatoDbContext> options) : base(options)
     {
@@ -19,6 +19,7 @@ public class PregiatoDbContext : DbContext
         public DbSet<User> Users { get; set; }
         public DbSet<Contact> Contacts { get; set; }
         public DbSet<Conversation> Conversations { get; set; }
+        public DbSet<ChatSession> ChatSessions { get; set; }
         public DbSet<Message> Messages { get; set; }
         public DbSet<Operator> Operators { get; set; }
         public DbSet<QueueEvent> QueueEvents { get; set; }
@@ -478,6 +479,7 @@ public class PregiatoDbContext : DbContext
             entity.ToTable("Conversations");
             entity.HasKey(e => e.Id);
             
+            // Campos originais
             entity.Property(e => e.ContactId)
                 .IsRequired();
             
@@ -516,11 +518,74 @@ public class PregiatoDbContext : DbContext
                 .HasColumnType("datetime(3)")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP(3)");
             
-            // Relacionamentos
+            // Novos campos para WhatsApp
+            entity.Property(e => e.InstanceId)
+                .HasColumnType("varchar(128)")
+                .HasMaxLength(128);
+            
+            entity.Property(e => e.PeerE164)
+                .HasColumnType("varchar(64)")
+                .HasMaxLength(64);
+            
+            entity.Property(e => e.IsGroup)
+                .HasDefaultValue(false);
+            
+            entity.Property(e => e.Title)
+                .HasColumnType("varchar(256)")
+                .HasMaxLength(256);
+            
+            entity.Property(e => e.CurrentSessionId);
+            
+            entity.Property(e => e.LastMessageAt)
+                .HasColumnType("datetime");
+            
+            // Relacionamentos originais
             entity.HasOne(e => e.Contact)
                 .WithMany(c => c.Conversations)
                 .HasForeignKey(e => e.ContactId)
                 .OnDelete(DeleteBehavior.Cascade);
+            
+            entity.HasOne(e => e.Operator)
+                .WithMany()
+                .HasForeignKey(e => e.OperatorId);
+            
+            // Índice único para evitar duplicação de conversas WhatsApp (apenas quando ambos campos estão preenchidos)
+            entity.HasIndex(e => new { e.InstanceId, e.PeerE164 })
+                .IsUnique()
+                .HasFilter("[InstanceId] IS NOT NULL AND [PeerE164] IS NOT NULL");
+        });
+
+        modelBuilder.Entity<ChatSession>(entity =>
+        {
+            entity.ToTable("ChatSessions");
+            entity.HasKey(e => e.Id);
+            
+            entity.Property(e => e.ConversationId)
+                .IsRequired();
+            
+            entity.Property(e => e.OpenedAt)
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+            
+            entity.Property(e => e.ClosedAt)
+                .HasColumnType("datetime");
+            
+            entity.Property(e => e.OpenedBy)
+                .HasColumnType("varchar(128)")
+                .HasMaxLength(128);
+            
+            entity.Property(e => e.ClosedBy)
+                .HasColumnType("varchar(128)")
+                .HasMaxLength(128);
+            
+            // Relacionamentos
+            entity.HasOne(e => e.Conversation)
+                .WithMany(c => c.Sessions)
+                .HasForeignKey(e => e.ConversationId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            // Índice para consultas por conversa e data de abertura
+            entity.HasIndex(e => new { e.ConversationId, e.OpenedAt });
         });
 
         modelBuilder.Entity<Message>(entity =>
@@ -529,6 +594,8 @@ public class PregiatoDbContext : DbContext
             entity.Property(e => e.Id).ValueGeneratedOnAdd();
             
             entity.Property(e => e.ConversationId).IsRequired();
+            entity.Property(e => e.SessionId);
+            entity.Property(e => e.ExternalMessageId).HasMaxLength(128);
             entity.Property(e => e.Direction).IsRequired();
             entity.Property(e => e.Type).IsRequired();
             entity.Property(e => e.Body).IsRequired().HasMaxLength(4000);
@@ -539,6 +606,9 @@ public class PregiatoDbContext : DbContext
             entity.Property(e => e.Status).IsRequired();
             entity.Property(e => e.InternalNote).HasMaxLength(500);
             
+            // Campo para armazenar o payload completo da mensagem
+            entity.Property(e => e.PayloadJson).HasColumnType("LONGTEXT");
+            
             entity.Property(e => e.CreatedAt)
                 .HasColumnType("datetime")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
@@ -547,11 +617,24 @@ public class PregiatoDbContext : DbContext
                 .HasColumnType("datetime")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
             
-            // Relacionamento
+            // Relacionamentos
             entity.HasOne(e => e.Conversation)
                 .WithMany(c => c.Messages)
                 .HasForeignKey(e => e.ConversationId)
                 .OnDelete(DeleteBehavior.Cascade);
+            
+            entity.HasOne(e => e.Session)
+                .WithMany(s => s.Messages)
+                .HasForeignKey(e => e.SessionId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            // Índices para consultas eficientes
+            entity.HasIndex(e => new { e.ConversationId, e.CreatedAt });
+            
+            // Índice único para evitar duplicação de mensagens
+            entity.HasIndex(e => new { e.ConversationId, e.ExternalMessageId })
+                .IsUnique()
+                .HasFilter("[ConversationId] IS NOT NULL AND [ExternalMessageId] IS NOT NULL");
         });
 
         // Configuração da entidade QueueEvent
@@ -588,8 +671,6 @@ public class PregiatoDbContext : DbContext
                 .WithMany(c => c.QueueEvents)
                 .HasForeignKey(e => e.ConversationId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
-            // Relacionamento removido para simplificar
         });
 
         modelBuilder.Entity<ChatLog>(entity =>

@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../components/ui/card"
+import { Button } from "../../../components/ui/button"
+import { Input } from "../../../components/ui/input"
+import { Badge } from "../../../components/ui/badge"
 
 // Interfaces para tipagem
 interface ImportRow {
@@ -38,14 +38,14 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "../../../components/ui/table"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "../../../components/ui/select"
 import { 
   Plus, 
   Search, 
@@ -61,10 +61,10 @@ import {
 import { Link } from "react-router-dom"
 import { talentsService, Talent } from '@/services/crm/talents-service'
 import api from '@/services/whatsapp-api'
-import { ErrorBoundary } from '@/components/common/error-boundary'
+import { ErrorBoundary } from '../../../components/common/error-boundary'
 import Papa from 'papaparse'
 // Importação lazy do XLSX para evitar custo e possíveis conflitos de bundling
-import FileTablePreview from '@/components/crm/FileTablePreview'
+import FileTablePreview from '../../../components/crm/FileTablePreview'
 
 export default function LeadsPage() {
   const [searchTerm, setSearchTerm] = useState("")

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import type { HubConnection } from '@microsoft/signalr';
 
 interface QRCodeMessage {
   qrCode: string;
@@ -12,7 +13,7 @@ type QRCodeHandler = (qrCode: string) => void;
 class QRCodeQueueService {
   private handlers: QRCodeHandler[] = [];
   private isConnected = false;
-  private connection: any = null;
+  private connection: HubConnection | null = null;
   private qrUpdateHandler: ((qrCodeMessage: QRCodeMessage) => void) | null = null;
 
   // Adicionar handler para receber QR codes
@@ -26,6 +27,21 @@ class QRCodeQueueService {
     if (index > -1) {
       this.handlers.splice(index, 1);
     }
+  }
+
+  // Método público para acessar a conexão
+  getConnection(): HubConnection | null {
+    return this.connection;
+  }
+
+  // Método público para adicionar listeners
+  addListener(eventName: string, handler: (...args: unknown[]) => void): void {
+    this.connection?.on(eventName, handler);
+  }
+
+  // Método público para remover listeners
+  removeListener(eventName: string, handler: (...args: unknown[]) => void): void {
+    this.connection?.off(eventName, handler);
   }
 
   // Iniciar conexão SignalR

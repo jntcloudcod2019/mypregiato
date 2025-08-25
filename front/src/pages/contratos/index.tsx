@@ -1,18 +1,18 @@
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
+import { Button } from "../../components/ui/button"
+import { Input } from "../../components/ui/input"
+import { Badge } from "../../components/ui/badge"
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
   DropdownMenuItem, 
   DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu"
+} from "../../components/ui/dropdown-menu"
 import { Search, Plus, Filter, FileText, Eye, Download, ExternalLink } from "lucide-react"
 import { useNavigate } from "react-router-dom"
-import { ContractsService, ContractRecord } from "@/services/contracts-service"
+import { ContractsService, ContractRecord } from "../../services/contracts-service"
 
 export default function Contratos() {
   const [contratos, setContratos] = useState<ContractRecord[]>([])

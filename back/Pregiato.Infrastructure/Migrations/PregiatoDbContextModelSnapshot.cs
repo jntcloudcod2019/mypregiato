@@ -287,6 +287,38 @@ namespace Pregiato.Infrastructure.Migrations
                     b.ToTable("ChatLogs");
                 });
 
+            modelBuilder.Entity("Pregiato.Core.Entities.ChatSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("ClosedAt")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("ClosedBy")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.Property<Guid>("ConversationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("OpenedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("OpenedBy")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConversationId", "OpenedAt");
+
+                    b.ToTable("ChatSessions", (string)null);
+                });
+
             modelBuilder.Entity("Pregiato.Core.Entities.Contact", b =>
                 {
                     b.Property<Guid>("Id")
@@ -518,9 +550,28 @@ namespace Pregiato.Infrastructure.Migrations
                         .HasColumnType("datetime(3)")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP(3)");
 
+                    b.Property<Guid?>("CurrentSessionId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("InstanceId")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.Property<bool>("IsGroup")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(false);
+
+                    b.Property<DateTime?>("LastMessageAt")
+                        .HasColumnType("datetime");
+
                     b.Property<string>("OperatorId")
                         .HasMaxLength(191)
                         .HasColumnType("varchar(191)");
+
+                    b.Property<string>("PeerE164")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
 
                     b.Property<string>("Priority")
                         .IsRequired()
@@ -534,6 +585,10 @@ namespace Pregiato.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<string>("Title")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(3)")
@@ -544,6 +599,10 @@ namespace Pregiato.Infrastructure.Migrations
                     b.HasIndex("ContactId");
 
                     b.HasIndex("OperatorId");
+
+                    b.HasIndex("InstanceId", "PeerE164")
+                        .IsUnique()
+                        .HasFilter("[InstanceId] IS NOT NULL AND [PeerE164] IS NOT NULL");
 
                     b.ToTable("Conversations", (string)null);
                 });
@@ -932,6 +991,10 @@ namespace Pregiato.Infrastructure.Migrations
                     b.Property<int>("Direction")
                         .HasColumnType("int");
 
+                    b.Property<string>("ExternalMessageId")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
                     b.Property<string>("FileName")
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
@@ -943,6 +1006,12 @@ namespace Pregiato.Infrastructure.Migrations
                     b.Property<string>("MediaUrl")
                         .HasMaxLength(500)
                         .HasColumnType("varchar(500)");
+
+                    b.Property<string>("PayloadJson")
+                        .HasColumnType("LONGTEXT");
+
+                    b.Property<Guid?>("SessionId")
+                        .HasColumnType("char(36)");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
@@ -961,7 +1030,13 @@ namespace Pregiato.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ConversationId");
+                    b.HasIndex("SessionId");
+
+                    b.HasIndex("ConversationId", "CreatedAt");
+
+                    b.HasIndex("ConversationId", "ExternalMessageId")
+                        .IsUnique()
+                        .HasFilter("[ConversationId] IS NOT NULL AND [ExternalMessageId] IS NOT NULL");
 
                     b.ToTable("Messages");
                 });
@@ -1498,6 +1573,17 @@ namespace Pregiato.Infrastructure.Migrations
                     b.Navigation("ChatLog");
                 });
 
+            modelBuilder.Entity("Pregiato.Core.Entities.ChatSession", b =>
+                {
+                    b.HasOne("Pregiato.Core.Entities.Conversation", "Conversation")
+                        .WithMany("Sessions")
+                        .HasForeignKey("ConversationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Conversation");
+                });
+
             modelBuilder.Entity("Pregiato.Core.Entities.Contract", b =>
                 {
                     b.HasOne("Pregiato.Core.Entities.Lead", "Lead")
@@ -1576,7 +1662,14 @@ namespace Pregiato.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Pregiato.Core.Entities.ChatSession", "Session")
+                        .WithMany("Messages")
+                        .HasForeignKey("SessionId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("Conversation");
+
+                    b.Navigation("Session");
                 });
 
             modelBuilder.Entity("Pregiato.Core.Entities.QueueEvent", b =>
@@ -1606,6 +1699,11 @@ namespace Pregiato.Infrastructure.Migrations
                     b.Navigation("GeneratedLeads");
                 });
 
+            modelBuilder.Entity("Pregiato.Core.Entities.ChatSession", b =>
+                {
+                    b.Navigation("Messages");
+                });
+
             modelBuilder.Entity("Pregiato.Core.Entities.Contact", b =>
                 {
                     b.Navigation("Conversations");
@@ -1616,6 +1714,8 @@ namespace Pregiato.Infrastructure.Migrations
                     b.Navigation("Messages");
 
                     b.Navigation("QueueEvents");
+
+                    b.Navigation("Sessions");
                 });
 
             modelBuilder.Entity("Pregiato.Core.Entities.Lead", b =>

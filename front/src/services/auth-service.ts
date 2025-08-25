@@ -22,7 +22,7 @@ export interface ClerkUserInfo {
 }
 
 // Configuração da API
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5656';
 
 // Classe principal do serviço de autenticação
 class AuthService {

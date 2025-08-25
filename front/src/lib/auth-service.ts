@@ -6,11 +6,13 @@ interface AuthToken {
   expiresAt: Date;
 }
 
-// Função para obter token do Clerk (mock para desenvolvimento)
+// Função para obter token do Clerk
+// Esta função deve ser chamada dentro de um componente React que usa o hook useClerkAuth
 export const getClerkToken = async (): Promise<string | null> => {
   try {
-    // Em produção, isso seria obtido do Clerk
-    // Por enquanto, retornamos null para permitir acesso sem autenticação
+    // Esta função agora será implementada nos componentes que precisam do token
+    // usando o hook useClerkAuth
+    console.warn('getClerkToken deve ser chamado através do hook useClerkAuth');
     return null;
   } catch (error) {
     console.error('Erro ao obter token do Clerk:', error);

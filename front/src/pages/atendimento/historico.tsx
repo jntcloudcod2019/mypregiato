@@ -13,11 +13,6 @@ export default function HistoricoChatsPage() {
   const [messages, setMessages] = useState<ChatMessageDto[]>([]);
   const cacheRef = useRef<Record<string, ChatMessageDto[]>>({});
 
-  const refresh = async () => {
-    const { items } = await chatsApi.list(search, 1, 200);
-    setChats(items.sort((a,b)=> new Date(b.lastMessageAt||'').getTime() - new Date(a.lastMessageAt||'').getTime()));
-  };
-
   const loadHistory = async (id: string) => {
     if (cacheRef.current[id]) { setMessages(cacheRef.current[id]); return; }
     const data = await chatsApi.history(id, undefined, 100);
@@ -26,7 +21,13 @@ export default function HistoricoChatsPage() {
     setMessages(msgs);
   };
 
-  useEffect(() => { refresh(); }, [search]);
+  useEffect(() => { 
+    const refresh = async () => {
+      const { items } = await chatsApi.list(search, 1, 200);
+      setChats(items.sort((a,b)=> new Date(b.lastMessageAt||'').getTime() - new Date(a.lastMessageAt||'').getTime()));
+    };
+    refresh(); 
+  }, [search]);
   useEffect(() => { if (selectedChatId) loadHistory(selectedChatId); }, [selectedChatId]);
 
   const selectedChat = useMemo(()=> chats.find(c=> c.id===selectedChatId) || null, [selectedChatId, chats]);

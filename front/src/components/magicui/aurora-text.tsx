@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn } from "../../lib/utils";
 import React, { HTMLAttributes, useEffect, useState } from "react";
 
 interface AuroraTextProps extends HTMLAttributes<HTMLHeadingElement> {

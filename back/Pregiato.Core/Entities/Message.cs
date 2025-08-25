@@ -34,6 +34,11 @@ namespace Pregiato.Core.Entities
         [Required]
         public Guid ConversationId { get; set; }
         
+        public Guid? SessionId { get; set; }
+        
+        [StringLength(128)]
+        public string? ExternalMessageId { get; set; }
+        
         [Required]
         public MessageDirection Direction { get; set; }
         
@@ -62,11 +67,15 @@ namespace Pregiato.Core.Entities
         [StringLength(500)]
         public string? InternalNote { get; set; }
         
+        // Campo para armazenar o payload completo da mensagem (JSON)
+        public string? PayloadJson { get; set; }
+        
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         
         public DateTime? UpdatedAt { get; set; }
         
         // Relacionamentos
         public virtual Conversation Conversation { get; set; } = null!;
+        public virtual ChatSession? Session { get; set; }
     }
 } 

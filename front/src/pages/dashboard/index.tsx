@@ -1,8 +1,8 @@
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { AttendanceDashboard } from "@/components/whatsapp/attendance-dashboard"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
+import { AttendanceDashboard } from "../../components/whatsapp/attendance-dashboard"
 import { Link } from "react-router-dom"
-import { modules } from "@/pages/modules/data"
+import { modules } from "../../pages/modules/data"
 
 export default function Dashboard() {
   const handleStartAttendance = (conversationId: string, operatorId: string) => {

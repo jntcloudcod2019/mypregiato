@@ -41,7 +41,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins("http://localhost:8080", "http://localhost:3000", "http://localhost:5173")
+        policy.WithOrigins("http://localhost:8080", "http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:5173")
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();
@@ -100,12 +100,16 @@ builder.Services.AddScoped<IChatLogRepository, ChatLogRepository>();
 // Chat services
 builder.Services.AddScoped<ChatLogService>();
 builder.Services.AddScoped<AttendanceService>();
+builder.Services.AddSingleton<ConversationService>();
 
 // Serviços de importação
 builder.Services.AddScoped<IImportService, Pregiato.Application.Services.ImportServiceWithRepo>();
 
 // MemoryCache e RabbitMQ HostedService
 builder.Services.AddMemoryCache();
+
+// Configurar RabbitMQ
+builder.Services.Configure<RabbitMQConfig>(builder.Configuration.GetSection("RabbitMQ"));
 builder.Services.AddSingleton<RabbitBackgroundService>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<RabbitBackgroundService>());
 
