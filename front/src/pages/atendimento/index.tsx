@@ -1,10 +1,6 @@
-/* ... o código que você colou já está adequado ao layout desejado e compatível com os recursos atuais ... */
-/* Para manter sua experiência de cópia intacta, segue a versão consolidada pronta para colar: */
-
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { unifiedChatApi } from '@/services/conversations-api';
 
-// Interfaces completas para os tipos de dados
 interface ChatMessageDto {
   id: string;
   externalMessageId?: string;
@@ -20,12 +16,10 @@ interface ChatMessageDto {
   } | null;
 }
 
-// Interfaces para os eventos SignalR
 interface ChatEvent {
   chatId: string;
   chat?: Partial<ChatListItem>;
 }
-
 interface MessageEvent {
   chatId: string;
   message?: {
@@ -44,24 +38,11 @@ interface MessageEvent {
     };
   };
 }
+interface MessageStatusEvent { chatId: string; messageId?: string; status?: string; }
+interface TypingEvent { chatId: string; isTyping?: boolean; }
+interface ReadEvent { chatId: string; readUpTo?: string; }
 
-interface MessageStatusEvent {
-  chatId: string;
-  messageId?: string;
-  status?: string;
-}
-
-interface TypingEvent {
-  chatId: string;
-  isTyping?: boolean;
-}
-
-interface ReadEvent {
-  chatId: string;
-  readUpTo?: string;
-}
-import { Card, CardContent } from '@/components/ui/card';
-import { CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -74,7 +55,6 @@ import { HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signal
 import { useChatStore } from '@/store/chat-store';
 import { BotStatusCard } from '@/components/whatsapp/bot-status-card';
 import { OperatorStatusCard } from '@/components/whatsapp/operator-status-card';
-import { AnimatedList } from '@/components/ui/animated-list';
 import { Minus, X, Check, UserPlus, PhoneCall, Phone, Clock3, MoreVertical, Trash2, Mic, Square, Paperclip, CheckCheck } from 'lucide-react';
 import { TextAnimate } from '@/components/magicui/text-animate';
 import { useOperatorStatus } from '@/hooks/useOperatorStatus';
@@ -84,6 +64,8 @@ import Dock from '@/components/ui/dock';
 import { Search, Plus, Download, RefreshCw } from 'lucide-react';
 import crmIconUrl from '@/../public/icons/crm.svg';
 import { TimeTicker } from '@/components/ui/time-ticker';
+import { ChatListLayout } from '@/components/chat/ChatListLayout';
+import { cleanTitle } from '@/utils/chat-utils';
 
 const formatMMSS = (ms: number) => {
   if (!isFinite(ms) || ms <= 0) return '00:00';
@@ -101,9 +83,8 @@ type TicketState = {
   verified?: boolean
   startedAt?: string
   endedAt?: string
-}
+};
 
-// Stepper visual (círculos, linhas e clique por passo)
 const stepsDef: Array<{ k: 1|2|3|4; t: string }> = [
   { k: 1, t: 'Atendimento iniciado' },
   { k: 2, t: 'Atendimento em andamento' },
@@ -127,7 +108,7 @@ function Stepper({ current, verified, onStepClick }: { current: 1|2|3|4; verifie
               >
                 <div className={`inline-flex items-center justify-center h-8 w-8 rounded-full border transition-colors ${isActive ? 'bg-primary text-primary-foreground border-primary' : isDone ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-muted-foreground/30'}`}>
                   {isDone ? <Check className="h-4 w-4" /> : <span className="text-xs font-medium">{s.k}</span>}
-            </div>
+                </div>
                 <span className={`text-[11px] text-center leading-tight ${isActive || isDone ? 'text-foreground' : 'text-muted-foreground'}`}>{s.t}</span>
               </button>
               {idx < stepsDef.length - 1 && (
@@ -181,7 +162,6 @@ function DashboardChamados({ inQueue, inService, avgLabel }: { inQueue: number; 
 
 export default function AtendimentoPage() {
   const { currentOperator } = useOperatorStatus();
-
   const { makeCall, callDuration } = useTwilioPhone();
 
   const [search, setSearch] = useState('');
@@ -196,7 +176,6 @@ export default function AtendimentoPage() {
   const [optionsOpen, setOptionsOpen] = useState<boolean>(false);
   const [historyLoaded, setHistoryLoaded] = useState<boolean>(false);
 
-  // refs auxiliares
   const connRef = useRef<HubConnection | null>(null);
   const selectedChatIdRef = useRef<string | null>(null);
   const processedInboundIdsRef = useRef<Set<string>>(new Set());
@@ -211,6 +190,7 @@ export default function AtendimentoPage() {
   const recordTickRef = useRef<number | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [recordMs, setRecordMs] = useState(0);
+
   const setTyping = useChatStore(s => s.setTyping);
   const setLastReadAt = useChatStore(s => s.setLastReadAt);
   const typingByChat = useChatStore(s => s.byChat);
@@ -264,7 +244,6 @@ export default function AtendimentoPage() {
 
   useEffect(() => { selectedChatIdRef.current = selectedChatId; }, [selectedChatId]);
 
-  // mapa de status por chat (rehydrate do localStorage)
   const [tickets, setTickets] = useState<Record<string, TicketState>>(() => {
     try {
       const raw = localStorage.getItem('atd.tickets');
@@ -274,7 +253,6 @@ export default function AtendimentoPage() {
     }
   });
 
-  // persistência automática
   useEffect(() => {
     try {
       localStorage.setItem('atd.tickets', JSON.stringify(tickets));
@@ -283,7 +261,6 @@ export default function AtendimentoPage() {
     }
   }, [tickets]);
 
-  // Debounce para o refreshChats
   const refreshChatsRef = useRef<NodeJS.Timeout | null>(null);
   const lastRefreshTimeRef = useRef<number>(0);
 
@@ -306,7 +283,6 @@ export default function AtendimentoPage() {
     try {
       const response = await chatsApi.list(search, 1, 50) as { items: ChatListItem[]; total: number };
       const items = response.items || [];
-      // deduplicação por id e por título/telefone para evitar entradas repetidas
       const byId = new Map<string, ChatListItem>();
       const byKey = new Map<string, string>();
       for (const c of items) {
@@ -321,9 +297,7 @@ export default function AtendimentoPage() {
 
       setTickets(prev => {
         const next = { ...prev } as Record<string, TicketState>;
-        unique.forEach(c => {
-          if (!next[c.id]) next[c.id] = { status: 'novo', step: 1 };
-        });
+        unique.forEach(c => { if (!next[c.id]) next[c.id] = { status: 'novo', step: 1 }; });
         const ids = new Set(unique.map(c => c.id));
         Object.keys(next).forEach(id => { if (!ids.has(id)) delete next[id]; });
         return next;
@@ -380,17 +354,10 @@ export default function AtendimentoPage() {
     requestAnimationFrame(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }));
   };
 
-  // Telefone
   const handlePhoneCall = (phoneNumber: string) => {
-    if (activeCall) {
-      activeCall();
-      setActiveCall(null);
-      return;
-    }
+    if (activeCall) { activeCall(); setActiveCall(null); return; }
     try {
-      if (!phoneNumber.startsWith('+')) {
-        phoneNumber = `+${phoneNumber.replace(/\D/g, '')}`;
-      }
+      if (!phoneNumber.startsWith('+')) phoneNumber = `+${phoneNumber.replace(/\D/g, '')}`;
       toast({ title: "Iniciando chamada", description: `Ligando para ${phoneNumber}...` });
       const endCallFn = makeCall(phoneNumber);
       setActiveCall(() => endCallFn);
@@ -486,36 +453,19 @@ export default function AtendimentoPage() {
       console.error('Erro ao iniciar gravação de áudio:', e);
     }
   };
-
-  const stopRecording = () => {
-    try {
-      mediaRecorderRef.current?.stop();
-    } catch (error) {
-      console.error('Erro ao parar gravação de áudio:', error);
-    }
-  };
+  const stopRecording = () => { try { mediaRecorderRef.current?.stop(); } catch (error) { console.error('Erro ao parar gravação de áudio:', error); } };
 
   useEffect(() => { refreshChats(); }, [search, refreshChats]);
 
-  // throttle helper
   const throttledRefreshRef = useRef<{lastTime: number, timer: NodeJS.Timeout | null}>({ lastTime: 0, timer: null });
 
-  // Conexão SignalR única
   useEffect(() => {
     if (connRef.current) return;
 
     try {
       fetch('http://localhost:5656/api/health', { method: 'GET' })
-        .then(response => {
-          if (response.ok) {
-            initSignalR();
-          } else {
-            console.error('Servidor não está respondendo');
-          }
-        })
-        .catch((error) => {
-          console.error('Erro ao conectar com o servidor:', error);
-        });
+        .then(response => { if (response.ok) initSignalR(); else console.error('Servidor não está respondendo'); })
+        .catch((error) => { console.error('Erro ao conectar com o servidor:', error); });
     } catch (error) {
       console.error('Erro ao inicializar conexão:', error);
     }
@@ -528,9 +478,7 @@ export default function AtendimentoPage() {
           .configureLogging(LogLevel.Information)
           .build();
 
-        connection.onreconnected(() => {
-          connection.invoke('JoinWhatsAppGroup').catch(() => {});
-        });
+        connection.onreconnected(() => { connection.invoke('JoinWhatsAppGroup').catch(() => {}); });
 
         connection.off('chat.created');
         connection.off('chat.updated');
@@ -563,21 +511,15 @@ export default function AtendimentoPage() {
         connection.on('chat.created', (evt: ChatEvent) => {
           const chat: Partial<ChatListItem> | undefined = evt?.chat;
           const id: string | undefined = chat?.id || evt?.chatId;
-          if (id && chat) {
-            queueChatPatch(id, chat as Partial<ChatListItem>);
-          } else {
-            throttledRefresh(5000);
-          }
+          if (id && chat) queueChatPatch(id, chat as Partial<ChatListItem>);
+          else throttledRefresh(5000);
         });
 
         connection.on('chat.updated', (evt: ChatEvent) => {
           const chat: Partial<ChatListItem> | undefined = evt?.chat;
           const id: string | undefined = chat?.id || evt?.chatId;
-          if (id && chat) {
-            queueChatPatch(id, chat as Partial<ChatListItem>);
-          } else {
-            throttledRefresh(5000);
-          }
+          if (id && chat) queueChatPatch(id, chat as Partial<ChatListItem>);
+          else throttledRefresh(5000);
         });
 
         connection.on('message.inbound', async (evt: MessageEvent) => {
@@ -665,12 +607,11 @@ export default function AtendimentoPage() {
           requestAnimationFrame(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }));
         });
 
-                connection.on('message.status', (evt: MessageStatusEvent) => {
+        connection.on('message.status', (evt: MessageStatusEvent) => {
           const currentSelected = selectedChatIdRef.current;
           if (evt?.chatId !== currentSelected) return;
           const { messageId, status } = evt || {};
           if (!messageId || !status) return;
-          
           const validStatuses = new Set(['pending', 'sent', 'delivered', 'read', 'failed']);
           const s = validStatuses.has(status as string) ? status : 'sent';
           setMessages(prev => prev.map(m => m.id === messageId ? { ...m, status: s as ChatMessageDto['status'] } : m));
@@ -694,7 +635,7 @@ export default function AtendimentoPage() {
           .then(() => connection.invoke('JoinWhatsAppGroup'))
           .catch(console.error);
 
-    } catch (error) {
+      } catch (error) {
         console.error("Erro ao inicializar SignalR:", error);
       }
     }
@@ -707,14 +648,11 @@ export default function AtendimentoPage() {
     };
   }, [queueChatPatch, refreshChats, setLastReadAt, setTyping]);
 
-  // Tick de 1 segundo isolado em componente separado
-  const handleTick = useCallback((timestamp: number) => {
-    setNowTick(timestamp);
-  }, []);
+  const handleTick = useCallback((timestamp: number) => { setNowTick(timestamp); }, []);
 
   const handleAttend = useCallback(async (chatId: string) => {
     const name = currentOperator?.name || 'Operador';
-    const operatorId = currentOperator?.id || 'anonymous'; // currentOperator.id já é o ClerkId
+    const operatorId = currentOperator?.id || 'anonymous';
 
     setTickets(prev => ({
       ...prev,
@@ -731,11 +669,9 @@ export default function AtendimentoPage() {
 
     try {
       axios.post(`http://localhost:5656/api/attendances/${chatId}/assign`, {
-        OperatorId: operatorId, // ClerkId do usuário autenticado
+        OperatorId: operatorId,
         OperatorName: name
-      }).catch((error) => {
-        console.error(`Erro ao atribuir chat ${chatId} ao operador ${name}:`, error);
-      });
+      }).catch((error) => console.error(`Erro ao atribuir chat ${chatId} ao operador ${name}:`, error));
     } catch (error) {
       console.error(`Erro ao atribuir chat ${chatId}:`, error);
     }
@@ -760,8 +696,7 @@ export default function AtendimentoPage() {
   }, [currentOperator?.name, currentOperator?.id]);
 
   const handleStep = useCallback(async (chatId: string, step: 1 | 2 | 3 | 4) => {
-    const operatorId = currentOperator?.id || 'anonymous'; // ClerkId do usuário autenticado
-    
+    const operatorId = currentOperator?.id || 'anonymous';
     setTickets(prev => ({
       ...prev,
       [chatId]: {
@@ -770,12 +705,8 @@ export default function AtendimentoPage() {
         verified: false
       }
     }));
-
     try {
-      await axios.post(`http://localhost:5656/api/attendances/${chatId}/step`, { 
-        Step: step,
-        OperatorId: operatorId // Adicionar ClerkId do operador
-      });
+      await axios.post(`http://localhost:5656/api/attendances/${chatId}/step`, { Step: step, OperatorId: operatorId });
     } catch (error) {
       console.error(`Erro ao atualizar passo ${step} do chat ${chatId}:`, error);
     }
@@ -784,7 +715,7 @@ export default function AtendimentoPage() {
   const handleFinalize = useCallback(async (chatId: string) => {
     const activeTicket = tickets[chatId];
     const description = activeTicket?.description || "";
-    const operatorId = currentOperator?.id || 'anonymous'; // ClerkId do usuário autenticado
+    const operatorId = currentOperator?.id || 'anonymous';
 
     setTickets(prev => ({
       ...prev,
@@ -801,7 +732,7 @@ export default function AtendimentoPage() {
       await axios.post(`http://localhost:5656/api/attendances/${chatId}/finalize`, {
         Description: description,
         Verified: true,
-        OperatorId: operatorId // Adicionar ClerkId do operador
+        OperatorId: operatorId
       });
     } catch (error) {
       console.error("Erro ao finalizar atendimento no servidor:", error);
@@ -826,48 +757,6 @@ export default function AtendimentoPage() {
     [chats, tickets]
   );
 
-  const chatItems = useMemo(() =>
-    visibleChats.map((c, idx) => {
-    const queueNumber = String(idx + 1).padStart(2, '0');
-    const t = tickets[c.id];
-    const statusLabel = t?.status === 'finalizado' ? 'Finalizado' : t?.status === 'em_atendimento' ? `Em Atendimento: ${t.assignedTo || ''}` : 'Novo';
-    const statusColor = t?.status === 'finalizado' ? 'bg-gray-200 text-gray-700' : t?.status === 'em_atendimento' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700';
-    
-    // Extrair apenas o número do contato do título
-    const contactNumber = c.title?.replace('Bate-papo com ', '') || c.contactPhoneE164 || 'Contato';
-    
-    return {
-      id: c.id,
-      content: (
-        <div
-          className={`group relative flex items-start gap-3 rounded-xl border bg-background/70 dark:bg-muted/40 backdrop-blur-sm p-3 shadow-sm transition-all hover:shadow-md hover:border-primary/40 cursor-pointer w-full box-border chat-card-item ${selectedChatId===c.id ? 'ring-2 ring-primary shadow-md bg-primary/5' : ''}`}
-          onClick={() => setSelectedChatId(c.id)}
-        >
-          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary/90 to-primary/60 text-primary-foreground grid place-items-center text-xs font-semibold shadow-sm flex-shrink-0">
-            {queueNumber}
-          </div>
-          <div className="min-w-0 flex-1 w-full chat-card-content">
-            <div className="flex items-center justify-between w-full mb-1 chat-card-header">
-              <div className="font-medium truncate text-sm flex-1 mr-2 chat-card-title">{contactNumber}</div>
-              {c.unreadCount>0 && (
-                <Badge className="rounded-full px-2 py-0.5 text-[10px] leading-none flex-shrink-0">{c.unreadCount}</Badge>
-              )}
-            </div>
-            <div className="text-xs text-muted-foreground truncate w-full mb-2 chat-card-subtitle">{c.lastMessagePreview || ''}</div>
-            <div className="flex items-center justify-between w-full chat-card-footer">
-              <div className="flex items-center gap-2 flex-1 chat-card-actions">
-                <span className={`text-[10px] rounded-full px-2 py-[2px] ${statusColor} flex-shrink-0`}>{statusLabel}</span>
-                {t?.status === 'novo' && (
-                  <Button size="sm" className="h-6 px-2 py-0 flex-shrink-0" onClick={(e) => { e.stopPropagation(); handleAttend(c.id); }}>Atender</Button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )
-    };
-  }), [visibleChats, tickets, selectedChatId, handleAttend]);
-
   const activeChat = selectedChatId ? chats.find(c => c.id === selectedChatId) : null;
   const activeTicket = selectedChatId ? tickets[selectedChatId!] : undefined;
   const isPeerTyping = selectedChatId ? Boolean(typingByChat[selectedChatId!]) : false;
@@ -877,281 +766,220 @@ export default function AtendimentoPage() {
   return (
     <>
       <TimeTicker onTick={handleTick} />
-      <style dangerouslySetInnerHTML={{
-        __html: `
-          .chat-list-container {
-            width: 100% !important;
-            display: flex !important;
-            flex-direction: column !important;
-          }
-          .chat-card-item {
-            width: 100% !important;
-            max-width: 100% !important;
-            box-sizing: border-box !important;
-            margin: 0 !important;
-            padding: 0 !important;
-          }
-          .chat-card-content {
-            width: 100% !important;
-            max-width: 100% !important;
-            box-sizing: border-box !important;
-            display: flex !important;
-            flex-direction: column !important;
-            justify-content: space-between !important;
-          }
-          .chat-card-header {
-            display: flex !important;
-            align-items: center !important;
-            justify-content: space-between !important;
-            width: 100% !important;
-            margin-bottom: 4px !important;
-          }
-          .chat-card-title {
-            flex: 1 !important;
-            margin-right: 8px !important;
-            overflow: hidden !important;
-            text-overflow: ellipsis !important;
-            white-space: nowrap !important;
-          }
-          .chat-card-subtitle {
-            width: 100% !important;
-            margin-bottom: 8px !important;
-            overflow: hidden !important;
-            text-overflow: ellipsis !important;
-            white-space: nowrap !important;
-          }
-          .chat-card-footer {
-            display: flex !important;
-            align-items: center !important;
-            justify-content: space-between !important;
-            width: 100% !important;
-          }
-          .chat-card-actions {
-            display: flex !important;
-            align-items: center !important;
-            gap: 8px !important;
-            flex: 1 !important;
-          }
-        `
-      }} />
       <div className="flex flex-col gap-4 px-3 md:px-4 lg:px-6 min-h-[100svh]">
-      {/* Topo em 3 colunas: 3/6/3 */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mt-3 md:mt-5">
-        <div className="lg:col-span-3">
-          <BotStatusCard />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mt-3 md:mt-5">
+          <div className="lg:col-span-3"><BotStatusCard /></div>
+          <div className="lg:col-span-6"><DashboardChamados inQueue={inQueue} inService={inService} avgLabel={avgLabel} /></div>
+          <div className="lg:col-span-3"><OperatorStatusCard /></div>
+        </div>
+
+        <div className="mb-2">
+          <Dock
+            items={[
+              { label: 'Buscar', icon: <Search className="h-5 w-5" />, onClick: () => refreshChats() },
+              { label: 'Novo Lead', icon: <Plus className="h-5 w-5" />, onClick: () => {} },
+              { label: 'CRM', icon: <img src={crmIconUrl} alt="CRM" className="h-5 w-5" />, onClick: () => { window.location.href = '/crm'; } },
+              { label: 'Histórico', icon: <Download className="h-5 w-5" />, onClick: () => { window.location.href = '/atendimento/historico'; } },
+              { label: 'Atualizar', icon: <RefreshCw className="h-5 w-5" />, onClick: () => refreshChats() },
+            ]}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+          {/* LISTA DE CHATS */}
+          <div className="lg:col-span-4 flex flex-col">
+            <Card className="overflow-hidden h-[72svh] soft-border shadow-smooth bg-card/60">
+              <CardContent className="h-full p-0">
+                <ScrollArea className="h-full">
+                  <ChatListLayout
+                    key={`chat-list-${visibleChats.map(c => c.id).join('-')}`}
+                    chats={visibleChats}
+                    ticketsById={tickets}
+                    selectedId={selectedChatId}
+                    onSelect={(id) => setSelectedChatId(id)}
+                    onAttend={(id) => handleAttend(id)}
+                  />
+                </ScrollArea>
+              </CardContent>
+            </Card>
           </div>
-        <div className="lg:col-span-6">
-          <DashboardChamados inQueue={inQueue} inService={inService} avgLabel={avgLabel} />
-        </div>
-        <div className="lg:col-span-3">
-          <OperatorStatusCard />
-        </div>
-      </div>
 
-      {/* Dock */}
-      <div className="mb-2">
-        <Dock
-          items={[
-            { label: 'Buscar', icon: <Search className="h-5 w-5" />, onClick: () => refreshChats() },
-            { label: 'Novo Lead', icon: <Plus className="h-5 w-5" />, onClick: () => { /* abrir modal lead */ } },
-            { label: 'CRM', icon: <img src={crmIconUrl} alt="CRM" className="h-5 w-5" />, onClick: () => { window.location.href = '/crm'; } },
-            { label: 'Histórico', icon: <Download className="h-5 w-5" />, onClick: () => { window.location.href = '/atendimento/historico'; } },
-            { label: 'Atualizar', icon: <RefreshCw className="h-5 w-5" />, onClick: () => refreshChats() },
-          ]}
-        />
-                  </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
-        <div className="lg:col-span-4 flex flex-col">
-          <Card className="overflow-hidden h-[72svh] soft-border shadow-smooth bg-card/60">
-            <CardContent className="h-full p-0">
-              <ScrollArea className="h-full">
-                <div className="p-3 md:p-4 w-full">
-                  <div className="w-full space-y-3 chat-list-container">
-                    <AnimatedList items={chatItems} className="w-full space-y-3" />
-                  </div>
-                </div>
-              </ScrollArea>
-            </CardContent>
-          </Card>
-        </div>
-                
-        <div className="lg:col-span-8 flex flex-col">
-          <Card className="h-[72svh] flex flex-col overflow-hidden relative soft-border shadow-smooth bg-card/60">
-            {/* Header com stepper */}
-            <CardHeader className="px-4 py-2 border-b bg-card/50">
-              <div className="flex items-center justify-between">
-                <div className="min-w-0">
-                  <div className="text-sm font-semibold truncate">
-                    {activeChat ? (activeChat.title?.replace('Bate-papo com ', '') || activeChat.contactPhoneE164 || 'Contato') : 'Nenhuma conversa selecionada'}
-                  </div>
-                  {activeChat && (
-                    <>
-                      <div className="text-xs text-muted-foreground truncate">{activeChat.contactPhoneE164}</div>
-                      {isPeerTyping ? (
-                        <div className="text-[11px] text-emerald-600">digitando...</div>
-                      ) : lastReadAtLabel ? (
-                        <div className="text-[11px] text-muted-foreground flex items-center gap-1">
-                          <CheckCheck className="h-3 w-3" /> Lido às {lastReadAtLabel}
-                        </div>
-                      ) : null}
-                    </>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  {selectedChatId && (
-                    <div id="chat-options-menu" className="relative">
-                      <Button variant="ghost" size="icon" title="Opções" onClick={() => setOptionsOpen(o => !o)}>
-                        <MoreVertical className="h-4 w-4" />
-                  </Button>
-                      {optionsOpen && (
-                        <div className="absolute right-0 mt-1 z-20 min-w-[160px] rounded-md border bg-popover text-popover-foreground shadow">
-                          <button
-                            className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted"
-                            onClick={async () => {
-                              if (!selectedChatId) return;
-                              try {
-                                await chatsApi.delete(selectedChatId);
-                                setSelectedChatId(null);
-                                setMessages([]);
-                                setTickets(prev => {
-                                  const next = { ...prev } as Record<string, TicketState>;
-                                  delete next[selectedChatId];
-                                  return next;
-                                });
-                                await refreshChats();
-                              } catch (e) { console.error(e); }
-                              setOptionsOpen(false);
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4" /> Excluir
-                          </button>
-                </div>
-                      )}
-              </div>
-                  )}
-                  {selectedChatId && (
-                    <Button variant="ghost" size="icon" title={isChatMinimized ? 'Restaurar' : 'Minimizar'} onClick={() => setIsChatMinimized(v => !v)}>
-                      <Minus className="h-4 w-4" />
-                    </Button>
-                  )}
-                  {selectedChatId && (
-                    <Button variant="ghost" size="icon" title="Fechar" onClick={() => { setSelectedChatId(null); setMessages([]); }}>
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
+          {/* PAINEL DO CHAT */}
+          <div className="lg:col-span-8 flex flex-col">
+            <Card className="h-[72svh] flex flex-col overflow-hidden relative soft-border shadow-smooth bg-card/60">
+              <CardHeader className="px-4 py-2 border-b bg-card/50">
+                <div className="flex items-center justify-between">
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold truncate">
+                      {activeChat ? cleanTitle(activeChat.title, activeChat.contactPhoneE164) : 'Nenhuma conversa selecionada'}
                     </div>
-                  </div>
-
-              {selectedChatId && (
-                <Stepper current={(activeTicket?.step || 1) as 1|2|3|4} verified={Boolean(activeTicket?.verified)} onStepClick={(s) => handleStep(selectedChatId, s)} />
-              )}
-            </CardHeader>
-
-            {!isChatMinimized && (
-              <>
-                <CardContent className="flex-1 p-0 relative">
-                  <ScrollArea className="h-full px-4 py-2">
-                    {selectedChatId && activeTicket?.step === 4 && !activeTicket?.verified && (
-                      <div className="mb-3">
-                        <p className="text-xs text-muted-foreground mb-2">Descreva o atendimento e finalize</p>
-                  <Textarea
-                          value={activeTicket?.description || ''}
-                          onChange={(e) => {
-                            if (!selectedChatId) return;
-                            setTickets(prev => {
-                              const cid = selectedChatId as string;
-                              const existing: TicketState = prev[cid] ?? { status: 'em_atendimento', step: 4, assignedTo: currentOperator?.name };
-                              return { ...prev, [cid]: { ...existing, description: e.target.value } };
-                            });
-                          }}
-                          placeholder="Observações do atendimento..."
-                          className="mb-2"
-                        />
-                        <Button size="sm" onClick={() => handleFinalize(selectedChatId!)}>Salvar e Encerrar</Button>
-                </div>
+                    {activeChat && (
+                      <>
+                        <div className="text-xs text-muted-foreground truncate">{activeChat.contactPhoneE164}</div>
+                        {isPeerTyping ? (
+                          <div className="text-[11px] text-emerald-600">digitando...</div>
+                        ) : lastReadAtLabel ? (
+                          <div className="text-[11px] text-muted-foreground flex items-center gap-1">
+                            <CheckCheck className="h-3 w-3" /> Lido às {lastReadAtLabel}
+                          </div>
+                        ) : null}
+                      </>
                     )}
-
-                    {messages.map((m) => (
-                      <div key={(m.id||m.externalMessageId)!} className={`my-1 flex ${m.direction==='out'?'justify-end':'justify-start'}`}>
-                        <div className={`max-w-[85%] md:max-w-[70%] px-3 py-2 rounded-lg ${m.direction==='out'?'bg-primary text-primary-foreground':'bg-muted'}`}>
-                          {m.type === 'image' && m.attachment?.dataUrl ? (
-                            <img src={m.attachment.dataUrl} alt={m.attachment.fileName || 'imagem'} className="rounded-md mb-2 max-h-[320px] object-contain" />
-                          ) : null}
-                          {m.type === 'audio' && m.attachment?.dataUrl ? (
-                            <audio controls className="mb-2 max-w-full">
-                              <source src={m.attachment.dataUrl} type={m.attachment.mimeType || 'audio/mpeg'} />
-                              Seu navegador não suporta áudio.
-                            </audio>
-                          ) : null}
-                          {m.type === 'file' && m.attachment?.dataUrl ? (
-                            <a href={m.attachment.dataUrl} download={m.attachment.fileName || 'arquivo'} className="underline mb-2 block text-sm">
-                              {m.attachment.fileName || 'Arquivo'}
-                            </a>
-                          ) : null}
-                          {m.text && (
-                            <div className="whitespace-pre-wrap break-words text-sm">
-                              <TextAnimate animation="scaleUp" by="character">{m.text}</TextAnimate>
-            </div>
-                          )}
-                          <div className="flex gap-2 justify-end items-center text-[10px] opacity-70 mt-1">
-                            <span>{new Date(m.ts).toLocaleTimeString('pt-BR')}</span>
-                            {m.direction==='out' && (
-                              (() => {
-                                const isRead = lastReadAtIso && new Date(m.ts).getTime() <= new Date(lastReadAtIso).getTime();
-                                return isRead ? (
-                                  <span className="inline-flex items-center gap-1"><CheckCheck className="h-3 w-3" /> lido</span>
-                                ) : <span>{m.status}</span>;
-                              })()
-                            )}
-              </div>
-            </div>
-          </div>
-                    ))}
-                    <div ref={bottomRef} />
-                  </ScrollArea>
-                </CardContent>
-                <Separator />
-                <div className="p-2 md:p-3 flex gap-2 items-center">
-                  <input ref={fileInputRef} type="file" className="hidden" onChange={(e)=>{ const f=e.target.files?.[0]; if(f) sendMessage(f); }} />
-                  <Button type="button" variant="outline" size="icon" onClick={()=>fileInputRef.current?.click()} title="Anexar arquivo">
-                    <Paperclip className="h-4 w-4" />
-              </Button>
-                  {!isRecording ? (
-                    <Button type="button" variant="outline" size="icon" onClick={startRecording} title="Gravar áudio">
-                      <Mic className="h-4 w-4" />
-              </Button>
-                  ) : (
-                    <Button type="button" variant="destructive" size="icon" onClick={stopRecording} title={`Parar gravação (${new Date(recordMs).toISOString().substring(14, 19)})`}>
-                      <Square className="h-4 w-4" />
-                    </Button>
-                  )}
-                  {selectedChatId && activeChat?.contactPhoneE164 && (
-              <Button
-                      type="button"
-                      variant={activeCall ? "destructive" : "outline"}
-                      size="icon"
-                      onClick={() => handlePhoneCall(activeChat.contactPhoneE164)}
-                      title={activeCall ? `Encerrar chamada (${callDuration}s)` : "Ligar para contato"}
-                      className={`${activeCall ? "animate-pulse" : "text-green-600 hover:text-green-700 hover:bg-green-50"}`}
-                    >
-                      <Phone className="h-4 w-4" />
-                      {activeCall && callDuration > 0 && (
-                        <span className="absolute top-0 right-0 -mt-1 -mr-1 bg-red-500 text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center">
-                          {Math.floor(callDuration / 60)}:{String(callDuration % 60).padStart(2, '0')}
-                        </span>
-                      )}
-              </Button>
-                  )}
-                  <Input className="flex-1" placeholder="Digite sua mensagem" value={composer} onChange={e=>setComposer(e.target.value)} onKeyDown={e=>{ if(e.key==='Enter'){ e.preventDefault(); sendMessage(); } }} />
-                  <Button onClick={()=>sendMessage()} disabled={!selectedChatId} className="shrink-0">Enviar</Button>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {selectedChatId && (
+                      <div id="chat-options-menu" className="relative">
+                        <Button variant="ghost" size="icon" title="Opções" onClick={() => setOptionsOpen(o => !o)}>
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                        {optionsOpen && (
+                          <div className="absolute right-0 mt-1 z-20 min-w-[160px] rounded-md border bg-popover text-popover-foreground shadow">
+                            <button
+                              className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted"
+                              onClick={async () => {
+                                if (!selectedChatId) return;
+                                try {
+                                  await chatsApi.delete(selectedChatId);
+                                  setSelectedChatId(null);
+                                  setMessages([]);
+                                  setTickets(prev => {
+                                    const next = { ...prev } as Record<string, TicketState>;
+                                    delete next[selectedChatId];
+                                    return next;
+                                  });
+                                  await refreshChats();
+                                } catch (e) { console.error(e); }
+                                setOptionsOpen(false);
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" /> Excluir
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {selectedChatId && (
+                      <Button variant="ghost" size="icon" title={isChatMinimized ? 'Restaurar' : 'Minimizar'} onClick={() => setIsChatMinimized(v => !v)}>
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                    )}
+                    {selectedChatId && (
+                      <Button variant="ghost" size="icon" title="Fechar" onClick={() => { setSelectedChatId(null); setMessages([]); }}>
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
-              </>
-            )}
-          </Card>
+
+                {selectedChatId && (
+                  <Stepper current={(activeTicket?.step || 1) as 1|2|3|4} verified={Boolean(activeTicket?.verified)} onStepClick={(s) => handleStep(selectedChatId, s)} />
+                )}
+              </CardHeader>
+
+              {!isChatMinimized && (
+                <>
+                  <CardContent className="flex-1 p-0 relative">
+                    <ScrollArea className="h-full px-4 py-2">
+                      {selectedChatId && activeTicket?.step === 4 && !activeTicket?.verified && (
+                        <div className="mb-3">
+                          <p className="text-xs text-muted-foreground mb-2">Descreva o atendimento e finalize</p>
+                          <Textarea
+                            value={activeTicket?.description || ''}
+                            onChange={(e) => {
+                              if (!selectedChatId) return;
+                              setTickets(prev => {
+                                const cid = selectedChatId as string;
+                                const existing: TicketState = prev[cid] ?? { status: 'em_atendimento', step: 4, assignedTo: currentOperator?.name };
+                                return { ...prev, [cid]: { ...existing, description: e.target.value } };
+                              });
+                            }}
+                            placeholder="Observações do atendimento..."
+                            className="mb-2"
+                          />
+                          <Button size="sm" onClick={() => handleFinalize(selectedChatId!)}>Salvar e Encerrar</Button>
+                        </div>
+                      )}
+
+                      {messages.map((m) => (
+                        <div key={(m.id||m.externalMessageId)!} className={`my-1 flex ${m.direction==='out'?'justify-end':'justify-start'}`}>
+                          <div className={`max-w-[85%] md:max-w-[70%] px-3 py-2 rounded-lg ${m.direction==='out'?'bg-primary text-primary-foreground':'bg-muted'}`}>
+                            {m.type === 'image' && m.attachment?.dataUrl ? (
+                              <img src={m.attachment.dataUrl} alt={m.attachment.fileName || 'imagem'} className="rounded-md mb-2 max-h-[320px] object-contain" />
+                            ) : null}
+                            {m.type === 'audio' && m.attachment?.dataUrl ? (
+                              <audio controls className="mb-2 max-w-full">
+                                <source src={m.attachment.dataUrl} type={m.attachment.mimeType || 'audio/mpeg'} />
+                                Seu navegador não suporta áudio.
+                              </audio>
+                            ) : null}
+                            {m.type === 'file' && m.attachment?.dataUrl ? (
+                              <a href={m.attachment.dataUrl} download={m.attachment.fileName || 'arquivo'} className="underline mb-2 block text-sm">
+                                {m.attachment.fileName || 'Arquivo'}
+                              </a>
+                            ) : null}
+                            {m.text && (
+                              <div className="whitespace-pre-wrap break-words text-sm">
+                                <TextAnimate animation="scaleUp" by="character">{m.text}</TextAnimate>
+                              </div>
+                            )}
+                            <div className="flex gap-2 justify-end items-center text-[10px] opacity-70 mt-1">
+                              <span>{new Date(m.ts).toLocaleTimeString('pt-BR')}</span>
+                              {m.direction==='out' && (
+                                (() => {
+                                  const isRead = lastReadAtIso && new Date(m.ts).getTime() <= new Date(lastReadAtIso).getTime();
+                                  return isRead ? (
+                                    <span className="inline-flex items-center gap-1"><CheckCheck className="h-3 w-3" /> lido</span>
+                                  ) : <span>{m.status}</span>;
+                                })()
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      <div ref={bottomRef} />
+                    </ScrollArea>
+                  </CardContent>
+                  <Separator />
+                  <div className="p-2 md:p-3 flex gap-2 items-center">
+                    <input ref={fileInputRef} type="file" className="hidden" onChange={(e)=>{ const f=e.target.files?.[0]; if(f) sendMessage(f); }} />
+                    <Button type="button" variant="outline" size="icon" onClick={()=>fileInputRef.current?.click()} title="Anexar arquivo">
+                      <Paperclip className="h-4 w-4" />
+                    </Button>
+                    {!isRecording ? (
+                      <Button type="button" variant="outline" size="icon" onClick={startRecording} title="Gravar áudio">
+                        <Mic className="h-4 w-4" />
+                      </Button>
+                    ) : (
+                      <Button type="button" variant="destructive" size="icon" onClick={stopRecording} title={`Parar gravação (${new Date(recordMs).toISOString().substring(14, 19)})`}>
+                        <Square className="h-4 w-4" />
+                      </Button>
+                    )}
+                    {selectedChatId && activeChat?.contactPhoneE164 && (
+                      <Button
+                        type="button"
+                        variant={activeCall ? "destructive" : "outline"}
+                        size="icon"
+                        onClick={() => handlePhoneCall(activeChat.contactPhoneE164)}
+                        title={activeCall ? `Encerrar chamada (${callDuration}s)` : "Ligar para contato"}
+                        className={`${activeCall ? "animate-pulse" : "text-green-600 hover:text-green-700 hover:bg-green-50"}`}
+                      >
+                        <Phone className="h-4 w-4" />
+                        {activeCall && callDuration > 0 && (
+                          <span className="absolute top-0 right-0 -mt-1 -mr-1 bg-red-500 text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center">
+                            {Math.floor(callDuration / 60)}:{String(callDuration % 60).padStart(2, '0')}
+                          </span>
+                        )}
+                      </Button>
+                    )}
+                    <Input className="flex-1" placeholder="Digite sua mensagem" value={composer} onChange={e=>setComposer(e.target.value)} onKeyDown={e=>{ if(e.key==='Enter'){ e.preventDefault(); sendMessage(); } }} />
+                    <Button onClick={()=>sendMessage()} disabled={!selectedChatId} className="shrink-0">Enviar</Button>
+                  </div>
+                </>
+              )}
+            </Card>
+          </div>
         </div>
       </div>
-    </div>
     </>
   );
 }
