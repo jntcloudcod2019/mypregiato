@@ -15,6 +15,17 @@ export function detectClerkAvailability(forceEnabled = true): boolean {
     const clerkFailed = sessionStorage.getItem('clerk_failed') === 'true';
     if (clerkFailed) {
       console.log("Clerk desabilitado devido a falhas anteriores nesta sessão");
+      // Em vez de retornar false, vamos tentar novamente após um tempo
+      const lastFailure = sessionStorage.getItem('clerk_last_failure');
+      if (lastFailure) {
+        const timeSinceFailure = Date.now() - parseInt(lastFailure);
+        // Se passou mais de 2 minutos, tentar novamente
+        if (timeSinceFailure > 2 * 60 * 1000) {
+          console.log("Tentando reativar Clerk após timeout");
+          clearClerkFailedStatus();
+          return forceEnabled;
+        }
+      }
       return false;
     }
   } catch (error) {
@@ -32,6 +43,7 @@ export function detectClerkAvailability(forceEnabled = true): boolean {
 export function markClerkAsFailed(): void {
   try {
     sessionStorage.setItem('clerk_failed', 'true');
+    sessionStorage.setItem('clerk_last_failure', Date.now().toString());
   } catch (error) {
     console.error("Não foi possível registrar falha do Clerk no sessionStorage:", error);
   }
@@ -43,6 +55,7 @@ export function markClerkAsFailed(): void {
 export function clearClerkFailedStatus(): void {
   try {
     sessionStorage.removeItem('clerk_failed');
+    sessionStorage.removeItem('clerk_last_failure');
   } catch (error) {
     console.error("Não foi possível limpar status do Clerk no sessionStorage:", error);
   }

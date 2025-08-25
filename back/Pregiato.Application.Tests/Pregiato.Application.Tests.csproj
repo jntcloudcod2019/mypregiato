@@ -19,17 +19,20 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.0" />
     <PackageReference Include="Moq" Version="4.20.70" />
     <PackageReference Include="FluentAssertions" Version="6.12.0" />
     <PackageReference Include="AutoFixture" Version="4.18.1" />
+    <PackageReference Include="AutoFixture.Xunit2" Version="4.18.1" />
     <PackageReference Include="AutoFixture.AutoMoq" Version="4.18.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Pregiato.Application\Pregiato.Application.csproj" />
-    <ProjectReference Include="..\Pregiato.Core\Pregiato.Core.csproj" />
-    <ProjectReference Include="..\Pregiato.API\Pregiato.API.csproj" />
+    <ProjectReference Include="../Pregiato.API/Pregiato.API.csproj" />
+    <ProjectReference Include="../Pregiato.Application/Pregiato.Application.csproj" />
+    <ProjectReference Include="../Pregiato.Core/Pregiato.Core.csproj" />
+    <ProjectReference Include="../Pregiato.Infrastructure/Pregiato.Infrastructure.csproj" />
   </ItemGroup>
 
-</Project> 
+</Project>

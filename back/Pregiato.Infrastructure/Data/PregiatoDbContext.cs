@@ -708,10 +708,12 @@ public class PregiatoDbContext : DbContext
             entity.Property(e => e.CreatedAtUtc).HasColumnType("datetime").HasDefaultValueSql("CURRENT_TIMESTAMP");
             entity.Property(e => e.UpdatedAtUtc).HasColumnType("datetime").HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
 
+            // Relacionamento opcional com ChatLog
             entity.HasOne(e => e.ChatLog)
                   .WithMany()
                   .HasForeignKey(e => e.ChatLogId)
-                  .OnDelete(DeleteBehavior.Cascade);
+                  .OnDelete(DeleteBehavior.SetNull) // Mudança de Cascade para SetNull
+                  .IsRequired(false); // Marca como não obrigatório
         });
 
         // Configuração das entidades CRM

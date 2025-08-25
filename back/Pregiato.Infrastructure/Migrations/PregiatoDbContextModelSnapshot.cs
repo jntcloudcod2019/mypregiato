@@ -36,7 +36,7 @@ namespace Pregiato.Infrastructure.Migrations
                     b.Property<Guid>("ChatId")
                         .HasColumnType("char(36)");
 
-                    b.Property<Guid>("ChatLogId")
+                    b.Property<Guid?>("ChatLogId")
                         .HasColumnType("char(36)");
 
                     b.Property<DateTime>("CreatedAtUtc")
@@ -1567,8 +1567,7 @@ namespace Pregiato.Infrastructure.Migrations
                     b.HasOne("Pregiato.Core.Entities.ChatLog", "ChatLog")
                         .WithMany()
                         .HasForeignKey("ChatLogId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("ChatLog");
                 });

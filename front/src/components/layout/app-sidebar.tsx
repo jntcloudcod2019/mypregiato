@@ -47,7 +47,7 @@ export function AppSidebar() {
     >
       <SidebarContent className="bg-card">
         {/* Logo */}
-        <div className="p-4 border-b border-border flex items-center justify-between">
+        <div className="h-16 px-4 md:px-6 border-b border-border flex items-center justify-between">
           {!collapsed ? (
             <div className="flex items-center">
               <h1 className="text-xl font-bold tracking-wider" style={{ fontFamily: 'Poppins, ui-sans-serif, system-ui' }}>
@@ -62,12 +62,12 @@ export function AppSidebar() {
           )}
           <div className="flex items-center gap-2">
             {!collapsed && <ThemeToggle />}
-            <SidebarTrigger className="p-2 hover:bg-accent rounded-lg transition-colors" />
+            <SidebarTrigger className="h-8 w-8 p-0 hover:bg-accent rounded-lg transition-colors flex items-center justify-center" />
           </div>
         </div>
 
-        <SidebarGroup className="mt-4">
-          <SidebarGroupLabel className={collapsed ? "sr-only" : ""}>
+        <SidebarGroup className="px-4 md:px-6 py-4">
+          <SidebarGroupLabel className={collapsed ? "sr-only" : "text-sm font-medium text-muted-foreground mb-3"}>
             Menu Principal
           </SidebarGroupLabel>
 

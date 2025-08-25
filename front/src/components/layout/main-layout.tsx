@@ -9,6 +9,7 @@ import { ErrorBoundary } from "../common/error-boundary";
 import { ClerkErrorFallback } from "../auth/clerk-fallback";
 import { LoadingFallback } from "../ui/loading-fallback";
 
+
 interface MainLayoutProps {
   children: React.ReactNode;
 }
@@ -50,7 +51,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
         }
         
         setBypassAuth(true);
-      }, 5000); // 5 segundos para dar tempo ao Clerk
+      }, 10000); // Aumentar para 10 segundos para dar mais tempo ao Clerk
       return () => clearTimeout(timer);
     }
   }, [bypassAuth, isLoaded]);
@@ -105,26 +106,26 @@ export default function MainLayout({ children }: MainLayoutProps) {
         
         <div className="flex-1 flex flex-col">
           {/* Header */}
-          <header className="h-16 flex items-center justify-between px-6 border-b border-border bg-card/50 backdrop-blur">
-            <div className="flex items-center gap-3">
+          <header className="h-16 flex items-center justify-between px-4 md:px-6 border-b border-border bg-card/50 backdrop-blur">
+            <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
               {bypassAuth && (
-                <span className="text-sm font-medium text-muted-foreground">
+                <span className="text-sm font-medium text-muted-foreground truncate">
                   Modo de Visualização
                 </span>
               )}
               {isSignedIn && user && (
-                <span className="text-sm font-medium text-muted-foreground">
+                <span className="text-sm font-medium text-muted-foreground truncate">
                   Olá, {user.firstName || user.emailAddresses[0]?.emailAddress || 'Usuário'}
                 </span>
               )}
             </div>
             
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 shrink-0">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleRefresh}
-                className="text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-foreground h-8 w-8 p-0"
               >
                 <RotateCcw className="h-4 w-4" />
               </Button>
@@ -133,14 +134,14 @@ export default function MainLayout({ children }: MainLayoutProps) {
                 variant="ghost"
                 size="sm"
                 onClick={handleLogout}
-                className="text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-foreground h-8 w-8 p-0"
                 title={bypassAuth ? "Voltar à Autenticação" : "Fazer Logout"}
               >
                 <LogOut className="h-4 w-4" />
               </Button>
               
-              <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center">
-                <User className="h-5 w-5 text-primary" />
+              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                <User className="h-4 w-4 text-primary" />
               </div>
             </div>
           </header>
@@ -178,7 +179,6 @@ export default function MainLayout({ children }: MainLayoutProps) {
           fallback={
             <ClerkErrorFallback 
               onRetry={handleRetryAuth}
-              onContinue={handleContinueWithoutAuth}
             />
           }
         >

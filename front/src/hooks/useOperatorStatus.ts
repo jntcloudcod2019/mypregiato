@@ -87,7 +87,7 @@ export const useOperatorStatus = () => {
         
         // Criar operador baseado nos dados da API ou fallback para dados do Clerk
         const operator: OperatorInfo = {
-          id: apiUser?.id || user.id,
+          id: user.id, // Sempre usar o ClerkId como ID do operador
           name: apiUser ? `${apiUser.firstName} ${apiUser.lastName}`.trim() : (user.fullName || user.firstName || 'Operador'),
           email: apiUser?.email || userEmail,
           status: 'available',

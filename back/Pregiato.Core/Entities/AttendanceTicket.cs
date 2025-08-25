@@ -15,8 +15,8 @@ namespace Pregiato.Core.Entities
         [Key]
         public Guid Id { get; set; }
 
-        [Required]
-        public Guid ChatLogId { get; set; }
+        // ChatLogId agora é opcional
+        public Guid? ChatLogId { get; set; }
         
         // ID do chat relacionado (usado nos serviços)
         public Guid ChatId { get; set; }
@@ -58,6 +58,7 @@ namespace Pregiato.Core.Entities
         [Timestamp]
         public byte[] RowVersion { get; set; } = Array.Empty<byte>();
 
+        // Relacionamento opcional com ChatLog
         [ForeignKey(nameof(ChatLogId))]
         public ChatLog? ChatLog { get; set; }
     }

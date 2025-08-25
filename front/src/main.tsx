@@ -6,7 +6,8 @@ import { ErrorBoundary } from '@/components/common/error-boundary';
 import { RootApp } from '@/components/root-app';
 import { ClerkErrorFallback } from '@/components/auth/clerk-fallback';
 import { LoadingFallback } from '@/components/ui/loading-fallback';
-import { detectClerkAvailability, getClerkPublishableKey, shouldEnableClerk } from '@/utils/clerk-utils';
+import { detectClerkAvailability, getClerkPublishableKey, shouldEnableClerk, clearClerkFailedStatus } from '@/utils/clerk-utils';
+import { checkAuthDataIssues } from '@/utils/auth-cleanup';
 
 /**
  * Ponto de entrada da aplicação
@@ -17,6 +18,12 @@ import { detectClerkAvailability, getClerkPublishableKey, shouldEnableClerk } fr
  * - Clerk para autenticação
  * - Suspense para carregamento assíncrono
  */
+
+// Verificar e limpar dados de autenticação problemáticos
+checkAuthDataIssues();
+
+// Limpar status de falha do Clerk no carregamento inicial
+clearClerkFailedStatus();
 
 // Verifica se o Clerk deve ser usado
 const shouldUseClerk = shouldEnableClerk() && detectClerkAvailability(true);
@@ -35,8 +42,8 @@ createRoot(document.getElementById('root')!).render(
       <Suspense fallback={<LoadingFallback />}>
         <ClerkProvider 
           publishableKey={PUBLISHABLE_KEY}
-          afterSignInUrl="/"
-          afterSignUpUrl="/"
+          afterSignInUrl="/dashboard"
+          afterSignUpUrl="/dashboard"
         >
           <RootApp />
         </ClerkProvider>

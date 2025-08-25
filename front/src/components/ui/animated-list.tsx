@@ -39,12 +39,14 @@ export const AnimatedList: React.FC<AnimatedListProps> = ({
   const translateFrom = useMemo(() => (direction === 'up' ? '4px' : '-4px'), [direction])
 
   return (
-    <div className={cn("space-y-2", className)}>
+    <div className={cn("w-full space-y-2", className)} style={{ width: '100%', maxWidth: '100%' }}>
       {visibleItems.map((item, index) => (
         <div
           key={item.id}
-          className="opacity-0 will-change-[opacity,transform]"
+          className="w-full opacity-0 will-change-[opacity,transform]"
           style={{
+            width: '100%',
+            maxWidth: '100%',
             animation: `fade-in ${duration}ms ${easing} forwards`,
             animationDelay: `${index * delay}ms`,
             // estado inicial da animação

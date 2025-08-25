@@ -24,11 +24,18 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Se ainda está carregando, mostrar loading
   if (!isLoaded) {
-    return <LoadingFallback />;
+    return fallback || <LoadingFallback />;
   }
 
-  // Se não está autenticado, redirecionar para login
+  // Se não está autenticado, redirecionar para login SEMPRE
   if (!isSignedIn) {
+    // Limpar qualquer status de falha do Clerk para forçar nova tentativa
+    try {
+      sessionStorage.removeItem('clerk_failed');
+    } catch (e) {
+      console.error('Erro ao limpar status de falha:', e);
+    }
+    
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 

@@ -41,29 +41,31 @@ export interface BotStatusEvent {
   ts: string;
 }
 
-// Cache para evitar processamento duplicado
-const processedMessages = new Set<string>();
-const MESSAGE_CACHE_DURATION = 30000; // 30 segundos
+// Cache para evitar processamento duplicado - CORRIGIDO
+const MESSAGE_CACHE_DURATION = 30_000; // 30 segundos
+const processedMessages = new Map<string, number>();
 
 // Função para limpar cache expirado
 const cleanExpiredCache = () => {
   const now = Date.now();
-  for (const messageId of processedMessages) {
-    // Remover mensagens processadas há mais de 30 segundos
-    if (now - parseInt(messageId.split('|')[1] || '0') > MESSAGE_CACHE_DURATION) {
+  for (const [messageId, timestamp] of processedMessages) {
+    if (now - timestamp > MESSAGE_CACHE_DURATION) {
       processedMessages.delete(messageId);
     }
   }
 };
 
-// Função para verificar se mensagem já foi processada
+// Função para verificar se mensagem já foi processada - CORRIGIDA
 const isMessageProcessed = (messageId: string): boolean => {
+  if (!messageId) return false; // não bloquear mensagens sem id
+  
   cleanExpiredCache();
-  const cacheKey = `${messageId}|${Date.now()}`;
+  
   if (processedMessages.has(messageId)) {
     return true;
   }
-  processedMessages.add(messageId);
+  
+  processedMessages.set(messageId, Date.now());
   return false;
 };
 
@@ -155,7 +157,7 @@ export const useConversationProcessor = () => {
     }
   }, [updateBotStatus]);
 
-  // Configurar listeners SignalR
+  // Configurar listeners SignalR com referências estáveis
   useEffect(() => {
     const connection = qrCodeQueueService.getConnection();
     

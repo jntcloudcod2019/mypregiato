@@ -83,6 +83,7 @@ import { toast } from '@/hooks/use-toast';
 import Dock from '@/components/ui/dock';
 import { Search, Plus, Download, RefreshCw } from 'lucide-react';
 import crmIconUrl from '@/../public/icons/crm.svg';
+import { TimeTicker } from '@/components/ui/time-ticker';
 
 const formatMMSS = (ms: number) => {
   if (!isFinite(ms) || ms <= 0) return '00:00';
@@ -180,6 +181,7 @@ function DashboardChamados({ inQueue, inService, avgLabel }: { inQueue: number; 
 
 export default function AtendimentoPage() {
   const { currentOperator } = useOperatorStatus();
+
   const { makeCall, callDuration } = useTwilioPhone();
 
   const [search, setSearch] = useState('');
@@ -705,14 +707,14 @@ export default function AtendimentoPage() {
     };
   }, [queueChatPatch, refreshChats, setLastReadAt, setTyping]);
 
-  useEffect(() => {
-    const t = setInterval(() => setNowTick(Date.now()), 1000);
-    return () => clearInterval(t);
+  // Tick de 1 segundo isolado em componente separado
+  const handleTick = useCallback((timestamp: number) => {
+    setNowTick(timestamp);
   }, []);
 
-  const handleAttend = async (chatId: string) => {
+  const handleAttend = useCallback(async (chatId: string) => {
     const name = currentOperator?.name || 'Operador';
-    const operatorId = currentOperator?.id || 'anonymous';
+    const operatorId = currentOperator?.id || 'anonymous'; // currentOperator.id já é o ClerkId
 
     setTickets(prev => ({
       ...prev,
@@ -729,7 +731,7 @@ export default function AtendimentoPage() {
 
     try {
       axios.post(`http://localhost:5656/api/attendances/${chatId}/assign`, {
-        OperatorId: operatorId,
+        OperatorId: operatorId, // ClerkId do usuário autenticado
         OperatorName: name
       }).catch((error) => {
         console.error(`Erro ao atribuir chat ${chatId} ao operador ${name}:`, error);
@@ -755,9 +757,11 @@ export default function AtendimentoPage() {
     setMessages(history || []);
     setHistoryLoaded(true);
     requestAnimationFrame(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }));
-  };
+  }, [currentOperator?.name, currentOperator?.id]);
 
-  const handleStep = async (chatId: string, step: 1 | 2 | 3 | 4) => {
+  const handleStep = useCallback(async (chatId: string, step: 1 | 2 | 3 | 4) => {
+    const operatorId = currentOperator?.id || 'anonymous'; // ClerkId do usuário autenticado
+    
     setTickets(prev => ({
       ...prev,
       [chatId]: {
@@ -768,15 +772,19 @@ export default function AtendimentoPage() {
     }));
 
     try {
-      await axios.post(`http://localhost:5656/api/attendances/${chatId}/step`, { Step: step });
+      await axios.post(`http://localhost:5656/api/attendances/${chatId}/step`, { 
+        Step: step,
+        OperatorId: operatorId // Adicionar ClerkId do operador
+      });
     } catch (error) {
       console.error(`Erro ao atualizar passo ${step} do chat ${chatId}:`, error);
     }
-  };
+  }, [currentOperator?.id]);
 
-  const handleFinalize = async (chatId: string) => {
+  const handleFinalize = useCallback(async (chatId: string) => {
     const activeTicket = tickets[chatId];
     const description = activeTicket?.description || "";
+    const operatorId = currentOperator?.id || 'anonymous'; // ClerkId do usuário autenticado
 
     setTickets(prev => ({
       ...prev,
@@ -792,7 +800,8 @@ export default function AtendimentoPage() {
     try {
       await axios.post(`http://localhost:5656/api/attendances/${chatId}/finalize`, {
         Description: description,
-        Verified: true
+        Verified: true,
+        OperatorId: operatorId // Adicionar ClerkId do operador
       });
     } catch (error) {
       console.error("Erro ao finalizar atendimento no servidor:", error);
@@ -800,7 +809,7 @@ export default function AtendimentoPage() {
       setSelectedChatId(null);
       setMessages([]);
     }
-  };
+  }, [tickets, currentOperator?.id]);
 
   const inQueue = useMemo(() => Object.values(tickets).filter(t => t.status === 'novo').length, [tickets]);
   const inService = useMemo(() => Object.values(tickets).filter(t => t.status === 'em_atendimento').length, [tickets]);
@@ -812,42 +821,52 @@ export default function AtendimentoPage() {
     return formatMMSS(avg);
   }, [tickets, nowTick]);
 
-  const visibleChats = chats.filter(c => (tickets[c.id]?.status ?? 'novo') !== 'finalizado');
+  const visibleChats = useMemo(
+    () => chats.filter(c => (tickets[c.id]?.status ?? 'novo') !== 'finalizado'),
+    [chats, tickets]
+  );
 
-  const chatItems = visibleChats.map((c, idx) => {
+  const chatItems = useMemo(() =>
+    visibleChats.map((c, idx) => {
     const queueNumber = String(idx + 1).padStart(2, '0');
     const t = tickets[c.id];
     const statusLabel = t?.status === 'finalizado' ? 'Finalizado' : t?.status === 'em_atendimento' ? `Em Atendimento: ${t.assignedTo || ''}` : 'Novo';
     const statusColor = t?.status === 'finalizado' ? 'bg-gray-200 text-gray-700' : t?.status === 'em_atendimento' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700';
+    
+    // Extrair apenas o número do contato do título
+    const contactNumber = c.title?.replace('Bate-papo com ', '') || c.contactPhoneE164 || 'Contato';
+    
     return {
       id: c.id,
       content: (
         <div
-          className={`group relative flex items-start gap-3 rounded-xl border bg-background/70 dark:bg-muted/40 backdrop-blur-sm p-3 shadow-sm transition-all hover:shadow-md hover:border-primary/40 cursor-pointer ${selectedChatId===c.id ? 'ring-2 ring-primary shadow-md bg-primary/5' : ''}`}
+          className={`group relative flex items-start gap-3 rounded-xl border bg-background/70 dark:bg-muted/40 backdrop-blur-sm p-3 shadow-sm transition-all hover:shadow-md hover:border-primary/40 cursor-pointer w-full box-border chat-card-item ${selectedChatId===c.id ? 'ring-2 ring-primary shadow-md bg-primary/5' : ''}`}
           onClick={() => setSelectedChatId(c.id)}
         >
-          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary/90 to-primary/60 text-primary-foreground grid place-items-center text-xs font-semibold shadow-sm">
+          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary/90 to-primary/60 text-primary-foreground grid place-items-center text-xs font-semibold shadow-sm flex-shrink-0">
             {queueNumber}
           </div>
-          <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-              <div className="font-medium truncate text-sm">{c.title}</div>
+          <div className="min-w-0 flex-1 w-full chat-card-content">
+            <div className="flex items-center justify-between w-full mb-1 chat-card-header">
+              <div className="font-medium truncate text-sm flex-1 mr-2 chat-card-title">{contactNumber}</div>
               {c.unreadCount>0 && (
-                <Badge className="ml-auto rounded-full px-2 py-0.5 text-[10px] leading-none">{c.unreadCount}</Badge>
-                          )}
-                        </div>
-            <div className="mt-0.5 text-xs text-muted-foreground truncate">{c.lastMessagePreview || ''}</div>
-            <div className="mt-1 flex items-center gap-2">
-              <span className={`text-[10px] rounded-full px-2 py-[2px] ${statusColor}`}>{statusLabel}</span>
-              {t?.status === 'novo' && (
-                <Button size="sm" className="h-6 px-2 py-0" onClick={(e) => { e.stopPropagation(); handleAttend(c.id); }}>Atender</Button>
+                <Badge className="rounded-full px-2 py-0.5 text-[10px] leading-none flex-shrink-0">{c.unreadCount}</Badge>
               )}
-                      </div>
-                    </div>
-                  </div>
+            </div>
+            <div className="text-xs text-muted-foreground truncate w-full mb-2 chat-card-subtitle">{c.lastMessagePreview || ''}</div>
+            <div className="flex items-center justify-between w-full chat-card-footer">
+              <div className="flex items-center gap-2 flex-1 chat-card-actions">
+                <span className={`text-[10px] rounded-full px-2 py-[2px] ${statusColor} flex-shrink-0`}>{statusLabel}</span>
+                {t?.status === 'novo' && (
+                  <Button size="sm" className="h-6 px-2 py-0 flex-shrink-0" onClick={(e) => { e.stopPropagation(); handleAttend(c.id); }}>Atender</Button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       )
     };
-  });
+  }), [visibleChats, tickets, selectedChatId, handleAttend]);
 
   const activeChat = selectedChatId ? chats.find(c => c.id === selectedChatId) : null;
   const activeTicket = selectedChatId ? tickets[selectedChatId!] : undefined;
@@ -856,7 +875,66 @@ export default function AtendimentoPage() {
   const lastReadAtLabel = lastReadAtIso ? new Date(lastReadAtIso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
 
   return (
-    <div className="flex flex-col gap-4 px-3 md:px-4 lg:px-6 min-h-[100svh]">
+    <>
+      <TimeTicker onTick={handleTick} />
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          .chat-list-container {
+            width: 100% !important;
+            display: flex !important;
+            flex-direction: column !important;
+          }
+          .chat-card-item {
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+          .chat-card-content {
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+          }
+          .chat-card-header {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            width: 100% !important;
+            margin-bottom: 4px !important;
+          }
+          .chat-card-title {
+            flex: 1 !important;
+            margin-right: 8px !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            white-space: nowrap !important;
+          }
+          .chat-card-subtitle {
+            width: 100% !important;
+            margin-bottom: 8px !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            white-space: nowrap !important;
+          }
+          .chat-card-footer {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            width: 100% !important;
+          }
+          .chat-card-actions {
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            flex: 1 !important;
+          }
+        `
+      }} />
+      <div className="flex flex-col gap-4 px-3 md:px-4 lg:px-6 min-h-[100svh]">
       {/* Topo em 3 colunas: 3/6/3 */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mt-3 md:mt-5">
         <div className="lg:col-span-3">
@@ -888,13 +966,15 @@ export default function AtendimentoPage() {
           <Card className="overflow-hidden h-[72svh] soft-border shadow-smooth bg-card/60">
             <CardContent className="h-full p-0">
               <ScrollArea className="h-full">
-                <div className="p-3 md:p-4">
-                  <AnimatedList items={chatItems} className="space-y-4" />
+                <div className="p-3 md:p-4 w-full">
+                  <div className="w-full space-y-3 chat-list-container">
+                    <AnimatedList items={chatItems} className="w-full space-y-3" />
                   </div>
+                </div>
               </ScrollArea>
             </CardContent>
           </Card>
-                </div>
+        </div>
                 
         <div className="lg:col-span-8 flex flex-col">
           <Card className="h-[72svh] flex flex-col overflow-hidden relative soft-border shadow-smooth bg-card/60">
@@ -902,7 +982,9 @@ export default function AtendimentoPage() {
             <CardHeader className="px-4 py-2 border-b bg-card/50">
               <div className="flex items-center justify-between">
                 <div className="min-w-0">
-                  <div className="text-sm font-semibold truncate">{activeChat?.title || 'Nenhuma conversa selecionada'}</div>
+                  <div className="text-sm font-semibold truncate">
+                    {activeChat ? (activeChat.title?.replace('Bate-papo com ', '') || activeChat.contactPhoneE164 || 'Contato') : 'Nenhuma conversa selecionada'}
+                  </div>
                   {activeChat && (
                     <>
                       <div className="text-xs text-muted-foreground truncate">{activeChat.contactPhoneE164}</div>
@@ -1070,5 +1152,6 @@ export default function AtendimentoPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }

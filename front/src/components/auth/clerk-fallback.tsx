@@ -2,27 +2,21 @@ import React from 'react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Alert, AlertDescription } from '../ui/alert';
-import { AlertCircle, RefreshCw, Shield } from 'lucide-react';
+import { AlertCircle, RefreshCw, Shield, LogIn } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface ClerkErrorFallbackProps {
   onRetry?: () => void;
-  onContinue?: () => void;
 }
 
-export function ClerkErrorFallback({ onRetry, onContinue }: ClerkErrorFallbackProps) {
+export function ClerkErrorFallback({ onRetry }: ClerkErrorFallbackProps) {
+  const navigate = useNavigate();
+
   const handleRetry = () => {
     if (onRetry) {
       onRetry();
     } else {
-      window.location.reload();
-    }
-  };
-
-  const handleContinue = () => {
-    if (onContinue) {
-      onContinue();
-    } else {
-      // Limpar o status de falha e continuar
+      // Limpar o status de falha e tentar novamente
       try {
         sessionStorage.removeItem('clerk_failed');
         window.location.reload();
@@ -31,6 +25,16 @@ export function ClerkErrorFallback({ onRetry, onContinue }: ClerkErrorFallbackPr
         window.location.reload();
       }
     }
+  };
+
+  const handleGoToLogin = () => {
+    // Limpar o status de falha e ir para login
+    try {
+      sessionStorage.removeItem('clerk_failed');
+    } catch (e) {
+      console.error('Erro ao limpar status de falha:', e);
+    }
+    navigate('/login');
   };
 
   return (
@@ -61,8 +65,8 @@ export function ClerkErrorFallback({ onRetry, onContinue }: ClerkErrorFallbackPr
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                A aplicação continuará funcionando com recursos limitados. 
-                Algumas funcionalidades podem não estar disponíveis.
+                A autenticação é obrigatória para acessar a aplicação. 
+                Tente novamente ou entre em contato com o suporte técnico.
               </AlertDescription>
             </Alert>
 
@@ -78,10 +82,11 @@ export function ClerkErrorFallback({ onRetry, onContinue }: ClerkErrorFallbackPr
               </Button>
               
               <Button 
-                onClick={handleContinue}
+                onClick={handleGoToLogin}
                 className="w-full"
               >
-                Continuar sem Autenticação
+                <LogIn className="w-4 h-4 mr-2" />
+                Ir para Login
               </Button>
             </div>
 

@@ -25,13 +25,14 @@ interface InboundMessageEvent {
 
 interface InboundMessageProcessorOptions {
   onMessageReceived?: (chatId: string, message: ChatMessageDto) => void;
-  onChatUpdated?: (chatId: string, updates: Partial<ChatListItem>) => void;
+  onChatUpdated?: (chatId: string, update: Partial<ChatListItem>) => void;
   selectedChatId?: string | null;
 }
 
 /**
  * Hook para processar mensagens recebidas de forma segura
  * Implementa deduplicação, atualizações em lote e logging
+ * INCLUI VALIDAÇÃO PARA NÃO GERAR CHATS DUPLICADOS PARA O MESMO NÚMERO
  */
 export function useInboundMessageProcessor({
   onMessageReceived,
@@ -58,7 +59,41 @@ export function useInboundMessageProcessor({
       }
     });
   });
+
+  // Cache para controlar chats por número de telefone - NOVA FUNCIONALIDADE
+  const phoneToChatIdMap = useRef<Map<string, string>>(new Map());
   
+  /**
+   * Gera uma chave composta para deduplicação quando message.id não existe
+   */
+  const makeFallbackKey = useCallback((event: InboundMessageEvent): string => {
+    const id = event?.message?.id || event?.message?.externalMessageId;
+    if (id) return id;
+    
+    // Fallback: usar combinação de dados para criar chave única
+    const chatId = event?.chatId || '';
+    const fromNormalized = event?.fromNormalized || '';
+    const text = event?.message?.text || event?.message?.body || '';
+    const timestamp = event?.message?.ts || event?.message?.timestamp || '';
+    
+    return `${chatId}|${fromNormalized}|${text}|${timestamp}`;
+  }, []);
+
+  /**
+   * Verifica se já existe um chat ativo para o número de telefone
+   */
+  const isPhoneAlreadyInChat = useCallback((phoneNumber: string, currentChatId: string): boolean => {
+    const existingChatId = phoneToChatIdMap.current.get(phoneNumber);
+    return existingChatId !== undefined && existingChatId !== currentChatId;
+  }, []);
+
+  /**
+   * Registra ou atualiza o mapeamento de telefone para chatId
+   */
+  const registerPhoneChatMapping = useCallback((phoneNumber: string, chatId: string) => {
+    phoneToChatIdMap.current.set(phoneNumber, chatId);
+  }, []);
+
   /**
    * Processa uma mensagem recebida
    * @param event Evento de mensagem recebida
@@ -74,7 +109,8 @@ export function useInboundMessageProcessor({
           chatId: event?.chatId,
           messageId: event?.message?.id || event?.message?.externalMessageId,
           fromMe: event?.message?.fromMe,
-          type: event?.message?.type
+          type: event?.message?.type,
+          fromNormalized: event?.fromNormalized
         }));
       }
       
@@ -94,91 +130,80 @@ export function useInboundMessageProcessor({
       const fromNormalized: string | undefined = event?.fromNormalized;
       
       // Validar dados básicos
-      if (!id || !chatId) {
+      if (!chatId) {
         if (isDebugEnabled) {
-          console.debug('[chat] Mensagem sem ID ou chatId, ignorando');
+          console.debug('[chat] Mensagem sem chatId, ignorando');
         }
         return false;
+      }
+      
+      // VALIDAÇÃO PARA NÃO GERAR CHATS DUPLICADOS - NOVA REGRA
+      if (fromNormalized) {
+        if (isPhoneAlreadyInChat(fromNormalized, chatId)) {
+          if (isDebugEnabled) {
+            console.debug('[chat] Número já possui chat ativo, ignorando nova mensagem:', fromNormalized);
+          }
+          return false;
+        }
+        
+        // Registrar o mapeamento telefone -> chatId
+        registerPhoneChatMapping(fromNormalized, chatId);
       }
       
       // Usar fromNormalized para consolidação se disponível
       const consolidationKey = fromNormalized || chatId;
       
       // Chave de fallback para deduplicação por conteúdo
-      const fallbackKey = `${consolidationKey}|${text || ''}|${ts || ''}`;
+      const fallbackKey = makeFallbackKey(event);
       
       // Verificar se é uma mensagem duplicada
-      if (isMessageDuplicate(id, consolidationKey, fallbackKey)) {
+      if (isMessageDuplicate(id, chatId, fallbackKey)) {
         if (isDebugEnabled) {
-          console.debug('[chat] Mensagem duplicada ignorada:', id);
+          console.debug('[chat] Mensagem duplicada detectada, ignorando:', fallbackKey);
         }
         return false;
       }
       
-      // Processar a mensagem
-      const currentSelected = selectedChatIdRef.current;
-      
-      // Notificar sobre nova mensagem se o chat estiver aberto
-      if (consolidationKey === currentSelected && onMessageReceived && event.message) {
-        // Converter para ChatMessageDto usando a estrutura correta
-        const chatMessage: ChatMessageDto = {
-          id: event.message.id || crypto.randomUUID(),
-          externalMessageId: event.message.externalMessageId,
+      // Se chegou até aqui, a mensagem é válida e deve ser processada
+      if (onMessageReceived && id && text) {
+        const message: ChatMessageDto = {
+          id,
           direction: MessageDirection.In,
-          type: mapBackendType(event.message.type || 'Text'),
-          body: event.message.text || event.message.body || '',
-          text: event.message.text || event.message.body || '',
-          ts: event.message.ts || event.message.timestamp || new Date().toISOString(),
-          status: MessageStatus.Delivered,
-          createdAt: event.message.ts || event.message.timestamp || new Date().toISOString(),
-          // Campos opcionais
-          conversationId: undefined,
-          mediaUrl: event.message.attachment?.dataUrl,
-          fileName: event.message.attachment?.fileName,
-          clientMessageId: undefined,
-          whatsAppMessageId: event.message.externalMessageId,
-          internalNote: undefined,
-          updatedAt: undefined,
-          attachment: event.message.attachment ? {
+          text,
+          status: MessageStatus.Sent,
+          ts: ts || new Date().toISOString(),
+          type: mapBackendType(event?.message?.type || 'text'),
+          attachment: event?.message?.attachment ? {
             dataUrl: event.message.attachment.dataUrl || '',
-            mimeType: event.message.attachment.mimeType || 'application/octet-stream',
-            fileName: event.message.attachment.fileName
+            mimeType: event.message.attachment.mimeType || '',
+            fileName: event.message.attachment.fileName || ''
           } : null
-        };
-        onMessageReceived(chatId, chatMessage);
+        } as ChatMessageDto;
+        
+        onMessageReceived(chatId, message);
+        
+        // Atualizar chat em lote
+        queueUpdate(chatId, {
+          lastMessageAt: ts || new Date().toISOString(),
+          lastMessagePreview: text,
+          unreadCount: selectedChatIdRef.current === chatId ? 0 : 1
+        });
+        
+        if (isDebugEnabled) {
+          console.debug('[chat] Mensagem processada com sucesso:', id);
+        }
+        
+        return true;
       }
       
-      // Atualizar preview do chat
-      const preview = text 
-        ? text 
-        : (event?.message?.type === 'image' 
-          ? 'Imagem' 
-          : event?.message?.type === 'audio' 
-            ? 'Áudio' 
-            : event?.message?.type === 'file' 
-              ? (event?.message?.attachment?.fileName || 'Arquivo') 
-              : 'Mensagem');
-      
-      const tsVal = ts || new Date().toISOString();
-      const isCurrentOpen = chatId === selectedChatIdRef.current;
-      
-      // Agendar atualização do chat
-      queueUpdate(chatId, {
-        lastMessageAt: tsVal,
-        lastMessagePreview: preview,
-        unreadCount: isCurrentOpen ? 0 : undefined
-      } as Partial<ChatListItem>);
-      
-      if (isDebugEnabled) {
-        console.debug('[chat] Mensagem processada com sucesso:', id);
-      }
-      
-      return true;
+      return false;
     },
-    [onMessageReceived, queueUpdate, isMessageDuplicate]
+    [isMessageDuplicate, onMessageReceived, queueUpdate, makeFallbackKey, isPhoneAlreadyInChat, registerPhoneChatMapping]
   );
-  
+
   return {
-    processInboundMessage
+    processInboundMessage,
+    isPhoneAlreadyInChat,
+    registerPhoneChatMapping
   };
 }
