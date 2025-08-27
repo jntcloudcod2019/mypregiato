@@ -481,7 +481,7 @@ public class PregiatoDbContext : DbContext
             
             // Campos originais
             entity.Property(e => e.ContactId)
-                .IsRequired();
+                .IsRequired(false); // OPCIONAL - para conversas WhatsApp sem Contact
             
             entity.Property(e => e.OperatorId)
                 .HasColumnType("varchar(191)")
@@ -543,7 +543,7 @@ public class PregiatoDbContext : DbContext
             entity.HasOne(e => e.Contact)
                 .WithMany(c => c.Conversations)
                 .HasForeignKey(e => e.ContactId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.SetNull); // SetNull para não quebrar conversas sem Contact
             
             entity.HasOne(e => e.Operator)
                 .WithMany()
@@ -602,7 +602,7 @@ public class PregiatoDbContext : DbContext
             entity.Property(e => e.MediaUrl).HasMaxLength(500);
             entity.Property(e => e.FileName).HasMaxLength(100);
             entity.Property(e => e.ClientMessageId).HasMaxLength(50);
-            entity.Property(e => e.WhatsAppMessageId).HasMaxLength(50);
+            entity.Property(e => e.WhatsAppMessageId).HasMaxLength(255);
             entity.Property(e => e.Status).IsRequired();
             entity.Property(e => e.InternalNote).HasMaxLength(500);
             
@@ -690,7 +690,7 @@ public class PregiatoDbContext : DbContext
             // Novos campos adicionados
             entity.Property(e => e.ChatId);
             entity.Property(e => e.PhoneNumber).HasMaxLength(20);
-            entity.Property(e => e.MessageId).HasMaxLength(50);
+            entity.Property(e => e.MessageId).HasMaxLength(255);
             entity.Property(e => e.Direction).HasMaxLength(10);
             entity.Property(e => e.Content).HasColumnType("TEXT");
             entity.Property(e => e.ContentType).HasMaxLength(20);

@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../components/ui
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../components/ui/table';
 import { ScrollArea } from '../../../components/ui/scroll-area';
 import { Alert, AlertDescription, AlertTitle } from '../../../components/ui/alert';
-import { FileUp, FileDown, AlertTriangle, CheckCircle, XCircle, Download, RefreshCw, X } from 'lucide-react';
+import { FileUp, FileDown, AlertTriangle, CheckCircle, XCircle, Download, RefreshCw, X, Users } from 'lucide-react';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select';
 import { Input } from '../../../components/ui/input';
 import { Label } from '../../../components/ui/label';
@@ -584,7 +584,27 @@ export default function ImportarDadosPage() {
       setProcessing(false);
     }
   };
-  
+
+  // Função para navegar para a página de alocação de leads
+  const handleNavigateToAllocation = () => {
+    if (rows.length === 0) {
+      alert('Não há dados para alocar. Importe um arquivo primeiro.');
+      return;
+    }
+
+    // Passa os dados via state do React Router
+    navigate('/crm/importar/alocacao-leads', {
+      state: {
+        rows: rows,
+        headers: headers,
+        mappings: mappings,
+        targetFields: targetFields,
+        importTarget: importTarget,
+        sheetMetadata: sheetMetadata
+      }
+    });
+  };
+
   const downloadReport = () => {
     if (!result) return;
     
@@ -659,9 +679,20 @@ export default function ImportarDadosPage() {
                     </Button>
                     
                     {rows.length > 0 && (
-                      <Button variant="outline" onClick={processData} disabled={processing}>
-                        {processing ? 'Processando...' : `Importar ${rows.length} linhas`}
-                      </Button>
+                      <>
+                        <Button variant="outline" onClick={processData} disabled={processing}>
+                          {processing ? 'Processando...' : `Importar ${rows.length} linhas`}
+                        </Button>
+
+                        <Button
+                          variant="default"
+                          onClick={handleNavigateToAllocation}
+                          className="bg-purple-600 hover:bg-purple-700"
+                        >
+                          <Users className="mr-2 h-4 w-4" />
+                          Alocar Leads
+                        </Button>
+                      </>
                     )}
                   </div>
                 </div>

@@ -48,6 +48,75 @@
             Converte tipos de conteúdo longos para versões curtas que cabem no banco
             </summary>
         </member>
+        <member name="T:Pregiato.API.Services.ChatMappingService">
+            <summary>
+            Serviço resiliente para mapeamento de chats com múltiplas estratégias de fallback
+            e cache automático para otimização de performance
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatMappingService.GetConversationIdAsync(System.String,System.String)">
+            <summary>
+            Obtém ou cria o ConversationId para um chat com múltiplas estratégias resilientes
+            </summary>
+            <param name="chatId">ID do chat enviado pelo Zap Bot</param>
+            <param name="phoneNumber">Número de telefone normalizado</param>
+            <returns>Guid da conversa</returns>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatMappingService.TryMultipleMappingStrategies(System.String,System.String)">
+            <summary>
+            Tenta múltiplas estratégias de mapeamento em ordem de prioridade
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatMappingService.TryParseGuidFromChatId(System.String)">
+            <summary>
+            Estratégia 1: Tenta extrair GUID diretamente do chatId
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatMappingService.FindConversationByPhone(System.String)">
+            <summary>
+            Estratégia 2: Busca conversa existente pelo número de telefone
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatMappingService.FindConversationByPeerE164(System.String)">
+            <summary>
+            Estratégia 3: Busca conversa existente pelo PeerE164
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatMappingService.CreateNewConversation(System.String,System.String)">
+            <summary>
+            Estratégia 4: Cria uma nova conversa
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatMappingService.EmergencyRecovery(System.String,System.String,System.Exception)">
+            <summary>
+            Recuperação de emergência quando todas as estratégias falham
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatMappingService.GenerateDeterministicGuid(System.String)">
+            <summary>
+            Gera um GUID determinístico baseado no número de telefone
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatMappingService.ClearCache">
+            <summary>
+            Limpa o cache (útil para testes ou manutenção)
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatMappingService.GetCacheStats">
+            <summary>
+            Obtém estatísticas do cache
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ConversationService.GetOrCreateConversationAsync(System.String,System.String,System.Boolean,System.String)">
+            <summary>
+            Obtém ou cria uma conversa para um número específico (implementação da interface)
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ConversationService.UpdateLastMessageAsync(System.Guid,System.DateTime)">
+            <summary>
+            Atualiza a última mensagem de uma conversa
+            </summary>
+        </member>
         <member name="M:Pregiato.API.Services.ConversationService.GetOrCreateWhatsAppConversationAsync(System.String,System.String,System.Boolean,System.String)">
             <summary>
             Obtém ou cria uma conversa para um número específico (WhatsApp)

@@ -54,3 +54,6 @@ session/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Documentation of errors and solutions (internal use only)
+Backup_Erros_Solucoes/

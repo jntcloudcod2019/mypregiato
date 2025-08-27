@@ -1,12 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Pregiato.Core.Entities;
+using Pregiato.Core.Interfaces;
 using Pregiato.Infrastructure.Data;
 using System.Text.Json;
 
 namespace Pregiato.API.Services
 {
-    public class ConversationService
+    public class ConversationService : IConversationService
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<ConversationService> _logger;
@@ -15,6 +16,34 @@ namespace Pregiato.API.Services
         {
             _serviceProvider = serviceProvider;
             _logger = logger;
+        }
+
+        /// <summary>
+        /// Obtém ou cria uma conversa para um número específico (implementação da interface)
+        /// </summary>
+        public async Task<Conversation> GetOrCreateConversationAsync(string phoneE164, string instanceId, bool isGroup = false, string? title = null)
+        {
+            return await GetOrCreateWhatsAppConversationAsync(instanceId, phoneE164, isGroup, title);
+        }
+
+        /// <summary>
+        /// Atualiza a última mensagem de uma conversa
+        /// </summary>
+        public async Task<Conversation> UpdateLastMessageAsync(Guid conversationId, DateTime lastMessageAt)
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<PregiatoDbContext>();
+
+            var conversation = await db.Conversations.FindAsync(conversationId);
+            if (conversation == null)
+            {
+                throw new ArgumentException($"Conversa com ID {conversationId} não encontrada");
+            }
+
+            conversation.LastMessageAt = lastMessageAt;
+            await db.SaveChangesAsync();
+
+            return conversation;
         }
 
         /// <summary>
@@ -46,7 +75,7 @@ namespace Pregiato.API.Services
                 LastMessageAt = DateTime.UtcNow,
                 CreatedAt = DateTime.UtcNow,
                 // Campos obrigatórios para compatibilidade
-                ContactId = Guid.Empty, // Será atualizado quando necessário
+                ContactId = null, // OPCIONAL - para conversas WhatsApp sem Contact
                 Channel = "whatsapp",
                 Status = ConversationStatus.Queued,
                 Priority = ConversationPriority.Normal

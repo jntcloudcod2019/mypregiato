@@ -554,4 +554,4 @@ namespace Pregiato.Application.Services
             };
         }
     }
-} 
+}

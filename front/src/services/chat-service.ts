@@ -166,26 +166,36 @@ export interface SignalRReadEvent {
   readUpToTs: number;
 }
 
-// Interface para mensagem do backend (baseada no MessageDto do backend)
+// Interface para mensagem do backend (formato MessageInfo do ChatLogService)
+export interface BackendMessageInfoDto {
+  Id: string;
+  Content?: string;
+  MediaUrl?: string;
+  Direction: string;
+  Ts: string | Date;
+  IsRead?: boolean;
+  Status?: string;
+  Type?: string;
+}
+
+// Interface para mensagem do backend (formato original)
 export interface BackendMessageDto {
   id?: string;
   conversationId?: string;
   direction?: string;
   type?: string;
   body?: string;
+  text?: string;
   mediaUrl?: string;
   fileName?: string;
   clientMessageId?: string;
   whatsAppMessageId?: string;
+  externalMessageId?: string;
   status?: string;
   internalNote?: string;
   createdAt?: string;
-  updatedAt?: string;
-  
-  // Campos de compatibilidade do frontend
-  externalMessageId?: string;
-  text?: string;
   ts?: string;
+  updatedAt?: string;
   mimeType?: string;
 }
 
@@ -256,33 +266,69 @@ export const mapBackendType = (type: string): MessageType => {
 };
 
 // Função para converter ChatMessageDto do backend para formato do frontend
-export const convertBackendMessage = (backendMessage: BackendMessageDto): ChatMessageDto => {
-  const direction = mapBackendDirection(backendMessage.direction || 'In');
+export const convertBackendMessage = (backendMessage: BackendMessageDto | BackendMessageInfoDto): ChatMessageDto => {
+  // Verificar se é o formato MessageInfo do ChatLogService
+  if ('Id' in backendMessage && 'Content' in backendMessage) {
+    // Formato MessageInfo do ChatLogService
+    const messageInfo = backendMessage as BackendMessageInfoDto;
+    const direction = messageInfo.Direction === 'outbound' ? MessageDirection.Out : MessageDirection.In;
+    
+    return {
+      id: messageInfo.Id || '',
+      conversationId: '', // Será preenchido pelo contexto
+      direction: direction,
+      type: mapBackendType(messageInfo.Type || 'Text'),
+      body: messageInfo.Content || '',
+      mediaUrl: messageInfo.MediaUrl,
+      fileName: undefined,
+      clientMessageId: messageInfo.Id || '',
+      whatsAppMessageId: undefined,
+      status: mapBackendStatus(messageInfo.Status || 'Delivered'),
+      internalNote: undefined,
+      createdAt: messageInfo.Ts ? new Date(messageInfo.Ts).toISOString() : new Date().toISOString(),
+      updatedAt: undefined,
+      
+      // Campos de compatibilidade
+      externalMessageId: messageInfo.Id || '',
+      text: messageInfo.Content || '',
+      ts: messageInfo.Ts ? new Date(messageInfo.Ts).toISOString() : new Date().toISOString(),
+      fromMe: direction === MessageDirection.Out,
+      attachment: messageInfo.MediaUrl ? {
+        dataUrl: messageInfo.MediaUrl,
+        mimeType: 'application/octet-stream',
+        fileName: undefined
+      } : null
+    };
+  }
+  
+  // Formato original BackendMessageDto
+  const messageDto = backendMessage as BackendMessageDto;
+  const direction = mapBackendDirection(messageDto.direction || 'In');
   
   return {
-    id: backendMessage.id || backendMessage.clientMessageId || '',
-    conversationId: backendMessage.conversationId,
+    id: messageDto.id || messageDto.clientMessageId || '',
+    conversationId: messageDto.conversationId || '',
     direction: direction,
-    type: mapBackendType(backendMessage.type || 'Text'),
-    body: backendMessage.body || backendMessage.text || '',
-    mediaUrl: backendMessage.mediaUrl,
-    fileName: backendMessage.fileName,
-    clientMessageId: backendMessage.clientMessageId,
-    whatsAppMessageId: backendMessage.whatsAppMessageId,
-    status: mapBackendStatus(backendMessage.status || 'Delivered'),
-    internalNote: backendMessage.internalNote,
-    createdAt: backendMessage.createdAt || backendMessage.ts || new Date().toISOString(),
-    updatedAt: backendMessage.updatedAt,
+    type: mapBackendType(messageDto.type || 'Text'),
+    body: messageDto.body || messageDto.text || '',
+    mediaUrl: messageDto.mediaUrl,
+    fileName: messageDto.fileName,
+    clientMessageId: messageDto.clientMessageId || '',
+    whatsAppMessageId: messageDto.whatsAppMessageId,
+    status: mapBackendStatus(messageDto.status || 'Delivered'),
+    internalNote: messageDto.internalNote,
+    createdAt: messageDto.createdAt || messageDto.ts || new Date().toISOString(),
+    updatedAt: messageDto.updatedAt,
     
     // Campos de compatibilidade
-    externalMessageId: backendMessage.externalMessageId,
-    text: backendMessage.body || backendMessage.text || '',
-    ts: backendMessage.createdAt || backendMessage.ts || new Date().toISOString(),
-    fromMe: direction === MessageDirection.Out, // Determinar se é mensagem do usuário
-    attachment: backendMessage.mediaUrl ? {
-      dataUrl: backendMessage.mediaUrl,
-      mimeType: backendMessage.mimeType || 'application/octet-stream',
-      fileName: backendMessage.fileName
+    externalMessageId: messageDto.externalMessageId,
+    text: messageDto.body || messageDto.text || '',
+    ts: messageDto.createdAt || messageDto.ts || new Date().toISOString(),
+    fromMe: direction === MessageDirection.Out,
+    attachment: messageDto.mediaUrl ? {
+      dataUrl: messageDto.mediaUrl,
+      mimeType: messageDto.mimeType || 'application/octet-stream',
+      fileName: messageDto.fileName
     } : null
   };
 };
@@ -368,13 +414,83 @@ export const chatsApi = {
   },
   send: async (id: string, text: string, clientMessageId: string, attachment?: { dataUrl: string; mimeType: string; fileName?: string; mediaType?: 'image' | 'file' | 'audio' }) => {
     const request: SendMessageRequestDto = { text, clientMessageId, attachment };
-    const { data } = await api.post(`/chats/${id}/send`, request); // Corrigido para usar /send
-    // Converter a resposta do backend para ChatMessageDto
-    const response = data as { success: boolean; message: BackendMessageDto };
-    return {
-      success: response.success,
-      message: convertBackendMessage(response.message)
-    } as SendMessageResponseDto;
+    
+    try {
+      // Usar o endpoint correto que salva no PayloadJson do ChatLogs
+      const { data } = await api.post(`/chats/${id}/send`, request);
+      
+      // Tornar resiliente a diferentes formatos de resposta
+      let response: SendMessageResponseDto;
+      
+      if (data.success !== undefined) {
+        // Formato padrão: { success: boolean, message: BackendMessageDto }
+        response = {
+          success: data.success,
+          message: data.message ? convertBackendMessage(data.message) : {
+            id: clientMessageId,
+            direction: MessageDirection.Out,
+            type: MessageType.Text,
+            body: text,
+            status: MessageStatus.Sent,
+            createdAt: new Date().toISOString(),
+            text: text,
+            ts: new Date().toISOString(),
+            fromMe: true
+          } as ChatMessageDto
+        };
+      } else if (data.messageId) {
+        // Formato alternativo: { messageId: string }
+        response = {
+          success: true,
+          message: {
+            id: data.messageId || clientMessageId,
+            direction: MessageDirection.Out,
+            type: MessageType.Text,
+            body: text,
+            status: MessageStatus.Sent,
+            createdAt: new Date().toISOString(),
+            text: text,
+            ts: new Date().toISOString(),
+            fromMe: true
+          } as ChatMessageDto
+        };
+      } else {
+        // Formato genérico - assumir sucesso
+        response = {
+          success: true,
+          message: {
+            id: clientMessageId,
+            direction: MessageDirection.Out,
+            type: MessageType.Text,
+            body: text,
+            status: MessageStatus.Sent,
+            createdAt: new Date().toISOString(),
+            text: text,
+            ts: new Date().toISOString(),
+            fromMe: true
+          } as ChatMessageDto
+        };
+      }
+      
+      return response;
+    } catch (error) {
+      console.error('Erro ao enviar mensagem:', error);
+      // Retornar resposta de erro resiliente
+      return {
+        success: false,
+        message: {
+          id: clientMessageId,
+          direction: MessageDirection.Out,
+          type: MessageType.Text,
+          body: text,
+          status: MessageStatus.Failed,
+          createdAt: new Date().toISOString(),
+          text: text,
+          ts: new Date().toISOString(),
+          fromMe: true
+        } as ChatMessageDto
+      };
+    }
   },
   read: async (id: string, readUpToTs: number) => {
     const { data } = await api.post(`/chats/${id}/read`, { readUpToTs });

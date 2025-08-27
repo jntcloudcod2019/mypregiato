@@ -32,29 +32,39 @@ export const AuthInitializer: React.FC<AuthInitializerProps> = ({ children }) =>
         if (isSignedIn) {
           console.log('✅ Usuário autenticado, verificando sessão...');
           
-          // Aguardar a sessão estar disponível
+          // Aguardar a sessão estar disponível (com timeout)
           if (session) {
             console.log('✅ Sessão válida encontrada');
             setIsInitialized(true);
             return;
+          } else {
+            // Se não tem sessão mas está autenticado, aguardar um pouco
+            setTimeout(() => {
+              if (session) {
+                console.log('✅ Sessão válida encontrada (timeout)');
+                setIsInitialized(true);
+              } else {
+                console.log('⚠️ Usuário autenticado mas sem sessão - permitindo acesso');
+                setIsInitialized(true);
+              }
+            }, 1000);
+            return;
           }
         } else {
-          console.log('ℹ️ Usuário não autenticado, redirecionando para login...');
-          // Redirecionar para login se não estiver autenticado
-          navigate('/login', { replace: true });
+          console.log('ℹ️ Usuário não autenticado, permitindo acesso à página de login...');
+          // Não redirecionar automaticamente, permitir que o usuário acesse a página de login
           setIsInitialized(true);
           return;
         }
       } catch (error) {
         console.error('❌ Erro durante inicialização da autenticação:', error);
-        // Em caso de erro, redirecionar para login
-        navigate('/login', { replace: true });
+        // Em caso de erro, permitir acesso à página de login
         setIsInitialized(true);
       }
     };
 
     initializeAuth();
-  }, [isLoaded, isSignedIn, session, navigate]);
+  }, [isLoaded, isSignedIn]); // Removido session e navigate das dependências
 
   // Mostrar loading enquanto inicializa
   if (!isLoaded || !isInitialized) {

@@ -244,6 +244,51 @@ export default function AtendimentoPage() {
 
   useEffect(() => { selectedChatIdRef.current = selectedChatId; }, [selectedChatId]);
 
+  const loadChatHistory = useCallback(async (chatId: string) => {
+    let history = historyCacheRef.current[chatId];
+    if (!history) {
+      try {
+        // Primeiro tentar com o ID original
+        const data = await chatsApi.history(chatId, undefined, 50) as { messages: ChatMessageDto[]; nextCursor?: number };
+        const messages = data.messages || [];
+        history = messages.sort((a: ChatMessageDto, b: ChatMessageDto) => new Date(a.ts).getTime() - new Date(b.ts).getTime());
+        historyCacheRef.current[chatId] = history;
+      } catch (error) {
+        console.log(`❌ Erro ao buscar histórico com ID ${chatId}, tentando com número do telefone...`);
+        
+        // Se falhar, tentar buscar pelo número do telefone
+        try {
+          const chat = chats.find(c => c.id === chatId);
+          if (chat?.contactPhoneE164) {
+            const phoneId = chat.contactPhoneE164.replace(/\D/g, ''); // Remover caracteres não numéricos
+            const data = await chatsApi.history(phoneId, undefined, 50) as { messages: ChatMessageDto[]; nextCursor?: number };
+            const messages = data.messages || [];
+            history = messages.sort((a: ChatMessageDto, b: ChatMessageDto) => new Date(a.ts).getTime() - new Date(b.ts).getTime());
+            historyCacheRef.current[chatId] = history;
+            console.log(`✅ Histórico encontrado usando número do telefone: ${phoneId}`);
+          }
+        } catch (phoneError) {
+          console.error(`❌ Erro ao buscar histórico com número do telefone:`, phoneError);
+          history = [] as ChatMessageDto[];
+        }
+      }
+    }
+    
+    setMessages(history || []);
+    setHistoryLoaded(true);
+    requestAnimationFrame(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }));
+  }, [chats]);
+
+  // Carregar histórico automaticamente quando selectedChatId mudar
+  useEffect(() => {
+    if (selectedChatId) {
+      loadChatHistory(selectedChatId);
+    } else {
+      setMessages([]);
+      setHistoryLoaded(false);
+    }
+  }, [selectedChatId, loadChatHistory]);
+
   const [tickets, setTickets] = useState<Record<string, TicketState>>(() => {
     try {
       const raw = localStorage.getItem('atd.tickets');
@@ -346,13 +391,6 @@ export default function AtendimentoPage() {
     pendingChatPatchesRef.current.set(chatId, merged);
     scheduleCommitChats();
   }, []);
-
-  const loadHistory = async (id: string) => {
-    const data = await chatsApi.history(id, undefined, 50) as { messages: ChatMessageDto[]; nextCursor?: number };
-    const messages = data.messages || [];
-    setMessages(messages.sort((a: ChatMessageDto, b: ChatMessageDto) => new Date(a.ts).getTime() - new Date(b.ts).getTime()));
-    requestAnimationFrame(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }));
-  };
 
   const handlePhoneCall = (phoneNumber: string) => {
     if (activeCall) { activeCall(); setActiveCall(null); return; }
@@ -650,6 +688,52 @@ export default function AtendimentoPage() {
 
   const handleTick = useCallback((timestamp: number) => { setNowTick(timestamp); }, []);
 
+  // Função para carregar histórico de um chat
+  const loadHistory = useCallback(async (chatId: string) => {
+    let history = historyCacheRef.current[chatId];
+    if (!history) {
+      try {
+        // Primeiro tentar com o ID original
+        const data = await chatsApi.history(chatId, undefined, 50) as { messages: ChatMessageDto[]; nextCursor?: number };
+        const messages = data.messages || [];
+        history = messages.sort((a: ChatMessageDto, b: ChatMessageDto) => new Date(a.ts).getTime() - new Date(b.ts).getTime());
+        historyCacheRef.current[chatId] = history;
+      } catch (error) {
+        console.log(`❌ Erro ao buscar histórico com ID ${chatId}, tentando com número do telefone...`);
+        
+        // Se falhar, tentar buscar pelo número do telefone
+        try {
+          const chat = chats.find(c => c.id === chatId);
+          if (chat?.contactPhoneE164) {
+            const phoneId = chat.contactPhoneE164.replace(/\D/g, ''); // Remover caracteres não numéricos
+            const data = await chatsApi.history(phoneId, undefined, 50) as { messages: ChatMessageDto[]; nextCursor?: number };
+            const messages = data.messages || [];
+            history = messages.sort((a: ChatMessageDto, b: ChatMessageDto) => new Date(a.ts).getTime() - new Date(b.ts).getTime());
+            historyCacheRef.current[chatId] = history;
+            console.log(`✅ Histórico encontrado usando número do telefone: ${phoneId}`);
+          }
+        } catch (phoneError) {
+          console.error(`❌ Erro ao buscar histórico com número do telefone:`, phoneError);
+          history = [] as ChatMessageDto[];
+        }
+      }
+    }
+    
+    setMessages(history || []);
+    setHistoryLoaded(true);
+    requestAnimationFrame(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }));
+  }, [chats]);
+
+  // Carregar histórico automaticamente quando selectedChatId mudar
+  useEffect(() => {
+    if (selectedChatId) {
+      loadHistory(selectedChatId);
+    } else {
+      setMessages([]);
+      setHistoryLoaded(false);
+    }
+  }, [selectedChatId, loadHistory]);
+
   const handleAttend = useCallback(async (chatId: string) => {
     const name = currentOperator?.name || 'Operador';
     const operatorId = currentOperator?.id || 'anonymous';
@@ -676,23 +760,9 @@ export default function AtendimentoPage() {
       console.error(`Erro ao atribuir chat ${chatId}:`, error);
     }
 
-    let history = historyCacheRef.current[chatId];
-    if (!history) {
-      try {
-        const data = await chatsApi.history(chatId, undefined, 50) as { messages: ChatMessageDto[]; nextCursor?: number };
-        const messages = data.messages || [];
-        history = messages.sort((a: ChatMessageDto, b: ChatMessageDto) => new Date(a.ts).getTime() - new Date(b.ts).getTime());
-        historyCacheRef.current[chatId] = history;
-      } catch {
-        history = [] as ChatMessageDto[];
-      }
-    }
-
+    // Selecionar o chat (o histórico será carregado automaticamente pelo useEffect)
     setSelectedChatId(chatId);
     setIsChatMinimized(false);
-    setMessages(history || []);
-    setHistoryLoaded(true);
-    requestAnimationFrame(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }));
   }, [currentOperator?.name, currentOperator?.id]);
 
   const handleStep = useCallback(async (chatId: string, step: 1 | 2 | 3 | 4) => {

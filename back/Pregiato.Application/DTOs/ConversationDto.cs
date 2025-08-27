@@ -7,7 +7,7 @@ namespace Pregiato.Application.DTOs
         public Guid Id { get; set; }
         
         // Campos originais para compatibilidade
-        public Guid ContactId { get; set; }
+        public Guid? ContactId { get; set; } // OPCIONAL - para conversas WhatsApp sem Contact
         public string? OperatorId { get; set; }
         public string Channel { get; set; } = string.Empty;
         public ConversationStatus Status { get; set; }
@@ -38,7 +38,7 @@ namespace Pregiato.Application.DTOs
     public class CreateConversationDto
     {
         // Campos originais
-        public Guid ContactId { get; set; }
+        public Guid? ContactId { get; set; } // OPCIONAL - para conversas WhatsApp sem Contact
         public string Channel { get; set; } = "whatsapp";
         public ConversationPriority Priority { get; set; } = ConversationPriority.Normal;
         

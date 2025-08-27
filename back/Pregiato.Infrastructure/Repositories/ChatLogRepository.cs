@@ -123,17 +123,41 @@ namespace Pregiato.Infrastructure.Repositories
         {
             using var context = _contextFactory.CreateDbContext();
             
-            var query = context.Set<ChatLog>().Where(c => c.ChatId == chatId);
+            // CORREÇÃO: Buscar o ChatLog pelo ChatId e retornar as mensagens do PayloadJson
+            var chatLog = await context.Set<ChatLog>().FirstOrDefaultAsync(c => c.ChatId == chatId);
+            if (chatLog == null)
+                return new List<ChatLog>();
             
+            // Deserializar o PayloadJson para obter as mensagens
+            var payload = DeserializePayload(chatLog.PayloadJson);
+            var messages = payload.Messages;
+            
+            // Aplicar filtros se necessário
             if (cursorTs.HasValue)
             {
-                query = query.Where(c => c.Timestamp < cursorTs.Value);
+                messages = messages.Where(m => m.Ts < cursorTs.Value).ToList();
             }
             
-            return await query
-                .OrderByDescending(c => c.Timestamp)
+            // Ordenar por timestamp e limitar
+            messages = messages
+                .OrderByDescending(m => m.Ts)
                 .Take(Math.Clamp(limit, 1, 200))
-                .ToListAsync();
+                .ToList();
+            
+            // Converter MessageInfo para ChatLog para manter compatibilidade
+            var chatLogs = messages.Select(msg => new ChatLog
+            {
+                Id = Guid.NewGuid(), // ID temporário
+                ChatId = chatId,
+                MessageId = msg.Id,
+                Direction = msg.Direction,
+                Content = msg.Text ?? "",
+                ContentType = msg.Type ?? "text",
+                Timestamp = msg.Ts,
+                PayloadJson = JsonSerializer.Serialize(msg)
+            }).ToList();
+            
+            return chatLogs;
         }
 
         /// <inheritdoc/>

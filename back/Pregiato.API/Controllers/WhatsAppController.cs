@@ -168,5 +168,44 @@ namespace Pregiato.API.Controllers
         }
 
         public class SendMessageRequest { public string Phone { get; set; } = string.Empty; public string? Message { get; set; } public string? Template { get; set; } public Dictionary<string, object>? Data { get; set; } }
+
+        // Endpoint temporário para testar processamento de mensagens
+        [HttpPost("test/message")]
+        public IActionResult TestMessage([FromBody] TestMessageRequest req)
+        {
+            _logger.LogInformation("🧪 Teste de mensagem recebido: {From} -> {To}", req.from, req.to);
+            
+            // Simular mensagem WhatsApp
+            var testMessage = new
+            {
+                externalMessageId = req.externalMessageId ?? $"test_{Guid.NewGuid()}",
+                from = req.from,
+                fromNormalized = req.fromNormalized ?? req.from?.Replace("-", "").Replace("(", "").Replace(")", "").Replace(" ", ""),
+                to = req.to,
+                body = req.body,
+                type = req.type ?? "text",
+                timestamp = req.timestamp ?? DateTime.UtcNow.ToString("O"),
+                instanceId = "test",
+                fromMe = false,
+                isGroup = false,
+                attachment = (object?)null
+            };
+
+            // Publicar na fila RabbitMQ
+            _rabbit.PublishCommand(testMessage);
+            
+            return Ok(new { success = true, message = "Mensagem de teste enviada para processamento" });
+        }
+
+        public class TestMessageRequest 
+        { 
+            public string from { get; set; } = string.Empty; 
+            public string? fromNormalized { get; set; }
+            public string to { get; set; } = string.Empty; 
+            public string body { get; set; } = string.Empty; 
+            public string? type { get; set; }
+            public string? timestamp { get; set; }
+            public string? externalMessageId { get; set; }
+        }
     }
 }

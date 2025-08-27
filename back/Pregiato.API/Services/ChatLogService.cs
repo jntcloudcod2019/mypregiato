@@ -125,12 +125,19 @@ namespace Pregiato.API.Services
         {
             public string Id { get; set; } = string.Empty;
             public string? Content { get; set; }
+            public string? body { get; set; } // Campo real do JSON
             public string? MediaUrl { get; set; }
             public string Direction { get; set; } = "inbound";
             public DateTime Ts { get; set; } = DateTime.UtcNow;
+            public string? timestamp { get; set; } // Campo real do JSON
             public bool IsRead { get; set; }
             public string? Status { get; set; }
             public string? Type { get; set; }
+            public string? from { get; set; } // Campo real do JSON
+            
+            // Propriedade calculada para compatibilidade
+            public string? ActualContent => Content ?? body;
+            public DateTime ActualTs => !string.IsNullOrEmpty(timestamp) ? DateTime.Parse(timestamp) : Ts;
         }
         
         public class ChatAttachment

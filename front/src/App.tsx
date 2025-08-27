@@ -10,6 +10,7 @@ import Dashboard from "./pages/dashboard";
 import CRMDashboard from "./pages/crm/dashboard";
 import CRMWorkspace from "./pages/crm/workspace";
 import ImportarDadosPage from "./pages/crm/importar";
+import AlocacaoLeadsPage from "./pages/crm/importar/alocacao-leads";
 import LeadsPage from "./pages/crm/leads";
 import NovoLead from "./pages/crm/leads/novo";
 import DetalheLead from "./pages/crm/leads/[id]";
@@ -41,19 +42,9 @@ import NotFound from "./pages/NotFound";
 import ModulePage from "./pages/modules/slug";
 import FichaDigitalPage from "./pages/events/ficha/token";
 
-// Componente para redirecionamento da raiz com verificação de autenticação
+// Componente para redirecionamento da raiz - sempre para login
 const RootRedirect = () => {
-  const { isLoaded, isSignedIn } = useUser();
-
-  if (!isLoaded) {
-    return <div>Carregando...</div>;
-  }
-
-  if (isSignedIn) {
-    return <Navigate to="/dashboard" replace />;
-  } else {
-    return <Navigate to="/login" replace />;
-  }
+  return <Navigate to="/login" replace />;
 };
 
 const App = () => (
@@ -99,6 +90,14 @@ const App = () => (
           <ProtectedRoute>
             <MainLayout>
               <ImportarDadosPage />
+            </MainLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/crm/importar/alocacao-leads" element={
+          <ProtectedRoute>
+            <MainLayout>
+              <AlocacaoLeadsPage />
             </MainLayout>
           </ProtectedRoute>
         } />
@@ -341,8 +340,8 @@ const App = () => (
           </ProtectedRoute>
         } />
         
-        {/* Rota 404 */}
-        <Route path="*" element={<NotFound />} />
+        {/* Rota 404 - redireciona para login */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </AuthGuard>
     </AutoLogout>

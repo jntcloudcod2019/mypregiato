@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Pregiato.API.Controllers;
-using Pregiato.Application.Interfaces;
+using Pregiato.Core.Interfaces;
 using Pregiato.Application.Services;
 using Pregiato.Infrastructure.Data;
 using Pregiato.Application.Mappings;
@@ -10,10 +10,11 @@ using Pregiato.Application.DTOs;
 using Serilog;
 using Serilog.Events;
 using Pregiato.API.Services;
-using Pregiato.Core.Interfaces;
+using Pregiato.Application.Interfaces;
 using Pregiato.Infrastructure.Repositories;
 using Pregiato.API.Middleware;
 using Pregiato.API.Attributes;
+using Pregiato.Core.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,29 +49,25 @@ builder.Services.AddCors(options =>
     });
 });
 
-// DbContext (fallback para InMemory em Dev se sem connection string)
+// DbContext com MySQL Railway
 var conn = builder.Configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrWhiteSpace(conn))
 {
-    builder.Services.AddDbContext<PregiatoDbContext>(options => options.UseInMemoryDatabase("Pregiato"));
-    builder.Services.AddScoped<RuntimePregiatoDbContextFactory>(provider => 
-        new RuntimePregiatoDbContextFactory(provider.GetRequiredService<DbContextOptions<PregiatoDbContext>>()));
+    throw new InvalidOperationException("Connection string 'DefaultConnection' não encontrada.");
 }
-else
-{
-    builder.Services.AddDbContext<PregiatoDbContext>(options =>
-        options.UseMySql(
-            conn,
-            ServerVersion.AutoDetect(conn),
-            options => options.EnableRetryOnFailure(
-                maxRetryCount: 5,
-                maxRetryDelay: TimeSpan.FromSeconds(30),
-                errorNumbersToAdd: null)
-        ));
-    
-    builder.Services.AddScoped<RuntimePregiatoDbContextFactory>(provider => 
-        new RuntimePregiatoDbContextFactory(provider.GetRequiredService<DbContextOptions<PregiatoDbContext>>()));
-}
+
+builder.Services.AddDbContext<PregiatoDbContext>(options =>
+    options.UseMySql(
+        conn,
+        ServerVersion.Create(8, 0, 0, Pomelo.EntityFrameworkCore.MySql.Infrastructure.ServerType.MySql), // Especificar versão diretamente
+        options => options.EnableRetryOnFailure(
+            maxRetryCount: 3,
+            maxRetryDelay: TimeSpan.FromSeconds(10),
+            errorNumbersToAdd: null)
+    ));
+
+builder.Services.AddScoped<RuntimePregiatoDbContextFactory>(provider => 
+    new RuntimePregiatoDbContextFactory(provider.GetRequiredService<DbContextOptions<PregiatoDbContext>>()));
 
 // HttpClient
 builder.Services.AddHttpClient();
@@ -100,6 +97,8 @@ builder.Services.AddScoped<IChatLogRepository, ChatLogRepository>();
 // Chat services
 builder.Services.AddScoped<ChatLogService>();
 builder.Services.AddScoped<AttendanceService>();
+builder.Services.AddScoped<IConversationRepository, ConversationRepository>();
+builder.Services.AddScoped<IConversationService, ConversationService>();
 builder.Services.AddSingleton<ConversationService>();
 
 // Serviços de importação

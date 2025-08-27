@@ -58,7 +58,7 @@ namespace Pregiato.Core.Entities
         [StringLength(50)]
         public string? ClientMessageId { get; set; }
         
-        [StringLength(50)]
+        [StringLength(255)]
         public string? WhatsAppMessageId { get; set; }
         
         [Required]

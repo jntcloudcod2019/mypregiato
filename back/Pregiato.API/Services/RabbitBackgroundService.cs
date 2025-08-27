@@ -4,7 +4,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Pregiato.API.Hubs;
-using Pregiato.Application.Interfaces;
+using Pregiato.Core.Interfaces;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
@@ -18,6 +18,7 @@ using Microsoft.EntityFrameworkCore;
 using Pregiato.Core.Entities;
 using Pregiato.Infrastructure.Data;
 using System.Collections.Concurrent;
+using Pregiato.API.Services;
 
 namespace Pregiato.API.Services
 {
@@ -274,19 +275,19 @@ namespace Pregiato.API.Services
                     var body = ea.Body.ToArray();
                     var message = Encoding.UTF8.GetString(body);
                     var whatsappMessage = JsonSerializer.Deserialize<WhatsAppMessage>(message);
-                    
+
                     if (whatsappMessage != null)
                     {
-                        _logger.LogInformation("📨 Mensagem WhatsApp recebida via RabbitMQ: {From} -> {To}", 
+                        _logger.LogInformation("📨 Mensagem WhatsApp recebida via RabbitMQ: {From} -> {To}",
                             whatsappMessage.from, whatsappMessage.to);
-                        
+
                         // Usar chatId do payload se disponível, senão gerar baseado no fromNormalized
-                        var chatId = !string.IsNullOrEmpty(whatsappMessage.chatId) 
-                            ? whatsappMessage.chatId 
+                        var chatId = !string.IsNullOrEmpty(whatsappMessage.chatId)
+                            ? whatsappMessage.chatId
                             : $"chat_{whatsappMessage.fromNormalized}";
-                        
+
                         // Notificar clientes via SignalR com chatId correto
-                        await _hubContext.Clients.Group("whatsapp").SendAsync("message.inbound", new { 
+                        await _hubContext.Clients.Group("whatsapp").SendAsync("message.inbound", new {
                             chatId = chatId,
                             fromNormalized = whatsappMessage.fromNormalized,
                             message = new {
@@ -301,31 +302,57 @@ namespace Pregiato.API.Services
                                 attachment = whatsappMessage.attachment
                             }
                         });
-                        
-                        // Adicionar mensagem à fila de batch processing
-                        var messageEntity = new Message
+
+                        // Converter chatId para Guid usando abordagem simples e segura
+                        Guid conversationId;
+                        try
                         {
-                            Id = Guid.NewGuid(),
-                            ConversationId = Guid.Parse(chatId.Replace("chat_", "")), // Converter chatId para Guid
-                            Direction = MessageDirection.In,
-                            Type = GetMessageType(whatsappMessage.type),
-                            Body = whatsappMessage.body,
-                            MediaUrl = whatsappMessage.attachment?.dataUrl,
-                            ClientMessageId = whatsappMessage.externalMessageId,
-                            CreatedAt = DateTime.Parse(whatsappMessage.timestamp)
-                        };
-                        
-                        _messageBatchQueue.Enqueue(messageEntity);
-                        
-                        // Processar a mensagem para criar/atualizar chat
-                        await ProcessIncomingMessage(whatsappMessage);
+                            // Tentar converter diretamente se for um GUID válido
+                            if (Guid.TryParse(chatId.Replace("chat_", ""), out Guid directGuid))
+                            {
+                                conversationId = directGuid;
+                            }
+                            else
+                            {
+                                // Para casos onde não é GUID, gerar um baseado no telefone
+                                var phoneHash = whatsappMessage.fromNormalized?.GetHashCode() ?? 0;
+                                conversationId = Guid.Parse($"{Math.Abs(phoneHash):X8}-0000-0000-0000-000000000000");
+                            }
+                        }
+                        catch
+                        {
+                            // Fallback: usar um GUID baseado no timestamp e telefone
+                            var fallbackId = $"{DateTime.UtcNow.Ticks}_{whatsappMessage.fromNormalized}".GetHashCode();
+                            conversationId = Guid.Parse($"{Math.Abs(fallbackId):X8}-0000-0000-0000-000000000001");
+                        }
+
+                        // Processar a mensagem para criar/atualizar chat e obter ConversationId
+                        conversationId = await ProcessIncomingMessage(whatsappMessage);
+
+                        if (conversationId != Guid.Empty)
+                        {
+                            // Adicionar mensagem à fila de batch processing com ConversationId válido
+                            var messageEntity = new Message
+                            {
+                                Id = Guid.NewGuid(),
+                                ConversationId = conversationId, // Usar o ID retornado do ProcessIncomingMessage
+                                Direction = MessageDirection.In,
+                                Type = GetMessageType(whatsappMessage.type),
+                                Body = whatsappMessage.body,
+                                MediaUrl = whatsappMessage.attachment?.dataUrl,
+                                ClientMessageId = whatsappMessage.externalMessageId,
+                                CreatedAt = DateTime.Parse(whatsappMessage.timestamp)
+                            };
+
+                            _messageBatchQueue.Enqueue(messageEntity);
+                        }
                     }
-                    
+
                     _channel.BasicAck(ea.DeliveryTag, false);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Erro ao processar mensagem WhatsApp");
+                    _logger.LogError(ex, "❌ Erro crítico no processamento da mensagem RabbitMQ");
                     _channel.BasicNack(ea.DeliveryTag, false, true);
                 }
             };
@@ -560,26 +587,32 @@ namespace Pregiato.API.Services
                         using var scope = _services.CreateScope();
                         var context = scope.ServiceProvider.GetRequiredService<PregiatoDbContext>();
                         
-                        using var transaction = await context.Database.BeginTransactionAsync(stoppingToken);
-                        try
+                        // Usar CreateExecutionStrategy para suportar retry com transações
+                        var strategy = context.Database.CreateExecutionStrategy();
+                        await strategy.ExecuteAsync(async () =>
                         {
-                            await context.Messages.AddRangeAsync(messages, stoppingToken);
-                            await context.SaveChangesAsync(stoppingToken);
-                            await transaction.CommitAsync(stoppingToken);
-                            
-                            _logger.LogInformation("✅ Salvas {Count} mensagens em batch", messages.Count);
-                        }
-                        catch (Exception ex)
-                        {
-                            await transaction.RollbackAsync(stoppingToken);
-                            _logger.LogError(ex, "❌ Erro ao salvar mensagens em batch");
-                            
-                            // Recolocar mensagens na fila
-                            foreach (var msg in messages)
+                            using var transaction = await context.Database.BeginTransactionAsync(stoppingToken);
+                            try
                             {
-                                _messageBatchQueue.Enqueue(msg);
+                                await context.Messages.AddRangeAsync(messages, stoppingToken);
+                                await context.SaveChangesAsync(stoppingToken);
+                                await transaction.CommitAsync(stoppingToken);
+                                
+                                _logger.LogInformation("✅ Salvas {Count} mensagens em batch", messages.Count);
                             }
-                        }
+                            catch (Exception ex)
+                            {
+                                await transaction.RollbackAsync(stoppingToken);
+                                _logger.LogError(ex, "❌ Erro ao salvar mensagens em batch");
+                                
+                                // Recolocar mensagens na fila
+                                foreach (var msg in messages)
+                                {
+                                    _messageBatchQueue.Enqueue(msg);
+                                }
+                                throw; // Re-throw para que o execution strategy possa tentar novamente
+                            }
+                        });
                     }
                     
                     // Aguardar 2 segundos antes do próximo batch
@@ -594,39 +627,39 @@ namespace Pregiato.API.Services
         }
 
         // Método para processar mensagens recebidas
-        private async Task ProcessIncomingMessage(WhatsAppMessage message)
+        private async Task<Guid> ProcessIncomingMessage(WhatsAppMessage message)
         {
             try
             {             
-                // Criar um escopo para resolver serviços com escopo
                 using var scope = _services.CreateScope();
+                var conversationService = scope.ServiceProvider.GetRequiredService<IConversationService>();
                 var attendanceService = scope.ServiceProvider.GetService<AttendanceService>();
                 var context = scope.ServiceProvider.GetService<PregiatoDbContext>();
                 
-                if (attendanceService != null && context != null)
+                if (conversationService != null && context != null)
                 {
-                    // CORREÇÃO: Usar normalização consistente para evitar duplicação de chats
                     var normalizedPhone = ContentTypeHelper.NormalizePhoneE164Br(message.from, message.isGroup);
                     
-                    // Log detalhado para debug de normalização
-                    _logger.LogDebug("🔧 Normalização: original={Original}, normalizado={Normalized}, isGroup={IsGroup}", 
-                        message.from, normalizedPhone, message.isGroup);
+                    // 1. Criar ou obter Conversation via Service
+                    var conversation = await conversationService.GetOrCreateConversationAsync(
+                        normalizedPhone, 
+                        message.instanceId, 
+                        message.isGroup, 
+                        $"Chat com {normalizedPhone}"
+                    );
                     
-                    // Primeiro, criar ou obter o ChatLog usando o número normalizado
+                    // 2. Processar ChatLog (código existente)
                     var chatLog = await context.ChatLogs
                         .FirstOrDefaultAsync(c => c.ContactPhoneE164 == normalizedPhone);
                     
-                    _logger.LogInformation("📨 Processando mensagem de {From} (normalized: {FromNormalized}) - ChatLog existente: {ChatLogExists}", 
-                        message.from, normalizedPhone, chatLog != null);
-                    
                     if (chatLog == null)
                     {
-                        // Criar novo ChatLog - NÃO salvar no banco ainda, apenas em memória
+                        // Criar novo ChatLog
                         var newChatLog = new ChatLog
                         {
                             Id = Guid.NewGuid(),
-                            ChatId = Guid.NewGuid(),
-                            ContactPhoneE164 = normalizedPhone, // Usar número normalizado
+                            ChatId = conversation.Id, // Usar o ID da Conversation
+                            ContactPhoneE164 = normalizedPhone,
                             PhoneNumber = normalizedPhone,
                             Title = $"Chat com {normalizedPhone}",
                             PayloadJson = "{}",
@@ -635,124 +668,111 @@ namespace Pregiato.API.Services
                             LastMessagePreview = message.body?.Length > 200 ? message.body.Substring(0, 200) : message.body,
                             Timestamp = DateTime.Parse(message.timestamp),
                             Direction = "inbound",
-                            Content = "", // Não salvar conteúdo individual
+                            Content = "",
                             ContentType = ContentTypeHelper.GetShortContentType(message.type),
                             MessageId = message.externalMessageId
                         };
                         
-                        // Inicializar PayloadJson com a primeira mensagem
-                        var initialPayload = new Dictionary<string, object>
+                        await context.ChatLogs.AddAsync(newChatLog);
+                        await context.SaveChangesAsync();
+                        
+                        // CORREÇÃO: Criar ChatPayload completo com ContactInfo e MessageInfo
+                        var chatLogService = scope.ServiceProvider.GetRequiredService<ChatLogService>();
+                        
+                        // Criar ContactInfo
+                        var contactInfo = new ChatLogService.ContactInfo
                         {
-                            ["messages"] = new List<object>
-                            {
-                                new
-                                {
-                                    id = message.externalMessageId,
-                                    from = message.from,
-                                    body = message.body,
-                                    type = message.type,
-                                    timestamp = message.timestamp,
-                                    direction = "inbound"
-                                }
-                            }
+                            Name = $"Cliente {normalizedPhone}",
+                            PhoneE164 = normalizedPhone,
+                            ProfilePic = null
                         };
                         
-                        newChatLog.PayloadJson = System.Text.Json.JsonSerializer.Serialize(initialPayload);
+                        // Criar MessageInfo
+                        var messageInfo = new ChatLogService.MessageInfo
+                        {
+                            Id = message.externalMessageId,
+                            body = message.body,
+                            from = message.from,
+                            timestamp = message.timestamp,
+                            Direction = "inbound",
+                            Type = message.type,
+                            MediaUrl = message.attachment?.dataUrl,
+                            Status = "delivered"
+                        };
                         
-                        // Salvar no banco apenas o registro inicial
-                        await context.ChatLogs.AddAsync(newChatLog);
+                        // Criar ChatPayload completo
+                        var chatPayload = new ChatLogService.ChatPayload
+                        {
+                            Contact = contactInfo,
+                            Messages = new List<ChatLogService.MessageInfo> { messageInfo }
+                        };
+                        
+                        // Atualizar o PayloadJson do ChatLog
+                        newChatLog.PayloadJson = JsonSerializer.Serialize(chatPayload);
                         await context.SaveChangesAsync();
                         
                         _logger.LogInformation("📝 ✅ NOVO ChatLog criado para {From}: ChatId={ChatId}, ChatLogId={ChatLogId}", 
                             message.from, newChatLog.ChatId, newChatLog.Id);
-                        
-                        chatLog = newChatLog;
                     }
                     else
                     {
-                        // Atualizar ChatLog existente - apenas preview e contadores
-                        chatLog.UnreadCount++;
+                        // CORREÇÃO: Adicionar mensagem ao ChatLog existente usando ChatPayload
+                        var chatLogService = scope.ServiceProvider.GetRequiredService<ChatLogService>();
+                        
+                        // Deserializar o PayloadJson existente
+                        var existingPayload = chatLogService.Deserialize(chatLog.PayloadJson);
+                        
+                        // Criar nova MessageInfo
+                        var messageInfo = new ChatLogService.MessageInfo
+                        {
+                            Id = message.externalMessageId,
+                            body = message.body,
+                            from = message.from,
+                            timestamp = message.timestamp,
+                            Direction = "inbound",
+                            Type = message.type,
+                            MediaUrl = message.attachment?.dataUrl,
+                            Status = "delivered"
+                        };
+                        
+                        // Adicionar mensagem ao payload existente
+                        existingPayload.Messages.Add(messageInfo);
+                        
+                        // Atualizar o PayloadJson
+                        chatLog.PayloadJson = JsonSerializer.Serialize(existingPayload);
                         chatLog.LastMessageAt = DateTime.Parse(message.timestamp);
                         chatLog.LastMessagePreview = message.body?.Length > 200 ? message.body.Substring(0, 200) : message.body;
-                        chatLog.UpdatedAt = DateTime.UtcNow;
+                        chatLog.UnreadCount++;
                         
-                        // Adicionar nova mensagem ao payload existente
-                        var payload = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(chatLog.PayloadJson) ?? new Dictionary<string, object>();
-                        if (!payload.ContainsKey("messages"))
-                        {
-                            payload["messages"] = new List<object>();
-                        }
-                        
-                        var messages = (payload["messages"] as List<object>) ?? new List<object>();
-                        
-                        // Verificar se a mensagem já existe para evitar duplicação
-                        var messageExists = messages.Any(m => 
-                        {
-                            if (m is System.Text.Json.JsonElement element)
-                            {
-                                return element.TryGetProperty("id", out var idElement) && 
-                                       idElement.GetString() == message.externalMessageId;
-                            }
-                            return false;
-                        });
-                        
-                        if (!messageExists)
-                        {
-                            messages.Add(new
-                            {
-                                id = message.externalMessageId,
-                                from = message.from,
-                                body = message.body,
-                                type = message.type,
-                                timestamp = message.timestamp,
-                                direction = "inbound"
-                            });
-                            
-                            payload["messages"] = messages;
-                            chatLog.PayloadJson = System.Text.Json.JsonSerializer.Serialize(payload);
-                        }
-                        
-                        // Salvar apenas as atualizações de preview e contadores
                         await context.SaveChangesAsync();
                         
-                        _logger.LogInformation("📝 ✅ ChatLog ATUALIZADO para {From}: ChatId={ChatId}, ChatLogId={ChatLogId}, UnreadCount={UnreadCount}, Messages={MessageCount}", 
-                            message.from, chatLog.ChatId, chatLog.Id, chatLog.UnreadCount, messages.Count);
+                        _logger.LogInformation("📝 ✅ Mensagem adicionada ao ChatLog existente: ChatId={ChatId}, ChatLogId={ChatLogId}", 
+                            chatLog.ChatId, chatLog.Id);
                     }
                     
-                    // Criar ou atualizar AttendanceTicket
-                    var ticket = await attendanceService.AssignAsync(chatLog.ChatId, "system", "Sistema", chatLog.Id);
-                    
-                    _logger.LogInformation("📨 Chat processado para {From}: {ChatId}", message.from, chatLog.ChatId);
-                    
-                    // Notificar clientes sobre nova mensagem
-                    await _hubContext.Clients.Group("whatsapp").SendAsync("message.inbound", new { 
-                        chatId = chatLog.ChatId,
-                        message = new {
-                            id = message.externalMessageId,
-                            externalMessageId = message.externalMessageId,
-                            from = message.from,
-                            fromNormalized = normalizedPhone, // Usar número normalizado
-                            body = message.body,
-                            text = message.body,
-                            type = message.type,
-                            timestamp = message.timestamp,
-                            ts = message.timestamp,
-                            fromMe = false,
-                            isGroup = message.isGroup,
-                            attachment = message.attachment
+                    // 3. Criar AttendanceTicket
+                    if (attendanceService != null)
+                    {
+                        if (chatLog != null)
+                        {
+                            var ticket = await attendanceService.AssignAsync(chatLog.ChatId, "system", "Sistema", chatLog.Id);
+                            _logger.LogInformation("🎫 AttendanceTicket criado: {TicketId}", ticket.Id);
                         }
-                    });
-                }
-                else
-                {
-                    _logger.LogWarning("📨 AttendanceService ou DbContext não disponível para processar mensagem de {From}", message.from);
+                    }
+                    
+                    // 4. Retornar ConversationId para uso na Message
+                    return conversation.Id;
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erro ao processar mensagem recebida: {From}", message.from);
+                _logger.LogError(ex, "❌ Erro ao processar mensagem recebida");
             }
+            
+            return Guid.Empty;
         }
+
+
     }
 }
 

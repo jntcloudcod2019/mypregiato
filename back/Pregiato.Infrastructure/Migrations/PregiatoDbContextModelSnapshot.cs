@@ -247,8 +247,8 @@ namespace Pregiato.Infrastructure.Migrations
                         .HasColumnType("datetime");
 
                     b.Property<string>("MessageId")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("PayloadJson")
                         .IsRequired()
@@ -542,7 +542,7 @@ namespace Pregiato.Infrastructure.Migrations
                     b.Property<DateTime?>("ClosedAt")
                         .HasColumnType("datetime(3)");
 
-                    b.Property<Guid>("ContactId")
+                    b.Property<Guid?>("ContactId")
                         .HasColumnType("char(36)");
 
                     b.Property<DateTime>("CreatedAt")
@@ -1025,8 +1025,8 @@ namespace Pregiato.Infrastructure.Migrations
                         .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
 
                     b.Property<string>("WhatsAppMessageId")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
 
                     b.HasKey("Id");
 
@@ -1598,8 +1598,7 @@ namespace Pregiato.Infrastructure.Migrations
                     b.HasOne("Pregiato.Core.Entities.Contact", "Contact")
                         .WithMany("Conversations")
                         .HasForeignKey("ContactId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Pregiato.Core.Entities.User", "Operator")
                         .WithMany()

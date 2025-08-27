@@ -47,18 +47,103 @@ namespace Pregiato.API.Controllers
         [HttpGet("{id:guid}/messages")]
         public async Task<IActionResult> GetMessages(Guid id, [FromQuery] long? cursorTs = null, [FromQuery] int limit = 50)
         {
+            _logger.LogInformation($"🔍 Buscando mensagens para ID: {id}");
+            
+            // Primeiro tentar buscar pelo ID do ChatLog
             var chat = await _db.ChatLogs.FirstOrDefaultAsync(c => c.Id == id);
-            if (chat == null) return NotFound();
-            var payload = _chatService.Deserialize(chat.PayloadJson);
-            var messages = payload.Messages.OrderByDescending(m => m.Ts);
-            if (cursorTs.HasValue)
+            _logger.LogInformation($"📄 Busca por ID do ChatLog: {(chat != null ? "Encontrado" : "Não encontrado")}");
+            
+            // Se não encontrar, tentar buscar pelo ChatId
+            if (chat == null)
             {
-                var cursor = DateTimeOffset.FromUnixTimeMilliseconds(cursorTs.Value).UtcDateTime;
-                messages = messages.Where(m => m.Ts < cursor).OrderByDescending(m => m.Ts);
+                chat = await _db.ChatLogs.FirstOrDefaultAsync(c => c.ChatId == id);
+                _logger.LogInformation($"📄 Busca por ChatId: {(chat != null ? "Encontrado" : "Não encontrado")}");
             }
-            var slice = messages.Take(Math.Clamp(limit, 1, 200)).ToList();
-            var nextCursor = slice.Count > 0 ? new DateTimeOffset(slice.Last().Ts).ToUnixTimeMilliseconds() : (long?)null;
-            return Ok(new { messages = slice.OrderBy(m => m.Ts), nextCursor });
+            
+            // Se ainda não encontrar, tentar buscar pelo número do telefone
+            if (chat == null)
+            {
+                var idString = id.ToString();
+                chat = await _db.ChatLogs.FirstOrDefaultAsync(c => c.ContactPhoneE164 == idString);
+                _logger.LogInformation($"📄 Busca por ContactPhoneE164: {(chat != null ? "Encontrado" : "Não encontrado")}");
+            }
+            
+            if (chat == null) 
+            {
+                _logger.LogWarning($"❌ Chat não encontrado para ID: {id}");
+                return NotFound();
+            }
+            
+            _logger.LogInformation($"✅ Chat encontrado: {chat.Id}, ContactPhoneE164: {chat.ContactPhoneE164}");
+            
+            try
+            {
+                // CORREÇÃO: Usar ChatLogService para deserializar o PayloadJson
+                var chatLogService = HttpContext.RequestServices.GetRequiredService<ChatLogService>();
+                var payload = chatLogService.Deserialize(chat.PayloadJson);
+                
+                if (payload?.Messages?.Any() == true)
+                {
+                    _logger.LogInformation($"📊 Mensagens encontradas no PayloadJson: {payload.Messages.Count}");
+                    
+                    // Converter para o formato que o frontend espera
+                    var convertedMessages = new List<object>();
+                    
+                    foreach (var message in payload.Messages)
+                    {
+                        var chatMessage = new
+                        {
+                            id = message.Id,
+                            conversationId = chat.Id.ToString(),
+                            direction = message.Direction == "inbound" ? "In" : "Out",
+                            type = "Text", // Default para texto
+                            body = message.body ?? message.Content ?? "",
+                            mediaUrl = message.MediaUrl ?? "",
+                            fileName = "",
+                            clientMessageId = message.Id,
+                            whatsAppMessageId = "",
+                            status = "Delivered", // Default
+                            internalNote = "",
+                            createdAt = message.timestamp ?? message.Ts.ToString("O"),
+                            updatedAt = "",
+                            
+                            // Campos de compatibilidade para o frontend
+                            externalMessageId = message.Id,
+                            text = message.body ?? message.Content ?? "",
+                            ts = message.timestamp ?? message.Ts.ToString("O"),
+                            fromMe = message.Direction == "outbound",
+                            
+                            // CORREÇÃO: Campos adicionais que o frontend espera
+                            timestamp = !string.IsNullOrEmpty(message.timestamp) ? DateTime.Parse(message.timestamp) : message.Ts,
+                            isFromMe = message.Direction == "outbound",
+                            
+                            attachment = !string.IsNullOrEmpty(message.MediaUrl) ? new
+                            {
+                                dataUrl = message.MediaUrl,
+                                mimeType = "application/octet-stream",
+                                fileName = ""
+                            } : null
+                        };
+                        
+                        convertedMessages.Add(chatMessage);
+                    }
+                    
+                    _logger.LogInformation($"✅ Retornando {convertedMessages.Count} mensagens convertidas");
+                    
+                    return Ok(new { 
+                        messages = convertedMessages,
+                        nextCursor = (long?)null 
+                    });
+                }
+                
+                _logger.LogWarning($"⚠️ PayloadJson não contém mensagens válidas");
+                return Ok(new { messages = new List<object>(), nextCursor = (long?)null });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"❌ Erro ao processar PayloadJson: {chat.PayloadJson}");
+                return Ok(new { messages = new List<object>(), nextCursor = (long?)null });
+            }
         }
 
         public class SendRequest {
@@ -80,10 +165,17 @@ namespace Pregiato.API.Controllers
             if (string.IsNullOrWhiteSpace(req.text) || string.IsNullOrWhiteSpace(req.clientMessageId))
                 return BadRequest(new { error = "text e clientMessageId são obrigatórios" });
 
-            var chat = await _db.ChatLogs.FirstOrDefaultAsync(c => c.Id == id);
-            if (chat == null) return NotFound();
+            // CORREÇÃO: Buscar por ChatId em vez de Id
+            _logger.LogInformation($"🔍 Buscando chat com ChatId: {id}");
+            var chat = await _db.ChatLogs.FirstOrDefaultAsync(c => c.ChatId == id);
+            if (chat == null) 
+            {
+                _logger.LogWarning($"❌ Chat não encontrado com ChatId: {id}");
+                return NotFound();
+            }
+            _logger.LogInformation($"✅ Chat encontrado: {chat.Id}, ChatId: {chat.ChatId}");
 
-            var (updatedChat, msg) = await _chatService.AddOutboundPendingAsync(id, req.text, req.clientMessageId, DateTime.UtcNow, 
+            var (updatedChat, msg) = await _chatService.AddOutboundPendingAsync(chat.Id, req.text, req.clientMessageId, DateTime.UtcNow, 
                 req.attachment != null ? new ChatLogService.ChatAttachment { 
                     DataUrl = req.attachment.dataUrl, 
                     MimeType = req.attachment.mimeType, 

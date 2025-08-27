@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { SignedIn, SignedOut, useUser } from '@clerk/clerk-react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { LoadingFallback } from '../ui/loading-fallback';
+import { forceImmediateLogout } from '@/utils/auth-cleanup';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
