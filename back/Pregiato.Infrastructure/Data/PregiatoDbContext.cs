@@ -588,36 +588,68 @@ public class PregiatoDbContext : DbContext
             entity.HasIndex(e => new { e.ConversationId, e.OpenedAt });
         });
 
+        // === CONFIGURAÇÃO DA ENTIDADE MESSAGE UNIFICADA ===
         modelBuilder.Entity<Message>(entity =>
         {
+            // === CHAVE PRIMÁRIA ===
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Id).ValueGeneratedOnAdd();
             
+            // === CAMPOS OBRIGATÓRIOS MÍNIMOS ===
             entity.Property(e => e.ConversationId).IsRequired();
-            entity.Property(e => e.SessionId);
-            entity.Property(e => e.ExternalMessageId).HasMaxLength(128);
             entity.Property(e => e.Direction).IsRequired();
             entity.Property(e => e.Type).IsRequired();
-            entity.Property(e => e.Body).IsRequired().HasMaxLength(4000);
-            entity.Property(e => e.MediaUrl).HasMaxLength(500);
-            entity.Property(e => e.FileName).HasMaxLength(100);
-            entity.Property(e => e.ClientMessageId).HasMaxLength(50);
-            entity.Property(e => e.WhatsAppMessageId).HasMaxLength(255);
-            entity.Property(e => e.Status).IsRequired();
-            entity.Property(e => e.InternalNote).HasMaxLength(500);
-            
-            // Campo para armazenar o payload completo da mensagem
-            entity.Property(e => e.PayloadJson).HasColumnType("LONGTEXT");
-            
             entity.Property(e => e.CreatedAt)
+                .IsRequired()
                 .HasColumnType("datetime")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
-            
+            entity.Property(e => e.Status).IsRequired();
+
+            // === IDENTIFICAÇÃO DO REMETENTE ===
+            entity.Property(e => e.SenderId).HasMaxLength(100);
+            entity.Property(e => e.FromNormalized).HasMaxLength(50);
+            entity.Property(e => e.FromOriginal).HasMaxLength(100);
+            entity.Property(e => e.FromMe).IsRequired();
+            entity.Property(e => e.IsGroup).IsRequired();
+
+            // === CONTEÚDO DE TEXTO (NULLABLE) ===
+            entity.Property(e => e.Text)
+                .HasMaxLength(5000)
+                .HasColumnType("TEXT");  // TEXT para mensagens longas
+
+            // === CAMPOS DE MÍDIA (NULLABLE) ===
+            entity.Property(e => e.MediaUrl).HasMaxLength(1000);
+            entity.Property(e => e.FileName).HasMaxLength(255);
+            entity.Property(e => e.MimeType).HasMaxLength(100);
+            entity.Property(e => e.Size);  // BIGINT para tamanhos grandes
+            entity.Property(e => e.Duration);  // INT para segundos
+            entity.Property(e => e.Thumbnail).HasMaxLength(1000);
+
+            // === CAMPOS DE LOCALIZAÇÃO (NULLABLE) ===
+            entity.Property(e => e.Latitude).HasColumnType("decimal(10,8)");
+            entity.Property(e => e.Longitude).HasColumnType("decimal(11,8)");
+            entity.Property(e => e.LocationAddress).HasMaxLength(500);
+
+            // === CAMPOS DE CONTATO (NULLABLE) ===
+            entity.Property(e => e.ContactName).HasMaxLength(200);
+            entity.Property(e => e.ContactPhone).HasMaxLength(50);
+
+            // === METADADOS E SISTEMA ===
+            entity.Property(e => e.Metadata).HasColumnType("LONGTEXT");
+            entity.Property(e => e.PayloadJson).HasColumnType("LONGTEXT");
+            entity.Property(e => e.SessionId);
+            entity.Property(e => e.InternalNote).HasMaxLength(1000);
             entity.Property(e => e.UpdatedAt)
                 .HasColumnType("datetime")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
-            
-            // Relacionamentos
+
+            // === IDENTIFICADORES EXTERNOS ===
+            entity.Property(e => e.ExternalMessageId).HasMaxLength(255);
+            entity.Property(e => e.ClientMessageId).HasMaxLength(255);
+            entity.Property(e => e.WhatsAppMessageId).HasMaxLength(500);
+            entity.Property(e => e.ChatId).HasMaxLength(100);
+
+            // === RELACIONAMENTOS ===
             entity.HasOne(e => e.Conversation)
                 .WithMany(c => c.Messages)
                 .HasForeignKey(e => e.ConversationId)
@@ -627,14 +659,35 @@ public class PregiatoDbContext : DbContext
                 .WithMany(s => s.Messages)
                 .HasForeignKey(e => e.SessionId)
                 .OnDelete(DeleteBehavior.SetNull);
-            
-            // Índices para consultas eficientes
-            entity.HasIndex(e => new { e.ConversationId, e.CreatedAt });
-            
-            // Índice único para evitar duplicação de mensagens
+
+            // === ÍNDICES PARA PERFORMANCE ===
+            // Índice principal por ChatId + Data (requisito)
+            entity.HasIndex(e => new { e.ConversationId, e.CreatedAt })
+                .HasDatabaseName("IX_Messages_ChatId_CreatedAt");
+
+            // Índice por Tipo (requisito)
+            entity.HasIndex(e => new { e.Type, e.CreatedAt })
+                .HasDatabaseName("IX_Messages_Type_CreatedAt");
+
+            // Índice único para deduplicação
             entity.HasIndex(e => new { e.ConversationId, e.ExternalMessageId })
                 .IsUnique()
-                .HasFilter("[ConversationId] IS NOT NULL AND [ExternalMessageId] IS NOT NULL");
+                .HasFilter("[ConversationId] IS NOT NULL AND [ExternalMessageId] IS NOT NULL")
+                .HasDatabaseName("IX_Messages_Unique_External");
+
+            // Índices adicionais para busca
+            entity.HasIndex(e => e.ChatId)
+                .HasFilter("[ChatId] IS NOT NULL")
+                .HasDatabaseName("IX_Messages_ChatId");
+
+            entity.HasIndex(e => e.FromNormalized)
+                .HasFilter("[FromNormalized] IS NOT NULL")
+                .HasDatabaseName("IX_Messages_FromNormalized");
+
+            entity.HasIndex(e => e.Status)
+                .HasDatabaseName("IX_Messages_Status");
+
+            // Índice removido: MediaUrl excede limite de tamanho de chave do MySQL (3072 bytes)
         });
 
         // Configuração da entidade QueueEvent

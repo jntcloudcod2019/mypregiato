@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { ChatListItem, ChatMessageDto } from '../services/chat-service'
-import { MessageDto, MessageDirection, MessageType, MessageStatus } from '../services/conversations-api'
+import { MessageDto, MessageDirection, MessageType, MessageStatus } from '../types/message'
 
 // Interface para conversa no store
 interface ConversationUI {
@@ -161,7 +161,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const messagesMap = { ...conv.messagesMap };
     if (extId) messagesMap[extId] = true;
     
-    const lastMessageAt = msg.ts ?? conv.lastMessageAt;
+    const lastMessageAt = msg.ts ?? msg.createdAt ?? conv.lastMessageAt;
     
     return {
       conversations: {

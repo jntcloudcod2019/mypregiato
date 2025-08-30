@@ -93,6 +93,45 @@ namespace Pregiato.API.Services
             return await _chatLogRepository.GetMessageHistoryAsync(chatId);
         }
 
+        /// <summary>
+        /// Busca chat existente para um número, prevenindo duplicação
+        /// </summary>
+        public async Task<ChatLog?> FindExistingChatByPhoneAsync(string phoneE164)
+        {
+            try
+            {
+                var cacheKey = $"chat_by_phone_{phoneE164}";
+                
+                if (_cache.TryGetValue(cacheKey, out ChatLog? cachedChat))
+                {
+                    return cachedChat;
+                }
+                
+                var chat = await _chatLogRepository.GetByPhoneNumberAsync(phoneE164);
+                
+                if (chat != null)
+                {
+                    _cache.Set(cacheKey, chat, TimeSpan.FromMinutes(10));
+                }
+                
+                return chat;
+                
+            } catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Erro ao buscar chat existente para {Phone}", phoneE164);
+                return null;
+            }
+        }
+        
+        /// <summary>
+        /// Remove chat duplicado do cache quando consolidado
+        /// </summary>
+        public void RemoveChatFromCache(string phoneE164)
+        {
+            var cacheKey = $"chat_by_phone_{phoneE164}";
+            _cache.Remove(cacheKey);
+        }
+
         public async Task<IEnumerable<object>> GetRecentChatsAsync(int limit = 10)
         {
             var recentChats = await _chatLogRepository.GetRecentChatsAsync(limit);

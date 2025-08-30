@@ -1,5 +1,22 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { unifiedChatApi } from '@/services/conversations-api';
+import { MessageType } from '@/types/message';
+
+// Helper function to convert string type to MessageType enum
+const getMessageType = (type?: string): MessageType => {
+  switch (type) {
+    case 'text': return MessageType.Text;
+    case 'image': return MessageType.Image;
+    case 'audio': return MessageType.Audio;
+    case 'file': return MessageType.Document;
+    case 'video': return MessageType.Video;
+    case 'voice': return MessageType.Voice;
+    case 'sticker': return MessageType.Sticker;
+    case 'location': return MessageType.Location;
+    case 'contact': return MessageType.Contact;
+    default: return MessageType.Text;
+  }
+};
 
 interface ChatMessageDto {
   id: string;
@@ -13,6 +30,28 @@ interface ChatMessageDto {
     dataUrl: string;
     mimeType: string;
     fileName?: string;
+  } | null;
+}
+
+// Extended interface for messages with media properties
+interface ExtendedChatMessage extends ChatMessageDto {
+  mediaUrl?: string;
+  fileName?: string;
+  mimeType?: string;
+  size?: number;
+  duration?: number;
+  thumbnail?: string;
+  latitude?: number;
+  longitude?: number;
+  locationAddress?: string;
+  contactName?: string;
+  contactPhone?: string;
+  attachment?: {
+    dataUrl: string;
+    mimeType: string;
+    fileName?: string;
+    fileSize?: number;
+    duration?: number;
   } | null;
 }
 
@@ -57,6 +96,7 @@ import { BotStatusCard } from '@/components/whatsapp/bot-status-card';
 import { OperatorStatusCard } from '@/components/whatsapp/operator-status-card';
 import { Minus, X, Check, UserPlus, PhoneCall, Phone, Clock3, MoreVertical, Trash2, Mic, Square, Paperclip, CheckCheck } from 'lucide-react';
 import { TextAnimate } from '@/components/magicui/text-animate';
+import MediaRenderer from '@/components/whatsapp/media-renderer';
 import { useOperatorStatus } from '@/hooks/useOperatorStatus';
 import { useTwilioPhone } from '@/hooks/useTwilioPhone';
 import { toast } from '@/hooks/use-toast';
@@ -328,17 +368,42 @@ export default function AtendimentoPage() {
     try {
       const response = await chatsApi.list(search, 1, 50) as { items: ChatListItem[]; total: number };
       const items = response.items || [];
+      
+      // NOVA LÓGICA: Deduplicação resiliente por número de telefone
+      const byPhone = new Map<string, ChatListItem>();
       const byId = new Map<string, ChatListItem>();
-      const byKey = new Map<string, string>();
+      
       for (const c of items) {
-        const key = `${c.contactPhoneE164 || ''}|${c.title || ''}`;
-        if (!byKey.has(key) && !byId.has(c.id)) {
-          byKey.set(key, c.id);
-          byId.set(c.id, c);
+        const phone = c.contactPhoneE164;
+        
+        if (phone) {
+          // Se já existe chat para este número, manter o mais recente
+          const existing = byPhone.get(phone);
+          if (existing) {
+            const currentTime = new Date(c.lastMessageAt || 0).getTime();
+            const existingTime = new Date(existing.lastMessageAt || 0).getTime();
+            
+            if (currentTime > existingTime) {
+              // Chat atual é mais recente, substituir
+              byPhone.set(phone, c);
+              byId.delete(existing.id);
+              byId.set(c.id, c);
+            }
+            // Se o existente é mais recente, manter o existente e ignorar o atual
+          } else {
+            // Primeiro chat para este número
+            byPhone.set(phone, c);
+            byId.set(c.id, c);
+          }
+        } else {
+          // Chat sem número (edge case), adicionar se não existir por ID
+          if (!byId.has(c.id)) {
+            byId.set(c.id, c);
+          }
         }
       }
       const unique = Array.from(byId.values())
-        .sort((a, b) => new Date(b.lastMessageAt || (b as ChatListItem)['updatedAt'] || 0).getTime() - new Date(a.lastMessageAt || (a as ChatListItem)['updatedAt'] || 0).getTime());
+        .sort((a, b) => new Date(b.lastMessageAt || 0).getTime() - new Date(a.lastMessageAt || 0).getTime());
 
       setTickets(prev => {
         const next = { ...prev } as Record<string, TicketState>;
@@ -363,17 +428,39 @@ export default function AtendimentoPage() {
       commitTimerRef.current = null;
       if (patches.size === 0) return;
       setChats(prev => {
-        if (!prev || prev.length === 0) return prev;
-        const indexMap = new Map(prev.map((c, idx) => [c.id, idx] as const));
-        const next = prev.map(c => {
+        const indexMap = new Map(prev?.map((c, idx) => [c.id, idx] as const) || []);
+        const existingChats = prev || [];
+        
+        // Atualizar chats existentes
+        const updatedChats = existingChats.map(c => {
           const p = patches.get(c.id);
           return p ? ({ ...c, ...p }) : c;
         });
+        
+        // Adicionar novos chats
+        const newChats: ChatListItem[] = [];
+        for (const [chatId, patch] of patches) {
+          if (!indexMap.has(chatId)) {
+            // É um novo chat - criar objeto completo
+            newChats.push({
+              id: chatId,
+              title: patch.title || 'Novo Chat',
+              contactPhoneE164: patch.contactPhoneE164 || '',
+              lastMessageAt: patch.lastMessageAt || new Date().toISOString(),
+              lastMessagePreview: patch.lastMessagePreview || '',
+              unreadCount: patch.unreadCount || 0
+            } as ChatListItem);
+          }
+        }
+        
+        const next = [...updatedChats, ...newChats];
+        
+        // Ordenar se necessário
         let needSort = false;
         for (const [, p] of patches) {
           if (typeof p.lastMessageAt !== 'undefined') { needSort = true; break; }
         }
-        if (needSort) {
+        if (needSort || newChats.length > 0) {
           next.sort((a, b) => {
             const ta = new Date(a.lastMessageAt || 0).getTime();
             const tb = new Date(b.lastMessageAt || 0).getTime();
@@ -381,6 +468,7 @@ export default function AtendimentoPage() {
             return (indexMap.get(a.id) || 0) - (indexMap.get(b.id) || 0);
           });
         }
+        
         return next;
       });
     }, 120);
@@ -584,23 +672,50 @@ export default function AtendimentoPage() {
           const currentSelected = selectedChatIdRef.current;
           setTickets(prev => ({ ...prev, [chatId]: prev[chatId] || { status: 'novo', step: 1 } }));
 
+          // NOVA LÓGICA: Criar mensagem sempre, não só para chat selecionado
+          const chatMessage: ChatMessageDto = {
+            id: evt.message.id || crypto.randomUUID(),
+            externalMessageId: evt.message.externalMessageId,
+            direction: 'in',
+            text: evt.message.text || evt.message.body || '',
+            ts: evt.message.ts || evt.message.timestamp || new Date().toISOString(),
+            type: (evt.message.type as 'text' | 'image' | 'file' | 'audio') || 'text',
+            status: 'delivered',
+            attachment: evt.message.attachment ? {
+              dataUrl: evt.message.attachment.dataUrl || '',
+              mimeType: evt.message.attachment.mimeType || 'application/octet-stream',
+              fileName: evt.message.attachment.fileName
+            } : null
+          };
+
           if (chatId === currentSelected && evt.message) {
-            const chatMessage: ChatMessageDto = {
-              id: evt.message.id || crypto.randomUUID(),
-              externalMessageId: evt.message.externalMessageId,
-              direction: 'in',
-              text: evt.message.text || evt.message.body || '',
-              ts: evt.message.ts || evt.message.timestamp || new Date().toISOString(),
-              type: (evt.message.type as 'text' | 'image' | 'file' | 'audio') || 'text',
-              status: 'delivered',
-              attachment: evt.message.attachment ? {
-                dataUrl: evt.message.attachment.dataUrl || '',
-                mimeType: evt.message.attachment.mimeType || 'application/octet-stream',
-                fileName: evt.message.attachment.fileName
-              } : null
-            };
-            setMessages(prev => [...prev, chatMessage]);
+            // Se é o chat atualmente aberto, adicionar à lista de mensagens
+            setMessages(prev => {
+              // Verificar se a mensagem já existe para evitar duplicatas
+              const exists = prev.some(m => m.id === chatMessage.id || m.externalMessageId === chatMessage.externalMessageId);
+              if (exists) {
+                console.debug('[chat] Mensagem já existe, ignorando duplicata:', chatMessage.id);
+                return prev;
+              }
+              
+              const newMessages = [...prev, chatMessage];
+              // Ordenar por timestamp para manter cronologia
+              return newMessages.sort((a, b) => new Date(a.ts).getTime() - new Date(b.ts).getTime());
+            });
             requestAnimationFrame(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }));
+          } else {
+            // Se não é o chat atual, atualizar cache para quando for aberto
+            historyCacheRef.current[chatId] = historyCacheRef.current[chatId] || [];
+            const cachedMessages = historyCacheRef.current[chatId];
+            
+            // Verificar se a mensagem já existe no cache
+            const exists = cachedMessages.some(m => m.id === chatMessage.id || m.externalMessageId === chatMessage.externalMessageId);
+            if (!exists) {
+              cachedMessages.push(chatMessage);
+              // Ordenar por timestamp
+              cachedMessages.sort((a, b) => new Date(a.ts).getTime() - new Date(b.ts).getTime());
+              console.debug('[chat] Mensagem adicionada ao cache do chat:', chatId);
+            }
           }
 
           const preview = (text) ? text : (evt?.message?.type === 'image' ? 'Imagem' :
@@ -973,20 +1088,23 @@ export default function AtendimentoPage() {
                       {messages.map((m) => (
                         <div key={(m.id||m.externalMessageId)!} className={`my-1 flex ${m.direction==='out'?'justify-end':'justify-start'}`}>
                           <div className={`max-w-[85%] md:max-w-[70%] px-3 py-2 rounded-lg ${m.direction==='out'?'bg-primary text-primary-foreground':'bg-muted'}`}>
-                            {m.type === 'image' && m.attachment?.dataUrl ? (
-                              <img src={m.attachment.dataUrl} alt={m.attachment.fileName || 'imagem'} className="rounded-md mb-2 max-h-[320px] object-contain" />
-                            ) : null}
-                            {m.type === 'audio' && m.attachment?.dataUrl ? (
-                              <audio controls className="mb-2 max-w-full">
-                                <source src={m.attachment.dataUrl} type={m.attachment.mimeType || 'audio/mpeg'} />
-                                Seu navegador não suporta áudio.
-                              </audio>
-                            ) : null}
-                            {m.type === 'file' && m.attachment?.dataUrl ? (
-                              <a href={m.attachment.dataUrl} download={m.attachment.fileName || 'arquivo'} className="underline mb-2 block text-sm">
-                                {m.attachment.fileName || 'Arquivo'}
-                              </a>
-                            ) : null}
+                            {/* Renderizador unificado de mídia */}
+                            <MediaRenderer
+                              type={getMessageType(m.type)}
+                              dataUrl={m.attachment?.dataUrl || (m as ExtendedChatMessage).mediaUrl}
+                              fileName={m.attachment?.fileName || (m as ExtendedChatMessage).fileName}
+                              mimeType={m.attachment?.mimeType || (m as ExtendedChatMessage).mimeType}
+                              size={(m as ExtendedChatMessage).attachment?.fileSize || (m as ExtendedChatMessage).size}
+                              duration={(m as ExtendedChatMessage).attachment?.duration || (m as ExtendedChatMessage).duration}
+                              thumbnail={(m as ExtendedChatMessage).thumbnail}
+                              latitude={(m as ExtendedChatMessage).latitude}
+                              longitude={(m as ExtendedChatMessage).longitude}
+                              locationAddress={(m as ExtendedChatMessage).locationAddress}
+                              contactName={(m as ExtendedChatMessage).contactName}
+                              contactPhone={(m as ExtendedChatMessage).contactPhone}
+                              className="mb-2"
+                            />
+                            
                             {m.text && (
                               <div className="whitespace-pre-wrap break-words text-sm">
                                 <TextAnimate animation="scaleUp" by="character">{m.text}</TextAnimate>

@@ -22,7 +22,8 @@ export const BotStatusCard = () => {
     connectedNumber,
     connect,
     disconnect,
-    generateQR
+    generateQR,
+    checkStatus
   } = useWhatsAppConnection();
 
   const getStatusColor = (status: ConnectionStatus) => {
@@ -116,7 +117,7 @@ export const BotStatusCard = () => {
               
               {/* Botão de Teste para Debug */}
               <Button 
-                onClick={connect}
+                onClick={checkStatus}
                 disabled={isConnecting}
                 className="w-full"
                 variant="ghost"

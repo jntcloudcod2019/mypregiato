@@ -973,10 +973,21 @@ namespace Pregiato.Infrastructure.Migrations
 
                     b.Property<string>("Body")
                         .IsRequired()
-                        .HasMaxLength(4000)
-                        .HasColumnType("varchar(4000)");
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("ChatId")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
 
                     b.Property<string>("ClientMessageId")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("ContactName")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("ContactPhone")
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
 
@@ -991,30 +1002,79 @@ namespace Pregiato.Infrastructure.Migrations
                     b.Property<int>("Direction")
                         .HasColumnType("int");
 
+                    b.Property<int?>("Duration")
+                        .HasColumnType("int");
+
                     b.Property<string>("ExternalMessageId")
-                        .HasMaxLength(128)
-                        .HasColumnType("varchar(128)");
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("FileName")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<bool>("FromMe")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("FromNormalized")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("FromOriginal")
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
 
                     b.Property<string>("InternalNote")
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<bool>("IsGroup")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<decimal?>("Latitude")
+                        .HasColumnType("decimal(10,8)");
+
+                    b.Property<string>("LocationAddress")
                         .HasMaxLength(500)
                         .HasColumnType("varchar(500)");
 
+                    b.Property<decimal?>("Longitude")
+                        .HasColumnType("decimal(11,8)");
+
                     b.Property<string>("MediaUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<string>("Metadata")
+                        .HasColumnType("LONGTEXT");
+
+                    b.Property<string>("MimeType")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
 
                     b.Property<string>("PayloadJson")
                         .HasColumnType("LONGTEXT");
 
+                    b.Property<string>("SenderId")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
                     b.Property<Guid?>("SessionId")
                         .HasColumnType("char(36)");
 
+                    b.Property<long?>("Size")
+                        .HasColumnType("bigint");
+
                     b.Property<int>("Status")
                         .HasColumnType("int");
+
+                    b.Property<string>("Text")
+                        .HasMaxLength(5000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Thumbnail")
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
 
                     b.Property<int>("Type")
                         .HasColumnType("int");
@@ -1025,18 +1085,34 @@ namespace Pregiato.Infrastructure.Migrations
                         .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
 
                     b.Property<string>("WhatsAppMessageId")
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ChatId")
+                        .HasDatabaseName("IX_Messages_ChatId")
+                        .HasFilter("[ChatId] IS NOT NULL");
+
+                    b.HasIndex("FromNormalized")
+                        .HasDatabaseName("IX_Messages_FromNormalized")
+                        .HasFilter("[FromNormalized] IS NOT NULL");
+
                     b.HasIndex("SessionId");
 
-                    b.HasIndex("ConversationId", "CreatedAt");
+                    b.HasIndex("Status")
+                        .HasDatabaseName("IX_Messages_Status");
+
+                    b.HasIndex("ConversationId", "CreatedAt")
+                        .HasDatabaseName("IX_Messages_ChatId_CreatedAt");
 
                     b.HasIndex("ConversationId", "ExternalMessageId")
                         .IsUnique()
+                        .HasDatabaseName("IX_Messages_Unique_External")
                         .HasFilter("[ConversationId] IS NOT NULL AND [ExternalMessageId] IS NOT NULL");
+
+                    b.HasIndex("Type", "CreatedAt")
+                        .HasDatabaseName("IX_Messages_Type_CreatedAt");
 
                     b.ToTable("Messages");
                 });

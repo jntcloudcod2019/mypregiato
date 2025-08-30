@@ -53,7 +53,7 @@ export const useOperatorStatus = () => {
   // Buscar dados do usuário na API
   const fetchUserFromApi = async (email: string): Promise<ApiUser | null> => {
     try {
-      const response = await axios.get(`http://localhost:5656/api/users/by-email/${encodeURIComponent(email)}`);
+      const response = await axios.get(`http://localhost:5656/api/users/by-email/${email}`);
       return response.data;
     } catch (error) {
       console.error('Erro ao buscar usuário na API:', error);

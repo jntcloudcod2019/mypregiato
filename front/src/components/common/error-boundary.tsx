@@ -23,16 +23,26 @@ export class ErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     console.error('Error caught by ErrorBoundary:', error, errorInfo);
     
-    // Verificar se é um erro relacionado ao Clerk
+    // Verificar se é um erro CRÍTICO do Clerk (mais específico)
     const errorString = error.toString().toLowerCase();
-    if (errorString.includes('clerk') || errorString.includes('authentication')) {
-      console.log('Clerk authentication error detected, disabling Clerk for this session');
+    const isClerkCriticalError = (
+      errorString.includes('clerk initialization failed') ||
+      errorString.includes('clerk is not defined') ||
+      errorString.includes('clerk provider not found') ||
+      (errorString.includes('clerk') && errorString.includes('initialization'))
+    );
+    
+    if (isClerkCriticalError) {
+      console.log('Clerk CRITICAL error detected, disabling Clerk for this session');
       try {
         // Marca o erro do Clerk para esta sessão
         sessionStorage.setItem('clerk_failed', 'true');
       } catch (e) {
         console.error('Failed to update sessionStorage:', e);
       }
+    } else if (errorString.includes('authentication')) {
+      // Para erros de autenticação genéricos, apenas logar sem marcar como falha do Clerk
+      console.log('Authentication error (não crítico do Clerk):', error.toString());
     }
   }
 

@@ -1,0 +1,63 @@
+{
+  "timestamp": "2025-08-28T21:15:27.905Z",
+  "extractionId": "ext_1756415727910_l40jle153",
+  "accountInfo": {
+    "phoneNumber": "5511977240565",
+    "serializedId": "5511977240565@c.us",
+    "platform": "smbi",
+    "clientVersion": null,
+    "isConnected": true,
+    "connectionTime": "2025-08-28T21:15:27.914Z"
+  },
+  "profileInfo": {
+    "displayName": "Kauê Rodrigues",
+    "about": null,
+    "profilePicUrl": "https://pps.whatsapp.net/v/t61.24694-24/536657643_1434003414547777_4740756924604293867_n.jpg?ccb=11-4&oh=01_Q5Aa2QG1iFnk06NRdjtKWLe27575eG_ikrY5N6pXy8oLlV4pDw&oe=68BDC190&_nc_sid=5e03e0&_nc_cat=100",
+    "isMyContact": false,
+    "isGroup": false,
+    "isUser": true
+  },
+  "settingsInfo": {
+    "locale": "pt-BR",
+    "timezone": "America/Sao_Paulo",
+    "extractionCapabilities": [
+      "basic_profile",
+      "contacts_summary",
+      "groups_summary",
+      "device_info"
+    ]
+  },
+  "deviceInfo": null,
+  "contactsSummary": {
+    "totalContacts": 3,
+    "userContacts": 3,
+    "groupContacts": 0,
+    "businessContacts": 1,
+    "contactsWithProfilePic": 3,
+    "extractedAt": "2025-08-28T21:15:28.862Z"
+  },
+  "groupsSummary": {
+    "totalGroups": 0,
+    "activeGroups": 0,
+    "archivedGroups": 0,
+    "adminGroups": 0,
+    "groupsWithUnreadMessages": 0,
+    "extractedAt": "2025-08-28T21:15:30.202Z"
+  },
+  "capabilities": {
+    "canSendMessages": true,
+    "canReceiveMessages": true,
+    "canSendMedia": true,
+    "canCreateGroups": true,
+    "canManageGroups": true,
+    "supportsContacts": true,
+    "supportsChats": true,
+    "extractionMethods": [
+      "getContacts",
+      "getChats",
+      "getContactById",
+      "getProfilePicUrl",
+      "sendMessage"
+    ]
+  }
+}

@@ -1,7 +1,8 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { useChatStore } from '@/store/chat-store';
 import { qrCodeQueueService } from '@/services/qr-code-queue-service';
-import { MessageDto, convertBackendMessage, MessageDirection, MessageType, MessageStatus } from '@/services/conversations-api';
+import { MessageDto, MessageDirection, MessageType, MessageStatus } from '@/types/message';
+import { convertBackendMessage } from '@/services/conversations-api';
 import { toast } from '@/hooks/use-toast';
 
 /**
@@ -90,20 +91,37 @@ export const useConversationProcessor = () => {
     }
 
     try {
+      // Função para mapear tipos do backend para frontend
+      const getMessageTypeFromString = (type: string): MessageType => {
+        switch (type?.toLowerCase()) {
+          case 'image': return MessageType.Image;
+          case 'video': return MessageType.Video;
+          case 'audio': return MessageType.Audio;
+          case 'document': return MessageType.Document;
+          default: return MessageType.Text;
+        }
+      };
+
       // Converter payload para MessageDto
-      const message: MessageDto = {
+      const message = {
         id: externalMessageId,
         conversationId,
         externalMessageId,
         direction: MessageDirection.In,
-        type: MessageType.Text,
+        type: getMessageTypeFromString(String(payload.type) || 'text'),
         body: String(payload.body || ''),
         status: MessageStatus.Sent,
         createdAt: timestamp,
         fromMe: false,
         text: String(payload.body || ''),
-        ts: timestamp
-      };
+        ts: timestamp,
+        // Incluir attachment se presente
+        attachment: payload.attachment ? {
+          dataUrl: String((payload.attachment as Record<string, unknown>).dataUrl || ''),
+          mimeType: String((payload.attachment as Record<string, unknown>).mimeType || ''),
+          fileName: String((payload.attachment as Record<string, unknown>).fileName || '')
+        } : null
+      } as MessageDto;
 
       // Atualizar conversa
       upsertConversation({
@@ -207,7 +225,7 @@ export const useConversationProcessor = () => {
   ) => {
     try {
       // Adicionar mensagem localmente primeiro (otimisticamente)
-      const message: MessageDto = {
+      const message = {
         id: clientMessageId,
         conversationId,
         direction: MessageDirection.Out,
@@ -223,7 +241,7 @@ export const useConversationProcessor = () => {
           mimeType: attachment.mimeType,
           fileName: attachment.fileName
         } : null
-      };
+      } as MessageDto;
 
       appendInbound(conversationId, message);
 

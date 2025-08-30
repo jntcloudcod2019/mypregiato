@@ -18,6 +18,7 @@ using Microsoft.EntityFrameworkCore;
 using Pregiato.Core.Entities;
 using Pregiato.Infrastructure.Data;
 using System.Collections.Concurrent;
+using Pregiato.Application.Services;
 using Pregiato.API.Services;
 
 namespace Pregiato.API.Services
@@ -43,11 +44,21 @@ namespace Pregiato.API.Services
         public long timestamp { get; set; }
     }
 
+    public class MessageStatusUpdate
+    {
+        public string phone { get; set; } = string.Empty;
+        public string messageId { get; set; } = string.Empty;
+        public string status { get; set; } = string.Empty; // "sent", "delivered", "read", "failed"
+        public string timestamp { get; set; } = string.Empty;
+        public string instanceId { get; set; } = string.Empty;
+    }
+
     public class RabbitBackgroundService : BackgroundService
     {
         private readonly ILogger<RabbitBackgroundService> _logger;
         private readonly IHubContext<WhatsAppHub> _hubContext;
         private readonly IServiceProvider _services;
+        private readonly MediaStorageService _mediaStorageService;
         private readonly ConversationService _conversationService;
         private readonly IMemoryCache _cache;
         private readonly RabbitMQConfig _rabbitConfig;
@@ -61,6 +72,7 @@ namespace Pregiato.API.Services
         private string _qrCodeCache = string.Empty;
         private bool _qrRequestPending = false;
         private string _qrRequestId = string.Empty;
+        private DateTime _qrRequestStartTime = DateTime.MinValue;
         
         // Status da sessão WhatsApp
         private bool _sessionConnected = false;
@@ -79,12 +91,14 @@ namespace Pregiato.API.Services
             IServiceProvider services,
             IMemoryCache cache,
             IOptions<RabbitMQConfig> rabbitConfig,
-            ConversationService conversationService)
+            ConversationService conversationService,
+            MediaStorageService mediaStorageService)
         {
             _logger = logger;
             _hubContext = hubContext;
             _services = services;
             _cache = cache;
+            _mediaStorageService = mediaStorageService;
             _rabbitConfig = rabbitConfig.Value;
             _conversationService = conversationService;
         }
@@ -142,7 +156,13 @@ namespace Pregiato.API.Services
                         await Task.Delay(10000, stoppingToken); // Tentar reconectar a cada 10 segundos
                     }
             }
-            catch (Exception ex) when (ex is not OperationCanceledException)
+                catch (OperationCanceledException)
+                {
+                    // ✅ Tratar cancelamento como operação normal
+                    _logger.LogInformation("RabbitMQ Background Service cancelado graciosamente");
+                    break;
+                }
+                catch (Exception ex)
             {
                 _connected = false;
                     _logger.LogWarning("⚠️ Erro temporário no serviço RabbitMQ: {Message}", ex.Message);
@@ -165,6 +185,8 @@ namespace Pregiato.API.Services
                     await Task.Delay(15000, stoppingToken);
                 }
             }
+            
+            _logger.LogInformation("RabbitMQ Background Service finalizado");
         }
 
         private async Task ConnectToRabbitMQAsync()
@@ -331,19 +353,8 @@ namespace Pregiato.API.Services
 
                         if (conversationId != Guid.Empty)
                         {
-                            // Adicionar mensagem à fila de batch processing com ConversationId válido
-                            var messageEntity = new Message
-                            {
-                                Id = Guid.NewGuid(),
-                                ConversationId = conversationId, // Usar o ID retornado do ProcessIncomingMessage
-                                Direction = MessageDirection.In,
-                                Type = GetMessageType(whatsappMessage.type),
-                                Body = whatsappMessage.body,
-                                MediaUrl = whatsappMessage.attachment?.dataUrl,
-                                ClientMessageId = whatsappMessage.externalMessageId,
-                                CreatedAt = DateTime.Parse(whatsappMessage.timestamp)
-                            };
-
+                            // Criar entidade de mensagem mais robusta com todos os campos
+                            var messageEntity = CreateRobustMessageEntity(whatsappMessage, conversationId);
                             _messageBatchQueue.Enqueue(messageEntity);
                         }
                     }
@@ -405,6 +416,101 @@ namespace Pregiato.API.Services
             
             _channel.BasicConsume("session.status", false, sessionStatusConsumer);
             _logger.LogInformation("🎧 Consumidor de status da sessão configurado");
+
+            // Consumidor para status de mensagens enviadas (novo - resiliência)
+            var messageStatusConsumer = new EventingBasicConsumer(_channel);
+            messageStatusConsumer.Received += async (model, ea) =>
+            {
+                try
+                {
+                    var body = ea.Body.ToArray();
+                    var message = Encoding.UTF8.GetString(body);
+                    var messageStatus = JsonSerializer.Deserialize<MessageStatusUpdate>(message);
+                    
+                    _logger.LogInformation("📤 Status de mensagem recebido: {Phone} - {Status} - {MessageId}", 
+                        messageStatus?.phone, messageStatus?.status, messageStatus?.messageId);
+
+                    if (messageStatus != null && !string.IsNullOrEmpty(messageStatus.messageId))
+                    {
+                        await ProcessMessageStatusUpdate(messageStatus);
+                        
+                        // Emitir via SignalR para frontend
+                        await _hubContext.Clients.All.SendAsync("messageStatus.update", new
+                        {
+                            phone = messageStatus.phone,
+                            messageId = messageStatus.messageId,
+                            status = messageStatus.status,
+                            timestamp = messageStatus.timestamp,
+                            instanceId = messageStatus.instanceId
+                        });
+                    }
+
+                    _channel.BasicAck(ea.DeliveryTag, false);
+                }
+                catch (JsonException ex)
+                {
+                    _logger.LogError(ex, "❌ Erro ao deserializar status de mensagem");
+                    _channel.BasicNack(ea.DeliveryTag, false, false); // Não rejeitar pois é erro de formato
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "❌ Erro ao processar status de mensagem");
+                    _channel.BasicNack(ea.DeliveryTag, false, true); // Rejeitar para retry
+                }
+            };
+            
+            _channel.BasicConsume("whatsapp.message-status", false, messageStatusConsumer);
+            _logger.LogInformation("🎧 Consumidor de status de mensagens configurado");
+        }
+
+        private async Task ProcessMessageStatusUpdate(MessageStatusUpdate messageStatus)
+        {
+            try
+            {
+                using var scope = _services.CreateScope();
+                using var context = scope.ServiceProvider.GetRequiredService<PregiatoDbContext>();
+
+                // Procurar a mensagem pelo messageId (ExternalMessageId ou ClientMessageId)
+                var message = await context.Messages
+                    .FirstOrDefaultAsync(m => 
+                        m.ExternalMessageId == messageStatus.messageId || 
+                        m.ClientMessageId == messageStatus.messageId);
+
+                if (message != null)
+                {
+                    // Mapear status do zap bot para status do sistema
+                    var newStatus = messageStatus.status.ToLower() switch
+                    {
+                        "sent" => MessageStatus.Sent,
+                        "delivered" => MessageStatus.Delivered, 
+                        "read" => MessageStatus.Read,
+                        "failed" => MessageStatus.Failed,
+                        _ => message.Status // Manter status atual se não reconhecer
+                    };
+
+                    if (newStatus != message.Status)
+                    {
+                        message.Status = newStatus;
+                        message.UpdatedAt = DateTime.UtcNow;
+                        
+                        await context.SaveChangesAsync();
+                        
+                        _logger.LogInformation("✅ Status da mensagem atualizado: {MessageId} -> {Status}", 
+                            messageStatus.messageId, newStatus);
+                    }
+                }
+                else
+                {
+                    _logger.LogWarning("⚠️ Mensagem não encontrada para status update: {MessageId}", 
+                        messageStatus.messageId);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Erro ao processar status update para mensagem {MessageId}", 
+                    messageStatus.messageId);
+                throw; // Re-throw para o consumer tratar
+            }
         }
 
         public override async Task StopAsync(CancellationToken cancellationToken)
@@ -459,13 +565,24 @@ namespace Pregiato.API.Services
         // Métodos para gerenciamento de QR Code
         public (bool created, string requestId) BeginQrRequest()
         {
+            // Verificar se há timeout (QR pendente há mais de 5 minutos)
             if (_qrRequestPending)
             {
-                return (false, _qrRequestId);
+                var timeSinceRequest = DateTime.UtcNow - _qrRequestStartTime;
+                if (timeSinceRequest.TotalMinutes > 5)
+                {
+                    _logger.LogWarning("QR Request timeout após {Minutes} minutos. Limpando estado.", timeSinceRequest.TotalMinutes);
+                    CancelQrRequest();
+                }
+                else
+                {
+                    return (false, _qrRequestId);
+                }
             }
             
             _qrRequestId = Guid.NewGuid().ToString();
             _qrRequestPending = true;
+            _qrRequestStartTime = DateTime.UtcNow;
             _logger.LogInformation("Iniciado pedido de QR Code. RequestId: {RequestId}", _qrRequestId);
             return (true, _qrRequestId);
         }
@@ -554,22 +671,344 @@ namespace Pregiato.API.Services
             }
         }
 
-        // Método para converter tipo de mensagem
+        // Método para converter tipo de mensagem - UNIFICADO
         private MessageType GetMessageType(string type)
         {
             return type?.ToLower() switch
             {
+                // Tipos básicos
+                "text" => MessageType.Text,
                 "image" => MessageType.Image,
+                "video" => MessageType.Video,
                 "audio" => MessageType.Audio,
                 "document" => MessageType.Document,
-                "video" => MessageType.Video,
+                
+                // Novos tipos unificados
+                "voice" => MessageType.Voice,        // Nota de voz
+                "sticker" => MessageType.Sticker,   // Figurinha
+                "location" => MessageType.Location, // Localização
+                "contact" => MessageType.Contact,   // Contato
+                "system" => MessageType.System,     // Mensagem do sistema
+                
+                // Tipos legados (mapeamento)
+                "ptt" => MessageType.Voice,         // Push-to-talk
+                "chat" => MessageType.Text,
+                
+                // Default
                 _ => MessageType.Text
             };
+        }
+
+        // Método para criar entidade de mensagem robusta com todos os campos
+        private Message CreateRobustMessageEntity(WhatsAppMessage whatsappMessage, Guid conversationId)
+        {
+            try
+            {
+                // Validar e sanitizar dados
+                var sanitizedBody = SanitizeMessageBody(whatsappMessage.body);
+                var messageType = GetMessageType(whatsappMessage.type);
+                var timestamp = ParseTimestampSafely(whatsappMessage.timestamp);
+
+                var messageEntity = new Message
+                {
+                    Id = Guid.NewGuid(),
+                    ConversationId = conversationId,
+                    Direction = MessageDirection.In,
+                    Type = messageType,
+                    Body = sanitizedBody,
+                    ExternalMessageId = TruncateString(whatsappMessage.externalMessageId, 128),
+                    ClientMessageId = TruncateString(whatsappMessage.externalMessageId, 50), // Corrigido para 50 chars
+                    CreatedAt = timestamp,
+                    Status = MessageStatus.Delivered, // Mensagem já foi recebida
+                    PayloadJson = System.Text.Json.JsonSerializer.Serialize(whatsappMessage)
+                };
+
+                // Processar attachment se existir
+                if (whatsappMessage.attachment != null)
+                {
+                    ProcessAttachmentForMessage(messageEntity, whatsappMessage.attachment);
+                }
+
+                // === PROCESSAR LOCALIZAÇÃO ===
+                if (whatsappMessage.location != null)
+                {
+                    messageEntity.Latitude = whatsappMessage.location.latitude;
+                    messageEntity.Longitude = whatsappMessage.location.longitude;
+                    messageEntity.LocationAddress = TruncateString(whatsappMessage.location.address, 500);
+                    
+                    _logger.LogDebug("📍 Localização processada: {Lat}, {Lng}", 
+                        messageEntity.Latitude, messageEntity.Longitude);
+                }
+
+                // === PROCESSAR CONTATO ===
+                if (whatsappMessage.contact != null)
+                {
+                    messageEntity.ContactName = TruncateString(whatsappMessage.contact.name, 200);
+                    messageEntity.ContactPhone = TruncateString(whatsappMessage.contact.phone, 50);
+                    
+                    _logger.LogDebug("👤 Contato processado: {Name} ({Phone})", 
+                        messageEntity.ContactName, messageEntity.ContactPhone);
+                }
+
+                _logger.LogDebug("✅ Entidade de mensagem unificada criada: {MessageId} - Tipo: {Type}", 
+                    messageEntity.ExternalMessageId, messageEntity.Type);
+
+                return messageEntity;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Erro ao criar entidade de mensagem para {MessageId}", 
+                    whatsappMessage.externalMessageId);
+
+                // Retornar mensagem de erro básica para não quebrar o fluxo
+                return CreateErrorMessage(whatsappMessage, conversationId, ex.Message);
+            }
+        }
+
+        // Método para processar attachment e preencher campos de mídia
+        private void ProcessAttachmentForMessage(Message messageEntity, WhatsAppAttachment attachment)
+        {
+            try
+            {
+                _logger.LogDebug("📎 Processando attachment: FileName='{FileName}' ({Length} chars), MimeType='{MimeType}', DataUrl Length={DataUrlLength}", 
+                    attachment.fileName, attachment.fileName?.Length ?? 0, attachment.mimeType, attachment.dataUrl?.Length ?? 0);
+
+                // Definir MediaUrl (truncar para evitar erro de campo muito longo)
+                messageEntity.MediaUrl = TruncateString(attachment.dataUrl, 500);
+                
+                // Preencher MimeType (truncar para evitar erro)
+                messageEntity.MimeType = TruncateString(attachment.mimeType, 100);
+                
+                // Preencher FileName (extrair apenas o nome do arquivo se for um path)
+                var fileName = ExtractFileName(attachment.fileName);
+                messageEntity.FileName = TruncateString(fileName, 100);
+
+                _logger.LogInformation("📎 Attachment processado com sucesso: FileName='{FileName}' ({Length} chars), MimeType='{MimeType}'", 
+                    messageEntity.FileName, messageEntity.FileName?.Length ?? 0, messageEntity.MimeType);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Erro ao processar attachment para mensagem {MessageId}: FileName='{FileName}', MimeType='{MimeType}'", 
+                    messageEntity.ExternalMessageId, attachment.fileName, attachment.mimeType);
+                
+                // Continuar sem attachment em caso de erro
+                messageEntity.MediaUrl = null;
+                messageEntity.MimeType = null;
+                messageEntity.FileName = null;
+            }
+        }
+
+        // Método para extrair apenas o nome do arquivo de um path
+        private string? ExtractFileName(string? fileName)
+        {
+            if (string.IsNullOrEmpty(fileName))
+                return null;
+
+            try
+            {
+                // Se for um path completo, extrair apenas o nome do arquivo
+                if (fileName.Contains('/') || fileName.Contains('\\'))
+                {
+                    return Path.GetFileName(fileName);
+                }
+
+                return fileName;
+            }
+            catch
+            {
+                // Em caso de erro, retornar um nome seguro
+                return "media_file";
+            }
+        }
+
+        // Método para criar mensagem de erro quando falha o processamento
+        private Message CreateErrorMessage(WhatsAppMessage whatsappMessage, Guid conversationId, string errorMessage)
+        {
+            return new Message
+            {
+                Id = Guid.NewGuid(),
+                ConversationId = conversationId,
+                Direction = MessageDirection.In,
+                Type = MessageType.Text,
+                Body = $"[ERRO] Falha ao processar mensagem: {errorMessage}",
+                ExternalMessageId = TruncateString(whatsappMessage.externalMessageId ?? Guid.NewGuid().ToString(), 128),
+                ClientMessageId = TruncateString(whatsappMessage.externalMessageId ?? Guid.NewGuid().ToString(), 50), // Corrigido para 50 chars
+                CreatedAt = DateTime.UtcNow,
+                Status = MessageStatus.Failed,
+                InternalNote = $"Erro de processamento: {errorMessage}",
+                PayloadJson = System.Text.Json.JsonSerializer.Serialize(new { 
+                    error = true, 
+                    originalMessage = whatsappMessage, 
+                    errorMessage = errorMessage 
+                })
+            };
+        }
+
+        // Métodos auxiliares para sanitização e validação
+        private string SanitizeMessageBody(string body)
+        {
+            if (string.IsNullOrEmpty(body))
+                return string.Empty;
+
+            try
+            {
+                // Usar serviço de resiliência para emojis se disponível
+                using var scope = _services.CreateScope();
+                var emojiService = scope.ServiceProvider.GetService<IEmojiResilienceService>();
+                
+                if (emojiService != null)
+                {
+                    var result = emojiService.ProcessText(body, EmojiProcessingStrategy.Hybrid);
+                    
+                    if (result.Issues.Count > 0)
+                    {
+                        _logger.LogWarning("Issues no processamento de emoji: {Issues}", string.Join(", ", result.Issues));
+                    }
+                    
+                    return result.Processed;
+                }
+                
+                // Fallback para método tradicional se serviço não estiver disponível
+                return SanitizeMessageBodyLegacy(body);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao sanitizar mensagem com serviço de resiliência, usando fallback");
+                return SanitizeMessageBodyLegacy(body);
+            }
+        }
+
+        private string SanitizeMessageBodyLegacy(string body)
+        {
+            // Método legado mantido como fallback
+            if (string.IsNullOrEmpty(body))
+                return string.Empty;
+
+            // Limitar a 4000 caracteres (limite do banco)
+            var sanitized = body.Length > 4000 ? body.Substring(0, 3997) + "..." : body;
+            
+            // Remover caracteres de controle que possam causar problemas
+            sanitized = System.Text.RegularExpressions.Regex.Replace(sanitized, @"[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]", "");
+            
+            return sanitized;
+        }
+
+        private DateTime ParseTimestampSafely(string timestamp)
+        {
+            if (string.IsNullOrEmpty(timestamp))
+                return DateTime.UtcNow;
+
+            try
+            {
+                return DateTime.Parse(timestamp);
+            }
+            catch
+            {
+                _logger.LogWarning("⚠️ Timestamp inválido: {Timestamp}. Usando timestamp atual.", timestamp);
+                return DateTime.UtcNow;
+            }
+        }
+
+        private string? TruncateString(string? value, int maxLength)
+        {
+            if (string.IsNullOrEmpty(value))
+                return null;
+
+            return value.Length > maxLength ? value.Substring(0, maxLength) : value;
+        }
+
+        // Método para criar conversação de fallback quando o processamento principal falha
+        private async Task<Guid> CreateFallbackConversation(WhatsAppMessage whatsappMessage)
+        {
+            try
+            {
+                _logger.LogInformation(" Criando conversação de fallback para {From}", whatsappMessage.from);
+                
+                using var scope = _services.CreateScope();
+                var context = scope.ServiceProvider.GetService<PregiatoDbContext>();
+                
+                if (context != null)
+                {
+                    var normalizedPhone = ChatHelper.NormalizePhoneE164Br(whatsappMessage.from, whatsappMessage.isGroup);
+                    
+                    // Verificar se já existe uma conversa para este telefone
+                    var existingConversation = await context.Conversations
+                        .FirstOrDefaultAsync(c => c.PeerE164 == normalizedPhone);
+                        
+                    if (existingConversation != null)
+                    {
+                        return existingConversation.Id;
+                    }
+                    
+                    // Criar nova conversa básica
+                    var newConversation = new Conversation
+                    {
+                        Id = Guid.NewGuid(),
+                        PeerE164 = normalizedPhone,
+                        InstanceId = whatsappMessage.instanceId,
+                        IsGroup = whatsappMessage.isGroup,
+                        Title = $"Chat com {normalizedPhone}",
+                        LastMessageAt = DateTime.UtcNow,
+                        CreatedAt = DateTime.UtcNow,
+                        // Campos obrigatórios para compatibilidade
+                        ContactId = null, // OPCIONAL - para conversas WhatsApp sem Contact
+                        Channel = "whatsapp",
+                        Status = ConversationStatus.Queued,
+                        Priority = ConversationPriority.Normal
+                    };
+                    
+                    await context.Conversations.AddAsync(newConversation);
+                    await context.SaveChangesAsync();
+                    
+                    _logger.LogInformation("✅ Conversação de fallback criada: {ConversationId}", newConversation.Id);
+                    return newConversation.Id;
+                }
+                
+                return Guid.Empty;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, " Falha ao criar conversação de fallback para {From}", whatsappMessage.from);
+                return Guid.Empty;
+            }
+        }
+
+        // Método para decidir se deve reencaminhar mensagem com erro
+        private bool ShouldRequeueMessage(Exception ex, WhatsAppMessage? whatsappMessage)
+        {
+            // Não reencaminhar em casos de:
+            // 1. JSON inválido
+            // 2. Dados corrompidos
+            // 3. Violação de constraints do banco
+            if (ex is JsonException || 
+                ex is ArgumentException ||
+                ex is Microsoft.EntityFrameworkCore.DbUpdateException)
+            {
+                _logger.LogWarning("Não reencaminhando mensagem devido ao tipo de erro: {ExceptionType}", ex.GetType().Name);
+                return false;
+            }
+            
+            // Reencaminhar em casos de:
+            // 1. Problemas temporários de conectividade
+            // 2. Timeouts
+            // 3. Problemas de infraestrutura
+            if (ex is HttpRequestException ||
+                ex is TaskCanceledException ||
+                ex is OperationCanceledException)
+            {
+                _logger.LogInformation("🔄 Reencaminhando mensagem devido a erro temporário: {ExceptionType}", ex.GetType().Name);
+                return true;
+            }
+            
+            // Por padrão, não reencaminhar para evitar loops infinitos
+            return false;
         }
 
         // Método para processar mensagens em batch
         private async Task ProcessMessageBatchAsync(CancellationToken stoppingToken)
         {
+            _logger.LogInformation("Processamento de batch iniciado");
+            
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
@@ -618,12 +1057,20 @@ namespace Pregiato.API.Services
                     // Aguardar 2 segundos antes do próximo batch
                     await Task.Delay(2000, stoppingToken);
                 }
+                catch (OperationCanceledException)
+                {
+                    // ✅ Tratar cancelamento como operação normal
+                    _logger.LogInformation("Processamento de batch cancelado graciosamente");
+                    break;
+                }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "❌ Erro no processamento de batch");
                     await Task.Delay(5000, stoppingToken); // Aguardar mais tempo em caso de erro
                 }
             }
+            
+            _logger.LogInformation("Processamento de batch finalizado");
         }
 
         // Método para processar mensagens recebidas
@@ -638,7 +1085,7 @@ namespace Pregiato.API.Services
                 
                 if (conversationService != null && context != null)
                 {
-                    var normalizedPhone = ContentTypeHelper.NormalizePhoneE164Br(message.from, message.isGroup);
+                    var normalizedPhone = ChatHelper.NormalizePhoneE164Br(message.from, message.isGroup);
                     
                     // 1. Criar ou obter Conversation via Service
                     var conversation = await conversationService.GetOrCreateConversationAsync(
@@ -648,9 +1095,36 @@ namespace Pregiato.API.Services
                         $"Chat com {normalizedPhone}"
                     );
                     
-                    // 2. Processar ChatLog (código existente)
+                    // 2. Processar ChatLog com verificação resiliente anti-duplicação
                     var chatLog = await context.ChatLogs
-                        .FirstOrDefaultAsync(c => c.ContactPhoneE164 == normalizedPhone);
+                        .Where(c => c.ContactPhoneE164 == normalizedPhone)
+                        .OrderByDescending(c => c.LastMessageAt)
+                        .FirstOrDefaultAsync();
+                    
+                    // NOVA REGRA: Se não encontrar por número, tentar por ChatId da conversa
+                    if (chatLog == null)
+                    {
+                        chatLog = await context.ChatLogs
+                            .Where(c => c.ChatId == conversation.Id)
+                            .FirstOrDefaultAsync();
+                    }
+                    
+                    // NOVA REGRA: Verificar múltiplos chats para o mesmo número e consolidar
+                    var duplicateChats = await context.ChatLogs
+                        .Where(c => c.ContactPhoneE164 == normalizedPhone && c.Id != (chatLog != null ? chatLog.Id : Guid.Empty))
+                        .ToListAsync();
+                    
+                    if (duplicateChats.Any())
+                    {
+                        _logger.LogWarning("🔄 Encontrados {Count} chats duplicados para {Phone}. Consolidando...", 
+                            duplicateChats.Count, normalizedPhone);
+                        
+                        // Consolidar mensagens dos chats duplicados no chat principal
+                        if (chatLog != null)
+                        {
+                            await ChatHelper.ConsolidateDuplicateChats(chatLog, duplicateChats, context, scope, _logger);
+                        }
+                    }
                     
                     if (chatLog == null)
                     {
@@ -687,6 +1161,25 @@ namespace Pregiato.API.Services
                             ProfilePic = null
                         };
                         
+                        // Processar mídia se existir
+                        string mediaUrl = null;
+                        if (message.attachment != null && !string.IsNullOrEmpty(message.attachment.dataUrl))
+                        {
+                            try
+                            {
+                                mediaUrl = await _mediaStorageService.StoreMediaAsync(
+                                    message.attachment.dataUrl ?? string.Empty,
+                                    message.attachment.mimeType ?? "application/octet-stream",
+                                    message.attachment.fileName ?? "unknown"
+                                );
+                                _logger.LogInformation("🎬 Mídia processada e armazenada: {MediaUrl}", mediaUrl);
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, "❌ Erro ao processar mídia: {Filename}", message.attachment.fileName);
+                            }
+                        }
+
                         // Criar MessageInfo
                         var messageInfo = new ChatLogService.MessageInfo
                         {
@@ -696,7 +1189,7 @@ namespace Pregiato.API.Services
                             timestamp = message.timestamp,
                             Direction = "inbound",
                             Type = message.type,
-                            MediaUrl = message.attachment?.dataUrl,
+                            MediaUrl = mediaUrl, // URL do arquivo armazenado
                             Status = "delivered"
                         };
                         
@@ -713,6 +1206,21 @@ namespace Pregiato.API.Services
                         
                         _logger.LogInformation("📝 ✅ NOVO ChatLog criado para {From}: ChatId={ChatId}, ChatLogId={ChatLogId}", 
                             message.from, newChatLog.ChatId, newChatLog.Id);
+                        
+                        // 🚀 NOVO: Emitir evento chat.created via SignalR
+                        await _hubContext.Clients.Group("whatsapp").SendAsync("chat.created", new {
+                            chatId = newChatLog.Id.ToString(),
+                            chat = new {
+                                id = newChatLog.Id.ToString(),
+                                title = newChatLog.Title,
+                                contactPhoneE164 = newChatLog.ContactPhoneE164,
+                                lastMessageAt = newChatLog.LastMessageAt?.ToString("O"),
+                                lastMessagePreview = newChatLog.LastMessagePreview,
+                                unreadCount = newChatLog.UnreadCount
+                            }
+                        });
+                        
+                        _logger.LogInformation("📡 ✅ Evento chat.created emitido para ChatLog: {ChatLogId}", newChatLog.Id);
                     }
                     else
                     {
@@ -722,6 +1230,25 @@ namespace Pregiato.API.Services
                         // Deserializar o PayloadJson existente
                         var existingPayload = chatLogService.Deserialize(chatLog.PayloadJson);
                         
+                        // Processar mídia se existir
+                        string mediaUrl = null;
+                        if (message.attachment != null && !string.IsNullOrEmpty(message.attachment.dataUrl))
+                        {
+                            try
+                            {
+                                mediaUrl = await _mediaStorageService.StoreMediaAsync(
+                                    message.attachment.dataUrl ?? string.Empty,
+                                    message.attachment.mimeType ?? "application/octet-stream",
+                                    message.attachment.fileName ?? "unknown"
+                                );
+                                _logger.LogInformation("🎬 Mídia processada e armazenada: {MediaUrl}", mediaUrl);
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, "❌ Erro ao processar mídia: {Filename}", message.attachment.fileName);
+                            }
+                        }
+
                         // Criar nova MessageInfo
                         var messageInfo = new ChatLogService.MessageInfo
                         {
@@ -731,12 +1258,29 @@ namespace Pregiato.API.Services
                             timestamp = message.timestamp,
                             Direction = "inbound",
                             Type = message.type,
-                            MediaUrl = message.attachment?.dataUrl,
+                            MediaUrl = mediaUrl, // URL do arquivo armazenado
                             Status = "delivered"
                         };
                         
-                        // Adicionar mensagem ao payload existente
-                        existingPayload.Messages.Add(messageInfo);
+                        // VERIFICAR SE A MENSAGEM JÁ EXISTS (evitar duplicatas)
+                        var existingMessage = existingPayload.Messages?.FirstOrDefault(m => m.Id == messageInfo.Id);
+                        if (existingMessage == null)
+                        {
+                            // Adicionar mensagem ao payload existente
+                            existingPayload.Messages.Add(messageInfo);
+                            
+                            _logger.LogInformation("📝 ✅ Nova mensagem adicionada: {MessageId}", messageInfo.Id);
+                        }
+                        else
+                        {
+                            _logger.LogInformation("⚠️ Mensagem já existe, ignorando duplicata: {MessageId}", messageInfo.Id);
+                            return conversation.Id; // Retornar sem atualizar
+                        }
+                        
+                        // Ordenar mensagens por timestamp para manter cronologia
+                        existingPayload.Messages = existingPayload.Messages
+                            .OrderBy(m => DateTime.TryParse(m.timestamp, out var dt) ? dt : DateTime.MinValue)
+                            .ToList();
                         
                         // Atualizar o PayloadJson
                         chatLog.PayloadJson = JsonSerializer.Serialize(existingPayload);
@@ -748,6 +1292,21 @@ namespace Pregiato.API.Services
                         
                         _logger.LogInformation("📝 ✅ Mensagem adicionada ao ChatLog existente: ChatId={ChatId}, ChatLogId={ChatLogId}", 
                             chatLog.ChatId, chatLog.Id);
+                        
+                        // 🚀 NOVO: Emitir evento chat.updated via SignalR
+                        await _hubContext.Clients.Group("whatsapp").SendAsync("chat.updated", new {
+                            chatId = chatLog.Id.ToString(),
+                            chat = new {
+                                id = chatLog.Id.ToString(),
+                                title = chatLog.Title,
+                                contactPhoneE164 = chatLog.ContactPhoneE164,
+                                lastMessageAt = chatLog.LastMessageAt?.ToString("O"),
+                                lastMessagePreview = chatLog.LastMessagePreview,
+                                unreadCount = chatLog.UnreadCount
+                            }
+                        });
+                        
+                        _logger.LogInformation("📡 ✅ Evento chat.updated emitido para ChatLog: {ChatLogId}", chatLog.Id);
                     }
                     
                     // 3. Criar AttendanceTicket
@@ -787,29 +1346,72 @@ namespace Pregiato.API.Services
         public string type { get; set; } = string.Empty;
     }
 
+    /// <summary>
+    /// Classe unificada para receber payloads do Zap-Blaster
+    /// Compatível com WhatsAppIncomingMessageDto do Application layer
+    /// </summary>
     public class WhatsAppMessage
     {
+        // === CAMPOS OBRIGATÓRIOS ===
         public string externalMessageId { get; set; } = string.Empty;
         public string from { get; set; } = string.Empty;
         public string fromNormalized { get; set; } = string.Empty;
         public string to { get; set; } = string.Empty;
-        public string body { get; set; } = string.Empty;
         public string type { get; set; } = string.Empty;
-        public WhatsAppAttachment? attachment { get; set; }
         public string timestamp { get; set; } = string.Empty;
         public string instanceId { get; set; } = string.Empty;
         public bool fromMe { get; set; }
         public bool isGroup { get; set; }
-        public bool simulated { get; set; }
         public string? chatId { get; set; }
+
+        // === CAMPOS OPCIONAIS ===
+        public string? body { get; set; } = string.Empty;
+        public bool simulated { get; set; }
+
+        // === MÍDIA UNIFICADA ===
+        public WhatsAppAttachment? attachment { get; set; }
+
+        // === LOCALIZAÇÃO ===
+        public WhatsAppLocation? location { get; set; }
+
+        // === CONTATO ===
+        public WhatsAppContact? contact { get; set; }
     }
 
+    /// <summary>
+    /// Classe unificada para attachments
+    /// </summary>
     public class WhatsAppAttachment
     {
         public string? dataUrl { get; set; }
+        public string? mediaUrl { get; set; }
         public string? mimeType { get; set; }
         public string? fileName { get; set; }
         public string? mediaType { get; set; }
+        public long? fileSize { get; set; }
+        public int? duration { get; set; }
+        public int? width { get; set; }
+        public int? height { get; set; }
+        public string? thumbnail { get; set; }
+    }
+
+    /// <summary>
+    /// Classe para dados de localização
+    /// </summary>
+    public class WhatsAppLocation
+    {
+        public decimal latitude { get; set; }
+        public decimal longitude { get; set; }
+        public string? address { get; set; }
+    }
+
+    /// <summary>
+    /// Classe para dados de contato
+    /// </summary>
+    public class WhatsAppContact
+    {
+        public string name { get; set; } = string.Empty;
+        public string? phone { get; set; }
     }
 
     /// <summary>
@@ -846,37 +1448,6 @@ namespace Pregiato.API.Services
             };
         }
 
-        /// <summary>
-        /// Normaliza um número de telefone ou ID de grupo para um formato padrão
-        /// CORRIGIDA para evitar duplicação de chats - conforme análise de engenharia reversa
-        /// </summary>
-        /// <param name="phone">Número de telefone ou ID de grupo</param>
-        /// <param name="isGroup">Se é um ID de grupo</param>
-        /// <returns>Número normalizado</returns>
-        public static string NormalizePhoneE164Br(string phone, bool isGroup = false)
-        {
-            if (string.IsNullOrWhiteSpace(phone))
-                return string.Empty;
-            
-            // Remover todos os caracteres não numéricos
-            var digits = new string(phone.Where(char.IsDigit).ToArray());
-            
-            // Para grupos, sempre retornar apenas os dígitos (sem @g.us)
-            // O @g.us será adicionado apenas quando necessário
-            if (isGroup || (digits.StartsWith("120") && digits.Length >= 18))
-            {
-                return digits;
-            }
-            
-            // Para números individuais brasileiros, aplicar formato E.164 BR
-            // Números brasileiros: 10 ou 11 dígitos (DDD + número)
-            if (digits.Length == 10 || digits.Length == 11)
-            {
-                return $"55{digits}";
-            }
-            
-            // Se já tiver código do país (12+ dígitos) ou outro formato, retornar como está
-            return digits;
-        }
+
     }
 }

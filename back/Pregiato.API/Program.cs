@@ -14,6 +14,7 @@ using Pregiato.Application.Interfaces;
 using Pregiato.Infrastructure.Repositories;
 using Pregiato.API.Middleware;
 using Pregiato.API.Attributes;
+
 using Pregiato.Core.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -86,6 +87,9 @@ builder.Services.AddScoped<IWhatsAppService, WhatsAppService>();
 builder.Services.AddScoped<ILeadService, LeadService>();
 builder.Services.AddScoped<ILeadRepository, LeadRepository>();
 
+// Serviços de resiliência
+builder.Services.AddScoped<IEmojiResilienceService, EmojiResilienceService>();
+
 // Clerk Authentication Services
 builder.Services.AddScoped<IClerkAuthService, ClerkAuthService>();
 
@@ -101,6 +105,9 @@ builder.Services.AddScoped<IConversationRepository, ConversationRepository>();
 builder.Services.AddScoped<IConversationService, ConversationService>();
 builder.Services.AddSingleton<ConversationService>();
 
+// Media storage service
+builder.Services.AddSingleton<MediaStorageService>();
+
 // Serviços de importação
 builder.Services.AddScoped<IImportService, Pregiato.Application.Services.ImportServiceWithRepo>();
 
@@ -111,6 +118,24 @@ builder.Services.AddMemoryCache();
 builder.Services.Configure<RabbitMQConfig>(builder.Configuration.GetSection("RabbitMQ"));
 builder.Services.AddSingleton<RabbitBackgroundService>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<RabbitBackgroundService>());
+
+// ✅ Configurar Host Options para melhor tratamento de BackgroundService
+builder.Services.Configure<HostOptions>(options =>
+{
+    options.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.Ignore;
+    options.StartupTimeout = TimeSpan.FromMinutes(5);
+    options.ShutdownTimeout = TimeSpan.FromMinutes(2);
+});
+
+// ✅ Health Checks
+builder.Services.AddHealthChecks()
+    .AddCheck("rabbitmq", () => 
+    {
+        // Verificar se RabbitMQ está configurado
+        var config = builder.Configuration.GetSection("RabbitMQ");
+        return config.Exists() ? Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy() 
+                               : Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Unhealthy("RabbitMQ não configurado");
+    });
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -134,6 +159,9 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapHub<Pregiato.API.Hubs.WhatsAppHub>("/whatsappHub");
 
+// ✅ Health Check endpoint
+app.MapHealthChecks("/health");
+
 // Middleware de log simples
 app.Use(async (context, next) =>
 {
@@ -143,6 +171,17 @@ app.Use(async (context, next) =>
     var elapsed = DateTime.UtcNow - start;
     Log.Information("Request finished {Method} {Path} - {StatusCode} in {Elapsed:0.0000}ms",
         context.Request.Method, context.Request.Path, context.Response.StatusCode, elapsed.TotalMilliseconds);
+});
+
+// ✅ Configurar graceful shutdown
+app.Lifetime.ApplicationStopping.Register(() =>
+{
+    Log.Information("Aplicação está sendo finalizada...");
+});
+
+app.Lifetime.ApplicationStopped.Register(() =>
+{
+    Log.Information("Aplicação foi finalizada");
 });
 
 try

@@ -96,8 +96,8 @@ namespace Pregiato.API.Controllers
                             id = message.Id,
                             conversationId = chat.Id.ToString(),
                             direction = message.Direction == "inbound" ? "In" : "Out",
-                            type = "Text", // Default para texto
-                            body = message.body ?? message.Content ?? "",
+                            type = "text", // CORREÇÃO: t minúsculo para compatibilidade frontend
+                            body = message.body ?? message.Content ?? message.ActualContent ?? "",
                             mediaUrl = message.MediaUrl ?? "",
                             fileName = "",
                             clientMessageId = message.Id,
@@ -109,7 +109,7 @@ namespace Pregiato.API.Controllers
                             
                             // Campos de compatibilidade para o frontend
                             externalMessageId = message.Id,
-                            text = message.body ?? message.Content ?? "",
+                            text = message.body ?? message.Content ?? message.ActualContent ?? "",
                             ts = message.timestamp ?? message.Ts.ToString("O"),
                             fromMe = message.Direction == "outbound",
                             

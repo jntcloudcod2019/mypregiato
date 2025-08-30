@@ -26,6 +26,10 @@
     <PackageReference Include="PuppeteerSharp" Version="13.0.2" />
     <PackageReference Include="RabbitMQ.Client" Version="6.8.1" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.1.0" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.5" />
+    <PackageReference Include="SixLabors.ImageSharp.Web" Version="3.1.2" />
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.21.2" />
+    <PackageReference Include="AWSSDK.S3" Version="3.7.307.44" />
   </ItemGroup>
 
   <ItemGroup>

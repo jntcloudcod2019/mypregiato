@@ -1,11 +1,12 @@
-export interface WhatsAppMessage {
-  id: string;
-  from: string;
-  to: string;
-  body: string;
-  timestamp: Date;
-  type: 'text' | 'image' | 'audio' | 'video' | 'document';
-  isFromMe: boolean;
+// Importar da interface unificada
+import { MessageDto, MessageType, MessageDirection } from './message';
+
+// Interface legada mantida para compatibilidade
+export interface WhatsAppMessage extends Partial<MessageDto> {
+  /** @deprecated Use MessageDto instead */
+  body?: string;
+  /** @deprecated Use timestamp from MessageDto */
+  timestamp?: Date;
 }
 
 export interface ChatRequest {

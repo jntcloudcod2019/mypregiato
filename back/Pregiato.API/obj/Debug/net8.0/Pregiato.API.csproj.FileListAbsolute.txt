@@ -325,3 +325,15 @@
 /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/obj/Debug/net8.0/Pregiato.API.pdb
 /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/obj/Debug/net8.0/Pregiato.API.genruntimeconfig.cache
 /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/obj/Debug/net8.0/ref/Pregiato.API.dll
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/bin/Debug/net8.0/Pregiato.API.staticwebassets.runtime.json
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/bin/Debug/net8.0/AWSSDK.Core.dll
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/bin/Debug/net8.0/AWSSDK.S3.dll
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/bin/Debug/net8.0/Azure.Core.dll
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/bin/Debug/net8.0/Azure.Storage.Blobs.dll
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/bin/Debug/net8.0/Azure.Storage.Common.dll
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/bin/Debug/net8.0/Microsoft.IO.RecyclableMemoryStream.dll
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/bin/Debug/net8.0/SixLabors.ImageSharp.dll
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/bin/Debug/net8.0/SixLabors.ImageSharp.Web.dll
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/bin/Debug/net8.0/System.ClientModel.dll
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/bin/Debug/net8.0/System.IO.Hashing.dll
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/bin/Debug/net8.0/System.Memory.Data.dll

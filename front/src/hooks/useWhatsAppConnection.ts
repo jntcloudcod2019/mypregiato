@@ -115,7 +115,8 @@ export const useWhatsAppConnection = () => {
   const connect = useCallback(async () => {
     setIsConnecting(true);
     try { await checkStatus(); } finally { setIsConnecting(false); }
-  }, [checkStatus]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Removida dependência de checkStatus para evitar loops
 
   const disconnect = useCallback(async () => {
     try { 
@@ -166,6 +167,12 @@ export const useWhatsAppConnection = () => {
   }, [isGeneratingQR]);
 
   // Removido polling automático: status só será verificado quando o usuário clicar no botão
+
+  // Verificação inicial única (sem polling automático)
+  useEffect(() => {
+    // Apenas verificação inicial quando o componente monta
+    checkStatus();
+  }, [checkStatus]); // Incluir checkStatus na dependência
 
   useEffect(() => {
     const handleQRCode = (qrCode: string | null) => {

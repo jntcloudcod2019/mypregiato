@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Pregiato.API.Hubs;
@@ -30,15 +31,28 @@ namespace Pregiato.API.Controllers
         public IActionResult GenerateQr()
         {
             _logger.LogInformation("📥 Requisição de geração de QR recebida");
+            
+            // 🔄 SEMPRE limpar QR pendente anterior quando front solicita novo
+            if (_rabbit.IsQrRequestPending())
+            {
+                _logger.LogInformation("🧹 Limpando QR pendente anterior para permitir nova geração");
+                _rabbit.CancelQrRequest();
+            }
+            
             var result = _rabbit.BeginQrRequest();
             var created = result.created;
             var requestId = result.requestId;
+            
+            // Agora sempre deve ser criado, mas mantemos verificação por segurança
             if (!created)
             {
-                return Conflict(new { success = false, status = "pending", message = "Há um pedido de QR pendente.", requestId });
+                _logger.LogWarning("⚠️ Falha inesperada ao criar novo QR request após limpeza");
+                return Conflict(new { success = false, status = "pending", message = "Erro interno ao criar QR request.", requestId });
             }
+            
             var cmd = new { command = "generate_qr", requestId, timestamp = DateTime.UtcNow.ToString("O") };
             _rabbit.PublishCommand(cmd);
+            _logger.LogInformation("✅ Novo QR request criado com sucesso. RequestId: {RequestId}", requestId);
             return Ok(new { success = true, status = "command_sent", requestId });
         }
 
@@ -111,6 +125,7 @@ namespace Pregiato.API.Controllers
         }
 
         [HttpGet("status")]
+        [AllowAnonymous]
         public async Task<IActionResult> Status()
         {
             var (sessionConnectedCached, numberCached, validatedCached) = _rabbit.GetSessionStatus();

@@ -51,7 +51,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
         }
         
         setBypassAuth(true);
-      }, 10000); // Aumentar para 10 segundos para dar mais tempo ao Clerk
+      }, 120000); // Aumentar para 2 minutos para dar muito mais tempo ao Clerk
       return () => clearTimeout(timer);
     }
   }, [bypassAuth, isLoaded]);

@@ -1,17 +1,20 @@
 
-export interface WhatsAppMessage {
-  id: string
-  content: string
-  type: 'text' | 'image' | 'audio' | 'file'
-  sender: 'operator' | 'talent'
-  timestamp: string
-  status: 'sending' | 'sent' | 'delivered' | 'read' | 'failed'
+// Importar da interface unificada
+import { MessageDto, MessageType, MessageStatus } from './message';
+
+// Interface legada mantida para compatibilidade
+export interface WhatsAppMessage extends Partial<MessageDto> {
+  /** @deprecated Use MessageDto instead */
+  content?: string;
+  /** @deprecated Use type from MessageDto enum */
+  sender?: 'operator' | 'talent';
+  /** @deprecated Use MessageDto file properties */
   file?: {
-    name: string
-    url: string
-    type: string
-    size?: number
-  }
+    name: string;
+    url: string;
+    type: string;
+    size?: number;
+  };
 }
 
 export interface WhatsAppConnection {

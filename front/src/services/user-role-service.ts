@@ -26,7 +26,7 @@ const DEFAULT_ROLE: UserRole = {
 export class UserRoleService {
   static async getUserRoleByEmail(email: string): Promise<UserRole | null> {
     try {
-      const response = await axios.get(`http://localhost:5656/api/users/by-email/${encodeURIComponent(email)}`);
+      const response = await axios.get(`http://localhost:5656/api/users/by-email/${email}`);
       return response.data;
     } catch (error) {
       console.error('Erro ao buscar role do usuário:', error);
@@ -61,12 +61,8 @@ const useSafeClerkUser = (): { user: ClerkUser | null } => {
   } catch (error) {
     console.warn('Clerk não está disponível no useUserRole, usando modo anônimo', error);
     
-    // Registrar falha no session storage para próximos carregamentos
-    try {
-      sessionStorage.setItem('clerk_failed', 'true');
-    } catch (e) {
-      console.error('Error saving clerk_failed:', e);
-    }
+    // NÃO marcar clerk_failed aqui - pode ser um erro temporário
+    // Apenas retornar valores padrão e deixar outros componentes decidirem
     
     // Retornar valores padrão
     return { user: null };

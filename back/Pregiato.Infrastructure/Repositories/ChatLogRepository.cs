@@ -30,6 +30,19 @@ namespace Pregiato.Infrastructure.Repositories
             _logger = logger;
         }
 
+        /// <summary>
+        /// Busca chat por número de telefone (prevenção de duplicação)
+        /// </summary>
+        public async Task<ChatLog?> GetByPhoneNumberAsync(string phoneE164)
+        {
+            using var context = _contextFactory.CreateDbContext();
+            
+            return await context.Set<ChatLog>()
+                .Where(c => c.ContactPhoneE164 == phoneE164)
+                .OrderByDescending(c => c.LastMessageAt ?? c.Timestamp)
+                .FirstOrDefaultAsync();
+        }
+
         /// <inheritdoc/>
         public async Task<(IEnumerable<ChatLog> Items, int Total)> GetAllAsync(string? search = null, int page = 1, int pageSize = 20)
         {
@@ -69,12 +82,7 @@ namespace Pregiato.Infrastructure.Repositories
             return await context.Set<ChatLog>().FirstOrDefaultAsync(c => c.ChatId == chatId);
         }
 
-        /// <inheritdoc/>
-        public async Task<ChatLog?> GetByPhoneNumberAsync(string phoneNumber)
-        {
-            using var context = _contextFactory.CreateDbContext();
-            return await context.Set<ChatLog>().FirstOrDefaultAsync(c => c.PhoneNumber == phoneNumber);
-        }
+
 
         /// <inheritdoc/>
         public async Task<ChatLog> AddAsync(ChatLog chatLog)

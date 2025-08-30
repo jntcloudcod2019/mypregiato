@@ -50,8 +50,26 @@ api.interceptors.response.use(
 );
 
 // ============================================================================
-// TIPOS E INTERFACES
+// TIPOS E INTERFACES - UNIFICADOS
 // ============================================================================
+
+// Importar interfaces unificadas
+import { 
+  MessageDto, 
+  MessageType, 
+  MessageDirection, 
+  MessageStatus,
+  CreateTextMessageDto,
+  CreateMediaMessageDto,
+  CreateLocationMessageDto,
+  CreateContactMessageDto,
+  UpdateMessageDto,
+  WhatsAppIncomingMessageDto,
+  MessageUtils
+} from '../types/message';
+
+// Importar chatsApi para fallback
+import { chatsApi } from './chat-service';
 
 export enum ConversationStatus {
   Queued = 'Queued',
@@ -63,27 +81,6 @@ export enum ConversationPriority {
   Normal = 'Normal',
   High = 'High',
   Urgent = 'Urgent'
-}
-
-export enum MessageDirection {
-  In = 'In',
-  Out = 'Out'
-}
-
-export enum MessageType {
-  Text = 'Text',
-  Image = 'Image',
-  Audio = 'Audio',
-  Document = 'Document',
-  Video = 'Video'
-}
-
-export enum MessageStatus {
-  Sending = 'Sending',
-  Sent = 'Sent',
-  Delivered = 'Delivered',
-  Read = 'Read',
-  Failed = 'Failed'
 }
 
 // Interface para conversa (nova estrutura)
@@ -134,35 +131,8 @@ export interface ChatSessionDto {
   closedBy?: string;
 }
 
-// Interface para mensagem
-export interface MessageDto {
-  id?: string;
-  conversationId?: string;
-  sessionId?: string;
-  externalMessageId?: string;
-  direction: MessageDirection;
-  type: MessageType;
-  body: string;
-  mediaUrl?: string;
-  fileName?: string;
-  clientMessageId?: string;
-  whatsAppMessageId?: string;
-  status: MessageStatus;
-  internalNote?: string;
-  createdAt: string;
-  updatedAt?: string;
-  payloadJson?: string;
-  
-  // Campos de compatibilidade para frontend
-  text?: string;
-  ts?: string;
-  fromMe?: boolean;
-  attachment?: {
-    dataUrl: string;
-    mimeType: string;
-    fileName?: string;
-  } | null;
-}
+// MessageDto já importado do types/message.ts - interface unificada
+// Removida duplicação - usar apenas a interface unificada importada
 
 // Interface para item de lista de conversas
 export interface ConversationListItemDto {
@@ -184,17 +154,21 @@ export interface MessageAttachment {
   mediaType?: 'image' | 'file' | 'audio';
 }
 
-// Interface para request de envio de mensagem
-export interface SendMessageRequest {
+// Usar DTOs especializados já importados
+// CreateTextMessageDto, CreateMediaMessageDto já estão disponíveis
+
+// Interface temporária para compatibilidade com método legacy
+interface SendMessageRequest {
   text: string;
   clientMessageId?: string;
   attachment?: MessageAttachment;
 }
 
-// Interface para resposta de envio
+// Interface para resposta de envio unificada
 export interface SendMessageResponse {
   success: boolean;
   messageId: string;
+  message?: MessageDto;
 }
 
 // Interface para histórico de mensagens
@@ -252,17 +226,12 @@ export const convertBackendMessage = (backendMessage: Record<string, unknown>): 
     internalNote: backendMessage.internalNote as string,
     createdAt: String(backendMessage.createdAt || backendMessage.timestamp || new Date().toISOString()),
     updatedAt: backendMessage.updatedAt as string,
-    payloadJson: backendMessage.payloadJson as string,
+    // payloadJson removido - não faz parte da interface unificada
     
     // Campos de compatibilidade
     text: String(backendMessage.body || backendMessage.text || ''),
-    ts: String(backendMessage.createdAt || backendMessage.timestamp || new Date().toISOString()),
     fromMe: String(backendMessage.direction) === 'Out',
-    attachment: backendMessage.mediaUrl ? {
-      dataUrl: String(backendMessage.mediaUrl),
-      mimeType: String(backendMessage.mimeType || 'application/octet-stream'),
-      fileName: backendMessage.fileName as string
-    } : null
+    isGroup: Boolean(backendMessage.isGroup)
   };
 };
 
@@ -367,6 +336,84 @@ export const conversationsApi = {
     return data as SendMessageResponse;
   },
 
+  // === NOVOS MÉTODOS UNIFICADOS ===
+
+  // Enviar mensagem de texto
+  sendTextMessage: async (request: CreateTextMessageDto) => {
+    const backendRequest = {
+      ConversationId: request.conversationId,
+      Text: request.text,
+      ChatId: request.chatId,
+      FromNormalized: request.fromNormalized,
+      FromMe: request.fromMe || false,
+      IsGroup: request.isGroup || false
+    };
+    
+    const { data } = await api.post(`/messages/send/text`, backendRequest);
+    return data as SendMessageResponse;
+  },
+
+  // Enviar mensagem com mídia
+  sendMediaMessage: async (request: CreateMediaMessageDto) => {
+    const backendRequest = {
+      ConversationId: request.conversationId,
+      Type: request.type,
+      Text: request.text,
+      MediaUrl: request.mediaUrl,
+      FileName: request.fileName,
+      MimeType: request.mimeType,
+      Size: request.size,
+      Duration: request.duration,
+      Thumbnail: request.thumbnail,
+      ChatId: request.chatId,
+      FromNormalized: request.fromNormalized,
+      FromMe: request.fromMe || false,
+      IsGroup: request.isGroup || false
+    };
+    
+    const { data } = await api.post(`/messages/send/media`, backendRequest);
+    return data as SendMessageResponse;
+  },
+
+  // Enviar localização
+  sendLocationMessage: async (request: CreateLocationMessageDto) => {
+    const backendRequest = {
+      ConversationId: request.conversationId,
+      Latitude: request.latitude,
+      Longitude: request.longitude,
+      LocationAddress: request.locationAddress,
+      ChatId: request.chatId,
+      FromNormalized: request.fromNormalized,
+      FromMe: request.fromMe || false,
+      IsGroup: request.isGroup || false
+    };
+    
+    const { data } = await api.post(`/messages/send/location`, backendRequest);
+    return data as SendMessageResponse;
+  },
+
+  // Enviar contato
+  sendContactMessage: async (request: CreateContactMessageDto) => {
+    const backendRequest = {
+      ConversationId: request.conversationId,
+      ContactName: request.contactName,
+      ContactPhone: request.contactPhone,
+      ChatId: request.chatId,
+      FromNormalized: request.fromNormalized,
+      FromMe: request.fromMe || false,
+      IsGroup: request.isGroup || false
+    };
+    
+    const { data } = await api.post(`/messages/send/contact`, backendRequest);
+    return data as SendMessageResponse;
+  },
+
+  // Atualizar status de mensagem
+  updateMessageStatus: async (messageId: string, update: UpdateMessageDto) => {
+    const { data } = await api.patch(`/messages/${messageId}/status`, update);
+    return data;
+  },
+
   // Obter conversa por ID
   getById: async (conversationId: string) => {
     const cacheKey = getCacheKey('GET', `/conversations/${conversationId}`);
@@ -424,12 +471,7 @@ export const legacyChatsApi = {
     return result;
   },
 
-  // Enviar mensagem (sistema legado)
-  sendMessage: async (chatId: string, text: string, clientMessageId: string, attachment?: MessageAttachment) => {
-    const request = { text, clientMessageId, attachment };
-    const { data } = await api.post(`/chats/${chatId}/send`, request);
-    return data;
-  },
+  // Função removida - usar chatsApi.send para evitar duplicação
 
   // Marcar como lido (sistema legado)
   markAsRead: async (chatId: string, readUpToTs: number) => {
@@ -519,22 +561,34 @@ export const unifiedChatApi = {
   sendMessage: async (id: string, text: string, clientMessageId: string, attachment?: MessageAttachment) => {
     try {
       // Tentar primeiro a nova API de conversas
-      const response = await conversationsApi.sendMessage(id, { text, clientMessageId, attachment });
-      console.log('📞 Usando nova API de envio de conversas');
+      const request: SendMessageRequest = {
+        text,
+        clientMessageId,
+        attachment
+      };
+      
+      const response = await conversationsApi.sendMessage(id, request);
+      console.log('📞 ✅ Usando nova API de envio de conversas');
       return {
         success: response.success,
         messageId: response.messageId,
         type: 'conversations'
       };
     } catch (error) {
-      console.log('📞 Fallback para API de envio de chats legada');
+      console.log('📞 ⚠️ Fallback para API de envio de chats legada:', error);
+      
       // Fallback para API de chats legada
-      const response = await legacyChatsApi.sendMessage(id, text, clientMessageId, attachment);
-      return {
-        success: response.success,
-        messageId: response.messageId,
-        type: 'chats'
-      };
+      try {
+        const response = await chatsApi.send(id, text, clientMessageId, attachment);
+        return {
+          success: response.success,
+          messageId: response.message?.id || clientMessageId,
+          type: 'chats'
+        };
+      } catch (legacyError) {
+        console.error('❌ Erro em ambas APIs de envio:', { newApi: error, legacyApi: legacyError });
+        throw legacyError;
+      }
     }
   }
 };

@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Textarea } from '@/components/ui/textarea'
+import MediaRenderer from './media-renderer'
 import { 
   Send, 
   Paperclip, 
@@ -222,26 +223,24 @@ export const TalentChat: React.FC<TalentChatProps> = ({ talent, onClose }) => {
                   newMessageAnimation === msg.id && msg.direction === 'incoming' && "ring-2 ring-primary/50 ring-offset-2 ring-offset-background"
                 )}
               >
-                {msg.mediaUrl && (
+                {/* Renderizador unificado de mídia */}
+                {(msg.mediaUrl || msg.attachment) && (
                   <div className="mb-3">
-                    {msg.type === 'image' ? (
-                      <div className="relative">
-                        <img 
-                          src={msg.mediaUrl} 
-                          alt={msg.fileName || 'imagem'}
-                          className="max-w-full h-auto rounded-xl shadow-sm"
-                        />
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-xl" />
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-3 p-3 bg-white/10 rounded-lg border border-white/20">
-                        <Paperclip className="w-5 h-5 opacity-70" />
-                        <div>
-                          <p className="text-sm font-medium">{msg.fileName || 'Arquivo'}</p>
-                          <p className="text-xs opacity-70">Arquivo anexado</p>
-                        </div>
-                      </div>
-                    )}
+                    <MediaRenderer
+                      type={msg.type}
+                      dataUrl={msg.attachment?.dataUrl}
+                      mediaUrl={msg.mediaUrl}
+                      fileName={msg.fileName}
+                      mimeType={msg.attachment?.mimeType}
+                      size={msg.attachment?.fileSize}
+                      duration={msg.attachment?.duration}
+                      thumbnail={msg.thumbnail}
+                      latitude={msg.latitude}
+                      longitude={msg.longitude}
+                      locationAddress={msg.locationAddress}
+                      contactName={msg.contactName}
+                      contactPhone={msg.contactPhone}
+                    />
                   </div>
                 )}
                 

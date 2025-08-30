@@ -43,9 +43,37 @@
             Verifica se um talento existe por email ou documento
             </summary>
         </member>
+        <member name="T:Pregiato.API.Services.ChatHelper">
+            <summary>
+            Classe auxiliar para operações de chat
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatHelper.NormalizePhoneE164Br(System.String,System.Boolean)">
+            <summary>
+            Normaliza um número de telefone ou ID de grupo para um formato padrão
+            </summary>
+            <param name="phone">Número de telefone ou ID de grupo</param>
+            <param name="isGroup">Se é um ID de grupo</param>
+            <returns>Número normalizado</returns>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatHelper.ConsolidateDuplicateChats(Pregiato.Core.Entities.ChatLog,System.Collections.Generic.List{Pregiato.Core.Entities.ChatLog},Pregiato.Infrastructure.Data.PregiatoDbContext,Microsoft.Extensions.DependencyInjection.IServiceScope,Microsoft.Extensions.Logging.ILogger)">
+            <summary>
+            Consolida chats duplicados em um chat principal
+            </summary>
+        </member>
         <member name="M:Pregiato.API.Services.ChatLogService.GetShortContentType(System.String)">
             <summary>
             Converte tipos de conteúdo longos para versões curtas que cabem no banco
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatLogService.FindExistingChatByPhoneAsync(System.String)">
+            <summary>
+            Busca chat existente para um número, prevenindo duplicação
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatLogService.RemoveChatFromCache(System.String)">
+            <summary>
+            Remove chat duplicado do cache quando consolidado
             </summary>
         </member>
         <member name="T:Pregiato.API.Services.ChatMappingService">
@@ -132,19 +160,31 @@
             Adiciona uma mensagem a uma conversa
             </summary>
         </member>
+        <member name="T:Pregiato.API.Services.WhatsAppMessage">
+            <summary>
+            Classe unificada para receber payloads do Zap-Blaster
+            Compatível com WhatsAppIncomingMessageDto do Application layer
+            </summary>
+        </member>
+        <member name="T:Pregiato.API.Services.WhatsAppAttachment">
+            <summary>
+            Classe unificada para attachments
+            </summary>
+        </member>
+        <member name="T:Pregiato.API.Services.WhatsAppLocation">
+            <summary>
+            Classe para dados de localização
+            </summary>
+        </member>
+        <member name="T:Pregiato.API.Services.WhatsAppContact">
+            <summary>
+            Classe para dados de contato
+            </summary>
+        </member>
         <member name="T:Pregiato.API.Services.ContentTypeHelper">
             <summary>
             Converte tipos de conteúdo longos para versões curtas que cabem no banco
             </summary>
-        </member>
-        <member name="M:Pregiato.API.Services.ContentTypeHelper.NormalizePhoneE164Br(System.String,System.Boolean)">
-            <summary>
-            Normaliza um número de telefone ou ID de grupo para um formato padrão
-            CORRIGIDA para evitar duplicação de chats - conforme análise de engenharia reversa
-            </summary>
-            <param name="phone">Número de telefone ou ID de grupo</param>
-            <param name="isGroup">Se é um ID de grupo</param>
-            <returns>Número normalizado</returns>
         </member>
     </members>
 </doc>
