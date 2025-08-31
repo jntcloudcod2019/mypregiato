@@ -1204,18 +1204,11 @@ namespace Pregiato.API.Services
                             }
                         }
 
-                        // Criar MessageInfo
-                        var messageInfo = new ChatLogService.MessageInfo
-                        {
-                            Id = message.externalMessageId,
-                            body = message.body,
-                            from = message.from,
-                            timestamp = message.timestamp,
-                            Direction = "inbound",
-                            Type = message.type,
-                            MediaUrl = mediaUrl, // URL do arquivo armazenado
-                            Status = "delivered"
-                        };
+                        // Criar MessageInfo COMPLETO conforme exemplo JSON
+                        var messageInfo = CreateCompleteMessageInfo(message, mediaUrl);
+                        
+                        _logger.LogInformation("💾 MessageInfo criado para PayloadJson: Type={Type}, Body_Length={BodyLength}, MediaUrl={MediaUrl}", 
+                            messageInfo.Type, messageInfo.body?.Length ?? 0, messageInfo.MediaUrl);
                         
                         // Criar ChatPayload completo
                         var chatPayload = new ChatLogService.ChatPayload
@@ -1273,18 +1266,11 @@ namespace Pregiato.API.Services
                             }
                         }
 
-                        // Criar nova MessageInfo
-                        var messageInfo = new ChatLogService.MessageInfo
-                        {
-                            Id = message.externalMessageId,
-                            body = message.body,
-                            from = message.from,
-                            timestamp = message.timestamp,
-                            Direction = "inbound",
-                            Type = message.type,
-                            MediaUrl = mediaUrl, // URL do arquivo armazenado
-                            Status = "delivered"
-                        };
+                        // Criar nova MessageInfo COMPLETO conforme exemplo JSON
+                        var messageInfo = CreateCompleteMessageInfo(message, mediaUrl);
+                        
+                        _logger.LogInformation("💾 MessageInfo criado para chat existente: Type={Type}, Body_Length={BodyLength}, MediaUrl={MediaUrl}", 
+                            messageInfo.Type, messageInfo.body?.Length ?? 0, messageInfo.MediaUrl);
                         
                         // VERIFICAR SE A MENSAGEM JÁ EXISTS (evitar duplicatas)
                         var existingMessage = existingPayload.Messages?.FirstOrDefault(m => m.Id == messageInfo.Id);
@@ -1353,6 +1339,118 @@ namespace Pregiato.API.Services
             }
             
             return Guid.Empty;
+        }
+
+        /// <summary>
+        /// Cria MessageInfo COMPLETO conforme estrutura do exemplo JSON
+        /// Garante que todos os campos sejam populados corretamente
+        /// </summary>
+        private ChatLogService.MessageInfo CreateCompleteMessageInfo(WhatsAppMessage message, string? mediaUrl)
+        {
+            var messageInfo = new ChatLogService.MessageInfo
+            {
+                Id = message.externalMessageId,
+                from = message.from,
+                timestamp = message.timestamp,
+                Direction = "inbound",
+                Type = message.type,
+                Status = "delivered",
+                MediaUrl = mediaUrl,
+                IsRead = false
+            };
+
+            // === GARANTIR QUE O BODY CONTENHA BASE64 PARA ÁUDIO ===
+            if ((message.type == "audio" || message.type == "voice") && message.attachment?.dataUrl != null)
+            {
+                // Para áudio/voice, o body DEVE conter o base64 completo
+                messageInfo.body = message.attachment.dataUrl;
+                _logger.LogInformation("🎵 ÁUDIO: Body populado com base64 ({Length} chars)", messageInfo.body.Length);
+            }
+            else
+            {
+                // Para outros tipos, usar o body original
+                messageInfo.body = message.body ?? "";
+            }
+
+            // === POPULAR CAMPOS DE MÍDIA ===
+            if (message.attachment != null)
+            {
+                messageInfo.mimeType = message.attachment.mimeType;
+                messageInfo.fileName = message.attachment.fileName ?? $"{message.type}-message.{GetFileExtensionFromMimeType(message.attachment.mimeType)}";
+                
+                // Calcular tamanho aproximado do base64 (sem prefixo data:)
+                if (!string.IsNullOrEmpty(message.attachment.dataUrl))
+                {
+                    var base64Data = message.attachment.dataUrl.Contains(",") 
+                        ? message.attachment.dataUrl.Split(',')[1] 
+                        : message.attachment.dataUrl;
+                    messageInfo.size = (long)(base64Data.Length * 0.75); // Base64 é ~133% do tamanho original
+                }
+
+                // Para áudio/vídeo, estimar duração baseada no tamanho
+                if (message.type == "audio" || message.type == "voice")
+                {
+                    messageInfo.duration = EstimateAudioDuration(messageInfo.size ?? 0);
+                }
+
+                // Para imagens/vídeos, thumbnail poderia ser gerada (por agora null)
+                if (message.type == "image" || message.type == "video")
+                {
+                    messageInfo.thumbnail = null; // TODO: Implementar geração de thumbnail
+                }
+            }
+
+            // === CAMPOS DE LOCALIZAÇÃO ===
+            // TODO: Implementar quando recebermos mensagens de localização
+            messageInfo.latitude = null;
+            messageInfo.longitude = null; 
+            messageInfo.locationAddress = null;
+
+            // === CAMPOS DE CONTATO ===
+            // TODO: Implementar quando recebermos contatos compartilhados
+            messageInfo.contactName = null;
+            messageInfo.contactPhone = null;
+
+            _logger.LogInformation("📝 MessageInfo COMPLETO criado: Type={Type}, Body_Length={BodyLength}, FileName={FileName}, MimeType={MimeType}",
+                messageInfo.Type, messageInfo.body?.Length ?? 0, messageInfo.fileName, messageInfo.mimeType);
+
+            return messageInfo;
+        }
+
+        /// <summary>
+        /// Obtém extensão de arquivo baseada no MIME type
+        /// </summary>
+        private string GetFileExtensionFromMimeType(string? mimeType)
+        {
+            return mimeType?.ToLower() switch
+            {
+                "audio/mpeg" => "mp3",
+                "audio/ogg" => "ogg", 
+                "audio/wav" => "wav",
+                "audio/webm" => "webm",
+                "image/jpeg" => "jpg",
+                "image/png" => "png",
+                "image/gif" => "gif",
+                "image/webp" => "webp",
+                "video/mp4" => "mp4",
+                "video/avi" => "avi",
+                "video/mov" => "mov",
+                "application/pdf" => "pdf",
+                "text/plain" => "txt",
+                _ => "bin"
+            };
+        }
+
+        /// <summary>
+        /// Estima duração de áudio baseada no tamanho do arquivo
+        /// Heurística: ~8KB por segundo para MP3 de qualidade média
+        /// </summary>
+        private int EstimateAudioDuration(long fileSizeBytes)
+        {
+            if (fileSizeBytes <= 0) return 0;
+            
+            const int avgBytesPerSecond = 8192; // ~8KB/s para MP3 128kbps
+            return Math.Max(1, (int)(fileSizeBytes / avgBytesPerSecond));
         }
 
 

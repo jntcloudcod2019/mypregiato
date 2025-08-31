@@ -96,7 +96,7 @@ namespace Pregiato.API.Controllers
                             id = message.Id,
                             conversationId = chat.Id.ToString(),
                             direction = message.Direction == "inbound" ? "In" : "Out",
-                            type = "text", // CORREÇÃO: t minúsculo para compatibilidade frontend
+                            type = message.Type?.ToLower() ?? "text", // Usar Type real do PayloadJson
                             body = message.body ?? message.Content ?? message.ActualContent ?? "",
                             mediaUrl = message.MediaUrl ?? "",
                             fileName = "",
@@ -117,11 +117,14 @@ namespace Pregiato.API.Controllers
                             timestamp = !string.IsNullOrEmpty(message.timestamp) ? DateTime.Parse(message.timestamp) : message.Ts,
                             isFromMe = message.Direction == "outbound",
                             
-                            attachment = !string.IsNullOrEmpty(message.MediaUrl) ? new
+                            attachment = (!string.IsNullOrEmpty(message.MediaUrl) || !string.IsNullOrEmpty(message.body)) ? new
                             {
-                                dataUrl = message.MediaUrl,
-                                mimeType = "application/octet-stream",
-                                fileName = ""
+                                // Para áudio/voice, usar body (que contém base64), senão MediaUrl
+                                dataUrl = (message.Type == "audio" || message.Type == "voice") && !string.IsNullOrEmpty(message.body) 
+                                    ? message.body 
+                                    : message.MediaUrl,
+                                mimeType = message.mimeType ?? "application/octet-stream",
+                                fileName = message.fileName ?? ""
                             } : null
                         };
                         

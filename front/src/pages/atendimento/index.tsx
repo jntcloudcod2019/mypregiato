@@ -2,6 +2,22 @@ import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react'
 import { unifiedChatApi } from '@/services/conversations-api';
 import { MessageType } from '@/types/message';
 
+// Função para detectar se o texto é apenas base64 de mídia
+const isMediaOnlyContent = (text: string, messageType: MessageType): boolean => {
+  // Se o texto começa com "data:" é base64
+  if (text.startsWith('data:')) {
+    return true;
+  }
+  
+  // Se é áudio/voz e o texto é muito longo (provavelmente base64)
+  if ((messageType === MessageType.Audio || messageType === MessageType.Voice) && 
+      text.length > 100) {
+    return true;
+  }
+  
+  return false;
+}
+
 // Helper function to convert string type to MessageType enum
 const getMessageType = (type?: string): MessageType => {
   // Debug: log do tipo recebido
@@ -1119,7 +1135,7 @@ export default function AtendimentoPage() {
                               className="mb-2"
                             />
                             
-                            {m.text && (
+                            {m.text && !isMediaOnlyContent(m.text, getMessageType(m.type)) && (
                               <div className="whitespace-pre-wrap break-words text-sm">
                                 <TextAnimate animation="scaleUp" by="character">{m.text}</TextAnimate>
                               </div>

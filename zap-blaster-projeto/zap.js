@@ -34,7 +34,7 @@ class Log {
     if (Object.keys(meta).length) {
       console.log(line);
       console.log(JSON.stringify(meta, null, 2));
-    } else {
+        } else {
       console.log(line);
     }
   }
@@ -286,7 +286,7 @@ async function publish(queue, payload) {
   try {
     await amqpChan.assertQueue(queue, { durable: true });
     amqpChan.sendToQueue(queue, Buffer.from(JSON.stringify(payload)), { persistent: true, contentType: 'application/json' });
-  } catch (e) {
+    } catch (e) {
     Log.warn('publish falhou – enfileirando', { queue, error: e?.message });
     amqpHealthy = false;
     bufferOut.push({ queue, payload, ts: Date.now() });
@@ -346,9 +346,9 @@ async function startConsumer() {
         const { phone, message, template, data, attachment } = payload;
         const res = await sendOne(phone, { message, template, data, attachment });
         if (res.success) amqpChan.ack(msg); else amqpChan.nack(msg, false, true);
-        return;
-      }
-
+      return;
+    }
+    
       const phone = payload.toNormalized || payload.phone || payload.to || payload.Phone || payload.To;
       const body  = payload.body || payload.message || payload.text || payload.Message || payload.Body;
       const attachment = payload.attachment || null;
@@ -378,21 +378,21 @@ function buildClient() {
   if (client) return client;
   client = new Client({
     authStrategy: localAuth,
-    restartOnAuthFail: true,
+  restartOnAuthFail: true,
     authTimeoutMs: 180000,
     qrMaxRetries: 3,
-    puppeteer: {
-      headless: true,
+  puppeteer: {
+    headless: true,
       timeout: 60000,
       protocolTimeout: 240000,
-      args: [
+    args: [
         '--no-sandbox','--disable-setuid-sandbox','--disable-dev-shm-usage','--disable-gpu',
         '--disable-extensions','--mute-audio','--disable-web-security','--no-first-run'
       ]
-    },
-    locale: 'pt-BR',
-    timezone: 'America/Sao_Paulo'
-  });
+  },
+  locale: 'pt-BR',
+  timezone: 'America/Sao_Paulo'
+});
 
   client.on('qr', onQR);
   client.on('authenticated', () => { if (qrExpireTimer) clearTimeout(qrExpireTimer); Log.info('[AUTH] autenticado'); });
@@ -481,7 +481,7 @@ async function handleGenerateQR(_requestId) {
   
   if (isConnected) { 
     Log.info('[QR_GEN] Já conectado – ignorando generate_qr', { isConnected, connectedNumber }); 
-    return; 
+    return;
   }
   
   Log.info('[QR_GEN] Iniciando inicialização do cliente WhatsApp');
@@ -530,7 +530,7 @@ async function onReady() {
     } else {
       Log.info('[DEBUG] DataExtractor não disponível ou já inicializado');
     }
-  } catch (e) { 
+  } catch (e) {
     Log.warn('Extractor falhou', { error: e?.message }); 
   }
 
@@ -543,7 +543,7 @@ async function onReady() {
       isFullyValidated = true;
       Log.info('[DEBUG] validação concluída com sucesso');
       await sendSessionStatus();
-    } catch (e) {
+  } catch (e) {
       Log.warn('Validação pós-ready falhou', { error: e?.message });
       isConnected = false; isFullyValidated = false; connectedNumber = null;
       await sendSessionStatus();
@@ -557,7 +557,7 @@ async function onReady() {
     try {
       await client.getChats();
       Log.debug('[WPP] monitor ok');
-    } catch (e) {
+  } catch (e) {
       Log.warn('[WPP] monitor detectou queda', { error: e?.message });
       await onDisconnected('monitor');
     }
@@ -600,17 +600,17 @@ function buildInboundPayload(message) {
     // === CAMPOS OBRIGATÓRIOS ===
     externalMessageId: message.id?._serialized || crypto.randomUUID(),
     from: message.from || '',
-    fromNormalized: fromNorm,
+      fromNormalized: fromNorm,
     to: connectedNumber || '',
     type: mapWppType(message.type),
-    timestamp: new Date().toISOString(),
+      timestamp: new Date().toISOString(),
     instanceId,
-    fromMe: false,
+      fromMe: false,
     isGroup: Boolean(message.isGroupMsg || message.isGroup),
     chatId: `chat_${fromNorm}`,
 
     // === CAMPOS OPCIONAIS ===
-    body: message.body || '',
+      body: message.body || '',
     simulated: false,
 
     // === MÍDIA UNIFICADA ===
@@ -726,12 +726,12 @@ async function sendOne(number, msg) {
       const mime = attachment.mimeType || 'application/octet-stream';
       const media = new MessageMedia(mime, base64 || '', attachment.fileName || 'file');
       sent = await client.sendMessage(chatId, media, { caption: body || undefined });
-    } else {
+        } else {
       sent = await client.sendMessage(chatId, body);
     }
     if (sent?.id) { await sendMessageStatus(number, sent.id._serialized, 'sent'); return { success: true, messageId: sent.id }; }
     throw new Error('sendMessage retornou vazio');
-  } catch (e) {
+    } catch (e) {
     Log.error('Erro sendOne', { error: e?.message, to: number });
     return { success: false, reason: e.message };
   }
@@ -766,7 +766,7 @@ async function sendMessageStatus(phone, externalMessageId, status) {
       } catch (e) {
         Log.error('[EMERGENCY] Falha ao enviar status de emergência', { error: e?.message });
       }
-    } else {
+        } else {
       Log.info('[EMERGENCY] Timeout: Sistema funcionando normalmente');
     }
   }, 60000); // 1 minuto após inicialização

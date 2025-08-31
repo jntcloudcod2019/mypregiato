@@ -33,6 +33,22 @@ interface TalentChatProps {
   onClose: () => void
 }
 
+// Função para detectar se mensagem é apenas mídia (base64)
+const isMediaOnlyMessage = (msg: Message): boolean => {
+  // Se tem attachment/mídia e o body começa com "data:" é base64
+  if ((msg.mediaUrl || msg.attachment) && msg.body?.startsWith('data:')) {
+    return true;
+  }
+  
+  // Se é áudio/voz e o body é muito longo (provavelmente base64)
+  if ((msg.type === MessageType.Audio || msg.type === MessageType.Voice) && 
+      msg.body && msg.body.length > 100) {
+    return true;
+  }
+  
+  return false;
+}
+
 export const TalentChat: React.FC<TalentChatProps> = ({ talent, onClose }) => {
   const [message, setMessage] = useState('')
   const [isCallActive, setIsCallActive] = useState(false)

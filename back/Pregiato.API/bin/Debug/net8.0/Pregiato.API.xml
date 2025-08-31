@@ -160,6 +160,23 @@
             Adiciona uma mensagem a uma conversa
             </summary>
         </member>
+        <member name="M:Pregiato.API.Services.RabbitBackgroundService.CreateCompleteMessageInfo(Pregiato.API.Services.WhatsAppMessage,System.String)">
+            <summary>
+            Cria MessageInfo COMPLETO conforme estrutura do exemplo JSON
+            Garante que todos os campos sejam populados corretamente
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.RabbitBackgroundService.GetFileExtensionFromMimeType(System.String)">
+            <summary>
+            Obtém extensão de arquivo baseada no MIME type
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.RabbitBackgroundService.EstimateAudioDuration(System.Int64)">
+            <summary>
+            Estima duração de áudio baseada no tamanho do arquivo
+            Heurística: ~8KB por segundo para MP3 de qualidade média
+            </summary>
+        </member>
         <member name="T:Pregiato.API.Services.WhatsAppMessage">
             <summary>
             Classe unificada para receber payloads do Zap-Blaster

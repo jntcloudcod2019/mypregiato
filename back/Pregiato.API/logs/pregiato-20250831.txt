@@ -1,0 +1,856 @@
+2025-08-31 00:00:48.991 -03:00 [INF] Iniciando Pregiato API...
+2025-08-31 00:00:50.167 -03:00 [INF] RabbitMQ Background Service iniciado
+2025-08-31 00:00:50.171 -03:00 [INF] Tentando conectar ao RabbitMQ...
+2025-08-31 00:00:52.117 -03:00 [INF] ✅ Conexão RabbitMQ estabelecida com amqps://mouse.rmq5.cloudamqp.com:5671
+2025-08-31 00:00:54.238 -03:00 [INF] 📋 Filas RabbitMQ configuradas
+2025-08-31 00:00:54.433 -03:00 [INF] 🎧 Consumidor de QR codes configurado
+2025-08-31 00:00:54.946 -03:00 [INF] 🎧 Consumidor de mensagens WhatsApp configurado
+2025-08-31 00:00:56.000 -03:00 [INF] 🎧 Consumidor de status da sessão configurado
+2025-08-31 00:00:56.166 -03:00 [INF] 📨 Mensagem WhatsApp recebida via RabbitMQ: 5511988776655@c.us -> 5511888776655
+2025-08-31 00:00:56.190 -03:00 [INF] 🎧 Consumidor de status de mensagens configurado
+2025-08-31 00:00:56.191 -03:00 [INF] ✅ RabbitMQ conectado e configurado
+2025-08-31 00:00:56.200 -03:00 [INF] Processamento de batch iniciado
+2025-08-31 00:01:04.657 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-31 00:01:04.657 -03:00 [INF] Request starting GET /api/chats
+2025-08-31 00:01:04.657 -03:00 [INF] Request starting GET /api/health
+2025-08-31 00:01:04.657 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 00:01:04.663 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 00:01:04.663 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 00:01:04.724 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 60.9860ms
+2025-08-31 00:01:04.725 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 61.5490ms
+2025-08-31 00:01:04.738 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 00:01:04.792 -03:00 [INF] Request finished GET /api/health - 200 in 134.7570ms
+2025-08-31 00:01:04.792 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 00:01:04.798 -03:00 [INF] Request starting GET /api/health
+2025-08-31 00:01:04.800 -03:00 [INF] Request finished GET /api/health - 200 in 1.9100ms
+2025-08-31 00:01:04.814 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 00:01:04.811 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 00:01:04.841 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 26.7950ms
+2025-08-31 00:01:04.841 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 29.4000ms
+2025-08-31 00:01:04.847 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 00:01:04.865 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 00:01:04.917 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 259.7850ms
+2025-08-31 00:01:04.922 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-31 00:01:04.934 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 11.7140ms
+2025-08-31 00:01:06.533 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 1876.9030ms
+2025-08-31 00:01:06.550 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 00:01:06.624 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 73.9100ms
+2025-08-31 00:01:06.625 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 00:01:06.640 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 15.0630ms
+2025-08-31 00:01:06.644 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 00:01:06.673 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 28.2420ms
+2025-08-31 00:01:06.675 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 00:01:06.700 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 25.6400ms
+2025-08-31 00:01:06.704 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 00:01:06.706 -03:00 [INF] Request starting GET /api/chats
+2025-08-31 00:01:06.715 -03:00 [INF] Request finished GET /api/chats - 200 in 2059.2540ms
+2025-08-31 00:01:06.734 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 30.6330ms
+2025-08-31 00:01:06.749 -03:00 [INF] 🎬 Iniciando armazenamento de mídia: audio/mpeg, audio_1756609170806.mp3
+2025-08-31 00:01:06.773 -03:00 [INF] ✅ Mídia armazenada com sucesso: /media/6f25012b-e6a8-4c13-850e-024288d02dad.mp3
+2025-08-31 00:01:06.773 -03:00 [INF] 🎬 Mídia processada e armazenada: /media/6f25012b-e6a8-4c13-850e-024288d02dad.mp3
+2025-08-31 00:01:06.774 -03:00 [INF] 📝 ✅ Nova mensagem adicionada: fd5f3ba3-e461-40b8-a725-1038a718764c
+2025-08-31 00:01:06.889 -03:00 [INF] Request finished GET /api/chats - 200 in 182.9500ms
+2025-08-31 00:01:07.636 -03:00 [INF] 📝 ✅ Mensagem adicionada ao ChatLog existente: ChatId="d6527602-3127-49f3-bf3f-08da7a923616", ChatLogId="f0c45bfb-bbe0-496d-abaf-03d44850bdc5"
+2025-08-31 00:01:07.640 -03:00 [INF] 📡 ✅ Evento chat.updated emitido para ChatLog: "f0c45bfb-bbe0-496d-abaf-03d44850bdc5"
+2025-08-31 00:01:07.732 -03:00 [INF] 🎫 AttendanceTicket criado: "0bf00b48-f881-436e-90f1-c41de304b18d"
+2025-08-31 00:01:07.738 -03:00 [ERR] Erro ao sanitizar mensagem com serviço de resiliência, usando fallback
+System.TypeInitializationException: The type initializer for 'Pregiato.Application.Services.EmojiResilienceService' threw an exception.
+ ---> System.Text.RegularExpressions.RegexParseException: Invalid pattern '[\uD83D\uDE00-\uD83D\uDE4F]|[\uD83C\uDF00-\uD83D\uDDFF]|[\uD83D\uDE80-\uD83D\uDEFF]|[\uD83C\uDDE0-\uD83C\uDDFF]|[\u2600-\u26FF]|[\u2700-\u27BF]' at offset 20. [x-y] range in reverse order.
+   at System.Text.RegularExpressions.RegexParser.ScanCharClass(Boolean caseInsensitive, Boolean scanOnly)
+   at System.Text.RegularExpressions.RegexParser.ScanRegex()
+   at System.Text.RegularExpressions.RegexParser.Parse(String pattern, RegexOptions options, CultureInfo culture)
+   at System.Text.RegularExpressions.Regex..ctor(String pattern, RegexOptions options, TimeSpan matchTimeout, CultureInfo culture)
+   at Pregiato.Application.Services.EmojiResilienceService..cctor() in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application/Services/EmojiResilienceService.cs:line 30
+   --- End of inner exception stack trace ---
+   at Pregiato.Application.Services.EmojiResilienceService.HasEmojis(String text) in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application/Services/EmojiResilienceService.cs:line 298
+   at Pregiato.Application.Services.EmojiResilienceService.ProcessText(String text, EmojiProcessingStrategy strategy) in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application/Services/EmojiResilienceService.cs:line 55
+   at Pregiato.API.Services.RabbitBackgroundService.SanitizeMessageBody(String body) in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/Services/RabbitBackgroundService.cs:line 863
+2025-08-31 00:01:07.781 -03:00 [INF] 📎 Attachment processado com sucesso: FileName='audio_1756609170806.mp3' (23 chars), MimeType='audio/mpeg'
+2025-08-31 00:01:08.104 -03:00 [INF] Request starting GET /api/chats/f0c45bfb-bbe0-496d-abaf-03d44850bdc5/messages
+2025-08-31 00:01:08.173 -03:00 [INF] 🔍 Buscando mensagens para ID: f0c45bfb-bbe0-496d-abaf-03d44850bdc5
+2025-08-31 00:01:08.327 -03:00 [INF] 📄 Busca por ID do ChatLog: Encontrado
+2025-08-31 00:01:08.334 -03:00 [INF] ✅ Chat encontrado: f0c45bfb-bbe0-496d-abaf-03d44850bdc5, ContactPhoneE164: 5511988776655
+2025-08-31 00:01:08.365 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 9
+2025-08-31 00:01:08.370 -03:00 [INF] ✅ Retornando 9 mensagens convertidas
+2025-08-31 00:01:08.441 -03:00 [INF] Request starting GET /api/chats/f0c45bfb-bbe0-496d-abaf-03d44850bdc5/messages
+2025-08-31 00:01:08.457 -03:00 [INF] 🔍 Buscando mensagens para ID: f0c45bfb-bbe0-496d-abaf-03d44850bdc5
+2025-08-31 00:01:08.508 -03:00 [INF] Request finished GET /api/chats/f0c45bfb-bbe0-496d-abaf-03d44850bdc5/messages - 200 in 403.6280ms
+2025-08-31 00:01:08.588 -03:00 [INF] 📄 Busca por ID do ChatLog: Encontrado
+2025-08-31 00:01:08.589 -03:00 [INF] ✅ Chat encontrado: f0c45bfb-bbe0-496d-abaf-03d44850bdc5, ContactPhoneE164: 5511988776655
+2025-08-31 00:01:08.668 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 9
+2025-08-31 00:01:08.683 -03:00 [INF] ✅ Retornando 9 mensagens convertidas
+2025-08-31 00:01:09.487 -03:00 [INF] Request finished GET /api/chats/f0c45bfb-bbe0-496d-abaf-03d44850bdc5/messages - 200 in 1031.6740ms
+2025-08-31 00:01:09.867 -03:00 [INF] Request starting GET /api/chats/d6527602-3127-49f3-bf3f-08da7a923616/messages
+2025-08-31 00:01:10.086 -03:00 [INF] 🔍 Buscando mensagens para ID: d6527602-3127-49f3-bf3f-08da7a923616
+2025-08-31 00:01:10.154 -03:00 [INF] 📄 Busca por ID do ChatLog: Não encontrado
+2025-08-31 00:01:10.521 -03:00 [INF] 📄 Busca por ChatId: Encontrado
+2025-08-31 00:01:10.521 -03:00 [INF] ✅ Chat encontrado: f0c45bfb-bbe0-496d-abaf-03d44850bdc5, ContactPhoneE164: 5511988776655
+2025-08-31 00:01:10.541 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 9
+2025-08-31 00:01:10.542 -03:00 [INF] ✅ Retornando 9 mensagens convertidas
+2025-08-31 00:01:10.551 -03:00 [INF] Request finished GET /api/chats/d6527602-3127-49f3-bf3f-08da7a923616/messages - 200 in 684.0630ms
+2025-08-31 00:01:10.557 -03:00 [INF] Request starting GET /api/chats/d6527602-3127-49f3-bf3f-08da7a923616/messages
+2025-08-31 00:01:10.559 -03:00 [INF] 🔍 Buscando mensagens para ID: d6527602-3127-49f3-bf3f-08da7a923616
+2025-08-31 00:01:10.567 -03:00 [INF] 📄 Busca por ID do ChatLog: Não encontrado
+2025-08-31 00:01:10.600 -03:00 [INF] 📄 Busca por ChatId: Encontrado
+2025-08-31 00:01:10.600 -03:00 [INF] ✅ Chat encontrado: f0c45bfb-bbe0-496d-abaf-03d44850bdc5, ContactPhoneE164: 5511988776655
+2025-08-31 00:01:10.608 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 9
+2025-08-31 00:01:10.608 -03:00 [INF] ✅ Retornando 9 mensagens convertidas
+2025-08-31 00:01:10.611 -03:00 [INF] Request finished GET /api/chats/d6527602-3127-49f3-bf3f-08da7a923616/messages - 200 in 53.5590ms
+2025-08-31 00:01:11.666 -03:00 [INF] ✅ Salvas 1 mensagens em batch
+2025-08-31 00:01:11.951 -03:00 [INF] Request starting GET /api/chats/28dff706-3010-44ac-9b4c-63e2dce394c8/messages
+2025-08-31 00:01:11.970 -03:00 [INF] 🔍 Buscando mensagens para ID: 28dff706-3010-44ac-9b4c-63e2dce394c8
+2025-08-31 00:01:12.010 -03:00 [INF] 📄 Busca por ID do ChatLog: Não encontrado
+2025-08-31 00:01:12.014 -03:00 [INF] 📄 Busca por ChatId: Encontrado
+2025-08-31 00:01:12.014 -03:00 [INF] ✅ Chat encontrado: e3284cd6-fec3-4726-bb5f-c19f84a3ed9e, ContactPhoneE164: 5511999887766
+2025-08-31 00:01:12.015 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 1
+2025-08-31 00:01:12.015 -03:00 [INF] ✅ Retornando 1 mensagens convertidas
+2025-08-31 00:01:12.017 -03:00 [INF] Request finished GET /api/chats/28dff706-3010-44ac-9b4c-63e2dce394c8/messages - 200 in 66.0170ms
+2025-08-31 00:01:12.032 -03:00 [INF] Request starting GET /api/chats/28dff706-3010-44ac-9b4c-63e2dce394c8/messages
+2025-08-31 00:01:12.033 -03:00 [INF] 🔍 Buscando mensagens para ID: 28dff706-3010-44ac-9b4c-63e2dce394c8
+2025-08-31 00:01:12.048 -03:00 [INF] 📄 Busca por ID do ChatLog: Não encontrado
+2025-08-31 00:01:12.053 -03:00 [INF] 📄 Busca por ChatId: Encontrado
+2025-08-31 00:01:12.054 -03:00 [INF] ✅ Chat encontrado: e3284cd6-fec3-4726-bb5f-c19f84a3ed9e, ContactPhoneE164: 5511999887766
+2025-08-31 00:01:12.054 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 1
+2025-08-31 00:01:12.059 -03:00 [INF] ✅ Retornando 1 mensagens convertidas
+2025-08-31 00:01:12.060 -03:00 [INF] Request finished GET /api/chats/28dff706-3010-44ac-9b4c-63e2dce394c8/messages - 200 in 28.5280ms
+2025-08-31 00:02:04.286 -03:00 [INF] Request starting GET /api/chats/78f4cbd4-4bb5-4153-90c6-99c884fab258/messages
+2025-08-31 00:02:04.314 -03:00 [INF] 🔍 Buscando mensagens para ID: 78f4cbd4-4bb5-4153-90c6-99c884fab258
+2025-08-31 00:02:04.480 -03:00 [INF] 📄 Busca por ID do ChatLog: Não encontrado
+2025-08-31 00:02:04.498 -03:00 [INF] 📄 Busca por ChatId: Encontrado
+2025-08-31 00:02:04.499 -03:00 [INF] ✅ Chat encontrado: c693e781-b136-4c1d-9095-6d321c3c5738, ContactPhoneE164: 
+2025-08-31 00:02:04.501 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 16
+2025-08-31 00:02:04.501 -03:00 [INF] ✅ Retornando 16 mensagens convertidas
+2025-08-31 00:02:04.508 -03:00 [INF] Request finished GET /api/chats/78f4cbd4-4bb5-4153-90c6-99c884fab258/messages - 200 in 222.8480ms
+2025-08-31 00:02:04.510 -03:00 [INF] Request starting GET /api/chats/78f4cbd4-4bb5-4153-90c6-99c884fab258/messages
+2025-08-31 00:02:04.512 -03:00 [INF] 🔍 Buscando mensagens para ID: 78f4cbd4-4bb5-4153-90c6-99c884fab258
+2025-08-31 00:02:04.521 -03:00 [INF] 📄 Busca por ID do ChatLog: Não encontrado
+2025-08-31 00:02:04.540 -03:00 [INF] 📄 Busca por ChatId: Encontrado
+2025-08-31 00:02:04.541 -03:00 [INF] ✅ Chat encontrado: c693e781-b136-4c1d-9095-6d321c3c5738, ContactPhoneE164: 
+2025-08-31 00:02:04.542 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 16
+2025-08-31 00:02:04.543 -03:00 [INF] ✅ Retornando 16 mensagens convertidas
+2025-08-31 00:02:04.549 -03:00 [INF] Request finished GET /api/chats/78f4cbd4-4bb5-4153-90c6-99c884fab258/messages - 200 in 39.0430ms
+2025-08-31 00:02:07.856 -03:00 [INF] Request starting GET /api/chats/addfb86b-5f48-4d8f-af8f-3dd3d0bdba88/messages
+2025-08-31 00:02:07.866 -03:00 [INF] 🔍 Buscando mensagens para ID: addfb86b-5f48-4d8f-af8f-3dd3d0bdba88
+2025-08-31 00:02:07.883 -03:00 [INF] 📄 Busca por ID do ChatLog: Não encontrado
+2025-08-31 00:02:07.885 -03:00 [INF] 📄 Busca por ChatId: Encontrado
+2025-08-31 00:02:07.885 -03:00 [INF] ✅ Chat encontrado: b64ae137-519f-42a8-b2e7-57b4571e410e, ContactPhoneE164: 5511974614271
+2025-08-31 00:02:07.886 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 2
+2025-08-31 00:02:07.886 -03:00 [INF] ✅ Retornando 2 mensagens convertidas
+2025-08-31 00:02:07.886 -03:00 [INF] Request finished GET /api/chats/addfb86b-5f48-4d8f-af8f-3dd3d0bdba88/messages - 200 in 29.7480ms
+2025-08-31 00:02:07.889 -03:00 [INF] Request starting GET /api/chats/addfb86b-5f48-4d8f-af8f-3dd3d0bdba88/messages
+2025-08-31 00:02:07.891 -03:00 [INF] 🔍 Buscando mensagens para ID: addfb86b-5f48-4d8f-af8f-3dd3d0bdba88
+2025-08-31 00:02:07.894 -03:00 [INF] 📄 Busca por ID do ChatLog: Não encontrado
+2025-08-31 00:02:07.898 -03:00 [INF] 📄 Busca por ChatId: Encontrado
+2025-08-31 00:02:07.899 -03:00 [INF] ✅ Chat encontrado: b64ae137-519f-42a8-b2e7-57b4571e410e, ContactPhoneE164: 5511974614271
+2025-08-31 00:02:07.899 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 2
+2025-08-31 00:02:07.899 -03:00 [INF] ✅ Retornando 2 mensagens convertidas
+2025-08-31 00:02:07.900 -03:00 [INF] Request finished GET /api/chats/addfb86b-5f48-4d8f-af8f-3dd3d0bdba88/messages - 200 in 10.9930ms
+2025-08-31 00:02:10.646 -03:00 [INF] Request starting GET /api/chats/3d47b694-2d21-4434-81ec-b797883c67d8/messages
+2025-08-31 00:02:11.025 -03:00 [INF] 🔍 Buscando mensagens para ID: 3d47b694-2d21-4434-81ec-b797883c67d8
+2025-08-31 00:02:11.934 -03:00 [INF] 📄 Busca por ID do ChatLog: Não encontrado
+2025-08-31 00:02:11.949 -03:00 [INF] 📄 Busca por ChatId: Encontrado
+2025-08-31 00:02:11.951 -03:00 [INF] ✅ Chat encontrado: 78e34825-0822-4163-8885-f202dff04d60, ContactPhoneE164: 5511949908369
+2025-08-31 00:02:11.956 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 6
+2025-08-31 00:02:11.957 -03:00 [INF] ✅ Retornando 6 mensagens convertidas
+2025-08-31 00:02:11.959 -03:00 [INF] Request finished GET /api/chats/3d47b694-2d21-4434-81ec-b797883c67d8/messages - 200 in 1312.3770ms
+2025-08-31 00:02:11.969 -03:00 [INF] Request starting GET /api/chats/3d47b694-2d21-4434-81ec-b797883c67d8/messages
+2025-08-31 00:02:11.981 -03:00 [INF] 🔍 Buscando mensagens para ID: 3d47b694-2d21-4434-81ec-b797883c67d8
+2025-08-31 00:02:11.991 -03:00 [INF] 📄 Busca por ID do ChatLog: Não encontrado
+2025-08-31 00:02:12.002 -03:00 [INF] 📄 Busca por ChatId: Encontrado
+2025-08-31 00:02:12.002 -03:00 [INF] ✅ Chat encontrado: 78e34825-0822-4163-8885-f202dff04d60, ContactPhoneE164: 5511949908369
+2025-08-31 00:02:12.002 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 6
+2025-08-31 00:02:12.002 -03:00 [INF] ✅ Retornando 6 mensagens convertidas
+2025-08-31 00:02:12.003 -03:00 [INF] Request finished GET /api/chats/3d47b694-2d21-4434-81ec-b797883c67d8/messages - 200 in 33.4720ms
+2025-08-31 00:03:17.596 -03:00 [INF] Request finished GET /whatsappHub - 101 in 132744.3690ms
+2025-08-31 00:03:17.596 -03:00 [INF] Request finished GET /whatsappHub - 101 in 132726.1570ms
+2025-08-31 00:03:17.596 -03:00 [INF] Request finished GET /whatsappHub - 101 in 132798.6020ms
+2025-08-31 00:03:17.596 -03:00 [INF] Request finished GET /whatsappHub - 101 in 132853.5410ms
+2025-08-31 00:03:19.049 -03:00 [INF] Request starting GET /api/chats
+2025-08-31 00:03:19.049 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-31 00:03:19.049 -03:00 [INF] Request starting GET /api/health
+2025-08-31 00:03:19.049 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 00:03:19.060 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 00:03:19.060 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 00:03:19.094 -03:00 [INF] Request starting GET /api/health
+2025-08-31 00:03:19.098 -03:00 [INF] Request finished GET /api/health - 200 in 49.7600ms
+2025-08-31 00:03:19.100 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 39.2900ms
+2025-08-31 00:03:19.101 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 41.0620ms
+2025-08-31 00:03:19.102 -03:00 [INF] Request finished GET /api/health - 200 in 7.8040ms
+2025-08-31 00:03:19.110 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 00:03:19.113 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 00:03:19.114 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.3670ms
+2025-08-31 00:03:19.123 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 00:03:19.126 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 2.5050ms
+2025-08-31 00:03:19.169 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 00:03:19.183 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 00:03:19.198 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 00:03:19.207 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 158.2830ms
+2025-08-31 00:03:19.209 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-31 00:03:19.224 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 14.4420ms
+2025-08-31 00:03:19.469 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 420.0840ms
+2025-08-31 00:03:19.470 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 00:03:19.509 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 38.6980ms
+2025-08-31 00:03:19.512 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 00:03:19.530 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 18.8500ms
+2025-08-31 00:03:19.533 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 00:03:19.542 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 8.4670ms
+2025-08-31 00:03:19.543 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 00:03:19.557 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 14.2470ms
+2025-08-31 00:03:19.565 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 00:03:19.571 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 5.9630ms
+2025-08-31 00:03:19.685 -03:00 [INF] Request finished GET /api/chats - 200 in 635.9910ms
+2025-08-31 00:03:21.033 -03:00 [INF] Request starting GET /api/chats/d6527602-3127-49f3-bf3f-08da7a923616/messages
+2025-08-31 00:03:21.042 -03:00 [INF] 🔍 Buscando mensagens para ID: d6527602-3127-49f3-bf3f-08da7a923616
+2025-08-31 00:03:21.713 -03:00 [INF] 📄 Busca por ID do ChatLog: Não encontrado
+2025-08-31 00:03:22.088 -03:00 [INF] 📄 Busca por ChatId: Encontrado
+2025-08-31 00:03:22.089 -03:00 [INF] ✅ Chat encontrado: f0c45bfb-bbe0-496d-abaf-03d44850bdc5, ContactPhoneE164: 5511988776655
+2025-08-31 00:03:22.121 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 9
+2025-08-31 00:03:22.121 -03:00 [INF] ✅ Retornando 9 mensagens convertidas
+2025-08-31 00:03:22.132 -03:00 [INF] Request finished GET /api/chats/d6527602-3127-49f3-bf3f-08da7a923616/messages - 200 in 1099.8850ms
+2025-08-31 00:03:22.132 -03:00 [INF] Request starting GET /api/chats/d6527602-3127-49f3-bf3f-08da7a923616/messages
+2025-08-31 00:03:22.138 -03:00 [INF] 🔍 Buscando mensagens para ID: d6527602-3127-49f3-bf3f-08da7a923616
+2025-08-31 00:03:22.142 -03:00 [INF] 📄 Busca por ID do ChatLog: Não encontrado
+2025-08-31 00:03:22.156 -03:00 [INF] 📄 Busca por ChatId: Encontrado
+2025-08-31 00:03:22.157 -03:00 [INF] ✅ Chat encontrado: f0c45bfb-bbe0-496d-abaf-03d44850bdc5, ContactPhoneE164: 5511988776655
+2025-08-31 00:03:22.200 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 9
+2025-08-31 00:03:22.201 -03:00 [INF] ✅ Retornando 9 mensagens convertidas
+2025-08-31 00:03:22.211 -03:00 [INF] Request starting GET /api/chats/d6527602-3127-49f3-bf3f-08da7a923616/messages
+2025-08-31 00:03:22.216 -03:00 [INF] 🔍 Buscando mensagens para ID: d6527602-3127-49f3-bf3f-08da7a923616
+2025-08-31 00:03:22.220 -03:00 [INF] Request finished GET /api/chats/d6527602-3127-49f3-bf3f-08da7a923616/messages - 200 in 87.9100ms
+2025-08-31 00:03:22.223 -03:00 [INF] 📄 Busca por ID do ChatLog: Não encontrado
+2025-08-31 00:03:22.235 -03:00 [INF] 📄 Busca por ChatId: Encontrado
+2025-08-31 00:03:22.235 -03:00 [INF] ✅ Chat encontrado: f0c45bfb-bbe0-496d-abaf-03d44850bdc5, ContactPhoneE164: 5511988776655
+2025-08-31 00:03:22.262 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 9
+2025-08-31 00:03:22.262 -03:00 [INF] ✅ Retornando 9 mensagens convertidas
+2025-08-31 00:03:22.272 -03:00 [INF] Request starting GET /api/chats/d6527602-3127-49f3-bf3f-08da7a923616/messages
+2025-08-31 00:03:22.298 -03:00 [INF] 🔍 Buscando mensagens para ID: d6527602-3127-49f3-bf3f-08da7a923616
+2025-08-31 00:03:22.299 -03:00 [INF] Request finished GET /api/chats/d6527602-3127-49f3-bf3f-08da7a923616/messages - 200 in 87.9680ms
+2025-08-31 00:03:22.301 -03:00 [INF] 📄 Busca por ID do ChatLog: Não encontrado
+2025-08-31 00:03:22.321 -03:00 [INF] 📄 Busca por ChatId: Encontrado
+2025-08-31 00:03:22.321 -03:00 [INF] ✅ Chat encontrado: f0c45bfb-bbe0-496d-abaf-03d44850bdc5, ContactPhoneE164: 5511988776655
+2025-08-31 00:03:22.369 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 9
+2025-08-31 00:03:22.369 -03:00 [INF] ✅ Retornando 9 mensagens convertidas
+2025-08-31 00:03:22.372 -03:00 [INF] Request finished GET /api/chats/d6527602-3127-49f3-bf3f-08da7a923616/messages - 200 in 100.2440ms
+2025-08-31 00:03:23.352 -03:00 [INF] Request starting GET /api/chats/28dff706-3010-44ac-9b4c-63e2dce394c8/messages
+2025-08-31 00:03:23.441 -03:00 [INF] 🔍 Buscando mensagens para ID: 28dff706-3010-44ac-9b4c-63e2dce394c8
+2025-08-31 00:03:23.506 -03:00 [INF] 📄 Busca por ID do ChatLog: Não encontrado
+2025-08-31 00:03:23.575 -03:00 [INF] 📄 Busca por ChatId: Encontrado
+2025-08-31 00:03:23.575 -03:00 [INF] ✅ Chat encontrado: e3284cd6-fec3-4726-bb5f-c19f84a3ed9e, ContactPhoneE164: 5511999887766
+2025-08-31 00:03:23.577 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 1
+2025-08-31 00:03:23.578 -03:00 [INF] ✅ Retornando 1 mensagens convertidas
+2025-08-31 00:03:23.589 -03:00 [INF] Request finished GET /api/chats/28dff706-3010-44ac-9b4c-63e2dce394c8/messages - 200 in 236.7080ms
+2025-08-31 00:03:23.611 -03:00 [INF] Request starting GET /api/chats/28dff706-3010-44ac-9b4c-63e2dce394c8/messages
+2025-08-31 00:03:23.612 -03:00 [INF] 🔍 Buscando mensagens para ID: 28dff706-3010-44ac-9b4c-63e2dce394c8
+2025-08-31 00:03:23.645 -03:00 [INF] 📄 Busca por ID do ChatLog: Não encontrado
+2025-08-31 00:03:23.656 -03:00 [INF] 📄 Busca por ChatId: Encontrado
+2025-08-31 00:03:23.656 -03:00 [INF] ✅ Chat encontrado: e3284cd6-fec3-4726-bb5f-c19f84a3ed9e, ContactPhoneE164: 5511999887766
+2025-08-31 00:03:23.657 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 1
+2025-08-31 00:03:23.657 -03:00 [INF] ✅ Retornando 1 mensagens convertidas
+2025-08-31 00:03:23.658 -03:00 [INF] Request finished GET /api/chats/28dff706-3010-44ac-9b4c-63e2dce394c8/messages - 200 in 47.2820ms
+2025-08-31 00:03:45.670 -03:00 [INF] 📨 Mensagem WhatsApp recebida via RabbitMQ: 5511988776655@c.us -> 5511888776655
+2025-08-31 00:03:46.784 -03:00 [INF] 🎬 Iniciando armazenamento de mídia: audio/mpeg, audio_1756609412850.mp3
+2025-08-31 00:03:46.802 -03:00 [INF] ✅ Mídia armazenada com sucesso: /media/2345e4ab-a2a3-46f1-8bbd-f57bac24bce2.mp3
+2025-08-31 00:03:46.802 -03:00 [INF] 🎬 Mídia processada e armazenada: /media/2345e4ab-a2a3-46f1-8bbd-f57bac24bce2.mp3
+2025-08-31 00:03:46.802 -03:00 [INF] 📝 ✅ Nova mensagem adicionada: 7d52468a-e864-4218-bd56-6c07fbdd6f7e
+2025-08-31 00:03:48.325 -03:00 [INF] 📝 ✅ Mensagem adicionada ao ChatLog existente: ChatId="d6527602-3127-49f3-bf3f-08da7a923616", ChatLogId="f0c45bfb-bbe0-496d-abaf-03d44850bdc5"
+2025-08-31 00:03:48.334 -03:00 [INF] 📡 ✅ Evento chat.updated emitido para ChatLog: "f0c45bfb-bbe0-496d-abaf-03d44850bdc5"
+2025-08-31 00:03:48.447 -03:00 [INF] 🎫 AttendanceTicket criado: "0bf00b48-f881-436e-90f1-c41de304b18d"
+2025-08-31 00:03:48.456 -03:00 [ERR] Erro ao sanitizar mensagem com serviço de resiliência, usando fallback
+System.TypeInitializationException: The type initializer for 'Pregiato.Application.Services.EmojiResilienceService' threw an exception.
+ ---> System.Text.RegularExpressions.RegexParseException: Invalid pattern '[\uD83D\uDE00-\uD83D\uDE4F]|[\uD83C\uDF00-\uD83D\uDDFF]|[\uD83D\uDE80-\uD83D\uDEFF]|[\uD83C\uDDE0-\uD83C\uDDFF]|[\u2600-\u26FF]|[\u2700-\u27BF]' at offset 20. [x-y] range in reverse order.
+   at System.Text.RegularExpressions.RegexParser.ScanCharClass(Boolean caseInsensitive, Boolean scanOnly)
+   at System.Text.RegularExpressions.RegexParser.ScanRegex()
+   at System.Text.RegularExpressions.RegexParser.Parse(String pattern, RegexOptions options, CultureInfo culture)
+   at System.Text.RegularExpressions.Regex..ctor(String pattern, RegexOptions options, TimeSpan matchTimeout, CultureInfo culture)
+   at Pregiato.Application.Services.EmojiResilienceService..cctor() in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application/Services/EmojiResilienceService.cs:line 30
+   --- End of inner exception stack trace ---
+   at Pregiato.Application.Services.EmojiResilienceService.HasEmojis(String text) in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application/Services/EmojiResilienceService.cs:line 298
+   at Pregiato.Application.Services.EmojiResilienceService.ProcessText(String text, EmojiProcessingStrategy strategy) in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application/Services/EmojiResilienceService.cs:line 55
+   at Pregiato.API.Services.RabbitBackgroundService.SanitizeMessageBody(String body) in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/Services/RabbitBackgroundService.cs:line 863
+2025-08-31 00:03:48.510 -03:00 [INF] 📎 Attachment processado com sucesso: FileName='audio_1756609412850.mp3' (23 chars), MimeType='audio/mpeg'
+2025-08-31 00:03:50.563 -03:00 [INF] ✅ Salvas 1 mensagens em batch
+2025-08-31 00:10:56.818 -03:00 [INF] Request starting GET /api/chats/f0c45bfb-bbe0-496d-abaf-03d44850bdc5/messages
+2025-08-31 00:10:56.890 -03:00 [INF] 🔍 Buscando mensagens para ID: f0c45bfb-bbe0-496d-abaf-03d44850bdc5
+2025-08-31 00:10:57.822 -03:00 [INF] 📄 Busca por ID do ChatLog: Encontrado
+2025-08-31 00:10:57.822 -03:00 [INF] ✅ Chat encontrado: f0c45bfb-bbe0-496d-abaf-03d44850bdc5, ContactPhoneE164: 5511988776655
+2025-08-31 00:10:57.934 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 10
+2025-08-31 00:10:57.936 -03:00 [INF] ✅ Retornando 10 mensagens convertidas
+2025-08-31 00:10:57.958 -03:00 [INF] Request starting GET /api/chats/f0c45bfb-bbe0-496d-abaf-03d44850bdc5/messages
+2025-08-31 00:10:57.963 -03:00 [INF] Request finished GET /api/chats/f0c45bfb-bbe0-496d-abaf-03d44850bdc5/messages - 200 in 1145.2770ms
+2025-08-31 00:10:57.970 -03:00 [INF] 🔍 Buscando mensagens para ID: f0c45bfb-bbe0-496d-abaf-03d44850bdc5
+2025-08-31 00:10:58.223 -03:00 [INF] 📄 Busca por ID do ChatLog: Encontrado
+2025-08-31 00:10:58.223 -03:00 [INF] ✅ Chat encontrado: f0c45bfb-bbe0-496d-abaf-03d44850bdc5, ContactPhoneE164: 5511988776655
+2025-08-31 00:10:58.293 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 10
+2025-08-31 00:10:58.294 -03:00 [INF] ✅ Retornando 10 mensagens convertidas
+2025-08-31 00:10:58.371 -03:00 [INF] Request finished GET /api/chats/f0c45bfb-bbe0-496d-abaf-03d44850bdc5/messages - 200 in 412.0800ms
+2025-08-31 00:13:25.077 -03:00 [INF] 📨 Mensagem WhatsApp recebida via RabbitMQ: 5511988776655@c.us -> 5511888776655
+2025-08-31 00:13:25.417 -03:00 [INF] 🎬 Iniciando armazenamento de mídia: audio/mpeg, audio_1756609992203.mp3
+2025-08-31 00:13:25.423 -03:00 [INF] ✅ Mídia armazenada com sucesso: /media/70d6e9b5-e12a-4cc6-b0b2-67c6dd15ad0c.mp3
+2025-08-31 00:13:25.423 -03:00 [INF] 🎬 Mídia processada e armazenada: /media/70d6e9b5-e12a-4cc6-b0b2-67c6dd15ad0c.mp3
+2025-08-31 00:13:25.424 -03:00 [INF] 📝 ✅ Nova mensagem adicionada: 73660715-5ca3-4257-95ab-f2329c1dc7be
+2025-08-31 00:13:26.305 -03:00 [INF] 📝 ✅ Mensagem adicionada ao ChatLog existente: ChatId="d6527602-3127-49f3-bf3f-08da7a923616", ChatLogId="f0c45bfb-bbe0-496d-abaf-03d44850bdc5"
+2025-08-31 00:13:26.308 -03:00 [INF] 📡 ✅ Evento chat.updated emitido para ChatLog: "f0c45bfb-bbe0-496d-abaf-03d44850bdc5"
+2025-08-31 00:13:26.333 -03:00 [INF] 🎫 AttendanceTicket criado: "0bf00b48-f881-436e-90f1-c41de304b18d"
+2025-08-31 00:13:26.339 -03:00 [ERR] Erro ao sanitizar mensagem com serviço de resiliência, usando fallback
+System.TypeInitializationException: The type initializer for 'Pregiato.Application.Services.EmojiResilienceService' threw an exception.
+ ---> System.Text.RegularExpressions.RegexParseException: Invalid pattern '[\uD83D\uDE00-\uD83D\uDE4F]|[\uD83C\uDF00-\uD83D\uDDFF]|[\uD83D\uDE80-\uD83D\uDEFF]|[\uD83C\uDDE0-\uD83C\uDDFF]|[\u2600-\u26FF]|[\u2700-\u27BF]' at offset 20. [x-y] range in reverse order.
+   at System.Text.RegularExpressions.RegexParser.ScanCharClass(Boolean caseInsensitive, Boolean scanOnly)
+   at System.Text.RegularExpressions.RegexParser.ScanRegex()
+   at System.Text.RegularExpressions.RegexParser.Parse(String pattern, RegexOptions options, CultureInfo culture)
+   at System.Text.RegularExpressions.Regex..ctor(String pattern, RegexOptions options, TimeSpan matchTimeout, CultureInfo culture)
+   at Pregiato.Application.Services.EmojiResilienceService..cctor() in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application/Services/EmojiResilienceService.cs:line 30
+   --- End of inner exception stack trace ---
+   at Pregiato.Application.Services.EmojiResilienceService.HasEmojis(String text) in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application/Services/EmojiResilienceService.cs:line 298
+   at Pregiato.Application.Services.EmojiResilienceService.ProcessText(String text, EmojiProcessingStrategy strategy) in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application/Services/EmojiResilienceService.cs:line 55
+   at Pregiato.API.Services.RabbitBackgroundService.SanitizeMessageBody(String body) in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/Services/RabbitBackgroundService.cs:line 863
+2025-08-31 00:13:26.390 -03:00 [INF] 📎 Attachment processado com sucesso: FileName='audio_1756609992203.mp3' (23 chars), MimeType='audio/mpeg'
+2025-08-31 00:13:27.607 -03:00 [INF] ✅ Salvas 1 mensagens em batch
+2025-08-31 00:13:38.525 -03:00 [INF] Request finished GET /whatsappHub - 101 in 619355.0040ms
+2025-08-31 00:13:38.524 -03:00 [INF] Request finished GET /whatsappHub - 101 in 619340.7090ms
+2025-08-31 00:13:38.526 -03:00 [INF] Request finished GET /whatsappHub - 101 in 619416.7710ms
+2025-08-31 00:13:38.529 -03:00 [INF] Request finished GET /whatsappHub - 101 in 619330.8540ms
+2025-08-31 00:13:40.776 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-31 00:13:40.776 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 00:13:40.776 -03:00 [INF] Request starting GET /api/health
+2025-08-31 00:13:40.776 -03:00 [INF] Request starting GET /api/chats
+2025-08-31 00:13:40.815 -03:00 [INF] Request finished GET /api/health - 200 in 39.3940ms
+2025-08-31 00:13:40.822 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 00:13:40.827 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 00:13:40.828 -03:00 [INF] Request starting GET /api/health
+2025-08-31 00:13:40.829 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 00:13:40.829 -03:00 [INF] Request finished GET /api/health - 200 in 1.6760ms
+2025-08-31 00:13:40.838 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 00:13:40.844 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 16.8220ms
+2025-08-31 00:13:40.844 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 15.5320ms
+2025-08-31 00:13:40.846 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 23.1880ms
+2025-08-31 00:13:40.844 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 6.7280ms
+2025-08-31 00:13:40.854 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 00:13:40.886 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 00:13:40.900 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 00:13:40.916 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 140.1930ms
+2025-08-31 00:13:40.918 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 00:13:40.923 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-31 00:13:40.936 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 12.6640ms
+2025-08-31 00:13:41.584 -03:00 [INF] Request finished GET /api/chats - 200 in 808.3740ms
+2025-08-31 00:13:41.845 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 1069.6640ms
+2025-08-31 00:13:41.848 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 00:13:42.168 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 316.2820ms
+2025-08-31 00:13:42.256 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 00:13:42.328 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 71.4490ms
+2025-08-31 00:13:42.332 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 00:13:42.372 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 40.1860ms
+2025-08-31 00:13:42.383 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 00:13:42.421 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 37.5680ms
+2025-08-31 00:13:42.424 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 00:13:42.455 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 31.0010ms
+2025-08-31 00:13:42.672 -03:00 [INF] Request starting GET /api/chats/d6527602-3127-49f3-bf3f-08da7a923616/messages
+2025-08-31 00:13:42.686 -03:00 [INF] 🔍 Buscando mensagens para ID: d6527602-3127-49f3-bf3f-08da7a923616
+2025-08-31 00:13:42.846 -03:00 [INF] 📄 Busca por ID do ChatLog: Não encontrado
+2025-08-31 00:13:43.022 -03:00 [INF] 📄 Busca por ChatId: Encontrado
+2025-08-31 00:13:43.024 -03:00 [INF] ✅ Chat encontrado: f0c45bfb-bbe0-496d-abaf-03d44850bdc5, ContactPhoneE164: 5511988776655
+2025-08-31 00:13:43.121 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 11
+2025-08-31 00:13:43.121 -03:00 [INF] ✅ Retornando 11 mensagens convertidas
+2025-08-31 00:13:43.136 -03:00 [INF] Request starting GET /api/chats/d6527602-3127-49f3-bf3f-08da7a923616/messages
+2025-08-31 00:13:43.138 -03:00 [INF] 🔍 Buscando mensagens para ID: d6527602-3127-49f3-bf3f-08da7a923616
+2025-08-31 00:13:43.147 -03:00 [INF] 📄 Busca por ID do ChatLog: Não encontrado
+2025-08-31 00:13:43.164 -03:00 [INF] Request finished GET /api/chats/d6527602-3127-49f3-bf3f-08da7a923616/messages - 200 in 491.8140ms
+2025-08-31 00:13:43.224 -03:00 [INF] 📄 Busca por ChatId: Encontrado
+2025-08-31 00:13:43.224 -03:00 [INF] ✅ Chat encontrado: f0c45bfb-bbe0-496d-abaf-03d44850bdc5, ContactPhoneE164: 5511988776655
+2025-08-31 00:13:43.315 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 11
+2025-08-31 00:13:43.316 -03:00 [INF] ✅ Retornando 11 mensagens convertidas
+2025-08-31 00:13:43.334 -03:00 [INF] Request finished GET /api/chats/d6527602-3127-49f3-bf3f-08da7a923616/messages - 200 in 197.4900ms
+2025-08-31 00:13:44.220 -03:00 [INF] Request starting GET /api/chats/28dff706-3010-44ac-9b4c-63e2dce394c8/messages
+2025-08-31 00:13:44.238 -03:00 [INF] 🔍 Buscando mensagens para ID: 28dff706-3010-44ac-9b4c-63e2dce394c8
+2025-08-31 00:13:44.259 -03:00 [INF] 📄 Busca por ID do ChatLog: Não encontrado
+2025-08-31 00:13:44.268 -03:00 [INF] 📄 Busca por ChatId: Encontrado
+2025-08-31 00:13:44.268 -03:00 [INF] ✅ Chat encontrado: e3284cd6-fec3-4726-bb5f-c19f84a3ed9e, ContactPhoneE164: 5511999887766
+2025-08-31 00:13:44.270 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 1
+2025-08-31 00:13:44.270 -03:00 [INF] ✅ Retornando 1 mensagens convertidas
+2025-08-31 00:13:44.272 -03:00 [INF] Request finished GET /api/chats/28dff706-3010-44ac-9b4c-63e2dce394c8/messages - 200 in 51.5590ms
+2025-08-31 00:13:44.278 -03:00 [INF] Request starting GET /api/chats/28dff706-3010-44ac-9b4c-63e2dce394c8/messages
+2025-08-31 00:13:44.279 -03:00 [INF] 🔍 Buscando mensagens para ID: 28dff706-3010-44ac-9b4c-63e2dce394c8
+2025-08-31 00:13:44.296 -03:00 [INF] 📄 Busca por ID do ChatLog: Não encontrado
+2025-08-31 00:13:44.305 -03:00 [INF] 📄 Busca por ChatId: Encontrado
+2025-08-31 00:13:44.306 -03:00 [INF] ✅ Chat encontrado: e3284cd6-fec3-4726-bb5f-c19f84a3ed9e, ContactPhoneE164: 5511999887766
+2025-08-31 00:13:44.310 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 1
+2025-08-31 00:13:44.310 -03:00 [INF] ✅ Retornando 1 mensagens convertidas
+2025-08-31 00:13:44.310 -03:00 [INF] Request finished GET /api/chats/28dff706-3010-44ac-9b4c-63e2dce394c8/messages - 200 in 32.0400ms
+2025-08-31 00:13:45.170 -03:00 [INF] Request starting GET /api/chats/78f4cbd4-4bb5-4153-90c6-99c884fab258/messages
+2025-08-31 00:13:45.214 -03:00 [INF] 🔍 Buscando mensagens para ID: 78f4cbd4-4bb5-4153-90c6-99c884fab258
+2025-08-31 00:13:45.246 -03:00 [INF] 📄 Busca por ID do ChatLog: Não encontrado
+2025-08-31 00:13:45.265 -03:00 [INF] 📄 Busca por ChatId: Encontrado
+2025-08-31 00:13:45.266 -03:00 [INF] ✅ Chat encontrado: c693e781-b136-4c1d-9095-6d321c3c5738, ContactPhoneE164: 
+2025-08-31 00:13:45.267 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 16
+2025-08-31 00:13:45.268 -03:00 [INF] ✅ Retornando 16 mensagens convertidas
+2025-08-31 00:13:45.270 -03:00 [INF] Request finished GET /api/chats/78f4cbd4-4bb5-4153-90c6-99c884fab258/messages - 200 in 100.3530ms
+2025-08-31 00:13:45.285 -03:00 [INF] Request starting GET /api/chats/78f4cbd4-4bb5-4153-90c6-99c884fab258/messages
+2025-08-31 00:13:45.287 -03:00 [INF] 🔍 Buscando mensagens para ID: 78f4cbd4-4bb5-4153-90c6-99c884fab258
+2025-08-31 00:13:45.297 -03:00 [INF] 📄 Busca por ID do ChatLog: Não encontrado
+2025-08-31 00:13:45.317 -03:00 [INF] 📄 Busca por ChatId: Encontrado
+2025-08-31 00:13:45.320 -03:00 [INF] ✅ Chat encontrado: c693e781-b136-4c1d-9095-6d321c3c5738, ContactPhoneE164: 
+2025-08-31 00:13:45.329 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 16
+2025-08-31 00:13:45.329 -03:00 [INF] ✅ Retornando 16 mensagens convertidas
+2025-08-31 00:13:45.329 -03:00 [INF] Request finished GET /api/chats/78f4cbd4-4bb5-4153-90c6-99c884fab258/messages - 200 in 43.6510ms
+2025-08-31 00:13:46.249 -03:00 [INF] Request starting GET /api/chats/addfb86b-5f48-4d8f-af8f-3dd3d0bdba88/messages
+2025-08-31 00:13:46.251 -03:00 [INF] 🔍 Buscando mensagens para ID: addfb86b-5f48-4d8f-af8f-3dd3d0bdba88
+2025-08-31 00:13:46.264 -03:00 [INF] 📄 Busca por ID do ChatLog: Não encontrado
+2025-08-31 00:13:46.266 -03:00 [INF] 📄 Busca por ChatId: Encontrado
+2025-08-31 00:13:46.266 -03:00 [INF] ✅ Chat encontrado: b64ae137-519f-42a8-b2e7-57b4571e410e, ContactPhoneE164: 5511974614271
+2025-08-31 00:13:46.267 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 2
+2025-08-31 00:13:46.267 -03:00 [INF] ✅ Retornando 2 mensagens convertidas
+2025-08-31 00:13:46.267 -03:00 [INF] Request finished GET /api/chats/addfb86b-5f48-4d8f-af8f-3dd3d0bdba88/messages - 200 in 18.0680ms
+2025-08-31 00:13:46.269 -03:00 [INF] Request starting GET /api/chats/addfb86b-5f48-4d8f-af8f-3dd3d0bdba88/messages
+2025-08-31 00:13:46.269 -03:00 [INF] 🔍 Buscando mensagens para ID: addfb86b-5f48-4d8f-af8f-3dd3d0bdba88
+2025-08-31 00:13:46.272 -03:00 [INF] 📄 Busca por ID do ChatLog: Não encontrado
+2025-08-31 00:13:46.273 -03:00 [INF] 📄 Busca por ChatId: Encontrado
+2025-08-31 00:13:46.273 -03:00 [INF] ✅ Chat encontrado: b64ae137-519f-42a8-b2e7-57b4571e410e, ContactPhoneE164: 5511974614271
+2025-08-31 00:13:46.273 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 2
+2025-08-31 00:13:46.273 -03:00 [INF] ✅ Retornando 2 mensagens convertidas
+2025-08-31 00:13:46.274 -03:00 [INF] Request finished GET /api/chats/addfb86b-5f48-4d8f-af8f-3dd3d0bdba88/messages - 200 in 4.6020ms
+2025-08-31 00:16:31.228 -03:00 [INF] Request starting GET /api/chats/3d47b694-2d21-4434-81ec-b797883c67d8/messages
+2025-08-31 00:16:31.271 -03:00 [INF] 🔍 Buscando mensagens para ID: 3d47b694-2d21-4434-81ec-b797883c67d8
+2025-08-31 00:16:31.611 -03:00 [INF] 📄 Busca por ID do ChatLog: Não encontrado
+2025-08-31 00:16:32.495 -03:00 [INF] 📄 Busca por ChatId: Encontrado
+2025-08-31 00:16:32.504 -03:00 [INF] ✅ Chat encontrado: 78e34825-0822-4163-8885-f202dff04d60, ContactPhoneE164: 5511949908369
+2025-08-31 00:16:32.523 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 6
+2025-08-31 00:16:32.528 -03:00 [INF] ✅ Retornando 6 mensagens convertidas
+2025-08-31 00:16:32.548 -03:00 [INF] Request finished GET /api/chats/3d47b694-2d21-4434-81ec-b797883c67d8/messages - 200 in 1319.8450ms
+2025-08-31 00:16:32.580 -03:00 [INF] Request starting GET /api/chats/3d47b694-2d21-4434-81ec-b797883c67d8/messages
+2025-08-31 00:16:32.642 -03:00 [INF] 🔍 Buscando mensagens para ID: 3d47b694-2d21-4434-81ec-b797883c67d8
+2025-08-31 00:16:32.775 -03:00 [INF] 📄 Busca por ID do ChatLog: Não encontrado
+2025-08-31 00:16:32.802 -03:00 [INF] 📄 Busca por ChatId: Encontrado
+2025-08-31 00:16:32.806 -03:00 [INF] ✅ Chat encontrado: 78e34825-0822-4163-8885-f202dff04d60, ContactPhoneE164: 5511949908369
+2025-08-31 00:16:32.825 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 6
+2025-08-31 00:16:32.829 -03:00 [INF] ✅ Retornando 6 mensagens convertidas
+2025-08-31 00:16:32.840 -03:00 [INF] Request finished GET /api/chats/3d47b694-2d21-4434-81ec-b797883c67d8/messages - 200 in 260.1550ms
+2025-08-31 00:27:00.451 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 00:27:00.451 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 00:27:00.451 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 00:27:00.459 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 00:27:00.482 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 30.6700ms
+2025-08-31 00:27:00.486 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 25.3460ms
+2025-08-31 00:27:00.484 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 32.3190ms
+2025-08-31 00:27:00.484 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 29.8550ms
+2025-08-31 00:27:00.519 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 00:27:00.566 -03:00 [INF] Request finished GET /whatsappHub - 101 in 799665.9580ms
+2025-08-31 00:27:00.567 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 00:27:00.578 -03:00 [INF] Request finished GET /whatsappHub - 101 in 799692.4150ms
+2025-08-31 00:27:00.579 -03:00 [INF] Request finished GET /whatsappHub - 101 in 799661.1300ms
+2025-08-31 00:27:00.578 -03:00 [INF] Request finished GET /whatsappHub - 101 in 799724.0780ms
+2025-08-31 00:27:00.584 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 00:27:00.600 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 00:27:01.141 -03:00 [INF] Request finished GET /whatsappHub - 101 in 622.6810ms
+2025-08-31 00:27:01.141 -03:00 [INF] Request finished GET /whatsappHub - 101 in 557.4490ms
+2025-08-31 00:27:01.146 -03:00 [INF] Request finished GET /whatsappHub - 101 in 545.5970ms
+2025-08-31 00:27:01.142 -03:00 [INF] Request finished GET /whatsappHub - 101 in 574.2150ms
+2025-08-31 00:27:16.920 -03:00 [INF] Request starting GET /api/health
+2025-08-31 00:27:16.920 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 00:27:16.920 -03:00 [INF] Request starting GET /api/chats
+2025-08-31 00:27:16.920 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-31 00:27:16.922 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 00:27:16.922 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 00:27:16.938 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 15.9270ms
+2025-08-31 00:27:16.938 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 15.2560ms
+2025-08-31 00:27:16.943 -03:00 [INF] Request finished GET /api/health - 200 in 23.6340ms
+2025-08-31 00:27:16.947 -03:00 [INF] Request starting GET /api/health
+2025-08-31 00:27:16.947 -03:00 [INF] Request finished GET /api/health - 200 in 0.3140ms
+2025-08-31 00:27:16.953 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 00:27:16.954 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 00:27:16.955 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 2.1100ms
+2025-08-31 00:27:16.955 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 1.5030ms
+2025-08-31 00:27:17.060 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 140.2620ms
+2025-08-31 00:27:17.061 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-31 00:27:17.067 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 5.7730ms
+2025-08-31 00:27:17.112 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 00:27:17.130 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 00:27:17.143 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 00:27:17.158 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 00:27:18.722 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 1802.5630ms
+2025-08-31 00:27:18.736 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 00:27:18.963 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 226.6530ms
+2025-08-31 00:27:18.976 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 00:27:18.990 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 14.0710ms
+2025-08-31 00:27:18.991 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 00:27:18.999 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 7.3020ms
+2025-08-31 00:27:19.005 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 00:27:19.023 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 18.6910ms
+2025-08-31 00:27:19.026 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 00:27:19.044 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 17.6860ms
+2025-08-31 00:27:19.418 -03:00 [INF] Request starting GET /api/chats
+2025-08-31 00:27:19.541 -03:00 [INF] Request finished GET /api/chats - 200 in 2621.9170ms
+2025-08-31 00:27:19.790 -03:00 [INF] Request finished GET /api/chats - 200 in 371.9290ms
+2025-08-31 00:33:10.640 -03:00 [INF] 📨 Mensagem WhatsApp recebida via RabbitMQ: 5511988776655@c.us -> 5511888776655
+2025-08-31 00:33:11.503 -03:00 [INF] 🎬 Iniciando armazenamento de mídia: audio/mpeg, audio_1756611172421.mp3
+2025-08-31 00:33:11.525 -03:00 [INF] ✅ Mídia armazenada com sucesso: /media/9ae2a8b3-4ba6-4257-882c-34dd04912824.mp3
+2025-08-31 00:33:11.525 -03:00 [INF] 🎬 Mídia processada e armazenada: /media/9ae2a8b3-4ba6-4257-882c-34dd04912824.mp3
+2025-08-31 00:33:11.525 -03:00 [INF] 📝 ✅ Nova mensagem adicionada: 8796a05c-fa3c-456b-a0fc-b30f4b3567ac
+2025-08-31 00:33:13.000 -03:00 [INF] 📝 ✅ Mensagem adicionada ao ChatLog existente: ChatId="d6527602-3127-49f3-bf3f-08da7a923616", ChatLogId="f0c45bfb-bbe0-496d-abaf-03d44850bdc5"
+2025-08-31 00:33:13.068 -03:00 [INF] 📡 ✅ Evento chat.updated emitido para ChatLog: "f0c45bfb-bbe0-496d-abaf-03d44850bdc5"
+2025-08-31 00:33:13.340 -03:00 [INF] 🎫 AttendanceTicket criado: "0bf00b48-f881-436e-90f1-c41de304b18d"
+2025-08-31 00:33:13.384 -03:00 [ERR] Erro ao sanitizar mensagem com serviço de resiliência, usando fallback
+System.TypeInitializationException: The type initializer for 'Pregiato.Application.Services.EmojiResilienceService' threw an exception.
+ ---> System.Text.RegularExpressions.RegexParseException: Invalid pattern '[\uD83D\uDE00-\uD83D\uDE4F]|[\uD83C\uDF00-\uD83D\uDDFF]|[\uD83D\uDE80-\uD83D\uDEFF]|[\uD83C\uDDE0-\uD83C\uDDFF]|[\u2600-\u26FF]|[\u2700-\u27BF]' at offset 20. [x-y] range in reverse order.
+   at System.Text.RegularExpressions.RegexParser.ScanCharClass(Boolean caseInsensitive, Boolean scanOnly)
+   at System.Text.RegularExpressions.RegexParser.ScanRegex()
+   at System.Text.RegularExpressions.RegexParser.Parse(String pattern, RegexOptions options, CultureInfo culture)
+   at System.Text.RegularExpressions.Regex..ctor(String pattern, RegexOptions options, TimeSpan matchTimeout, CultureInfo culture)
+   at Pregiato.Application.Services.EmojiResilienceService..cctor() in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application/Services/EmojiResilienceService.cs:line 30
+   --- End of inner exception stack trace ---
+   at Pregiato.Application.Services.EmojiResilienceService.HasEmojis(String text) in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application/Services/EmojiResilienceService.cs:line 298
+   at Pregiato.Application.Services.EmojiResilienceService.ProcessText(String text, EmojiProcessingStrategy strategy) in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application/Services/EmojiResilienceService.cs:line 55
+   at Pregiato.API.Services.RabbitBackgroundService.SanitizeMessageBody(String body) in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/Services/RabbitBackgroundService.cs:line 863
+2025-08-31 00:33:13.545 -03:00 [INF] 📎 Attachment processado com sucesso: FileName='audio_1756611172421.mp3' (23 chars), MimeType='audio/mpeg'
+2025-08-31 00:33:14.414 -03:00 [INF] ✅ Salvas 1 mensagens em batch
+2025-08-31 00:42:12.868 -03:00 [INF] Iniciando Pregiato API...
+2025-08-31 00:42:13.037 -03:00 [INF] RabbitMQ Background Service iniciado
+2025-08-31 00:42:13.039 -03:00 [INF] Tentando conectar ao RabbitMQ...
+2025-08-31 00:42:15.272 -03:00 [INF] ✅ Conexão RabbitMQ estabelecida com amqps://mouse.rmq5.cloudamqp.com:5671
+2025-08-31 00:42:17.005 -03:00 [INF] 📋 Filas RabbitMQ configuradas
+2025-08-31 00:42:17.745 -03:00 [INF] 🎧 Consumidor de QR codes configurado
+2025-08-31 00:42:18.131 -03:00 [INF] 🎧 Consumidor de mensagens WhatsApp configurado
+2025-08-31 00:42:20.214 -03:00 [INF] 🎧 Consumidor de status da sessão configurado
+2025-08-31 00:42:20.268 -03:00 [INF] 📨 Mensagem WhatsApp recebida via RabbitMQ: 5511988776655@c.us -> 5511888776655
+2025-08-31 00:42:20.403 -03:00 [INF] 🎧 Consumidor de status de mensagens configurado
+2025-08-31 00:42:20.405 -03:00 [INF] ✅ RabbitMQ conectado e configurado
+2025-08-31 00:42:20.406 -03:00 [INF] Processamento de batch iniciado
+2025-08-31 00:42:24.919 -03:00 [INF] 🎬 Iniciando armazenamento de mídia: audio/mpeg, audio_1756611631386.mp3
+2025-08-31 00:42:24.923 -03:00 [INF] ✅ Mídia armazenada com sucesso: /media/90df1b8f-ff31-4860-a65e-42bd24446f56.mp3
+2025-08-31 00:42:24.923 -03:00 [INF] 🎬 Mídia processada e armazenada: /media/90df1b8f-ff31-4860-a65e-42bd24446f56.mp3
+2025-08-31 00:42:24.924 -03:00 [INF] 💾 MessageInfo criado para chat existente: Type=audio, Body_Length=390507, MediaUrl=/media/90df1b8f-ff31-4860-a65e-42bd24446f56.mp3
+2025-08-31 00:42:24.924 -03:00 [INF] 📝 ✅ Nova mensagem adicionada: b4b92f92-0a28-4fa2-b432-56f35eb3009a
+2025-08-31 00:42:27.044 -03:00 [INF] 📝 ✅ Mensagem adicionada ao ChatLog existente: ChatId="d6527602-3127-49f3-bf3f-08da7a923616", ChatLogId="f0c45bfb-bbe0-496d-abaf-03d44850bdc5"
+2025-08-31 00:42:27.049 -03:00 [INF] 📡 ✅ Evento chat.updated emitido para ChatLog: "f0c45bfb-bbe0-496d-abaf-03d44850bdc5"
+2025-08-31 00:42:27.142 -03:00 [INF] 🎫 AttendanceTicket criado: "0bf00b48-f881-436e-90f1-c41de304b18d"
+2025-08-31 00:42:27.153 -03:00 [ERR] Erro ao sanitizar mensagem com serviço de resiliência, usando fallback
+System.TypeInitializationException: The type initializer for 'Pregiato.Application.Services.EmojiResilienceService' threw an exception.
+ ---> System.Text.RegularExpressions.RegexParseException: Invalid pattern '[\uD83D\uDE00-\uD83D\uDE4F]|[\uD83C\uDF00-\uD83D\uDDFF]|[\uD83D\uDE80-\uD83D\uDEFF]|[\uD83C\uDDE0-\uD83C\uDDFF]|[\u2600-\u26FF]|[\u2700-\u27BF]' at offset 20. [x-y] range in reverse order.
+   at System.Text.RegularExpressions.RegexParser.ScanCharClass(Boolean caseInsensitive, Boolean scanOnly)
+   at System.Text.RegularExpressions.RegexParser.ScanRegex()
+   at System.Text.RegularExpressions.RegexParser.Parse(String pattern, RegexOptions options, CultureInfo culture)
+   at System.Text.RegularExpressions.Regex..ctor(String pattern, RegexOptions options, TimeSpan matchTimeout, CultureInfo culture)
+   at Pregiato.Application.Services.EmojiResilienceService..cctor() in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application/Services/EmojiResilienceService.cs:line 30
+   --- End of inner exception stack trace ---
+   at Pregiato.Application.Services.EmojiResilienceService.HasEmojis(String text) in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application/Services/EmojiResilienceService.cs:line 298
+   at Pregiato.Application.Services.EmojiResilienceService.ProcessText(String text, EmojiProcessingStrategy strategy) in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application/Services/EmojiResilienceService.cs:line 55
+   at Pregiato.API.Services.RabbitBackgroundService.SanitizeMessageBody(String body) in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/Services/RabbitBackgroundService.cs:line 863
+2025-08-31 00:42:27.204 -03:00 [INF] 📎 Attachment processado com sucesso: FileName='audio_1756611631386.mp3' (23 chars), MimeType='audio/mpeg'
+2025-08-31 00:42:29.030 -03:00 [INF] ✅ Salvas 1 mensagens em batch
+2025-08-31 01:16:52.498 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-31 01:16:52.498 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 01:16:52.498 -03:00 [INF] Request starting GET /api/health
+2025-08-31 01:16:52.497 -03:00 [INF] Request starting GET /api/chats
+2025-08-31 01:16:52.530 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 01:16:52.545 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 01:16:52.815 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 285.3710ms
+2025-08-31 01:16:52.814 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 269.5030ms
+2025-08-31 01:16:52.951 -03:00 [INF] Request finished GET /api/health - 200 in 456.7020ms
+2025-08-31 01:16:52.962 -03:00 [INF] Request starting GET /api/health
+2025-08-31 01:16:52.971 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 01:16:52.973 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 01:16:52.974 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 1.0440ms
+2025-08-31 01:16:52.975 -03:00 [INF] Request finished GET /api/health - 200 in 13.9840ms
+2025-08-31 01:16:52.983 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 01:16:52.984 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.7680ms
+2025-08-31 01:16:53.020 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 01:16:53.043 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 01:16:53.060 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 01:16:53.087 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 592.8040ms
+2025-08-31 01:16:53.091 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-31 01:16:53.104 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 13.0400ms
+2025-08-31 01:16:55.416 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 2921.9530ms
+2025-08-31 01:16:55.439 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 01:16:55.451 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 12.2230ms
+2025-08-31 01:16:55.453 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 01:16:55.459 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 6.0010ms
+2025-08-31 01:16:55.460 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 01:16:55.463 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 3.2430ms
+2025-08-31 01:16:55.465 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 01:16:55.470 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 5.6360ms
+2025-08-31 01:16:55.473 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 01:16:55.476 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 2.9920ms
+2025-08-31 01:16:57.956 -03:00 [INF] Request starting GET /api/chats
+2025-08-31 01:16:57.988 -03:00 [INF] Request finished GET /api/chats - 200 in 5494.1490ms
+2025-08-31 01:16:58.339 -03:00 [INF] Request finished GET /api/chats - 200 in 382.7310ms
+2025-08-31 01:18:26.345 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 01:18:26.345 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 01:18:26.345 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 01:18:26.345 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 01:18:26.370 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 25.1970ms
+2025-08-31 01:18:26.370 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 25.5540ms
+2025-08-31 01:18:26.370 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 25.2820ms
+2025-08-31 01:18:26.370 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 25.2920ms
+2025-08-31 01:18:26.397 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 01:18:26.418 -03:00 [INF] Request finished GET /whatsappHub - 101 in 93447.0930ms
+2025-08-31 01:18:26.419 -03:00 [INF] Request finished GET /whatsappHub - 101 in 93358.8010ms
+2025-08-31 01:18:26.419 -03:00 [INF] Request finished GET /whatsappHub - 101 in 93398.5400ms
+2025-08-31 01:18:26.419 -03:00 [INF] Request finished GET /whatsappHub - 101 in 93375.5040ms
+2025-08-31 01:18:26.426 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 01:18:26.441 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 01:18:26.456 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 01:18:27.156 -03:00 [INF] Request finished GET /whatsappHub - 101 in 758.6560ms
+2025-08-31 01:18:27.156 -03:00 [INF] Request finished GET /whatsappHub - 101 in 714.5740ms
+2025-08-31 01:18:27.156 -03:00 [INF] Request finished GET /whatsappHub - 101 in 729.5700ms
+2025-08-31 01:18:27.156 -03:00 [INF] Request finished GET /whatsappHub - 101 in 700.2420ms
+2025-08-31 01:18:30.188 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-31 01:18:30.188 -03:00 [INF] Request starting GET /api/health
+2025-08-31 01:18:30.188 -03:00 [INF] Request starting GET /api/chats
+2025-08-31 01:18:30.188 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 01:18:30.193 -03:00 [INF] Request finished GET /api/health - 200 in 5.0310ms
+2025-08-31 01:18:30.198 -03:00 [INF] Request starting GET /api/health
+2025-08-31 01:18:30.200 -03:00 [INF] Request finished GET /api/health - 200 in 2.6360ms
+2025-08-31 01:18:30.222 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 01:18:30.222 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 01:18:30.223 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 01:18:30.223 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 01:18:30.224 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.8110ms
+2025-08-31 01:18:30.224 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.6510ms
+2025-08-31 01:18:30.224 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 1.4840ms
+2025-08-31 01:18:30.224 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 1.8670ms
+2025-08-31 01:18:30.231 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 43.3010ms
+2025-08-31 01:18:30.233 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-31 01:18:30.238 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 5.4450ms
+2025-08-31 01:18:30.246 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 01:18:30.262 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 01:18:30.276 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 01:18:30.289 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 01:18:30.353 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 165.2420ms
+2025-08-31 01:18:30.354 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 01:18:30.362 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 8.1160ms
+2025-08-31 01:18:30.364 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 01:18:30.368 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 3.9920ms
+2025-08-31 01:18:30.372 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 01:18:30.409 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 37.0220ms
+2025-08-31 01:18:30.411 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 01:18:30.417 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 6.4490ms
+2025-08-31 01:18:30.419 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 01:18:30.446 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 27.1610ms
+2025-08-31 01:18:30.561 -03:00 [INF] Request finished GET /api/chats - 200 in 372.6760ms
+2025-08-31 01:26:17.066 -03:00 [INF] Request starting GET /health
+2025-08-31 01:26:17.238 -03:00 [INF] Request finished GET /health - 200 in 172.2800ms
+2025-08-31 01:27:11.889 -03:00 [WRN] As of ""2025-08-31T04:27:11.8271060+00:00"", the heartbeat has been running for ""00:00:01.0934632"" which is longer than ""00:00:01"". This could be caused by thread pool starvation.
+2025-08-31 01:30:12.883 -03:00 [INF] Iniciando Pregiato API...
+2025-08-31 01:30:13.014 -03:00 [INF] RabbitMQ Background Service iniciado
+2025-08-31 01:30:13.015 -03:00 [INF] Tentando conectar ao RabbitMQ...
+2025-08-31 01:30:14.917 -03:00 [INF] ✅ Conexão RabbitMQ estabelecida com amqps://mouse.rmq5.cloudamqp.com:5671
+2025-08-31 01:30:17.081 -03:00 [INF] 📋 Filas RabbitMQ configuradas
+2025-08-31 01:30:17.380 -03:00 [INF] 🎧 Consumidor de QR codes configurado
+2025-08-31 01:30:17.567 -03:00 [INF] 🎧 Consumidor de mensagens WhatsApp configurado
+2025-08-31 01:30:17.756 -03:00 [INF] 🎧 Consumidor de status da sessão configurado
+2025-08-31 01:30:17.957 -03:00 [INF] 🎧 Consumidor de status de mensagens configurado
+2025-08-31 01:30:18.006 -03:00 [INF] ✅ RabbitMQ conectado e configurado
+2025-08-31 01:30:18.016 -03:00 [INF] Processamento de batch iniciado
+2025-08-31 01:33:31.811 -03:00 [INF] 📨 Mensagem WhatsApp recebida via RabbitMQ: 5511988776655@c.us -> 5511888776655
+2025-08-31 01:33:37.719 -03:00 [INF] 🎬 Iniciando armazenamento de mídia: audio/mpeg, audio_1756614799961.mp3
+2025-08-31 01:33:37.778 -03:00 [INF] ✅ Mídia armazenada com sucesso: /media/db36c558-c757-405b-a430-fb58274ba0b7.mp3
+2025-08-31 01:33:37.778 -03:00 [INF] 🎬 Mídia processada e armazenada: /media/db36c558-c757-405b-a430-fb58274ba0b7.mp3
+2025-08-31 01:33:37.800 -03:00 [INF] 🎵 ÁUDIO: Body populado com base64 (390507 chars)
+2025-08-31 01:33:37.801 -03:00 [INF] 📝 MessageInfo COMPLETO criado: Type=audio, Body_Length=390507, FileName=audio_1756614799961.mp3, MimeType=audio/mpeg
+2025-08-31 01:33:37.802 -03:00 [INF] 💾 MessageInfo criado para chat existente: Type=audio, Body_Length=390507, MediaUrl=/media/db36c558-c757-405b-a430-fb58274ba0b7.mp3
+2025-08-31 01:33:37.802 -03:00 [INF] 📝 ✅ Nova mensagem adicionada: 184f7282-a28b-4b64-b151-c7ab8cc949c5
+2025-08-31 01:33:39.186 -03:00 [INF] 📝 ✅ Mensagem adicionada ao ChatLog existente: ChatId="d6527602-3127-49f3-bf3f-08da7a923616", ChatLogId="f0c45bfb-bbe0-496d-abaf-03d44850bdc5"
+2025-08-31 01:33:39.195 -03:00 [INF] 📡 ✅ Evento chat.updated emitido para ChatLog: "f0c45bfb-bbe0-496d-abaf-03d44850bdc5"
+2025-08-31 01:33:39.265 -03:00 [INF] 🎫 AttendanceTicket criado: "0bf00b48-f881-436e-90f1-c41de304b18d"
+2025-08-31 01:33:39.389 -03:00 [ERR] Erro ao sanitizar mensagem com serviço de resiliência, usando fallback
+System.TypeInitializationException: The type initializer for 'Pregiato.Application.Services.EmojiResilienceService' threw an exception.
+ ---> System.Text.RegularExpressions.RegexParseException: Invalid pattern '[\uD83D\uDE00-\uD83D\uDE4F]|[\uD83C\uDF00-\uD83D\uDDFF]|[\uD83D\uDE80-\uD83D\uDEFF]|[\uD83C\uDDE0-\uD83C\uDDFF]|[\u2600-\u26FF]|[\u2700-\u27BF]' at offset 20. [x-y] range in reverse order.
+   at System.Text.RegularExpressions.RegexParser.ScanCharClass(Boolean caseInsensitive, Boolean scanOnly)
+   at System.Text.RegularExpressions.RegexParser.ScanRegex()
+   at System.Text.RegularExpressions.RegexParser.Parse(String pattern, RegexOptions options, CultureInfo culture)
+   at System.Text.RegularExpressions.Regex..ctor(String pattern, RegexOptions options, TimeSpan matchTimeout, CultureInfo culture)
+   at Pregiato.Application.Services.EmojiResilienceService..cctor() in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application/Services/EmojiResilienceService.cs:line 30
+   --- End of inner exception stack trace ---
+   at Pregiato.Application.Services.EmojiResilienceService.HasEmojis(String text) in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application/Services/EmojiResilienceService.cs:line 298
+   at Pregiato.Application.Services.EmojiResilienceService.ProcessText(String text, EmojiProcessingStrategy strategy) in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application/Services/EmojiResilienceService.cs:line 55
+   at Pregiato.API.Services.RabbitBackgroundService.SanitizeMessageBody(String body) in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/Services/RabbitBackgroundService.cs:line 863
+2025-08-31 01:33:39.762 -03:00 [INF] 📎 Attachment processado com sucesso: FileName='audio_1756614799961.mp3' (23 chars), MimeType='audio/mpeg'
+2025-08-31 01:33:40.362 -03:00 [INF] ✅ Salvas 1 mensagens em batch
+2025-08-31 01:34:48.862 -03:00 [INF] Request starting GET /api/chats/d6527602-3127-49f3-bf3f-08da7a923616/messages
+2025-08-31 01:34:48.961 -03:00 [INF] 🔍 Buscando mensagens para ID: d6527602-3127-49f3-bf3f-08da7a923616
+2025-08-31 01:34:49.123 -03:00 [INF] 📄 Busca por ID do ChatLog: Não encontrado
+2025-08-31 01:34:49.431 -03:00 [INF] 📄 Busca por ChatId: Encontrado
+2025-08-31 01:34:49.432 -03:00 [INF] ✅ Chat encontrado: f0c45bfb-bbe0-496d-abaf-03d44850bdc5, ContactPhoneE164: 5511988776655
+2025-08-31 01:34:49.603 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 14
+2025-08-31 01:34:49.606 -03:00 [INF] ✅ Retornando 14 mensagens convertidas
+2025-08-31 01:34:49.799 -03:00 [INF] Request starting GET /api/chats/d6527602-3127-49f3-bf3f-08da7a923616/messages
+2025-08-31 01:34:49.848 -03:00 [INF] 🔍 Buscando mensagens para ID: d6527602-3127-49f3-bf3f-08da7a923616
+2025-08-31 01:34:49.852 -03:00 [INF] Request finished GET /api/chats/d6527602-3127-49f3-bf3f-08da7a923616/messages - 200 in 989.7230ms
+2025-08-31 01:34:49.976 -03:00 [INF] 📄 Busca por ID do ChatLog: Não encontrado
+2025-08-31 01:34:50.407 -03:00 [INF] 📄 Busca por ChatId: Encontrado
+2025-08-31 01:34:50.416 -03:00 [INF] ✅ Chat encontrado: f0c45bfb-bbe0-496d-abaf-03d44850bdc5, ContactPhoneE164: 5511988776655
+2025-08-31 01:34:50.517 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 14
+2025-08-31 01:34:50.519 -03:00 [INF] ✅ Retornando 14 mensagens convertidas
+2025-08-31 01:34:50.591 -03:00 [INF] Request finished GET /api/chats/d6527602-3127-49f3-bf3f-08da7a923616/messages - 200 in 795.9170ms
+2025-08-31 01:34:51.299 -03:00 [INF] Request starting GET /api/chats/28dff706-3010-44ac-9b4c-63e2dce394c8/messages
+2025-08-31 01:34:51.303 -03:00 [INF] 🔍 Buscando mensagens para ID: 28dff706-3010-44ac-9b4c-63e2dce394c8
+2025-08-31 01:34:51.325 -03:00 [INF] 📄 Busca por ID do ChatLog: Não encontrado
+2025-08-31 01:34:51.333 -03:00 [INF] 📄 Busca por ChatId: Encontrado
+2025-08-31 01:34:51.334 -03:00 [INF] ✅ Chat encontrado: e3284cd6-fec3-4726-bb5f-c19f84a3ed9e, ContactPhoneE164: 5511999887766
+2025-08-31 01:34:51.336 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 1
+2025-08-31 01:34:51.339 -03:00 [INF] ✅ Retornando 1 mensagens convertidas
+2025-08-31 01:34:51.342 -03:00 [INF] Request finished GET /api/chats/28dff706-3010-44ac-9b4c-63e2dce394c8/messages - 200 in 43.2760ms
+2025-08-31 01:34:51.346 -03:00 [INF] Request starting GET /api/chats/28dff706-3010-44ac-9b4c-63e2dce394c8/messages
+2025-08-31 01:34:51.351 -03:00 [INF] 🔍 Buscando mensagens para ID: 28dff706-3010-44ac-9b4c-63e2dce394c8
+2025-08-31 01:34:51.359 -03:00 [INF] 📄 Busca por ID do ChatLog: Não encontrado
+2025-08-31 01:34:51.383 -03:00 [INF] 📄 Busca por ChatId: Encontrado
+2025-08-31 01:34:51.384 -03:00 [INF] ✅ Chat encontrado: e3284cd6-fec3-4726-bb5f-c19f84a3ed9e, ContactPhoneE164: 5511999887766
+2025-08-31 01:34:51.385 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 1
+2025-08-31 01:34:51.389 -03:00 [INF] ✅ Retornando 1 mensagens convertidas
+2025-08-31 01:34:51.390 -03:00 [INF] Request finished GET /api/chats/28dff706-3010-44ac-9b4c-63e2dce394c8/messages - 200 in 44.0530ms
+2025-08-31 01:35:17.687 -03:00 [INF] Request starting GET /api/chats
+2025-08-31 01:35:18.659 -03:00 [INF] Request finished GET /api/chats - 200 in 972.7700ms
+2025-08-31 01:35:19.659 -03:00 [INF] 📨 Mensagem WhatsApp recebida via RabbitMQ: 5511988776655@c.us -> 5511888776655
+2025-08-31 01:35:19.998 -03:00 [INF] 🎬 Iniciando armazenamento de mídia: audio/mpeg, audio_1756614907494.mp3
+2025-08-31 01:35:20.005 -03:00 [INF] ✅ Mídia armazenada com sucesso: /media/503ab05b-6cb2-4852-b043-a0fd383aaacc.mp3
+2025-08-31 01:35:20.005 -03:00 [INF] 🎬 Mídia processada e armazenada: /media/503ab05b-6cb2-4852-b043-a0fd383aaacc.mp3
+2025-08-31 01:35:20.006 -03:00 [INF] 🎵 ÁUDIO: Body populado com base64 (390507 chars)
+2025-08-31 01:35:20.006 -03:00 [INF] 📝 MessageInfo COMPLETO criado: Type=audio, Body_Length=390507, FileName=audio_1756614907494.mp3, MimeType=audio/mpeg
+2025-08-31 01:35:20.006 -03:00 [INF] 💾 MessageInfo criado para chat existente: Type=audio, Body_Length=390507, MediaUrl=/media/503ab05b-6cb2-4852-b043-a0fd383aaacc.mp3
+2025-08-31 01:35:20.007 -03:00 [INF] 📝 ✅ Nova mensagem adicionada: 8484e647-26f4-4671-af08-bf6726c57e71
+2025-08-31 01:35:21.373 -03:00 [INF] 📝 ✅ Mensagem adicionada ao ChatLog existente: ChatId="d6527602-3127-49f3-bf3f-08da7a923616", ChatLogId="f0c45bfb-bbe0-496d-abaf-03d44850bdc5"
+2025-08-31 01:35:21.384 -03:00 [INF] 📡 ✅ Evento chat.updated emitido para ChatLog: "f0c45bfb-bbe0-496d-abaf-03d44850bdc5"
+2025-08-31 01:35:21.405 -03:00 [INF] 🎫 AttendanceTicket criado: "0bf00b48-f881-436e-90f1-c41de304b18d"
+2025-08-31 01:35:21.410 -03:00 [ERR] Erro ao sanitizar mensagem com serviço de resiliência, usando fallback
+System.TypeInitializationException: The type initializer for 'Pregiato.Application.Services.EmojiResilienceService' threw an exception.
+ ---> System.Text.RegularExpressions.RegexParseException: Invalid pattern '[\uD83D\uDE00-\uD83D\uDE4F]|[\uD83C\uDF00-\uD83D\uDDFF]|[\uD83D\uDE80-\uD83D\uDEFF]|[\uD83C\uDDE0-\uD83C\uDDFF]|[\u2600-\u26FF]|[\u2700-\u27BF]' at offset 20. [x-y] range in reverse order.
+   at System.Text.RegularExpressions.RegexParser.ScanCharClass(Boolean caseInsensitive, Boolean scanOnly)
+   at System.Text.RegularExpressions.RegexParser.ScanRegex()
+   at System.Text.RegularExpressions.RegexParser.Parse(String pattern, RegexOptions options, CultureInfo culture)
+   at System.Text.RegularExpressions.Regex..ctor(String pattern, RegexOptions options, TimeSpan matchTimeout, CultureInfo culture)
+   at Pregiato.Application.Services.EmojiResilienceService..cctor() in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application/Services/EmojiResilienceService.cs:line 30
+   --- End of inner exception stack trace ---
+   at Pregiato.Application.Services.EmojiResilienceService.HasEmojis(String text) in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application/Services/EmojiResilienceService.cs:line 298
+   at Pregiato.Application.Services.EmojiResilienceService.ProcessText(String text, EmojiProcessingStrategy strategy) in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application/Services/EmojiResilienceService.cs:line 55
+   at Pregiato.API.Services.RabbitBackgroundService.SanitizeMessageBody(String body) in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/Services/RabbitBackgroundService.cs:line 863
+2025-08-31 01:35:21.426 -03:00 [INF] 📎 Attachment processado com sucesso: FileName='audio_1756614907494.mp3' (23 chars), MimeType='audio/mpeg'
+2025-08-31 01:35:21.566 -03:00 [INF] ✅ Salvas 1 mensagens em batch
+2025-08-31 01:35:55.676 -03:00 [INF] 📨 Mensagem WhatsApp recebida via RabbitMQ: 5511988776655@c.us -> 5511888776655
+2025-08-31 01:35:58.011 -03:00 [INF] 🎬 Iniciando armazenamento de mídia: audio/mpeg, audio_1756614941439.mp3
+2025-08-31 01:35:58.021 -03:00 [INF] ✅ Mídia armazenada com sucesso: /media/b787e8ee-017e-4fd4-ab16-6fd0d2f18eae.mp3
+2025-08-31 01:35:58.021 -03:00 [INF] 🎬 Mídia processada e armazenada: /media/b787e8ee-017e-4fd4-ab16-6fd0d2f18eae.mp3
+2025-08-31 01:35:58.021 -03:00 [INF] 🎵 ÁUDIO: Body populado com base64 (390507 chars)
+2025-08-31 01:35:58.022 -03:00 [INF] 📝 MessageInfo COMPLETO criado: Type=audio, Body_Length=390507, FileName=audio_1756614941439.mp3, MimeType=audio/mpeg
+2025-08-31 01:35:58.022 -03:00 [INF] 💾 MessageInfo criado para chat existente: Type=audio, Body_Length=390507, MediaUrl=/media/b787e8ee-017e-4fd4-ab16-6fd0d2f18eae.mp3
+2025-08-31 01:35:58.024 -03:00 [INF] 📝 ✅ Nova mensagem adicionada: ac645775-8984-4c92-beb6-a7757dc56fa7
+2025-08-31 01:35:59.077 -03:00 [INF] 📝 ✅ Mensagem adicionada ao ChatLog existente: ChatId="d6527602-3127-49f3-bf3f-08da7a923616", ChatLogId="f0c45bfb-bbe0-496d-abaf-03d44850bdc5"
+2025-08-31 01:35:59.082 -03:00 [INF] 📡 ✅ Evento chat.updated emitido para ChatLog: "f0c45bfb-bbe0-496d-abaf-03d44850bdc5"
+2025-08-31 01:35:59.103 -03:00 [INF] 🎫 AttendanceTicket criado: "0bf00b48-f881-436e-90f1-c41de304b18d"
+2025-08-31 01:35:59.107 -03:00 [ERR] Erro ao sanitizar mensagem com serviço de resiliência, usando fallback
+System.TypeInitializationException: The type initializer for 'Pregiato.Application.Services.EmojiResilienceService' threw an exception.
+ ---> System.Text.RegularExpressions.RegexParseException: Invalid pattern '[\uD83D\uDE00-\uD83D\uDE4F]|[\uD83C\uDF00-\uD83D\uDDFF]|[\uD83D\uDE80-\uD83D\uDEFF]|[\uD83C\uDDE0-\uD83C\uDDFF]|[\u2600-\u26FF]|[\u2700-\u27BF]' at offset 20. [x-y] range in reverse order.
+   at System.Text.RegularExpressions.RegexParser.ScanCharClass(Boolean caseInsensitive, Boolean scanOnly)
+   at System.Text.RegularExpressions.RegexParser.ScanRegex()
+   at System.Text.RegularExpressions.RegexParser.Parse(String pattern, RegexOptions options, CultureInfo culture)
+   at System.Text.RegularExpressions.Regex..ctor(String pattern, RegexOptions options, TimeSpan matchTimeout, CultureInfo culture)
+   at Pregiato.Application.Services.EmojiResilienceService..cctor() in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application/Services/EmojiResilienceService.cs:line 30
+   --- End of inner exception stack trace ---
+   at Pregiato.Application.Services.EmojiResilienceService.HasEmojis(String text) in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application/Services/EmojiResilienceService.cs:line 298
+   at Pregiato.Application.Services.EmojiResilienceService.ProcessText(String text, EmojiProcessingStrategy strategy) in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application/Services/EmojiResilienceService.cs:line 55
+   at Pregiato.API.Services.RabbitBackgroundService.SanitizeMessageBody(String body) in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/Services/RabbitBackgroundService.cs:line 863
+2025-08-31 01:35:59.154 -03:00 [INF] 📎 Attachment processado com sucesso: FileName='audio_1756614941439.mp3' (23 chars), MimeType='audio/mpeg'
+2025-08-31 01:36:01.420 -03:00 [INF] ✅ Salvas 1 mensagens em batch
+2025-08-31 01:36:03.579 -03:00 [INF] Request starting GET /api/health
+2025-08-31 01:36:03.579 -03:00 [INF] Request starting GET /api/chats
+2025-08-31 01:36:03.580 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 01:36:03.579 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-31 01:36:03.643 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 01:36:03.643 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 01:36:03.653 -03:00 [INF] Request finished GET /api/health - 200 in 73.9280ms
+2025-08-31 01:36:03.657 -03:00 [INF] Request starting GET /api/health
+2025-08-31 01:36:03.658 -03:00 [INF] Request finished GET /api/health - 200 in 1.3330ms
+2025-08-31 01:36:03.682 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 01:36:03.688 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 01:36:03.731 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 87.8150ms
+2025-08-31 01:36:03.733 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 44.8790ms
+2025-08-31 01:36:03.734 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 91.0910ms
+2025-08-31 01:36:03.740 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 57.3760ms
+2025-08-31 01:36:03.744 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 01:36:03.807 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 01:36:03.823 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 01:36:03.832 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 253.0640ms
+2025-08-31 01:36:03.840 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 01:36:03.842 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-31 01:36:03.848 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 5.7530ms
+2025-08-31 01:36:04.138 -03:00 [INF] Request finished GET /api/chats - 200 in 558.8870ms
+2025-08-31 01:36:06.119 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 2532.0110ms
+2025-08-31 01:36:07.109 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 01:36:07.109 -03:00 [INF] Request starting GET /api/chats/d6527602-3127-49f3-bf3f-08da7a923616/messages
+2025-08-31 01:36:07.126 -03:00 [INF] 🔍 Buscando mensagens para ID: d6527602-3127-49f3-bf3f-08da7a923616
+2025-08-31 01:36:07.379 -03:00 [INF] 📄 Busca por ID do ChatLog: Não encontrado
+2025-08-31 01:36:07.499 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 389.5990ms
+2025-08-31 01:36:07.501 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 01:36:07.510 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 8.9580ms
+2025-08-31 01:36:07.512 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 01:36:07.525 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 12.3580ms
+2025-08-31 01:36:07.527 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 01:36:07.549 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 21.6320ms
+2025-08-31 01:36:07.550 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 01:36:07.558 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 7.4630ms
+2025-08-31 01:36:07.822 -03:00 [INF] 📄 Busca por ChatId: Encontrado
+2025-08-31 01:36:07.822 -03:00 [INF] ✅ Chat encontrado: f0c45bfb-bbe0-496d-abaf-03d44850bdc5, ContactPhoneE164: 5511988776655
+2025-08-31 01:36:07.899 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 16
+2025-08-31 01:36:07.900 -03:00 [INF] ✅ Retornando 16 mensagens convertidas
+2025-08-31 01:36:07.910 -03:00 [INF] Request starting GET /api/chats/d6527602-3127-49f3-bf3f-08da7a923616/messages
+2025-08-31 01:36:07.912 -03:00 [INF] 🔍 Buscando mensagens para ID: d6527602-3127-49f3-bf3f-08da7a923616
+2025-08-31 01:36:07.921 -03:00 [INF] 📄 Busca por ID do ChatLog: Não encontrado
+2025-08-31 01:36:07.960 -03:00 [INF] Request finished GET /api/chats/d6527602-3127-49f3-bf3f-08da7a923616/messages - 200 in 850.7020ms
+2025-08-31 01:36:07.985 -03:00 [INF] 📄 Busca por ChatId: Encontrado
+2025-08-31 01:36:07.986 -03:00 [INF] ✅ Chat encontrado: f0c45bfb-bbe0-496d-abaf-03d44850bdc5, ContactPhoneE164: 5511988776655
+2025-08-31 01:36:08.059 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 16
+2025-08-31 01:36:08.059 -03:00 [INF] ✅ Retornando 16 mensagens convertidas
+2025-08-31 01:36:08.180 -03:00 [INF] Request finished GET /api/chats/d6527602-3127-49f3-bf3f-08da7a923616/messages - 200 in 270.5110ms
+2025-08-31 01:37:31.477 -03:00 [INF] Request finished GET /whatsappHub - 101 in 87618.1090ms
+2025-08-31 01:37:31.477 -03:00 [INF] Request finished GET /whatsappHub - 101 in 87645.0410ms
+2025-08-31 01:37:31.477 -03:00 [INF] Request finished GET /whatsappHub - 101 in 87635.5850ms
+2025-08-31 01:37:31.472 -03:00 [INF] Request finished GET /whatsappHub - 101 in 87700.3950ms
+2025-08-31 01:37:33.887 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 01:37:33.887 -03:00 [INF] Request starting GET /api/chats
+2025-08-31 01:37:33.888 -03:00 [INF] Request starting GET /api/health
+2025-08-31 01:37:33.888 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-31 01:37:33.996 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 01:37:34.001 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 01:37:34.036 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 35.1540ms
+2025-08-31 01:37:34.035 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 38.9250ms
+2025-08-31 01:37:34.053 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 01:37:34.054 -03:00 [INF] Request finished GET /api/health - 200 in 166.0920ms
+2025-08-31 01:37:34.061 -03:00 [INF] Request starting GET /api/health
+2025-08-31 01:37:34.062 -03:00 [INF] Request finished GET /api/health - 200 in 1.5070ms
+2025-08-31 01:37:34.092 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 01:37:34.095 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-31 01:37:34.099 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 6.8500ms
+2025-08-31 01:37:34.101 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 5.8340ms
+2025-08-31 01:37:34.113 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 01:37:34.133 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 01:37:34.158 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-31 01:37:34.230 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 341.9310ms
+2025-08-31 01:37:34.281 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-31 01:37:34.315 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 33.6540ms
+2025-08-31 01:37:34.979 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 1091.9380ms
+2025-08-31 01:37:34.998 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 01:37:35.072 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 73.9890ms
+2025-08-31 01:37:35.076 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 01:37:35.156 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 80.4950ms
+2025-08-31 01:37:35.219 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 01:37:35.339 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 119.4230ms
+2025-08-31 01:37:35.437 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 01:37:35.536 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 99.2260ms
+2025-08-31 01:37:35.539 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-31 01:37:35.552 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 12.9780ms
+2025-08-31 01:37:35.795 -03:00 [INF] Request starting GET /api/chats
+2025-08-31 01:37:36.025 -03:00 [INF] Request finished GET /api/chats - 200 in 2137.1750ms
+2025-08-31 01:37:36.668 -03:00 [INF] Request finished GET /api/chats - 200 in 872.8620ms
+2025-08-31 01:37:37.938 -03:00 [INF] Request starting GET /api/chats/d6527602-3127-49f3-bf3f-08da7a923616/messages
+2025-08-31 01:37:37.976 -03:00 [INF] 🔍 Buscando mensagens para ID: d6527602-3127-49f3-bf3f-08da7a923616
+2025-08-31 01:37:38.068 -03:00 [INF] 📄 Busca por ID do ChatLog: Não encontrado
+2025-08-31 01:37:38.800 -03:00 [INF] 📄 Busca por ChatId: Encontrado
+2025-08-31 01:37:38.801 -03:00 [INF] ✅ Chat encontrado: f0c45bfb-bbe0-496d-abaf-03d44850bdc5, ContactPhoneE164: 5511988776655
+2025-08-31 01:37:38.950 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 16
+2025-08-31 01:37:38.951 -03:00 [INF] ✅ Retornando 16 mensagens convertidas
+2025-08-31 01:37:38.985 -03:00 [INF] Request starting GET /api/chats/d6527602-3127-49f3-bf3f-08da7a923616/messages
+2025-08-31 01:37:38.996 -03:00 [INF] 🔍 Buscando mensagens para ID: d6527602-3127-49f3-bf3f-08da7a923616
+2025-08-31 01:37:39.015 -03:00 [INF] 📄 Busca por ID do ChatLog: Não encontrado
+2025-08-31 01:37:39.155 -03:00 [INF] Request finished GET /api/chats/d6527602-3127-49f3-bf3f-08da7a923616/messages - 200 in 1217.2420ms
+2025-08-31 01:37:39.390 -03:00 [INF] 📄 Busca por ChatId: Encontrado
+2025-08-31 01:37:39.392 -03:00 [INF] ✅ Chat encontrado: f0c45bfb-bbe0-496d-abaf-03d44850bdc5, ContactPhoneE164: 5511988776655
+2025-08-31 01:37:39.581 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 16
+2025-08-31 01:37:39.581 -03:00 [INF] ✅ Retornando 16 mensagens convertidas
+2025-08-31 01:37:39.766 -03:00 [INF] Request finished GET /api/chats/d6527602-3127-49f3-bf3f-08da7a923616/messages - 200 in 780.7320ms

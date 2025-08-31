@@ -27,7 +27,7 @@ namespace Pregiato.Application.Services
         private readonly EmojiProcessingStats _stats;
 
         // Patterns para diferentes tipos de caracteres problemáticos
-        private static readonly Regex EmojiPattern = new(@"[\uD83D\uDE00-\uD83D\uDE4F]|[\uD83C\uDF00-\uD83D\uDDFF]|[\uD83D\uDE80-\uD83D\uDEFF]|[\uD83C\uDDE0-\uD83C\uDDFF]|[\u2600-\u26FF]|[\u2700-\u27BF]", RegexOptions.Compiled);
+        private static readonly Regex EmojiPattern = new(@"[\uD83C\uDF00-\uD83C\uDFFF]|[\uD83D\uDC00-\uD83D\uDDFF]|[\uD83D\uDE00-\uD83D\uDE4F]|[\uD83D\uDE80-\uD83D\uDEFF]|[\uD83C\uDDE0-\uD83C\uDDFF]|[\u2600-\u26FF]|[\u2700-\u27BF]", RegexOptions.Compiled);
         private static readonly Regex ControlCharsPattern = new(@"[\u0000-\u001F\u007F-\u009F]", RegexOptions.Compiled);
         private static readonly Regex NonPrintablePattern = new(@"[\u200B-\u200D\uFEFF]", RegexOptions.Compiled);
         private static readonly Regex ZeroWidthPattern = new(@"[\u200B\u200C\u200D\u2060\uFEFF]", RegexOptions.Compiled);

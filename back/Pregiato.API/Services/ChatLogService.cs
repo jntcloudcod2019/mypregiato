@@ -164,7 +164,7 @@ namespace Pregiato.API.Services
         {
             public string Id { get; set; } = string.Empty;
             public string? Content { get; set; }
-            public string? body { get; set; } // Campo real do JSON
+            public string? body { get; set; } // Campo real do JSON - para áudio contém base64
             public string? MediaUrl { get; set; }
             public string Direction { get; set; } = "inbound";
             public DateTime Ts { get; set; } = DateTime.UtcNow;
@@ -174,7 +174,23 @@ namespace Pregiato.API.Services
             public string? Type { get; set; }
             public string? from { get; set; } // Campo real do JSON
             
-            // Propriedade calculada para compatibilidade
+            // === CAMPOS DE MÍDIA (conforme exemplo JSON) ===
+            public string? mimeType { get; set; }        // "audio/mpeg", "image/jpeg", etc
+            public string? fileName { get; set; }        // "audio-message.mp3", "image.jpg"
+            public long? size { get; set; }              // Tamanho do arquivo em bytes
+            public int? duration { get; set; }           // Duração em segundos (para áudio/vídeo)
+            public string? thumbnail { get; set; }       // Base64 da thumbnail (para vídeo/imagem)
+            
+            // === CAMPOS DE LOCALIZAÇÃO ===
+            public double? latitude { get; set; }        // Coordenada de latitude
+            public double? longitude { get; set; }       // Coordenada de longitude
+            public string? locationAddress { get; set; }  // Endereço da localização
+            
+            // === CAMPOS DE CONTATO ===
+            public string? contactName { get; set; }     // Nome do contato compartilhado
+            public string? contactPhone { get; set; }    // Telefone do contato compartilhado
+            
+            // Propriedades calculadas para compatibilidade
             public string? ActualContent => Content ?? body;
             public DateTime ActualTs => !string.IsNullOrEmpty(timestamp) ? DateTime.Parse(timestamp) : Ts;
         }
