@@ -642,8 +642,19 @@ async function onInbound(message) {
       if (media && media.data) {
         const messageType = mapWppType(message.type);
         
+        // Para áudio, incluir base64 no body da mensagem para o frontend
+        if (messageType === 'audio' || messageType === 'voice') {
+          const dataUrl = `data:${media.mimetype};base64,${media.data}`;
+          payload.body = dataUrl; // Frontend precisa do base64 no body
+          Log.info('Áudio processado com base64 no body', { 
+            type: messageType, 
+            mimeType: media.mimetype,
+            size: Buffer.byteLength(media.data, 'base64') 
+          });
+        }
+        
         payload.attachment = {
-          dataUrl: media.data,
+          dataUrl: `data:${media.mimetype};base64,${media.data}`,
           mediaUrl: null,
           mimeType: media.mimetype || 'application/octet-stream',
           fileName: media.filename || `media_${Date.now()}.bin`,

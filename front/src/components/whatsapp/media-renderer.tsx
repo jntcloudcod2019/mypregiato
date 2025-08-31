@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 import { MessageType } from '@/types/message';
 import { cn } from '@/lib/utils';
+import AdvancedAudioPlayer from '@/components/ui/advanced-audio-player';
 
 interface MediaRendererProps {
   type: MessageType;
@@ -171,6 +172,17 @@ export const MediaRenderer: React.FC<MediaRendererProps> = ({
     }
   };
 
+  // Debug: verificar tipo recebido
+  console.log('🔍 MediaRenderer recebeu tipo:', {
+    type,
+    typeOf: typeof type,
+    isNumber: typeof type === 'number',
+    isAudio: type === MessageType.Audio,
+    isVoice: type === MessageType.Voice,
+    MessageTypeAudio: MessageType.Audio,
+    MessageTypeVoice: MessageType.Voice
+  });
+
   // Renderização por tipo
   switch (type) {
     case MessageType.Image:
@@ -256,6 +268,17 @@ export const MediaRenderer: React.FC<MediaRendererProps> = ({
 
     case MessageType.Audio:
     case MessageType.Voice:
+      // Debug: log do áudio recebido
+      console.log('🎵 DEBUG ÁUDIO - TIPO DETECTADO:', {
+        type: type,
+        typeNumber: typeof type === 'number' ? type : 'string',
+        mediaSource: mediaSource ? `${mediaSource.substring(0, 100)}...` : 'null',
+        mimeType,
+        fileName,
+        size,
+        duration
+      });
+      
       return (
         <div className={cn("flex items-center gap-3 p-3 bg-muted rounded-lg", className)} style={{ maxWidth }}>
           {mediaSource ? (
@@ -263,11 +286,25 @@ export const MediaRenderer: React.FC<MediaRendererProps> = ({
               <audio
                 ref={audioRef}
                 src={mediaSource}
-                onPlay={() => setIsPlaying(true)}
-                onPause={() => setIsPlaying(false)}
+                onPlay={() => {
+                  console.log('🎵 Áudio iniciado');
+                  setIsPlaying(true);
+                }}
+                onPause={() => {
+                  console.log('🎵 Áudio pausado');
+                  setIsPlaying(false);
+                }}
                 onTimeUpdate={() => handleTimeUpdate(audioRef.current!)}
-                onLoadedData={handleLoadedData}
-                onError={() => handleError('Erro ao carregar áudio')}
+                onLoadedData={() => {
+                  console.log('🎵 Áudio carregado com sucesso');
+                  handleLoadedData();
+                }}
+                onError={(e) => {
+                  console.error('🎵 Erro no áudio:', e);
+                  handleError('Erro ao carregar áudio');
+                }}
+                onCanPlay={() => console.log('🎵 Áudio pronto para reproduzir')}
+                onLoadStart={() => console.log('🎵 Iniciando carregamento do áudio')}
                 preload="metadata"
               />
               

@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Textarea } from '@/components/ui/textarea'
 import MediaRenderer from './media-renderer'
+import { MessageType } from '@/types/message'
 import { 
   Send, 
   Paperclip, 
@@ -244,7 +245,10 @@ export const TalentChat: React.FC<TalentChatProps> = ({ talent, onClose }) => {
                   </div>
                 )}
                 
-                <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.body}</p>
+                {/* Não exibir texto para mensagens de áudio/mídia que só contêm base64 */}
+                {msg.body && !isMediaOnlyMessage(msg) && (
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.body}</p>
+                )}
                 
                 <div className="flex items-center justify-between mt-2 pt-1">
                   <span className={cn(

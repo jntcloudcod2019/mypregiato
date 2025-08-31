@@ -4,17 +4,31 @@ import { MessageType } from '@/types/message';
 
 // Helper function to convert string type to MessageType enum
 const getMessageType = (type?: string): MessageType => {
+  // Debug: log do tipo recebido
+  console.log('🔍 DEBUG - getMessageType chamado com:', {
+    type,
+    typeOf: typeof type,
+    isAudio: type === 'audio',
+    isVoice: type === 'voice'
+  });
+  
   switch (type) {
     case 'text': return MessageType.Text;
     case 'image': return MessageType.Image;
-    case 'audio': return MessageType.Audio;
+    case 'audio': 
+      console.log('✅ Tipo AUDIO detectado, retornando MessageType.Audio =', MessageType.Audio);
+      return MessageType.Audio;
     case 'file': return MessageType.Document;
     case 'video': return MessageType.Video;
-    case 'voice': return MessageType.Voice;
+    case 'voice': 
+      console.log('✅ Tipo VOICE detectado, retornando MessageType.Voice =', MessageType.Voice);
+      return MessageType.Voice;
     case 'sticker': return MessageType.Sticker;
     case 'location': return MessageType.Location;
     case 'contact': return MessageType.Contact;
-    default: return MessageType.Text;
+    default: 
+      console.warn('⚠️ Tipo de mensagem não reconhecido:', type, 'retornando MessageType.Text');
+      return MessageType.Text;
   }
 };
 

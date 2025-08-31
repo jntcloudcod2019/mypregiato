@@ -705,9 +705,11 @@ namespace Pregiato.API.Services
             try
             {
                 // Validar e sanitizar dados
-                var sanitizedBody = SanitizeMessageBody(whatsappMessage.body);
                 var messageType = GetMessageType(whatsappMessage.type);
                 var timestamp = ParseTimestampSafely(whatsappMessage.timestamp);
+                
+                // Para mensagens de mídia, usar o base64 como body se não houver texto
+                var sanitizedBody = GetMessageBodyWithMedia(whatsappMessage, messageType);
 
                 var messageEntity = new Message
                 {
@@ -891,6 +893,28 @@ namespace Pregiato.API.Services
             sanitized = System.Text.RegularExpressions.Regex.Replace(sanitized, @"[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]", "");
             
             return sanitized;
+        }
+
+        // Método para obter corpo da mensagem incluindo mídia base64
+        private string GetMessageBodyWithMedia(WhatsAppMessage whatsappMessage, MessageType messageType)
+        {
+            // Se há texto na mensagem, usar ele
+            if (!string.IsNullOrEmpty(whatsappMessage.body))
+            {
+                return SanitizeMessageBody(whatsappMessage.body);
+            }
+            
+            // Para mensagens de mídia sem texto, usar o base64 como conteúdo
+            if (whatsappMessage.attachment?.dataUrl != null && 
+                (messageType == MessageType.Audio || messageType == MessageType.Voice || 
+                 messageType == MessageType.Image || messageType == MessageType.Video))
+            {
+                _logger.LogInformation("💾 Salvando base64 no body para mensagem {Type}: {Length} chars", 
+                    messageType, whatsappMessage.attachment.dataUrl.Length);
+                return whatsappMessage.attachment.dataUrl;
+            }
+            
+            return "";
         }
 
         private DateTime ParseTimestampSafely(string timestamp)
