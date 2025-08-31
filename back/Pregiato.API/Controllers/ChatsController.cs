@@ -117,14 +117,11 @@ namespace Pregiato.API.Controllers
                             timestamp = !string.IsNullOrEmpty(message.timestamp) ? DateTime.Parse(message.timestamp) : message.Ts,
                             isFromMe = message.Direction == "outbound",
                             
-                            attachment = (!string.IsNullOrEmpty(message.MediaUrl) || !string.IsNullOrEmpty(message.body)) ? new
+                            attachment = !string.IsNullOrEmpty(message.MediaUrl) ? new
                             {
-                                // Para áudio/voice, usar body (que contém base64), senão MediaUrl
-                                dataUrl = (message.Type == "audio" || message.Type == "voice") && !string.IsNullOrEmpty(message.body) 
-                                    ? message.body 
-                                    : message.MediaUrl,
-                                mimeType = message.mimeType ?? "application/octet-stream",
-                                fileName = message.fileName ?? ""
+                                dataUrl = message.MediaUrl,
+                                mimeType = "application/octet-stream",
+                                fileName = ""
                             } : null
                         };
                         

@@ -1049,7 +1049,7 @@ namespace Pregiato.API.Services
                     {
                         using var scope = _services.CreateScope();
                         var context = scope.ServiceProvider.GetRequiredService<PregiatoDbContext>();
-                        
+                        O 
                         // Usar CreateExecutionStrategy para suportar retry com transações
                         var strategy = context.Database.CreateExecutionStrategy();
                         await strategy.ExecuteAsync(async () =>

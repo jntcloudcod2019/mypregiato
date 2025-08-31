@@ -47,9 +47,11 @@ export const useWhatsAppConnection = () => {
       const status: WhatsAppStatus = await rabbitMQService.getStatus();
       // Considerar conectado quando a sessão está conectada, independente do número
       const isActuallyConnected = Boolean(status.sessionConnected);
+      
+      // Lógica de status corrigida: se não está conectado, deve ser 'disconnected'
       const nextStatus = isActuallyConnected
         ? ConnectionStatus.connected
-        : (status.botUp ? ConnectionStatus.connecting : ConnectionStatus.disconnected);
+        : ConnectionStatus.disconnected;
 
       setConnectionState(prev => ({
         ...prev,
@@ -75,6 +77,8 @@ export const useWhatsAppConnection = () => {
   useEffect(() => {
     const handleStatusUpdate = (statusData: BotStatusUpdate) => {
       const isActuallyConnected = Boolean(statusData.sessionConnected);
+      
+      // Lógica de status corrigida: se não está conectado, deve ser 'disconnected'
       const nextStatus = isActuallyConnected
         ? ConnectionStatus.connected
         : ConnectionStatus.disconnected;

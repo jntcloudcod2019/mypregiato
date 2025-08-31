@@ -12,6 +12,7 @@ interface QRCodeModalProps {
   isOpen: boolean;
   onClose: () => void;
   status: ConnectionStatus;
+  isConnected: boolean;
   lastActivity?: string;
   onConnect: () => void;
   onDisconnect: () => void;
@@ -84,6 +85,7 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({
   isOpen,
   onClose,
   status,
+  isConnected,
   lastActivity,
   onConnect,
   onDisconnect,
