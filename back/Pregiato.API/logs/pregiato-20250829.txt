@@ -1160,3 +1160,349 @@ RabbitMQ.Client.Exceptions.AlreadyClosedException: Already closed: The AMQP oper
 2025-08-29 23:32:33.806 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 4.2590ms
 2025-08-29 23:33:03.807 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
 2025-08-29 23:33:03.809 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 2.6180ms
+2025-08-29 23:33:34.529 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:33:34.537 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 7.4130ms
+2025-08-29 23:34:03.980 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:34:03.987 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 6.1520ms
+2025-08-29 23:34:34.332 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:34:34.373 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 41.3380ms
+2025-08-29 23:35:05.013 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:35:05.046 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 31.9750ms
+2025-08-29 23:35:34.043 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:35:34.046 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 3.2330ms
+2025-08-29 23:36:04.509 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:36:05.035 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 525.7890ms
+2025-08-29 23:36:34.055 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:36:34.059 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 3.6480ms
+2025-08-29 23:37:04.070 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:37:04.088 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 16.7770ms
+2025-08-29 23:37:34.134 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:37:34.243 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 107.8520ms
+2025-08-29 23:38:04.122 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:38:04.178 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 54.2380ms
+2025-08-29 23:38:34.096 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:38:34.125 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 28.0140ms
+2025-08-29 23:39:04.051 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:39:04.058 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 6.6370ms
+2025-08-29 23:39:34.685 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:39:34.900 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 189.2710ms
+2025-08-29 23:40:04.239 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:40:04.244 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 4.4680ms
+2025-08-29 23:40:34.449 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:40:34.539 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 76.7090ms
+2025-08-29 23:41:04.775 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:41:04.794 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 18.9170ms
+2025-08-29 23:41:34.791 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:41:34.803 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 11.8190ms
+2025-08-29 23:42:04.731 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:42:04.735 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 3.4550ms
+2025-08-29 23:42:34.936 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:42:34.944 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 8.4450ms
+2025-08-29 23:43:04.759 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:43:04.763 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 4.2370ms
+2025-08-29 23:43:31.240 -03:00 [INF] Aplicação está sendo finalizada...
+2025-08-29 23:43:31.368 -03:00 [INF] Request finished GET /whatsappHub - 101 in 4682874.9050ms
+2025-08-29 23:43:31.368 -03:00 [INF] Request finished GET /whatsappHub - 101 in 4683045.4500ms
+2025-08-29 23:43:31.368 -03:00 [INF] Request finished GET /whatsappHub - 101 in 4682844.3320ms
+2025-08-29 23:43:31.368 -03:00 [INF] Request finished GET /whatsappHub - 101 in 4682858.3640ms
+2025-08-29 23:43:31.419 -03:00 [INF] Desconectando do RabbitMQ...
+2025-08-29 23:43:31.831 -03:00 [INF] RabbitMQ Background Service cancelado graciosamente
+2025-08-29 23:43:31.831 -03:00 [INF] Processamento de batch cancelado graciosamente
+2025-08-29 23:43:31.832 -03:00 [INF] RabbitMQ Background Service finalizado
+2025-08-29 23:43:31.832 -03:00 [INF] Processamento de batch finalizado
+2025-08-29 23:43:31.831 -03:00 [INF] Processamento de batch cancelado graciosamente
+2025-08-29 23:43:31.832 -03:00 [INF] Processamento de batch finalizado
+2025-08-29 23:43:31.834 -03:00 [INF] Aplicação foi finalizada
+2025-08-29 23:44:11.902 -03:00 [INF] Iniciando Pregiato API...
+2025-08-29 23:44:11.997 -03:00 [INF] RabbitMQ Background Service iniciado
+2025-08-29 23:44:11.998 -03:00 [INF] Tentando conectar ao RabbitMQ...
+2025-08-29 23:44:13.496 -03:00 [INF] ✅ Conexão RabbitMQ estabelecida com amqps://mouse.rmq5.cloudamqp.com:5671
+2025-08-29 23:44:14.817 -03:00 [INF] 📋 Filas RabbitMQ configuradas
+2025-08-29 23:44:15.009 -03:00 [INF] 🎧 Consumidor de QR codes configurado
+2025-08-29 23:44:15.199 -03:00 [INF] 🎧 Consumidor de mensagens WhatsApp configurado
+2025-08-29 23:44:15.387 -03:00 [INF] 🎧 Consumidor de status da sessão configurado
+2025-08-29 23:44:15.577 -03:00 [INF] 🎧 Consumidor de status de mensagens configurado
+2025-08-29 23:44:15.577 -03:00 [INF] ✅ RabbitMQ conectado e configurado
+2025-08-29 23:44:15.581 -03:00 [INF] Processamento de batch iniciado
+2025-08-29 23:44:16.911 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-29 23:44:16.911 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-29 23:44:16.911 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-29 23:44:16.911 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-29 23:44:16.916 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 5.0830ms
+2025-08-29 23:44:16.916 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 5.0820ms
+2025-08-29 23:44:16.916 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 5.0640ms
+2025-08-29 23:44:16.916 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 5.0690ms
+2025-08-29 23:44:17.767 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-29 23:44:17.806 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-29 23:44:17.817 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-29 23:44:17.830 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-29 23:44:37.454 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:44:38.935 -03:00 [INF] 📥 Webhook session/updated: connected=false number=null validated=false (mudança detectada)
+2025-08-29 23:44:38.977 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 1524.2320ms
+2025-08-29 23:44:54.077 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-08-29 23:44:54.113 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-08-29 23:44:54.115 -03:00 [INF] Iniciado pedido de QR Code. RequestId: 457cf5cc-5023-4391-a19e-e37ae246aea5
+2025-08-29 23:44:54.121 -03:00 [INF] 🔍 Tentando publicar comando no RabbitMQ...
+2025-08-29 23:44:54.131 -03:00 [INF] 📤 Publicando comando: {"command":"generate_qr","requestId":"457cf5cc-5023-4391-a19e-e37ae246aea5","timestamp":"2025-08-30T02:44:54.1163940Z"}
+2025-08-29 23:44:54.131 -03:00 [INF] 📤 Routing Key: whatsapp.outgoing
+2025-08-29 23:44:54.131 -03:00 [INF] 📤 Body length: 119 bytes
+2025-08-29 23:44:54.132 -03:00 [INF] 📤 Body as string: {"command":"generate_qr","requestId":"457cf5cc-5023-4391-a19e-e37ae246aea5","timestamp":"2025-08-30T02:44:54.1163940Z"}
+2025-08-29 23:44:54.132 -03:00 [INF] 📤 Body hex: 7B-22-63-6F-6D-6D-61-6E-64-22-3A-22-67-65-6E-65-72-61-74-65-5F-71-72-22-2C-22-72-65-71-75-65-73-74-49-64-22-3A-22-34-35-37-63-66-35-63-63-2D-35-30-32-33-2D-34-33-39-31-2D-61-31-39-65-2D-65-33-37-61-65-32-34-36-61-65-61-35-22-2C-22-74-69-6D-65-73-74-61-6D-70-22-3A-22-32-30-32-35-2D-30-38-2D-33-30-54-30-32-3A-34-34-3A-35-34-2E-31-31-36-33-39-34-30-5A-22-7D
+2025-08-29 23:44:54.135 -03:00 [INF] ✅ Comando enviado para RabbitMQ com sucesso: {"command":"generate_qr","requestId":"457cf5cc-5023-4391-a19e-e37ae246aea5","timestamp":"2025-08-30T02:44:54.1163940Z"}
+2025-08-29 23:44:54.135 -03:00 [INF] ✅ Novo QR request criado com sucesso. RequestId: 457cf5cc-5023-4391-a19e-e37ae246aea5
+2025-08-29 23:44:54.137 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 200 in 60.8210ms
+2025-08-29 23:44:54.547 -03:00 [INF] Request starting POST /api/whatsapp/webhook/command-received
+2025-08-29 23:44:54.548 -03:00 [INF] Request finished POST /api/whatsapp/webhook/command-received - 404 in 1.0980ms
+2025-08-29 23:45:04.860 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:45:05.951 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 1091.1700ms
+2025-08-29 23:45:24.534 -03:00 [INF] 📱 QR Code recebido via RabbitMQ
+2025-08-29 23:45:34.902 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:45:34.972 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 72.2490ms
+2025-08-29 23:46:05.045 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:46:05.153 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 111.4680ms
+2025-08-29 23:46:24.057 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-29 23:46:26.272 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 2218.4830ms
+2025-08-29 23:46:28.964 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-29 23:46:29.192 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 228.1610ms
+2025-08-29 23:46:33.404 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-29 23:46:33.457 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 52.7570ms
+2025-08-29 23:46:34.911 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:46:35.220 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 308.4290ms
+2025-08-29 23:46:37.512 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-29 23:46:37.602 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 89.6320ms
+2025-08-29 23:46:39.661 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-29 23:46:39.706 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 45.6950ms
+2025-08-29 23:46:42.148 -03:00 [INF] Request finished GET /whatsappHub - 101 in 144330.9610ms
+2025-08-29 23:46:42.148 -03:00 [INF] Request finished GET /whatsappHub - 101 in 144342.5000ms
+2025-08-29 23:46:42.148 -03:00 [INF] Request finished GET /whatsappHub - 101 in 144317.9750ms
+2025-08-29 23:46:42.148 -03:00 [INF] Request finished GET /whatsappHub - 101 in 144381.7140ms
+2025-08-29 23:46:46.714 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-29 23:46:46.714 -03:00 [INF] Request starting GET /api/chats
+2025-08-29 23:46:46.714 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-29 23:46:46.714 -03:00 [INF] Request starting GET /api/health
+2025-08-29 23:46:46.725 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 11.3920ms
+2025-08-29 23:46:46.726 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-29 23:46:46.729 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 3.2260ms
+2025-08-29 23:46:46.757 -03:00 [INF] Request finished GET /api/health - 200 in 42.9010ms
+2025-08-29 23:46:46.759 -03:00 [INF] Request starting GET /api/health
+2025-08-29 23:46:46.759 -03:00 [INF] Request finished GET /api/health - 200 in 0.1810ms
+2025-08-29 23:46:46.804 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-29 23:46:46.804 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-29 23:46:46.836 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-29 23:46:46.836 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-29 23:46:46.838 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 34.2230ms
+2025-08-29 23:46:46.838 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 1.7440ms
+2025-08-29 23:46:46.838 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 33.5530ms
+2025-08-29 23:46:46.838 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 1.7360ms
+2025-08-29 23:46:46.857 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-29 23:46:46.881 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-29 23:46:46.893 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-29 23:46:46.906 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-29 23:46:53.018 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-29 23:46:53.246 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 227.5480ms
+2025-08-29 23:46:56.018 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 9303.3330ms
+2025-08-29 23:46:56.024 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-29 23:46:56.144 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 119.7240ms
+2025-08-29 23:46:56.145 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-29 23:46:56.176 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 30.3700ms
+2025-08-29 23:46:56.177 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-29 23:46:56.202 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 25.2370ms
+2025-08-29 23:46:56.205 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-29 23:46:56.259 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 53.1650ms
+2025-08-29 23:46:56.260 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-29 23:46:56.263 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 3.5500ms
+2025-08-29 23:46:56.392 -03:00 [INF] Request finished GET /api/chats - 200 in 9678.1510ms
+2025-08-29 23:46:56.400 -03:00 [INF] Request starting GET /api/chats
+2025-08-29 23:46:56.422 -03:00 [INF] Request finished GET /api/chats - 200 in 22.0750ms
+2025-08-29 23:47:00.187 -03:00 [INF] Request finished GET /whatsappHub - 101 in 13293.4530ms
+2025-08-29 23:47:00.187 -03:00 [INF] Request finished GET /whatsappHub - 101 in 13306.0900ms
+2025-08-29 23:47:00.187 -03:00 [INF] Request finished GET /whatsappHub - 101 in 13280.8340ms
+2025-08-29 23:47:00.187 -03:00 [INF] Request finished GET /whatsappHub - 101 in 13329.9000ms
+2025-08-29 23:47:01.278 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-29 23:47:01.278 -03:00 [INF] Request starting GET /api/chats
+2025-08-29 23:47:01.279 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-29 23:47:01.279 -03:00 [INF] Request starting GET /api/health
+2025-08-29 23:47:01.297 -03:00 [INF] Request finished GET /api/health - 200 in 18.2380ms
+2025-08-29 23:47:01.306 -03:00 [INF] Request starting GET /api/health
+2025-08-29 23:47:01.306 -03:00 [INF] Request finished GET /api/health - 200 in 0.4070ms
+2025-08-29 23:47:01.324 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-29 23:47:01.324 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-29 23:47:01.325 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-29 23:47:01.325 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-29 23:47:01.326 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.2670ms
+2025-08-29 23:47:01.326 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 1.8270ms
+2025-08-29 23:47:01.326 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.6030ms
+2025-08-29 23:47:01.328 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 49.7120ms
+2025-08-29 23:47:01.328 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 4.2170ms
+2025-08-29 23:47:01.330 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-29 23:47:01.342 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 12.5010ms
+2025-08-29 23:47:01.343 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-29 23:47:01.357 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-29 23:47:01.372 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-29 23:47:01.385 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-29 23:47:01.460 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 181.8390ms
+2025-08-29 23:47:01.462 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-29 23:47:01.465 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 3.5210ms
+2025-08-29 23:47:01.467 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-29 23:47:01.473 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 5.9170ms
+2025-08-29 23:47:01.474 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-29 23:47:01.481 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 6.6020ms
+2025-08-29 23:47:01.483 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-29 23:47:01.486 -03:00 [INF] Request finished GET /api/chats - 200 in 207.3910ms
+2025-08-29 23:47:01.510 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 27.2590ms
+2025-08-29 23:47:01.513 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-29 23:47:01.519 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 5.8800ms
+2025-08-29 23:47:04.893 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:47:04.914 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 20.9460ms
+2025-08-29 23:47:35.081 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:47:35.223 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 141.8790ms
+2025-08-29 23:47:55.338 -03:00 [INF] Request finished GET /whatsappHub - 101 in 53995.0700ms
+2025-08-29 23:47:55.339 -03:00 [INF] Request finished GET /whatsappHub - 101 in 53954.2670ms
+2025-08-29 23:47:55.339 -03:00 [INF] Request finished GET /whatsappHub - 101 in 53967.6670ms
+2025-08-29 23:47:55.339 -03:00 [INF] Request finished GET /whatsappHub - 101 in 53981.8280ms
+2025-08-29 23:47:57.166 -03:00 [INF] Request starting GET /api/health
+2025-08-29 23:47:57.166 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-29 23:47:57.166 -03:00 [INF] Request starting GET /api/chats
+2025-08-29 23:47:57.166 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-29 23:47:57.186 -03:00 [INF] Request finished GET /api/health - 200 in 19.5710ms
+2025-08-29 23:47:57.191 -03:00 [INF] Request starting GET /api/health
+2025-08-29 23:47:57.192 -03:00 [INF] Request finished GET /api/health - 200 in 0.3850ms
+2025-08-29 23:47:57.236 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-29 23:47:57.241 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-29 23:47:57.253 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-29 23:47:57.254 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-29 23:47:57.254 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 13.7360ms
+2025-08-29 23:47:57.255 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 18.2170ms
+2025-08-29 23:47:57.255 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.4660ms
+2025-08-29 23:47:57.254 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.7210ms
+2025-08-29 23:47:57.308 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-29 23:47:57.342 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-29 23:47:57.352 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 186.1080ms
+2025-08-29 23:47:57.355 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-29 23:47:57.355 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-29 23:47:57.364 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 9.7300ms
+2025-08-29 23:47:57.370 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-29 23:47:58.592 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 1425.4360ms
+2025-08-29 23:47:58.595 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-29 23:47:58.630 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 34.8500ms
+2025-08-29 23:47:58.633 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-29 23:47:58.664 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 30.6380ms
+2025-08-29 23:47:58.695 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-29 23:47:58.721 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 25.8980ms
+2025-08-29 23:47:58.727 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-29 23:47:58.731 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 3.3520ms
+2025-08-29 23:47:58.733 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-29 23:47:58.762 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 29.1780ms
+2025-08-29 23:47:59.264 -03:00 [INF] Request finished GET /api/chats - 200 in 2097.9210ms
+2025-08-29 23:47:59.267 -03:00 [INF] Request starting GET /api/chats
+2025-08-29 23:47:59.296 -03:00 [INF] Request finished GET /api/chats - 200 in 29.3800ms
+2025-08-29 23:48:04.866 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:48:04.880 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 14.1250ms
+2025-08-29 23:48:09.501 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-29 23:48:09.544 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 43.6490ms
+2025-08-29 23:48:10.366 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-29 23:48:10.395 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 28.5450ms
+2025-08-29 23:48:10.937 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-29 23:48:10.944 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 7.6900ms
+2025-08-29 23:48:11.276 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-29 23:48:11.281 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 4.8740ms
+2025-08-29 23:48:11.429 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-29 23:48:11.434 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 5.2630ms
+2025-08-29 23:48:11.570 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-29 23:48:11.577 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 6.6850ms
+2025-08-29 23:48:11.721 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-29 23:48:11.723 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 2.6790ms
+2025-08-29 23:48:11.883 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-29 23:48:11.891 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 8.3990ms
+2025-08-29 23:48:12.047 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-29 23:48:12.052 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 5.4140ms
+2025-08-29 23:48:18.403 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-29 23:48:18.469 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 66.1570ms
+2025-08-29 23:48:19.218 -03:00 [INF] Request starting GET /favicon.ico
+2025-08-29 23:48:19.222 -03:00 [INF] Request finished GET /favicon.ico - 404 in 3.9760ms
+2025-08-29 23:48:34.866 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:48:34.878 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 11.5640ms
+2025-08-29 23:49:04.950 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:49:05.603 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 652.9350ms
+2025-08-29 23:49:36.148 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:49:36.371 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 223.7010ms
+2025-08-29 23:50:04.891 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:50:04.928 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 37.0420ms
+2025-08-29 23:50:35.762 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:50:36.014 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 343.4790ms
+2025-08-29 23:51:05.656 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:51:05.692 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 36.5530ms
+2025-08-29 23:51:13.074 -03:00 [INF] Request finished GET /whatsappHub - 101 in 195703.0250ms
+2025-08-29 23:51:13.077 -03:00 [INF] Request finished GET /whatsappHub - 101 in 195722.3000ms
+2025-08-29 23:51:13.077 -03:00 [INF] Request finished GET /whatsappHub - 101 in 195735.4130ms
+2025-08-29 23:51:13.078 -03:00 [INF] Request finished GET /whatsappHub - 101 in 195769.8460ms
+2025-08-29 23:51:16.080 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-29 23:51:16.080 -03:00 [INF] Request starting GET /api/health
+2025-08-29 23:51:16.080 -03:00 [INF] Request starting GET /api/chats
+2025-08-29 23:51:16.080 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-29 23:51:16.092 -03:00 [INF] Request finished GET /api/health - 200 in 12.6570ms
+2025-08-29 23:51:16.094 -03:00 [INF] Request starting GET /api/health
+2025-08-29 23:51:16.095 -03:00 [INF] Request finished GET /api/health - 200 in 0.5330ms
+2025-08-29 23:51:16.181 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-29 23:51:16.185 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-29 23:51:16.193 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 11.2750ms
+2025-08-29 23:51:16.193 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 7.5410ms
+2025-08-29 23:51:16.194 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 114.4530ms
+2025-08-29 23:51:16.200 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-08-29 23:51:16.204 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 4.5610ms
+2025-08-29 23:51:16.229 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-29 23:51:16.230 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.3370ms
+2025-08-29 23:51:16.232 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-08-29 23:51:16.232 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.2470ms
+2025-08-29 23:51:16.245 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-29 23:51:16.268 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-29 23:51:16.281 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-29 23:51:16.297 -03:00 [INF] Request starting GET /whatsappHub
+2025-08-29 23:51:17.945 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 1865.6540ms
+2025-08-29 23:51:17.953 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-29 23:51:18.019 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 65.4520ms
+2025-08-29 23:51:18.020 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-29 23:51:18.063 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 42.4410ms
+2025-08-29 23:51:18.066 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-29 23:51:18.072 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 5.9850ms
+2025-08-29 23:51:18.074 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-29 23:51:18.082 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 8.6170ms
+2025-08-29 23:51:18.084 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-08-29 23:51:18.119 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 34.4970ms
+2025-08-29 23:51:18.218 -03:00 [INF] Request finished GET /api/chats - 200 in 2138.9210ms
+2025-08-29 23:51:18.224 -03:00 [INF] Request starting GET /api/chats
+2025-08-29 23:51:18.274 -03:00 [INF] Request finished GET /api/chats - 200 in 50.5240ms
+2025-08-29 23:51:35.654 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:51:35.676 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 22.1300ms
+2025-08-29 23:52:05.852 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:52:05.965 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 113.3920ms
+2025-08-29 23:52:35.702 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:52:35.775 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 72.0850ms
+2025-08-29 23:53:07.307 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:53:07.361 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 53.0800ms
+2025-08-29 23:53:36.408 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:53:36.638 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 236.9630ms
+2025-08-29 23:54:06.524 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:54:07.008 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 490.6100ms
+2025-08-29 23:54:35.854 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:54:35.911 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 57.2110ms
+2025-08-29 23:55:05.934 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:55:05.986 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 50.1230ms
+2025-08-29 23:55:35.957 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:55:36.108 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 150.7440ms
+2025-08-29 23:56:06.023 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:56:06.214 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 186.5310ms
+2025-08-29 23:56:35.883 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:56:35.965 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 80.8450ms
+2025-08-29 23:57:06.227 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:57:06.253 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 26.0330ms
+2025-08-29 23:57:36.226 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:57:36.241 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 15.5760ms
+2025-08-29 23:58:06.068 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:58:06.088 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 20.3160ms
+2025-08-29 23:58:36.063 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:58:36.086 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 23.5140ms
+2025-08-29 23:59:06.047 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:59:06.057 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 10.5890ms
+2025-08-29 23:59:36.066 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-08-29 23:59:36.090 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 23.7020ms

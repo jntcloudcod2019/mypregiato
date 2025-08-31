@@ -16,15 +16,18 @@ namespace Pregiato.API.Controllers
         private readonly IHubContext<WhatsAppHub> _hub;
         private readonly ILogger<ConversationsController> _logger;
         private readonly RabbitBackgroundService _rabbit;
+        private readonly ChatLogService _chatLogService;
 
         public ConversationsController(
             ConversationService conversationService, 
+            ChatLogService chatLogService,
             PregiatoDbContext db, 
             IHubContext<WhatsAppHub> hub, 
             ILogger<ConversationsController> logger,
             RabbitBackgroundService rabbit)
         {
             _conversationService = conversationService;
+            _chatLogService = chatLogService;
             _db = db;
             _hub = hub;
             _logger = logger;
@@ -120,6 +123,32 @@ namespace Pregiato.API.Controllers
                     
                     await _rabbit.PublishAsync("whatsapp.outgoing", cmd);
                     _logger.LogInformation($"📤 Mensagem enviada para RabbitMQ: {normalizedPhone}");
+                    // Atualizar ChatLogs com outbound (fallback se chatLogService disponível)
+                    try
+                    {
+                        if (_chatLogService != null)
+                        {
+                            var chatAttachment = request.Attachment != null ? new ChatLogService.ChatAttachment
+                            {
+                                DataUrl = request.Attachment.DataUrl,
+                                MimeType = request.Attachment.MimeType,
+                                FileName = request.Attachment.FileName,
+                                MediaType = request.Attachment.MediaType
+                            } : null;
+                            // Atualiza PayloadJson com outbound pendente
+                            await _chatLogService.AddOutboundPendingAsync(
+                                id,
+                                request.Text,
+                                request.ClientMessageId ?? message.Id.ToString(),
+                                DateTime.UtcNow,
+                                chatAttachment
+                            );
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Erro ao atualizar ChatLogs com outbound");
+                    }
                 }
             }
 

@@ -232,6 +232,10 @@ namespace Pregiato.API.Services
             chat.LastMessageAt = timestamp;
             
             await _chatLogRepository.UpdateAsync(chat);
+            // Save in-memory snapshot for quick fallback
+            try {
+                _cache.Set($"chatpayload_{chatId}", payload, TimeSpan.FromMinutes(10));
+            } catch { }
             
             return (chat, message);
         }
