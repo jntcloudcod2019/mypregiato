@@ -75,7 +75,6 @@ async function backupAndClearSession() {
 
 // ========================= Estado WhatsApp =========================
 let client = null;
-let clientInitializing = false;
 let isConnected = false;
 let isFullyValidated = false;
 let connectedNumber = null;
@@ -395,7 +394,18 @@ function buildClient() {
 });
 
   client.on('qr', onQR);
-  client.on('authenticated', () => { if (qrExpireTimer) clearTimeout(qrExpireTimer); Log.info('[AUTH] autenticado'); });
+  client.on('authenticated', async () => { 
+    if (qrExpireTimer) clearTimeout(qrExpireTimer); 
+    Log.info('[AUTH] autenticado - processando diretamente');
+    
+    // Processar onReady diretamente após autenticação
+    try {
+      await onReady();
+      Log.info('[AUTH] onReady processado com sucesso');
+    } catch (e) {
+      Log.error('[AUTH] Erro ao processar onReady', { error: e?.message });
+    }
+  });
   client.on('ready', async () => {
     Log.info('[DEBUG] Evento ready disparado');
     try {
@@ -413,46 +423,20 @@ function buildClient() {
   });
   client.on('auth_failure', async (m) => { await onDisconnected('[AUTH_FAILURE] '+m); });
   client.on('disconnected', async (r) => { await onDisconnected('[DISCONNECTED] '+r); });
-  client.on('message', onInbound);
+  client.on('message', async (message) => {
+    Log.info('[MESSAGE] Mensagem recebida', { 
+      from: message.from, 
+      type: message.type, 
+      fromMe: message.fromMe,
+      body: message.body?.substring(0, 50) + '...' 
+    });
+    await onInbound(message);
+  });
 
   return client;
 }
 
-async function initializeClientSafely() {
-  if (clientInitializing) { 
-    Log.info('[INIT] initializeClientSafely: já em progresso'); 
-    return; 
-  }
-  
-  clientInitializing = true;
-  Log.info('[INIT] Começando inicialização segura do cliente');
-  
-  try {
-    Log.info('[INIT] Construindo cliente WhatsApp');
-    buildClient();
-    Log.info('[INIT] Cliente construído, iniciando initialize()...');
-    await client.initialize();
-    Log.info('[INIT] Client.initialize() concluído com sucesso');
-  } catch (e) {
-    Log.error('[INIT] Erro durante initialize()', { error: e?.message, stack: e?.stack });
-    if (String(e?.message).includes('Execution context') || String(e?.message).includes('ProtocolError')) {
-      Log.warn('[INIT] Erro de contexto detectado, limpando sessão e tentando novamente');
-      await backupAndClearSession();
-      try {
-        client = null; 
-        Log.info('[INIT] Reconstruindo cliente após erro');
-        buildClient();
-        await client.initialize();
-        Log.info('[INIT] Segunda tentativa de initialize() bem-sucedida');
-      } catch (e2) { 
-        Log.error('[INIT] Segunda tentativa falhou', { error: e2?.message, stack: e2?.stack }); 
-      }
-    }
-  } finally {
-    clientInitializing = false;
-    Log.info('[INIT] initializeClientSafely finalizado');
-  }
-}
+// Função initializeClientSafely removida - usando inicialização direta
 
 // ---- QR ----
 async function onQR(qr) {
@@ -484,9 +468,15 @@ async function handleGenerateQR(_requestId) {
     return;
   }
   
-  Log.info('[QR_GEN] Iniciando inicialização do cliente WhatsApp');
-  await initializeClientSafely();
-  Log.info('[QR_GEN] Processo de inicialização concluído');
+  Log.info('[QR_GEN] Criando e inicializando cliente diretamente');
+  try {
+    client = buildClient();
+    await client.initialize();
+    Log.info('[QR_GEN] Cliente inicializado com sucesso');
+  } catch (e) {
+    Log.error('[QR_GEN] Erro na inicialização', { error: e?.message });
+    throw e;
+  }
 }
 
 // ---- READY ----
@@ -574,9 +564,18 @@ async function onDisconnected(reason) {
   isConnected = false; isFullyValidated = false; connectedNumber = null;
   await sendSessionStatus();
 
-  // backoff simples para reinit
+  // Reconexão simples
   const retryMs = jitter(backoff(1));
-  setTimeout(() => initializeClientSafely().catch(()=>{}), retryMs);
+  setTimeout(async () => {
+    try {
+      Log.info('[RECONNECT] Tentando reconectar após desconexão');
+      client = buildClient();
+      await client.initialize();
+      Log.info('[RECONNECT] Reconectado com sucesso');
+  } catch (e) {
+      Log.error('[RECONNECT] Falha na reconexão', { error: e?.message });
+    }
+  }, retryMs);
 }
 
 // ---- Inbound ----
@@ -633,7 +632,17 @@ function buildInboundPayload(message) {
 
 async function onInbound(message) {
   try {
-    if (message.fromMe) return;
+    Log.info('[INBOUND] Processando mensagem', { 
+      from: message.from, 
+      type: message.type, 
+      fromMe: message.fromMe,
+      hasMedia: message.hasMedia 
+    });
+    
+    if (message.fromMe) {
+      Log.info('[INBOUND] Mensagem própria ignorada');
+    return;
+  }
     let payload = buildInboundPayload(message);
 
     // Processar mídia se existir
@@ -676,7 +685,7 @@ async function onInbound(message) {
       type: payload.type,
       hasMedia: !!payload.attachment 
     });
-  } catch (e) {
+    } catch (e) {
     Log.error('Erro inbound', { error: e?.message });
   }
 }
@@ -726,7 +735,7 @@ async function sendOne(number, msg) {
       const mime = attachment.mimeType || 'application/octet-stream';
       const media = new MessageMedia(mime, base64 || '', attachment.fileName || 'file');
       sent = await client.sendMessage(chatId, media, { caption: body || undefined });
-        } else {
+      } else {
       sent = await client.sendMessage(chatId, body);
     }
     if (sent?.id) { await sendMessageStatus(number, sent.id._serialized, 'sent'); return { success: true, messageId: sent.id }; }
@@ -766,7 +775,7 @@ async function sendMessageStatus(phone, externalMessageId, status) {
       } catch (e) {
         Log.error('[EMERGENCY] Falha ao enviar status de emergência', { error: e?.message });
       }
-        } else {
+    } else {
       Log.info('[EMERGENCY] Timeout: Sistema funcionando normalmente');
     }
   }, 60000); // 1 minuto após inicialização

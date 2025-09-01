@@ -1049,7 +1049,7 @@ namespace Pregiato.API.Services
                     {
                         using var scope = _services.CreateScope();
                         var context = scope.ServiceProvider.GetRequiredService<PregiatoDbContext>();
-                        O 
+                        
                         // Usar CreateExecutionStrategy para suportar retry com transações
                         var strategy = context.Database.CreateExecutionStrategy();
                         await strategy.ExecuteAsync(async () =>
@@ -1111,6 +1111,9 @@ namespace Pregiato.API.Services
                 {
                     var normalizedPhone = ChatHelper.NormalizePhoneE164Br(message.from, message.isGroup);
                     
+                    _logger.LogInformation("🔢 NORMALIZAÇÃO DEBUG: from={From}, isGroup={IsGroup}, normalizedPhone={NormalizedPhone}", 
+                        message.from, message.isGroup, normalizedPhone);
+                    
                     // 1. Criar ou obter Conversation via Service
                     var conversation = await conversationService.GetOrCreateConversationAsync(
                         normalizedPhone, 
@@ -1120,17 +1123,43 @@ namespace Pregiato.API.Services
                     );
                     
                     // 2. Processar ChatLog com verificação resiliente anti-duplicação
+                    _logger.LogInformation("🔍 Buscando ChatLog existente para {Phone}", normalizedPhone);
+                    
+                    // DEBUG: Verificar quantos chats existem para este número
+                    var totalChatsForPhone = await context.ChatLogs
+                        .Where(c => c.ContactPhoneE164 == normalizedPhone)
+                        .CountAsync();
+                        
+                    _logger.LogInformation("📊 Total de chats existentes para {Phone}: {Count}", normalizedPhone, totalChatsForPhone);
+                    
                     var chatLog = await context.ChatLogs
                         .Where(c => c.ContactPhoneE164 == normalizedPhone)
                         .OrderByDescending(c => c.LastMessageAt)
                         .FirstOrDefaultAsync();
                     
-                    // NOVA REGRA: Se não encontrar por número, tentar por ChatId da conversa
-                    if (chatLog == null)
+                    if (chatLog != null)
                     {
+                        _logger.LogInformation("✅ ChatLog ENCONTRADO para {Phone}: {ChatLogId} (criado em {CreatedAt})", 
+                            normalizedPhone, chatLog.Id, chatLog.LastMessageAt);
+                    }
+                    else
+                    {
+                        _logger.LogInformation("❌ ChatLog NÃO ENCONTRADO para {Phone}. Verificando por ChatId da conversa...", normalizedPhone);
+                        
+                        // NOVA REGRA: Se não encontrar por número, tentar por ChatId da conversa
                         chatLog = await context.ChatLogs
                             .Where(c => c.ChatId == conversation.Id)
                             .FirstOrDefaultAsync();
+                            
+                        if (chatLog != null)
+                        {
+                            _logger.LogInformation("✅ ChatLog encontrado por ConversationId {ConversationId}: {ChatLogId}", 
+                                conversation.Id, chatLog.Id);
+                        }
+                        else
+                        {
+                            _logger.LogInformation("❌ Nenhum ChatLog encontrado. Será criado novo ChatLog para {Phone}", normalizedPhone);
+                        }
                     }
                     
                     // NOVA REGRA: Verificar múltiplos chats para o mesmo número e consolidar
@@ -1152,6 +1181,7 @@ namespace Pregiato.API.Services
                     
                     if (chatLog == null)
                     {
+                        _logger.LogInformation("🆕 CRIANDO NOVO ChatLog para {Phone} (não encontrado nenhum existente)", normalizedPhone);
                         // Criar novo ChatLog
                         var newChatLog = new ChatLog
                         {
@@ -1204,6 +1234,9 @@ namespace Pregiato.API.Services
                             }
                         }
 
+                        // === DEBUG DETALHADO PARA MENSAGENS DE ÁUDIO ===
+                       
+
                         // Criar MessageInfo COMPLETO conforme exemplo JSON
                         var messageInfo = CreateCompleteMessageInfo(message, mediaUrl);
                         
@@ -1217,8 +1250,15 @@ namespace Pregiato.API.Services
                             Messages = new List<ChatLogService.MessageInfo> { messageInfo }
                         };
                         
-                        // Atualizar o PayloadJson do ChatLog
-                        newChatLog.PayloadJson = JsonSerializer.Serialize(chatPayload);
+                        // Atualizar o PayloadJson do ChatLog com configuração adequada para base64
+                        var jsonOptions = new JsonSerializerOptions
+                        {
+                            PropertyNamingPolicy = null, // Manter nomes originais das propriedades
+                            WriteIndented = false, // JSON compacto
+                            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping // Evitar escape excessivo
+                        };
+                        
+                        newChatLog.PayloadJson = JsonSerializer.Serialize(chatPayload, jsonOptions);
                         await context.SaveChangesAsync();
                         
                         _logger.LogInformation("📝 ✅ NOVO ChatLog criado para {From}: ChatId={ChatId}, ChatLogId={ChatLogId}", 
@@ -1242,10 +1282,38 @@ namespace Pregiato.API.Services
                     else
                     {
                         // CORREÇÃO: Adicionar mensagem ao ChatLog existente usando ChatPayload
+                        _logger.LogInformation("🔄 INCREMENTANDO mensagem ao ChatLog existente {ChatLogId} para {Phone} (encontrado chat existente)", 
+                            chatLog.Id, normalizedPhone);
+                        
                         var chatLogService = scope.ServiceProvider.GetRequiredService<ChatLogService>();
                         
                         // Deserializar o PayloadJson existente
+                        _logger.LogInformation("📋 Deserializando PayloadJson existente (tamanho: {Size} chars)", 
+                            chatLog.PayloadJson?.Length ?? 0);
+                        
                         var existingPayload = chatLogService.Deserialize(chatLog.PayloadJson);
+                        
+                        // CORREÇÃO: Garantir que o ContactInfo esteja preenchido
+                        if (existingPayload.Contact == null)
+                        {
+                            existingPayload.Contact = new ChatLogService.ContactInfo
+                            {
+                                Name = $"Cliente {normalizedPhone}",
+                                PhoneE164 = normalizedPhone,
+                                ProfilePic = null
+                            };
+                            _logger.LogInformation("📋 ContactInfo criado para chat existente: {Phone}", normalizedPhone);
+                        }
+                        else if (existingPayload.Contact.PhoneE164 == "N/A")
+                        {
+                            // Atualizar ContactInfo migrado do formato antigo
+                            existingPayload.Contact.PhoneE164 = normalizedPhone;
+                            existingPayload.Contact.Name = $"Cliente {normalizedPhone}";
+                            _logger.LogInformation("📋 ContactInfo atualizado para migração: {Phone}", normalizedPhone);
+                        }
+                        
+                        _logger.LogInformation("📊 PayloadJson carregado: {MessageCount} mensagens existentes", 
+                            existingPayload?.Messages?.Count ?? 0);
                         
                         // Processar mídia se existir
                         string mediaUrl = null;
@@ -1266,6 +1334,15 @@ namespace Pregiato.API.Services
                             }
                         }
 
+                        // === DEBUG RÁPIDO PARA ÁUDIO ===
+                        if (message.type == "audio" || message.type == "voice")
+                        {
+                            _logger.LogInformation("🎵 [AUDIO] body: {HasBody}, attachment: {HasAttachment}, mimeType: {MimeType}", 
+                                !string.IsNullOrEmpty(message.body) ? $"{message.body.Length}chars" : "VAZIO",
+                                message.attachment != null ? "SIM" : "NÃO", 
+                                message.attachment?.mimeType ?? "NULL");
+                        }
+
                         // Criar nova MessageInfo COMPLETO conforme exemplo JSON
                         var messageInfo = CreateCompleteMessageInfo(message, mediaUrl);
                         
@@ -1273,17 +1350,20 @@ namespace Pregiato.API.Services
                             messageInfo.Type, messageInfo.body?.Length ?? 0, messageInfo.MediaUrl);
                         
                         // VERIFICAR SE A MENSAGEM JÁ EXISTS (evitar duplicatas)
+                        _logger.LogInformation("🔍 Verificando duplicata para MessageId: {MessageId}", messageInfo.Id);
+                        
                         var existingMessage = existingPayload.Messages?.FirstOrDefault(m => m.Id == messageInfo.Id);
                         if (existingMessage == null)
                         {
                             // Adicionar mensagem ao payload existente
                             existingPayload.Messages.Add(messageInfo);
                             
-                            _logger.LogInformation("📝 ✅ Nova mensagem adicionada: {MessageId}", messageInfo.Id);
+                            _logger.LogInformation("📝 ✅ Nova mensagem ADICIONADA ao PayloadJson: {MessageId} (Total: {Count} mensagens)", 
+                                messageInfo.Id, existingPayload.Messages.Count);
                         }
                         else
                         {
-                            _logger.LogInformation("⚠️ Mensagem já existe, ignorando duplicata: {MessageId}", messageInfo.Id);
+                            _logger.LogWarning("⚠️ Mensagem DUPLICADA detectada, ignorando: {MessageId}", messageInfo.Id);
                             return conversation.Id; // Retornar sem atualizar
                         }
                         
@@ -1292,13 +1372,28 @@ namespace Pregiato.API.Services
                             .OrderBy(m => DateTime.TryParse(m.timestamp, out var dt) ? dt : DateTime.MinValue)
                             .ToList();
                         
-                        // Atualizar o PayloadJson
-                        chatLog.PayloadJson = JsonSerializer.Serialize(existingPayload);
+                        // Atualizar o PayloadJson com configuração adequada para base64
+                        var jsonOptions = new JsonSerializerOptions
+                        {
+                            PropertyNamingPolicy = null, // Manter nomes originais das propriedades
+                            WriteIndented = false, // JSON compacto
+                            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping // Evitar escape excessivo
+                        };
+                        
+                        var newPayloadJson = JsonSerializer.Serialize(existingPayload, jsonOptions);
+                        
+                        _logger.LogInformation("💾 Atualizando PayloadJson (antes: {OldSize} chars, depois: {NewSize} chars)", 
+                            chatLog.PayloadJson?.Length ?? 0, newPayloadJson.Length);
+                        
+                        chatLog.PayloadJson = newPayloadJson;
                         chatLog.LastMessageAt = DateTime.Parse(message.timestamp);
                         chatLog.LastMessagePreview = message.body?.Length > 200 ? message.body.Substring(0, 200) : message.body;
                         chatLog.UnreadCount++;
                         
                         await context.SaveChangesAsync();
+                        
+                        _logger.LogInformation("✅ ChatLog atualizado com SUCESSO: {ChatLogId} - {MessageCount} mensagens no PayloadJson", 
+                            chatLog.Id, existingPayload.Messages.Count);
                         
                         _logger.LogInformation("📝 ✅ Mensagem adicionada ao ChatLog existente: ChatId={ChatId}, ChatLogId={ChatLogId}", 
                             chatLog.ChatId, chatLog.Id);
@@ -1353,18 +1448,31 @@ namespace Pregiato.API.Services
                 from = message.from,
                 timestamp = message.timestamp,
                 Direction = "inbound",
-                Type = message.type,
+                Type = message.type?.ToLower(), // SEMPRE string lowercase para consistência
                 Status = "delivered",
                 MediaUrl = mediaUrl,
                 IsRead = false
             };
 
             // === GARANTIR QUE O BODY CONTENHA BASE64 PARA ÁUDIO ===
-            if ((message.type == "audio" || message.type == "voice") && message.attachment?.dataUrl != null)
+            if ((message.type == "audio" || message.type == "voice"))
             {
-                // Para áudio/voice, o body DEVE conter o base64 completo
-                messageInfo.body = message.attachment.dataUrl;
-                _logger.LogInformation("🎵 ÁUDIO: Body populado com base64 ({Length} chars)", messageInfo.body.Length);
+                // Para áudio/voice, usar PRIMEIRO o attachment.dataUrl, depois o body da mensagem
+                if (!string.IsNullOrEmpty(message.attachment?.dataUrl))
+                {
+                    messageInfo.body = message.attachment.dataUrl;
+                    _logger.LogInformation("🎵 ÁUDIO: Body populado com base64 do attachment ({Length} chars)", messageInfo.body.Length);
+                }
+                else if (!string.IsNullOrEmpty(message.body))
+                {
+                    messageInfo.body = message.body;
+                    _logger.LogInformation("🎵 ÁUDIO: Body populado com base64 do body original ({Length} chars)", messageInfo.body.Length);
+                }
+                else
+                {
+                    messageInfo.body = "";
+                    _logger.LogWarning("⚠️ ÁUDIO: Nenhum base64 encontrado no attachment.dataUrl nem no body!");
+                }
             }
             else
             {

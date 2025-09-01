@@ -27,7 +27,7 @@ function getAudioBase64() {
 
 // Payload de teste simulando uma mensagem de áudio real do WhatsApp
 function createTestAudioMessage() {
-  const testPhone = '5511988776655'; // Número de teste diferente
+  const testPhone = '5511988770944'; // Número de teste diferente
   const instanceId = 'zap-prod';
   const audioBase64 = getAudioBase64();
   
@@ -36,7 +36,7 @@ function createTestAudioMessage() {
     externalMessageId: crypto.randomUUID(),
     from: `${testPhone}@c.us`,
     fromNormalized: testPhone,
-    to: '5511888776655', // Número do bot (simulado)
+    to: '5511949907658', // Número do bot (simulado)
     type: 'audio', // TIPO: áudio
     timestamp: new Date().toISOString(),
     instanceId: instanceId,

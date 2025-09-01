@@ -207,18 +207,105 @@ namespace Pregiato.API.Services
         
         public ChatPayload Deserialize(string? json)
         {
-            if (string.IsNullOrWhiteSpace(json))
+            if (string.IsNullOrWhiteSpace(json) || json == "{}")
+            {
+                _logger.LogInformation("PayloadJson vazio - criando estrutura inicial");
                 return new ChatPayload();
+            }
             
             try
             {
-                return JsonSerializer.Deserialize<ChatPayload>(json) ?? new ChatPayload();
+                // Tentar deserializar no formato novo primeiro
+                var newFormat = JsonSerializer.Deserialize<ChatPayload>(json);
+                if (newFormat?.Contact != null || newFormat?.Messages?.Any() == true)
+                {
+                    _logger.LogInformation("PayloadJson no formato NOVO detectado: {MessageCount} mensagens", 
+                        newFormat.Messages?.Count ?? 0);
+                    return newFormat;
+                }
+                
+                // Se não funcionou, tentar formato antigo { "messages": [...] }
+                _logger.LogWarning("PayloadJson no formato ANTIGO detectado - convertendo para novo formato");
+                
+                var legacyFormat = JsonSerializer.Deserialize<LegacyPayload>(json);
+                if (legacyFormat?.messages?.Any() == true)
+                {
+                    var convertedPayload = new ChatPayload
+                    {
+                        Contact = new ContactInfo
+                        {
+                            Name = "Cliente Migrado",
+                            PhoneE164 = "N/A", // Será preenchido pelo processo principal
+                            ProfilePic = null
+                        },
+                        Messages = legacyFormat.messages.Select(ConvertLegacyMessage).ToList()
+                    };
+                    
+                    _logger.LogInformation("Convertidas {Count} mensagens do formato antigo para novo", 
+                        convertedPayload.Messages.Count);
+                    
+                    return convertedPayload;
+                }
+                
+                _logger.LogWarning("PayloadJson não reconhecido - criando estrutura nova");
+                return new ChatPayload();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erro ao deserializar payload de chat");
+                _logger.LogError(ex, "Erro ao deserializar payload de chat: {Json}", 
+                    json?.Length > 200 ? json.Substring(0, 200) + "..." : json);
                 return new ChatPayload();
             }
+        }
+        
+        // Classe para suportar formato antigo
+        public class LegacyPayload
+        {
+            public List<LegacyMessage>? messages { get; set; }
+        }
+        
+        public class LegacyMessage
+        {
+            public string? id { get; set; }
+            public string? type { get; set; }
+            public string? body { get; set; }
+            public string? text { get; set; }
+            public string? mediaUrl { get; set; }
+            public string? direction { get; set; }
+            public string? ts { get; set; }
+            public string? timestamp { get; set; }
+            public string? status { get; set; }
+            public bool fromMe { get; set; }
+            public LegacyAttachment? attachment { get; set; }
+        }
+        
+        public class LegacyAttachment
+        {
+            public string? dataUrl { get; set; }
+            public string? mimeType { get; set; }
+            public string? fileName { get; set; }
+        }
+        
+        private MessageInfo ConvertLegacyMessage(LegacyMessage legacy)
+        {
+            return new MessageInfo
+            {
+                Id = legacy.id ?? Guid.NewGuid().ToString(),
+                Content = legacy.text,
+                body = legacy.body ?? legacy.text ?? "",
+                MediaUrl = legacy.mediaUrl,
+                Direction = legacy.fromMe ? "outbound" : "inbound", 
+                Ts = DateTime.TryParse(legacy.ts ?? legacy.timestamp, out var dt) ? dt : DateTime.UtcNow,
+                timestamp = legacy.timestamp ?? legacy.ts ?? DateTime.UtcNow.ToString("O"),
+                IsRead = false,
+                Status = legacy.status ?? "delivered",
+                Type = legacy.type ?? "text",
+                from = "legacy@converted",
+                
+                // Campos de mídia do attachment
+                mimeType = legacy.attachment?.mimeType,
+                fileName = legacy.attachment?.fileName
+            };
         }
         
         public async Task<(ChatLog chat, MessageInfo message)> AddOutboundPendingAsync(Guid chatId, string text, string clientMessageId, DateTime timestamp, ChatAttachment? attachment = null)

@@ -180,7 +180,9 @@ export const MediaRenderer: React.FC<MediaRendererProps> = ({
     isAudio: type === MessageType.Audio,
     isVoice: type === MessageType.Voice,
     MessageTypeAudio: MessageType.Audio,
-    MessageTypeVoice: MessageType.Voice
+    MessageTypeVoice: MessageType.Voice,
+    dataUrl: dataUrl ? `${dataUrl.substring(0, 50)}...` : 'null',
+    mediaUrl: mediaUrl ? `${mediaUrl.substring(0, 50)}...` : 'null'
   });
 
   // Renderização por tipo
@@ -502,10 +504,16 @@ export const MediaRenderer: React.FC<MediaRendererProps> = ({
       );
 
     default:
+      console.error('❌ TIPO NÃO SUPORTADO no MediaRenderer:', {
+        type,
+        typeValue: type,
+        typeNumber: typeof type === 'number' ? type : 'não é número',
+        allMessageTypes: Object.entries(MessageType)
+      });
       return (
         <div className={cn("flex items-center gap-2 p-3 bg-muted rounded-lg", className)}>
           <AlertCircle className="w-5 h-5 text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">Tipo de mídia não suportado</span>
+          <span className="text-sm text-muted-foreground">Tipo de mídia não suportado (tipo: {type})</span>
         </div>
       );
   }

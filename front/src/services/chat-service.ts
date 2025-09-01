@@ -34,7 +34,7 @@ import axios from 'axios';
 // API com interceptors para melhor tratamento de erros
 const api = axios.create({
   baseURL: 'http://localhost:5656/api',
-  timeout: 10000,  // Aumentar timeout para 10 segundos
+  timeout: 30000,  // Aumentar timeout para 30 segundos para histórico
   headers: { 'Content-Type': 'application/json' }
 });
 
@@ -82,13 +82,8 @@ export enum MessageDirection {
   Out = 'Out'
 }
 
-export enum MessageType {
-  Text = 'Text',
-  Image = 'Image',
-  Audio = 'Audio',
-  Document = 'Document',
-  Video = 'Video'
-}
+// Remover enum duplicado - usar o de @/types/message
+import { MessageType } from '@/types/message';
 
 export enum MessageStatus {
   Sending = 'Sending',
@@ -255,19 +250,69 @@ export const mapBackendStatus = (status: string): MessageStatus => {
 };
 
 export const mapBackendType = (type: string): MessageType => {
-  switch (type) {
-    case 'Text': return MessageType.Text;
-    case 'Image': return MessageType.Image;
-    case 'Audio': return MessageType.Audio;
-    case 'Document': return MessageType.Document;
-    case 'Video': return MessageType.Video;
-    default: return MessageType.Text;
+  console.log('🔍 mapBackendType chamado com:', type);
+  
+  switch (type?.toLowerCase()) {
+    case 'text': return MessageType.Text;      // 0
+    case 'image': return MessageType.Image;    // 1
+    case 'audio': return MessageType.Audio;    // 2
+    case 'document': return MessageType.Document; // 3
+    case 'video': return MessageType.Video;    // 4
+    case 'voice': return MessageType.Voice;    // 5
+    case 'sticker': return MessageType.Sticker; // 6
+    case 'location': return MessageType.Location; // 7
+    case 'contact': return MessageType.Contact; // 8
+    case 'system': return MessageType.System;  // 9
+    default: 
+      console.warn('⚠️ Tipo não reconhecido:', type, 'retornando Text');
+      return MessageType.Text;
   }
 };
 
 // Função para converter ChatMessageDto do backend para formato do frontend
 export const convertBackendMessage = (backendMessage: BackendMessageDto | BackendMessageInfoDto): ChatMessageDto => {
-  // Verificar se é o formato MessageInfo do ChatLogService
+  // CORREÇÃO: Verificar se é o novo formato híbrido do ChatsController
+  if ('text' in backendMessage && 'attachment' in backendMessage && 'timestamp' in backendMessage) {
+    // Novo formato híbrido do ChatsController (PayloadJson convertido)
+    const hybridMessage = backendMessage as BackendMessageDto & { 
+      attachment?: { dataUrl?: string; mimeType?: string; fileName?: string };
+      timestamp?: string;
+      fromMe?: boolean;
+      isFromMe?: boolean;
+    };
+    const direction = hybridMessage.direction === 'Out' ? MessageDirection.Out : MessageDirection.In;
+    
+    return {
+      id: hybridMessage.id || hybridMessage.externalMessageId || '',
+      conversationId: hybridMessage.conversationId || '',
+      direction: direction,
+      type: mapBackendType(hybridMessage.type || 'text'),
+      body: hybridMessage.body || hybridMessage.text || '', // body contém base64 para áudio
+      mediaUrl: hybridMessage.mediaUrl || '',
+      fileName: hybridMessage.fileName || hybridMessage.attachment?.fileName || '',
+      clientMessageId: hybridMessage.clientMessageId || hybridMessage.id || '',
+      whatsAppMessageId: hybridMessage.whatsAppMessageId || '',
+      status: mapBackendStatus(hybridMessage.status || 'Delivered'),
+      internalNote: hybridMessage.internalNote || '',
+      createdAt: hybridMessage.createdAt || hybridMessage.timestamp || new Date().toISOString(),
+      updatedAt: hybridMessage.updatedAt || '',
+      
+      // Campos de compatibilidade
+      externalMessageId: hybridMessage.externalMessageId || hybridMessage.id || '',
+      text: hybridMessage.text || hybridMessage.body || '', // IMPORTANTE: Para áudio, text pode ser ocultado pelo isMediaOnlyContent
+      ts: hybridMessage.ts || hybridMessage.timestamp || hybridMessage.createdAt || new Date().toISOString(),
+      fromMe: hybridMessage.fromMe || hybridMessage.isFromMe || direction === MessageDirection.Out,
+      
+      // CRÍTICO: Preservar attachment com base64 para áudio
+      attachment: hybridMessage.attachment ? {
+        dataUrl: hybridMessage.attachment.dataUrl || '', // Base64 completo com prefixo data:
+        mimeType: hybridMessage.attachment.mimeType || 'application/octet-stream',
+        fileName: hybridMessage.attachment.fileName || ''
+      } : null
+    };
+  }
+  
+  // Verificar se é o formato MessageInfo do ChatLogService (legacy)
   if ('Id' in backendMessage && 'Content' in backendMessage) {
     // Formato MessageInfo do ChatLogService
     const messageInfo = backendMessage as BackendMessageInfoDto;

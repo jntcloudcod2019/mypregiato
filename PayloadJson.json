@@ -1,0 +1,59 @@
+{
+  "Contact": {
+    "Name": "Cliente 5511988776655",
+    "PhoneE164": "5511988776655",
+    "ProfilePic": null
+  },
+  "Messages": [
+    {
+      "Id": "exemplo-msg-texto-001",
+      "Content": null,
+      "body": "Olá, preciso de ajuda!",
+      "MediaUrl": null,
+      "Direction": "inbound",
+      "Ts": "2025-08-31T01:00:00.000Z",
+      "timestamp": "2025-08-31T01:00:00.000Z",
+      "IsRead": false,
+      "Status": "delivered",
+      "Type": "text",
+      "from": "5511988776655@c.us",
+      "mimeType": null,
+      "fileName": null,
+      "size": null,
+      "duration": null,
+      "thumbnail": null,
+      "latitude": null,
+      "longitude": null,
+      "locationAddress": null,
+      "contactName": null,
+      "contactPhone": null,
+      "ActualContent": "Olá, preciso de ajuda!",
+      "ActualTs": "2025-08-30T22:00:00.000-03:00"
+    },
+    {
+      "Id": "exemplo-msg-audio-002",
+      "Content": null,
+      "body": "data:audio/mpeg;base64,SUQzBAAAAAAASFRMRU4AAAAHAAADMTgyMzMAVElUMgAAAAoAAANUZW1wbGF0ZQBUU1NFAAAADwAAA",
+      "MediaUrl": "/media/audio-exemplo.mp3",
+      "Direction": "inbound",
+      "Ts": "2025-08-31T01:05:00.000Z",
+      "timestamp": "2025-08-31T01:05:00.000Z",
+      "IsRead": false,
+      "Status": "delivered",
+      "Type": "audio",
+      "from": "5511988776655@c.us",
+      "mimeType": "audio/mpeg",
+      "fileName": "audio_message.mp3",
+      "size": 4096,
+      "duration": 15,
+      "thumbnail": null,
+      "latitude": null,
+      "longitude": null,
+      "locationAddress": null,
+      "contactName": null,
+      "contactPhone": null,
+      "ActualContent": "data:audio/mpeg;base64,SUQz...",
+      "ActualTs": "2025-08-30T22:05:00.000-03:00"
+    }
+  ]
+}

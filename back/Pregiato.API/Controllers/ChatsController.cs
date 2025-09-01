@@ -44,28 +44,39 @@ namespace Pregiato.API.Controllers
             return Ok(new { items = unique, total });
         }
 
-        [HttpGet("{id:guid}/messages")]
-        public async Task<IActionResult> GetMessages(Guid id, [FromQuery] long? cursorTs = null, [FromQuery] int limit = 50)
+        [HttpGet("{id}/messages")]
+        public async Task<IActionResult> GetMessages(string id, [FromQuery] long? cursorTs = null, [FromQuery] int limit = 50)
         {
             _logger.LogInformation($"🔍 Buscando mensagens para ID: {id}");
+            ChatLog? chat = null;
             
-            // Primeiro tentar buscar pelo ID do ChatLog
-            var chat = await _db.ChatLogs.FirstOrDefaultAsync(c => c.Id == id);
-            _logger.LogInformation($"📄 Busca por ID do ChatLog: {(chat != null ? "Encontrado" : "Não encontrado")}");
-            
-            // Se não encontrar, tentar buscar pelo ChatId
-            if (chat == null)
+            // Tentar como GUID primeiro
+            if (Guid.TryParse(id, out var guidId))
             {
-                chat = await _db.ChatLogs.FirstOrDefaultAsync(c => c.ChatId == id);
-                _logger.LogInformation($"📄 Busca por ChatId: {(chat != null ? "Encontrado" : "Não encontrado")}");
+                chat = await _db.ChatLogs.FirstOrDefaultAsync(c => c.Id == guidId);
+                _logger.LogInformation($"📄 Busca por GUID ID do ChatLog: {(chat != null ? "Encontrado" : "Não encontrado")}");
+                
+                // Se não encontrar, tentar buscar pelo ChatId como GUID
+                if (chat == null)
+                {
+                    chat = await _db.ChatLogs.FirstOrDefaultAsync(c => c.ChatId == guidId);
+                    _logger.LogInformation($"📄 Busca por ChatId como GUID: {(chat != null ? "Encontrado" : "Não encontrado")}");
+                }
             }
             
-            // Se ainda não encontrar, tentar buscar pelo número do telefone
+            // Se não for GUID ou não encontrar, tentar buscar pelo número do telefone
             if (chat == null)
             {
-                var idString = id.ToString();
-                chat = await _db.ChatLogs.FirstOrDefaultAsync(c => c.ContactPhoneE164 == idString);
-                _logger.LogInformation($"📄 Busca por ContactPhoneE164: {(chat != null ? "Encontrado" : "Não encontrado")}");
+                chat = await _db.ChatLogs.FirstOrDefaultAsync(c => c.ContactPhoneE164 == id);
+                _logger.LogInformation($"📄 Busca por ContactPhoneE164 ({id}): {(chat != null ? "Encontrado" : "Não encontrado")}");
+            }
+            
+            // Se ainda não encontrar, tentar normalizar o número e buscar novamente
+            if (chat == null && !string.IsNullOrEmpty(id))
+            {
+                var normalizedPhone = id.StartsWith("55") ? id : "55" + System.Text.RegularExpressions.Regex.Replace(id, @"\D", "");
+                chat = await _db.ChatLogs.FirstOrDefaultAsync(c => c.ContactPhoneE164 == normalizedPhone);
+                _logger.LogInformation($"📄 Busca por número normalizado ({normalizedPhone}): {(chat != null ? "Encontrado" : "Não encontrado")}");
             }
             
             if (chat == null) 
@@ -91,12 +102,24 @@ namespace Pregiato.API.Controllers
                     
                     foreach (var message in payload.Messages)
                     {
+                        // DEBUG: Log específico para mensagens de áudio
+                        if (message.Type == "audio" || message.Type == "voice")
+                        {
+                            _logger.LogInformation("🎵 DEBUG ÁUDIO: Type={Type}, Body_Length={BodyLength}, Body_Preview={BodyPreview}, MediaUrl={MediaUrl}", 
+                                message.Type, message.body?.Length ?? 0, 
+                                message.body?.Length > 50 ? message.body.Substring(0, 50) + "..." : message.body,
+                                message.MediaUrl);
+                        }
+                        
                         var chatMessage = new
                         {
                             id = message.Id,
                             conversationId = chat.Id.ToString(),
                             direction = message.Direction == "inbound" ? "In" : "Out",
-                            type = message.Type?.ToLower() ?? "text", // Usar Type real do PayloadJson
+                            type = message.Type?.ToLower() ?? "text", // SEMPRE string para consistência
+                            
+                            // DEBUG adicional para tipos
+                            _debug_originalType = message.Type,
                             body = message.body ?? message.Content ?? message.ActualContent ?? "",
                             mediaUrl = message.MediaUrl ?? "",
                             fileName = "",
@@ -117,11 +140,17 @@ namespace Pregiato.API.Controllers
                             timestamp = !string.IsNullOrEmpty(message.timestamp) ? DateTime.Parse(message.timestamp) : message.Ts,
                             isFromMe = message.Direction == "outbound",
                             
-                            attachment = !string.IsNullOrEmpty(message.MediaUrl) ? new
+                            // CORREÇÃO CRÍTICA: Para áudio/voice, usar body como dataUrl (base64)
+                            attachment = (message.Type == "audio" || message.Type == "voice") && !string.IsNullOrEmpty(message.body) ? new
+                            {
+                                dataUrl = message.body, // Base64 completo com prefixo data:
+                                mimeType = message.mimeType ?? "audio/mpeg",
+                                fileName = message.fileName ?? "audio-message.mp3"
+                            } : !string.IsNullOrEmpty(message.MediaUrl) ? new
                             {
                                 dataUrl = message.MediaUrl,
-                                mimeType = "application/octet-stream",
-                                fileName = ""
+                                mimeType = message.mimeType ?? "application/octet-stream",
+                                fileName = message.fileName ?? ""
                             } : null
                         };
                         

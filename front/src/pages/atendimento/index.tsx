@@ -19,31 +19,64 @@ const isMediaOnlyContent = (text: string, messageType: MessageType): boolean => 
 }
 
 // Helper function to convert string type to MessageType enum
-const getMessageType = (type?: string): MessageType => {
+const getMessageType = (type?: string | number): MessageType => {
+  // Converter para string se for número
+  const typeStr = typeof type === 'number' ? type.toString() : type?.toString().toLowerCase();
+  
   // Debug: log do tipo recebido
   console.log('🔍 DEBUG - getMessageType chamado com:', {
-    type,
+    originalType: type,
+    typeStr,
     typeOf: typeof type,
-    isAudio: type === 'audio',
-    isVoice: type === 'voice'
+    isAudio: typeStr === 'audio' || type === MessageType.Audio,
+    isVoice: typeStr === 'voice' || type === MessageType.Voice,
+    MessageTypeValues: Object.entries(MessageType)
   });
   
-  switch (type) {
+  // Se for número, mapear diretamente do enum
+  if (typeof type === 'number') {
+    console.log('🔢 Tipo numérico detectado:', type);
+    switch (type) {
+      case MessageType.Text: return MessageType.Text;
+      case MessageType.Image: return MessageType.Image;
+      case MessageType.Audio:
+        console.log('✅ Tipo AUDIO numérico detectado, retornando MessageType.Audio =', MessageType.Audio);
+        return MessageType.Audio;
+      case MessageType.Document: return MessageType.Document;
+      case MessageType.Video: return MessageType.Video;
+      case MessageType.Voice:
+        console.log('✅ Tipo VOICE numérico detectado, retornando MessageType.Voice =', MessageType.Voice);
+        return MessageType.Voice;
+      case MessageType.Sticker: return MessageType.Sticker;
+      case MessageType.Location: return MessageType.Location;
+      case MessageType.Contact: return MessageType.Contact;
+      case MessageType.System: return MessageType.System;
+      default:
+        console.warn('⚠️ Tipo numérico não reconhecido:', type);
+        return MessageType.Text;
+    }
+  }
+  
+  // Se for string, usar switch normal
+  switch (typeStr) {
     case 'text': return MessageType.Text;
     case 'image': return MessageType.Image;
     case 'audio': 
-      console.log('✅ Tipo AUDIO detectado, retornando MessageType.Audio =', MessageType.Audio);
+      console.log('✅ Tipo AUDIO string detectado, retornando MessageType.Audio =', MessageType.Audio);
       return MessageType.Audio;
-    case 'file': return MessageType.Document;
+    case 'file': 
+    case 'document': return MessageType.Document;
     case 'video': return MessageType.Video;
     case 'voice': 
-      console.log('✅ Tipo VOICE detectado, retornando MessageType.Voice =', MessageType.Voice);
+      console.log('✅ Tipo VOICE string detectado, retornando MessageType.Voice =', MessageType.Voice);
       return MessageType.Voice;
     case 'sticker': return MessageType.Sticker;
     case 'location': return MessageType.Location;
     case 'contact': return MessageType.Contact;
+    case 'system': return MessageType.System;
     default: 
-      console.warn('⚠️ Tipo de mensagem não reconhecido:', type, 'retornando MessageType.Text');
+      console.warn('⚠️ Tipo de mensagem string não reconhecido:', typeStr, 'retornando MessageType.Text');
+      console.warn('⚠️ Tipos válidos são: text, image, audio, file, video, voice, sticker, location, contact');
       return MessageType.Text;
   }
 };
@@ -318,36 +351,23 @@ export default function AtendimentoPage() {
     let history = historyCacheRef.current[chatId];
     if (!history) {
       try {
-        // Primeiro tentar com o ID original
+        console.log(`🔍 Buscando histórico para chat: ${chatId}`);
         const data = await chatsApi.history(chatId, undefined, 50) as { messages: ChatMessageDto[]; nextCursor?: number };
         const messages = data.messages || [];
         history = messages.sort((a: ChatMessageDto, b: ChatMessageDto) => new Date(a.ts).getTime() - new Date(b.ts).getTime());
         historyCacheRef.current[chatId] = history;
+        console.log(`✅ Histórico carregado: ${messages.length} mensagens`);
       } catch (error) {
-        console.log(`❌ Erro ao buscar histórico com ID ${chatId}, tentando com número do telefone...`);
-        
-        // Se falhar, tentar buscar pelo número do telefone
-        try {
-          const chat = chats.find(c => c.id === chatId);
-          if (chat?.contactPhoneE164) {
-            const phoneId = chat.contactPhoneE164.replace(/\D/g, ''); // Remover caracteres não numéricos
-            const data = await chatsApi.history(phoneId, undefined, 50) as { messages: ChatMessageDto[]; nextCursor?: number };
-            const messages = data.messages || [];
-            history = messages.sort((a: ChatMessageDto, b: ChatMessageDto) => new Date(a.ts).getTime() - new Date(b.ts).getTime());
-            historyCacheRef.current[chatId] = history;
-            console.log(`✅ Histórico encontrado usando número do telefone: ${phoneId}`);
-          }
-        } catch (phoneError) {
-          console.error(`❌ Erro ao buscar histórico com número do telefone:`, phoneError);
-          history = [] as ChatMessageDto[];
-        }
+        console.error(`❌ Erro ao buscar histórico para ${chatId}:`, error);
+        history = [] as ChatMessageDto[];
+        historyCacheRef.current[chatId] = history;
       }
     }
     
     setMessages(history || []);
     setHistoryLoaded(true);
     requestAnimationFrame(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }));
-  }, [chats]);
+  }, []);
 
   // Carregar histórico automaticamente quando selectedChatId mudar
   useEffect(() => {
@@ -474,7 +494,7 @@ export default function AtendimentoPage() {
             // É um novo chat - criar objeto completo
             newChats.push({
               id: chatId,
-              title: patch.title || 'Novo Chat',
+              title: patch.title || patch.contactPhoneE164 || `Chat ${chatId.slice(0, 8)}`,
               contactPhoneE164: patch.contactPhoneE164 || '',
               lastMessageAt: patch.lastMessageAt || new Date().toISOString(),
               lastMessagePreview: patch.lastMessagePreview || '',
@@ -665,17 +685,46 @@ export default function AtendimentoPage() {
         };
 
         connection.on('chat.created', (evt: ChatEvent) => {
+          console.log('📨 chat.created recebido:', evt);
           const chat: Partial<ChatListItem> | undefined = evt?.chat;
           const id: string | undefined = chat?.id || evt?.chatId;
-          if (id && chat) queueChatPatch(id, chat as Partial<ChatListItem>);
-          else throttledRefresh(5000);
+          
+          if (id && chat) {
+            // VERIFICAÇÃO MAIS ROBUSTA: buscar por múltiplos critérios
+            const existingChat = chats.find(c => 
+              c.id === id || 
+              c.contactPhoneE164 === chat.contactPhoneE164 ||
+              (chat.contactPhoneE164 && c.contactPhoneE164 === chat.contactPhoneE164)
+            );
+            
+            if (existingChat) {
+              console.log('⚠️ Chat JÁ EXISTE! Ignorando chat.created e não criando duplicata:', {
+                existingId: existingChat.id,
+                newId: id,
+                phone: chat.contactPhoneE164
+              });
+              // NÃO fazer nada - chat já existe, ignora o evento chat.created
+              return;
+            } else {
+              console.log('✅ Realmente é novo chat, criando:', id);
+              queueChatPatch(id, chat as Partial<ChatListItem>);
+            }
+          } else {
+            throttledRefresh(5000);
+          }
         });
 
         connection.on('chat.updated', (evt: ChatEvent) => {
+          console.log('📝 chat.updated recebido:', evt);
           const chat: Partial<ChatListItem> | undefined = evt?.chat;
           const id: string | undefined = chat?.id || evt?.chatId;
-          if (id && chat) queueChatPatch(id, chat as Partial<ChatListItem>);
-          else throttledRefresh(5000);
+          
+          if (id && chat) {
+            console.log('✅ Chat atualizado:', id);
+            queueChatPatch(id, chat as Partial<ChatListItem>);
+          } else {
+            throttledRefresh(5000);
+          }
         });
 
         connection.on('message.inbound', async (evt: MessageEvent) => {
@@ -829,7 +878,7 @@ export default function AtendimentoPage() {
       connRef.current?.stop().catch(() => {});
       connRef.current = null;
     };
-  }, [queueChatPatch, refreshChats, setLastReadAt, setTyping]);
+  }, [queueChatPatch, refreshChats, setLastReadAt, setTyping, chats]);
 
   const handleTick = useCallback((timestamp: number) => { setNowTick(timestamp); }, []);
 
@@ -838,36 +887,23 @@ export default function AtendimentoPage() {
     let history = historyCacheRef.current[chatId];
     if (!history) {
       try {
-        // Primeiro tentar com o ID original
+        console.log(`🔍 Buscando histórico para chat: ${chatId}`);
         const data = await chatsApi.history(chatId, undefined, 50) as { messages: ChatMessageDto[]; nextCursor?: number };
         const messages = data.messages || [];
         history = messages.sort((a: ChatMessageDto, b: ChatMessageDto) => new Date(a.ts).getTime() - new Date(b.ts).getTime());
         historyCacheRef.current[chatId] = history;
+        console.log(`✅ Histórico carregado: ${messages.length} mensagens`);
       } catch (error) {
-        console.log(`❌ Erro ao buscar histórico com ID ${chatId}, tentando com número do telefone...`);
-        
-        // Se falhar, tentar buscar pelo número do telefone
-        try {
-          const chat = chats.find(c => c.id === chatId);
-          if (chat?.contactPhoneE164) {
-            const phoneId = chat.contactPhoneE164.replace(/\D/g, ''); // Remover caracteres não numéricos
-            const data = await chatsApi.history(phoneId, undefined, 50) as { messages: ChatMessageDto[]; nextCursor?: number };
-            const messages = data.messages || [];
-            history = messages.sort((a: ChatMessageDto, b: ChatMessageDto) => new Date(a.ts).getTime() - new Date(b.ts).getTime());
-            historyCacheRef.current[chatId] = history;
-            console.log(`✅ Histórico encontrado usando número do telefone: ${phoneId}`);
-          }
-        } catch (phoneError) {
-          console.error(`❌ Erro ao buscar histórico com número do telefone:`, phoneError);
-          history = [] as ChatMessageDto[];
-        }
+        console.error(`❌ Erro ao buscar histórico para ${chatId}:`, error);
+        history = [] as ChatMessageDto[];
+        historyCacheRef.current[chatId] = history;
       }
     }
     
     setMessages(history || []);
     setHistoryLoaded(true);
     requestAnimationFrame(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }));
-  }, [chats]);
+  }, []);
 
   // Carregar histórico automaticamente quando selectedChatId mudar
   useEffect(() => {
@@ -878,6 +914,15 @@ export default function AtendimentoPage() {
       setHistoryLoaded(false);
     }
   }, [selectedChatId, loadHistory]);
+
+  // Auto-scroll quando mensagens mudam
+  useEffect(() => {
+    if (messages.length > 0) {
+      requestAnimationFrame(() => {
+        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+      });
+    }
+  }, [messages.length]);
 
   const handleAttend = useCallback(async (chatId: string) => {
     const name = currentOperator?.name || 'Operador';
@@ -1003,7 +1048,7 @@ export default function AtendimentoPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
           {/* LISTA DE CHATS */}
           <div className="lg:col-span-4 flex flex-col">
-            <Card className="overflow-hidden h-[72svh] soft-border shadow-smooth bg-card/60">
+            <Card className="overflow-hidden h-[75vh] soft-border shadow-smooth bg-card/60">
               <CardContent className="h-full p-0">
                 <ScrollArea className="h-full">
                   <ChatListLayout
@@ -1021,7 +1066,7 @@ export default function AtendimentoPage() {
 
           {/* PAINEL DO CHAT */}
           <div className="lg:col-span-8 flex flex-col">
-            <Card className="h-[72svh] flex flex-col overflow-hidden relative soft-border shadow-smooth bg-card/60">
+            <Card className="h-[75vh] flex flex-col overflow-hidden relative soft-border shadow-smooth bg-card/60">
               <CardHeader className="px-4 py-2 border-b bg-card/50">
                 <div className="flex items-center justify-between">
                   <div className="min-w-0">
@@ -1093,8 +1138,9 @@ export default function AtendimentoPage() {
 
               {!isChatMinimized && (
                 <>
-                  <CardContent className="flex-1 p-0 relative">
-                    <ScrollArea className="h-full px-4 py-2">
+                  <CardContent className="flex-1 p-0 relative overflow-hidden">
+                    <ScrollArea className="h-full w-full" type="always">
+                      <div className="px-4 py-2 space-y-2 min-h-full">
                       {selectedChatId && activeTicket?.step === 4 && !activeTicket?.verified && (
                         <div className="mb-3">
                           <p className="text-xs text-muted-foreground mb-2">Descreva o atendimento e finalize</p>
@@ -1116,8 +1162,8 @@ export default function AtendimentoPage() {
                       )}
 
                       {messages.map((m) => (
-                        <div key={(m.id||m.externalMessageId)!} className={`my-1 flex ${m.direction==='out'?'justify-end':'justify-start'}`}>
-                          <div className={`max-w-[85%] md:max-w-[70%] px-3 py-2 rounded-lg ${m.direction==='out'?'bg-primary text-primary-foreground':'bg-muted'}`}>
+                        <div key={(m.id||m.externalMessageId)!} className={`mb-3 flex ${m.direction==='out'?'justify-end':'justify-start'}`}>
+                          <div className={`max-w-[85%] md:max-w-[70%] px-3 py-2 rounded-lg ${m.direction==='out'?'bg-primary text-primary-foreground':'bg-muted'}`} translate="no">
                             {/* Renderizador unificado de mídia */}
                             <MediaRenderer
                               type={getMessageType(m.type)}
@@ -1154,7 +1200,10 @@ export default function AtendimentoPage() {
                           </div>
                         </div>
                       ))}
-                      <div ref={bottomRef} />
+                      
+                      {/* Elemento para auto-scroll */}
+                      <div ref={bottomRef} className="h-4" />
+                      </div>
                     </ScrollArea>
                   </CardContent>
                   <Separator />
