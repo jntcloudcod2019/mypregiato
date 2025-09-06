@@ -45,16 +45,16 @@ export default function RelatoriosPage() {
     { value: "atividades", label: "Atividades", descricao: "Relatório de tarefas e interações" }
   ]
 
-  // Mock data para prévia dos relatórios
+  // Estatísticas virão da API - sem dados mockados
   const estatisticas = {
-    totalLeads: 127,
-    leadsGanhos: 30,
-    leadsPerdidos: 15,
-    taxaConversao: 23.6,
-    ticketMedio: 28500,
-    tempoMedioFechamento: 18,
-    totalTarefas: 85,
-    tarefasConcluidas: 72
+    totalLeads: 0,
+    leadsGanhos: 0,
+    leadsPerdidos: 0,
+    taxaConversao: 0,
+    ticketMedio: 0,
+    tempoMedioFechamento: 0,
+    totalTarefas: 0,
+    tarefasConcluidas: 0
   }
 
   const handleInputChange = (field: string, value: string) => {

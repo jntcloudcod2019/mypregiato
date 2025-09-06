@@ -10,6 +10,7 @@ import { ArrowLeft, Users, CheckCircle, AlertTriangle, FileDown, Shield, Lock } 
 import { Alert, AlertDescription } from '../../../components/ui/alert';
 import { ErrorBoundary } from '../../../components/common/error-boundary';
 import { LoadingFallback } from '../../../components/ui/loading-fallback';
+import { OperatorsList } from '../../../components/crm/operators-list';
 
 // Tipos de valores possíveis na planilha
 type CellValue = string | number | boolean | null | undefined;
@@ -74,6 +75,11 @@ const AlocacaoLeadsPage: React.FC = () => {
   const [dataLoaded, setDataLoaded] = useState<boolean>(false);
   const [authError, setAuthError] = useState<boolean>(false);
 
+  // Novos estados para alocação de leads
+  const [selectedOperator, setSelectedOperator] = useState<string | null>(null);
+  const [operatorLeads, setOperatorLeads] = useState<Record<string, ImportedRow[]>>({});
+  const [allocatedLeads, setAllocatedLeads] = useState<ImportedRow[]>([]);
+
   useEffect(() => {
     // Verificar autenticação primeiro
     if (isLoaded && !isSignedIn) {
@@ -95,6 +101,10 @@ const AlocacaoLeadsPage: React.FC = () => {
 
     if (state && state.rows && state.headers && state.mappings && state.targetFields) {
       console.log('Dados válidos recebidos, carregando página');
+      console.log('Headers recebidos:', state.headers);
+      console.log('Primeira linha de exemplo:', state.rows[0]);
+      console.log('Mappings recebidos:', state.mappings);
+      
       setRows(state.rows);
       setHeaders(state.headers);
       setMappings(state.mappings);
@@ -154,6 +164,278 @@ const AlocacaoLeadsPage: React.FC = () => {
     setSelectedRows(new Set());
   };
 
+  // Função para alocar leads selecionados para um operador
+  const allocateLeadsToOperator = (operatorId: string) => {
+    if (selectedRows.size === 0) {
+      alert('Selecione pelo menos um lead para alocar.');
+      return;
+    }
+
+    const selectedLeads = Array.from(selectedRows).map(index => rows[index]);
+    
+    // Alocar leads para o operador selecionado
+    setOperatorLeads(prev => ({
+      ...prev,
+      [operatorId]: [...(prev[operatorId] || []), ...selectedLeads]
+    }));
+    
+    // Adicionar à lista de leads alocados
+    setAllocatedLeads(prev => [...prev, ...selectedLeads]);
+    
+    // Remover leads selecionados da lista principal
+    const remainingRows = rows.filter((_, index) => !selectedRows.has(index));
+    setRows(remainingRows);
+    
+    // Limpar seleção
+    setSelectedRows(new Set());
+    
+    // Atualizar estatísticas
+    setAllocationStats(prev => ({
+      ...prev,
+      allocatedRows: prev.allocatedRows + selectedRows.size,
+      totalRows: remainingRows.length
+    }));
+    
+    alert(`Leads alocados com sucesso para o operador ${operatorId}!`);
+  };
+
+  // Função para alocar todos os leads automaticamente entre os operadores
+  const allocateAllLeads = async () => {
+    try {
+      // Buscar operadores disponíveis
+      const operatorsResponse = await fetch('/api/users/operators');
+      if (!operatorsResponse.ok) {
+        throw new Error('Erro ao buscar operadores');
+      }
+      
+      const operators = await operatorsResponse.json();
+      if (!operators || operators.length === 0) {
+        alert('Nenhum operador encontrado para alocação automática.');
+        return;
+      }
+
+      const totalLeads = rows.length;
+      const totalOperators = operators.length;
+      
+      if (totalLeads === 0) {
+        alert('Não há leads para alocar.');
+        return;
+      }
+
+      // Calcular distribuição equilibrada
+      const leadsPerOperator = Math.floor(totalLeads / totalOperators);
+      const remainingLeads = totalLeads % totalOperators;
+      
+      let currentLeadIndex = 0;
+      const newOperatorLeads: Record<string, ImportedRow[]> = {};
+      
+      // Distribuir leads entre operadores
+      (operators as Array<{ id: string; firstName: string; lastName: string }>).forEach((operator, operatorIndex) => {
+        const leadsToAllocate = leadsPerOperator + (operatorIndex < remainingLeads ? 1 : 0);
+        const operatorLeads = rows.slice(currentLeadIndex, currentLeadIndex + leadsToAllocate);
+        
+        newOperatorLeads[operator.id] = operatorLeads;
+        currentLeadIndex += leadsToAllocate;
+      });
+      
+      // Atualizar estado
+      setOperatorLeads(prev => ({
+        ...prev,
+        ...newOperatorLeads
+      }));
+      
+      // Adicionar todos os leads à lista de alocados
+      setAllocatedLeads(prev => [...prev, ...rows]);
+      
+      // Limpar lista principal
+      setRows([]);
+      
+      // Limpar seleção
+      setSelectedRows(new Set());
+      
+      // Atualizar estatísticas
+      setAllocationStats(prev => ({
+        ...prev,
+        allocatedRows: prev.allocatedRows + totalLeads,
+        totalRows: 0
+      }));
+      
+      // Mostrar resumo da alocação
+      const summary = (operators as Array<{ id: string; firstName: string; lastName: string }>).map((operator, index) => {
+        const leadsCount = newOperatorLeads[operator.id]?.length || 0;
+        return `${operator.firstName} ${operator.lastName}: ${leadsCount} leads`;
+      }).join('\n');
+      
+      alert(`Alocação automática concluída!\n\nDistribuição:\n${summary}\n\n${remainingLeads > 0 ? `Nota: ${remainingLeads} lead(s) restante(s) foram distribuídos entre os primeiros operadores.` : ''}`);
+      
+    } catch (error) {
+      console.error('Erro na alocação automática:', error);
+      alert('Erro ao realizar alocação automática. Tente novamente.');
+    }
+  };
+
+  // Função para salvar leads alocados no backend
+  const saveAllocatedLeads = async () => {
+    try {
+      // Verificar se há leads alocados
+      if (Object.keys(operatorLeads).length === 0) {
+        alert('Não há leads alocados para salvar.');
+        return;
+      }
+
+      // Buscar operadores para obter informações completas
+      const operatorsResponse = await fetch('/api/users/operators');
+      if (!operatorsResponse.ok) {
+        throw new Error('Erro ao buscar operadores');
+      }
+      
+      const operators: Array<{
+        id: string;
+        clerkId: string;
+        email: string;
+        firstName: string;
+        lastName: string;
+      }> = await operatorsResponse.json();
+
+      // Agrupar leads por operador para evitar repetição
+      const operatorsMap = new Map<string, {
+        operatorId: string;
+        emailOperator: string;
+        leads: Array<{
+          nameLead: string;
+          phoneLead: string;
+        }>;
+      }>();
+      
+      // Iterar sobre o estado operatorLeads para mapear os dados
+      console.log('Estado operatorLeads:', operatorLeads);
+      console.log('Operadores encontrados:', operators);
+      
+      Object.entries(operatorLeads).forEach(([operatorId, leads]) => {
+        console.log(`Processando operador ${operatorId} com ${leads.length} leads:`, leads);
+        
+        if (!leads || leads.length === 0) return;
+        
+        // Encontrar o operador correspondente
+        const operator = operators.find(op => op.id === operatorId);
+        if (!operator) {
+          console.warn(`Operador não encontrado para ID: ${operatorId}`);
+          return;
+        }
+        
+        console.log(`Operador encontrado:`, operator);
+        
+        // Mapear leads para o formato esperado pela API
+        const mappedLeads = leads.map(lead => {
+          // Extrair nome e telefone do lead baseado na estrutura ImportedRow
+          const nameLead = String(lead['Nome'] || lead['Participante'] || lead['Cliente'] || 'Nome não informado');
+          const phoneLead = String(lead['Telefone'] || lead['Celular'] || lead['Phone'] || 'Telefone não informado');
+          
+          console.log(`Lead mapeado:`, { nameLead, phoneLead, originalLead: lead });
+          
+          return {
+            nameLead,
+            phoneLead
+          };
+        }).filter(lead => lead.nameLead !== 'Nome não informado' && lead.phoneLead !== 'Telefone não informado');
+        
+        console.log(`Leads válidos para operador ${operatorId}:`, mappedLeads);
+        
+        if (mappedLeads.length > 0) {
+          operatorsMap.set(operatorId, {
+            operatorId: operator.clerkId, // Usar ClerkId do operador
+            emailOperator: operator.email,
+            leads: mappedLeads
+          });
+        }
+      });
+      
+      if (operatorsMap.size === 0) {
+        alert('Nenhum lead válido encontrado para salvar.');
+        return;
+      }
+      
+      const payload = {
+        operators: Array.from(operatorsMap.values())
+      };
+      
+      console.log('Payload sendo enviado:', payload);
+      console.log('Tamanho do payload:', payload.operators.length);
+      console.log('Total de leads no payload:', payload.operators.reduce((total, op) => total + op.leads.length, 0));
+      
+      // Verificação final antes de enviar
+      if (payload.operators.length === 0) {
+        alert('Erro: Payload vazio. Verifique se há leads alocados.');
+        return;
+      }
+      
+      // Log da URL e headers
+      const apiUrl = '/api/operator-leads/allocate';
+      console.log('URL da API:', apiUrl);
+      console.log('Headers:', { 'Content-Type': 'application/json' });
+      console.log('Método: POST');
+      
+      const saveResponse = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      
+      console.log('Status da resposta:', saveResponse.status);
+      console.log('Headers da resposta:', Object.fromEntries(saveResponse.headers.entries()));
+      
+      if (saveResponse.ok) {
+        const result = await saveResponse.json();
+        console.log('Leads salvos com sucesso:', result);
+        
+        // Limpar leads alocados após salvar com sucesso
+        setAllocatedLeads([]);
+        setOperatorLeads({});
+        setAllocationStats({
+          totalRows: 0,
+          allocatedRows: 0,
+          pendingRows: rows.length,
+          errorRows: 0
+        });
+        
+        // Mostrar mensagem de sucesso
+        alert(`Leads salvos com sucesso! Total: ${result.totalLeads} leads para ${result.totalOperators} operadores.`);
+      } else {
+        const errorData = await saveResponse.json().catch(() => ({ message: 'Erro desconhecido' }));
+        console.error('Erro ao salvar leads:', errorData);
+        alert(`Erro ao salvar leads: ${errorData.message || 'Erro desconhecido'}`);
+      }
+    } catch (error) {
+      console.error('Erro ao salvar leads:', error);
+      alert('Erro ao salvar leads. Verifique o console para mais detalhes.');
+    }
+  };
+
+  // Função para obter quantidade de leads de um operador
+  const getOperatorLeadsCount = (operatorId: string): number => {
+    return operatorLeads[operatorId]?.length || 0;
+  };
+
+  // Função para ver leads de um operador
+  const viewOperatorLeads = (operatorId: string) => {
+    const leads = operatorLeads[operatorId] || [];
+    if (leads.length === 0) {
+      alert('Este operador ainda não possui leads alocados.');
+      return;
+    }
+
+    const leadsInfo = leads.map((lead, index) => {
+      const leadData = Object.entries(lead)
+        .filter(([key, value]) => value && String(value).trim() !== '')
+        .map(([key, value]) => `${key}: ${value}`)
+        .join(', ');
+      
+      return `${index + 1}. ${leadData}`;
+    }).join('\n');
+
+    alert(`Leads alocados para este operador:\n\n${leadsInfo}`);
+  };
+
   const exportAllocatedData = () => {
     // TODO: Implementar exportação dos dados alocados
     console.log('Exportando dados alocados...');
@@ -205,9 +487,8 @@ const AlocacaoLeadsPage: React.FC = () => {
       <div className="space-y-6">
         {/* Header com navegação */}
         <div className="flex items-center gap-4">
-          <Button variant="outline" onClick={handleBackToImport}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Voltar para Importação
+          <Button variant="outline" size="icon" onClick={handleBackToImport}>
+            <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
             <h1 className="text-2xl font-bold">Alocação de Leads</h1>
@@ -225,98 +506,120 @@ const AlocacaoLeadsPage: React.FC = () => {
           )}
         </div>
 
-      {/* Estatísticas de alocação */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <FileDown className="h-5 w-5 text-blue-500" />
-              <div>
-                <p className="text-sm font-medium">Total</p>
-                <p className="text-2xl font-bold">{allocationStats.totalRows}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Estatísticas e Lista de Operadores - Layout horizontal lado a lado */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Lista de Operadores - Lado esquerdo (2/3 do espaço) */}
+        <div className="lg:col-span-2">
+          <OperatorsList 
+            onAllocateLeads={allocateLeadsToOperator}
+            getOperatorLeadsCount={getOperatorLeadsCount}
+            onViewOperatorLeads={viewOperatorLeads}
+            selectedLeadsCount={selectedRows.size}
+          />
+        </div>
 
-        <Card>
+        {/* Estatísticas de alocação - Lado direito (1/3 do espaço) */}
+        <div className="lg:col-span-1">
+          <div className="flex justify-end">
+            <Card className="w-80">
           <CardContent className="p-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-500" />
-              <div>
-                <p className="text-sm font-medium">Alocados</p>
-                <p className="text-2xl font-bold">{allocationStats.allocatedRows}</p>
+                      <FileDown className="h-4 w-4 text-blue-500" />
+                      <span className="text-sm font-medium">Total</span>
               </div>
+                    <span className="text-lg font-bold">{allocationStats.totalRows}</span>
             </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-yellow-500" />
-              <div>
-                <p className="text-sm font-medium">Pendentes</p>
-                <p className="text-2xl font-bold">{allocationStats.pendingRows}</p>
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <span className="text-sm font-medium">Alocados</span>
               </div>
+                    <span className="text-lg font-bold">{allocationStats.allocatedRows}</span>
             </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-purple-500" />
-              <div>
-                <p className="text-sm font-medium">Selecionados</p>
-                <p className="text-2xl font-bold">{selectedRows.size}</p>
+                      <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                      <span className="text-sm font-medium">Pendentes</span>
+              </div>
+                    <span className="text-lg font-bold">{allocationStats.pendingRows}</span>
+            </div>
+
+                  <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4 text-purple-500" />
+                      <span className="text-sm font-medium">Selecionados</span>
+                    </div>
+                    <span className="text-lg font-bold">{selectedRows.size}</span>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
-
-      {/* Controles de ação */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Ações de Alocação</CardTitle>
-          <CardDescription>
-            Selecione os leads que deseja alocar e execute as ações
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-4 flex-wrap">
-            <Button
-              onClick={handleAllocateSelected}
-              disabled={selectedRows.size === 0}
-              className="flex items-center gap-2"
-            >
-              <Users className="h-4 w-4" />
-              Alocar {selectedRows.size} Lead{selectedRows.size !== 1 ? 's' : ''}
-            </Button>
-
-            <Button
-              variant="outline"
-              onClick={exportAllocatedData}
-              disabled={allocationStats.allocatedRows === 0}
-              className="flex items-center gap-2"
-            >
-              <FileDown className="h-4 w-4" />
-              Exportar Dados Alocados
-            </Button>
+        </div>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Tabela de dados - Replicando a pré-visualização */}
+      {/* Tabela de dados - Volta ao tamanho original (largura total) */}
       <Card>
         <CardHeader className="py-3">
           <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-lg">Dados Importados</CardTitle>
-              <CardDescription>
-                Visualize os dados importados antes da alocação
-              </CardDescription>
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={() => {
+                  if (selectedRows.size === 0) {
+                    alert('Selecione pelo menos um lead para alocar.');
+                    return;
+                  }
+                  
+                  // Mostrar modal de seleção de operador
+                  const operatorId = prompt(
+                    `Você selecionou ${selectedRows.size} lead(s).\n\nDigite o ID do operador para alocar:\n\n` +
+                    '1 - João Silva\n' +
+                    '2 - Maria Santos\n' +
+                    '3 - Ana Clara\n' +
+                    '4 - Carlos Oliveira'
+                  );
+                  
+                  if (operatorId && ['1', '2', '3', '4'].includes(operatorId)) {
+                    const operatorMap: Record<string, string> = {
+                      '1': 'op_1',
+                      '2': 'op_2', 
+                      '3': 'op_3',
+                      '4': 'op_4'
+                    };
+                    
+                    allocateLeadsToOperator(operatorMap[operatorId]);
+                  } else if (operatorId) {
+                    alert('ID de operador inválido. Use 1, 2, 3 ou 4.');
+                  }
+                }}
+                disabled={selectedRows.size === 0}
+                className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700"
+              >
+                <Users className="h-4 w-4" />
+                Alocar {selectedRows.size} Lead{selectedRows.size !== 1 ? 's' : ''}
+              </Button>
+              
+              <Button
+                onClick={allocateAllLeads}
+                disabled={rows.length === 0}
+                className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+              >
+                <Users className="h-4 w-4" />
+                Alocar Todos
+              </Button>
+              
+              <Button
+                onClick={saveAllocatedLeads}
+                disabled={allocatedLeads.length === 0}
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+              >
+                <Shield className="h-4 w-4" />
+                Salvar
+              </Button>
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="outline">{rows.length} linhas</Badge>

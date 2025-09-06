@@ -32,6 +32,7 @@ public class PregiatoDbContext : DbContext
         public DbSet<CrmTask> Tasks { get; set; }
         public DbSet<MetaIntegration> MetaIntegrations { get; set; }
         public DbSet<Campaign> Campaigns { get; set; }
+        public DbSet<OperatorLeads> OperatorLeads { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -614,8 +615,7 @@ public class PregiatoDbContext : DbContext
 
             // === CONTEÚDO DE TEXTO (NULLABLE) ===
             entity.Property(e => e.Text)
-                .HasMaxLength(5000)
-                .HasColumnType("TEXT");  // TEXT para mensagens longas
+                .HasColumnType("LONGTEXT");  // LONGTEXT para mensagens longas (Base64 de áudio, etc)
 
             // === CAMPOS DE MÍDIA (NULLABLE) ===
             entity.Property(e => e.MediaUrl).HasMaxLength(1000);
@@ -635,8 +635,8 @@ public class PregiatoDbContext : DbContext
             entity.Property(e => e.ContactPhone).HasMaxLength(50);
 
             // === METADADOS E SISTEMA ===
-            entity.Property(e => e.Metadata).HasColumnType("LONGTEXT");
-            entity.Property(e => e.PayloadJson).HasColumnType("LONGTEXT");
+            entity.Property(e => e.Metadata).HasColumnType("LONGTEXT");  // LONGTEXT para metadados extensos
+            entity.Property(e => e.PayloadJson).HasColumnType("LONGTEXT");  // LONGTEXT para payload completo
             entity.Property(e => e.SessionId);
             entity.Property(e => e.InternalNote).HasMaxLength(1000);
             entity.Property(e => e.UpdatedAt)
@@ -980,14 +980,63 @@ public class PregiatoDbContext : DbContext
                 entity.HasIndex(e => e.ModuleSlug);
             });
 
-            modelBuilder.Entity<ImportedFile>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.Id).ValueGeneratedOnAdd();
-                entity.Property(e => e.FileName).HasMaxLength(200);
-                entity.Property(e => e.PayloadJson).HasColumnType("LONGTEXT");
-                entity.Property(e => e.CreatedAtUtc).HasColumnType("datetime").HasDefaultValueSql("CURRENT_TIMESTAMP");
-                entity.Property(e => e.UpdatedAtUtc).HasColumnType("datetime").HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
-            });
+                    modelBuilder.Entity<ImportedFile>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.Property(e => e.FileName).HasMaxLength(200);
+            entity.Property(e => e.PayloadJson).HasColumnType("LONGTEXT");
+            entity.Property(e => e.CreatedAtUtc).HasColumnType("datetime").HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(e => e.UpdatedAtUtc).HasColumnType("datetime").HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+        });
+
+        // Configuração da entidade OperatorLeads
+        modelBuilder.Entity<OperatorLeads>(entity =>
+        {
+            // Chave primária
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            
+            entity.Property(e => e.EmailOperator)
+                .IsRequired()
+                .HasMaxLength(255)
+                .HasColumnType("varchar(255)");
+            
+            entity.Property(e => e.NameLead)
+                .IsRequired()
+                .HasMaxLength(500)
+                .HasColumnType("varchar(500)");
+            
+            entity.Property(e => e.PhoneLead)
+                .IsRequired()
+                .HasMaxLength(50)
+                .HasColumnType("varchar(50)");
+            
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("datetime(6)")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+            
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnType("datetime(6)")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)");
+            
+            // Novos campos de rastreamento
+            entity.Property(e => e.StatusContact)
+                .HasDefaultValue(false);
+            
+            entity.Property(e => e.DateContact)
+                .HasColumnType("datetime(6)");
+            
+            entity.Property(e => e.StatusSeletiva)
+                .HasDefaultValue(false);
+            
+            // Configuração do campo JSON SeletivaInfo
+            entity.Property(e => e.SeletivaInfo)
+                .HasColumnType("json")
+                .HasConversion(
+                    v => v == null ? null : System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions)null),
+                    v => v == null ? null : System.Text.Json.JsonSerializer.Deserialize<SeletivaInfo>(v, (System.Text.Json.JsonSerializerOptions)null)
+                );
+        });
     }
 } 

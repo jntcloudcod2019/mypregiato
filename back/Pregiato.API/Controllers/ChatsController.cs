@@ -111,12 +111,16 @@ namespace Pregiato.API.Controllers
                                 message.MediaUrl);
                         }
                         
+                        // ✅ DEBUG: Log do tipo antes da conversão
+                        _logger.LogInformation("🔍 DEBUG TIPO: Original={OriginalType}, Convertido={ConvertedType}", 
+                            message.Type, message.Type?.ToLower() ?? "text");
+                        
                         var chatMessage = new
                         {
                             id = message.Id,
                             conversationId = chat.Id.ToString(),
                             direction = message.Direction == "inbound" ? "In" : "Out",
-                            type = message.Type?.ToLower() ?? "text", // SEMPRE string para consistência
+                            type = !string.IsNullOrEmpty(message.Type) ? message.Type.ToLower() : "text", // ✅ SEMPRE string para consistência
                             
                             // DEBUG adicional para tipos
                             _debug_originalType = message.Type,
@@ -188,18 +192,36 @@ namespace Pregiato.API.Controllers
             public string? mediaType { get; set; } // image | file
         }
 
-        [HttpPost("{id:guid}/send")]
-        public async Task<IActionResult> Send(Guid id, [FromBody] SendRequest req)
+        [HttpPost("{id}/send")]
+        public async Task<IActionResult> Send(string id, [FromBody] SendRequest req)
         {
             if (string.IsNullOrWhiteSpace(req.text) || string.IsNullOrWhiteSpace(req.clientMessageId))
                 return BadRequest(new { error = "text e clientMessageId são obrigatórios" });
 
-            // CORREÇÃO: Buscar por ChatId em vez de Id
-            _logger.LogInformation($"🔍 Buscando chat com ChatId: {id}");
-            var chat = await _db.ChatLogs.FirstOrDefaultAsync(c => c.ChatId == id);
+            ChatLog? chat = null;
+            
+            // ✅ NOVO FLUXO: Tentar encontrar chat por diferentes métodos
+            _logger.LogInformation($"🔍 Buscando chat para ID: {id}");
+            
+            // 1. Tentar como GUID primeiro
+            if (Guid.TryParse(id, out var guidId))
+            {
+                chat = await _db.ChatLogs.FirstOrDefaultAsync(c => c.ChatId == guidId);
+                _logger.LogInformation($"📄 Busca por ChatId como GUID: {(chat != null ? "Encontrado" : "Não encontrado")}");
+            }
+            
+            // 2. Se não encontrar, tentar buscar pelo número do telefone
+            if (chat == null)
+            {
+                chat = await _db.ChatLogs.FirstOrDefaultAsync(c => c.ContactPhoneE164 == id);
+                _logger.LogInformation($"📄 Busca por ContactPhoneE164: {(chat != null ? "Encontrado" : "Não encontrado")}");
+            }
+            
+            // ✅ REMOVIDO: Criação automática de chat - agora o chat deve existir antes de enviar mensagens
+            
             if (chat == null) 
             {
-                _logger.LogWarning($"❌ Chat não encontrado com ChatId: {id}");
+                _logger.LogWarning($"❌ Chat não encontrado para ID: {id}");
                 return NotFound();
             }
             _logger.LogInformation($"✅ Chat encontrado: {chat.Id}, ChatId: {chat.ChatId}");
@@ -255,6 +277,8 @@ namespace Pregiato.API.Controllers
             
             return Ok(new { success = true, messageId = req.clientMessageId });
         }
+        
+        // ✅ REMOVIDO: Função ExtractPhoneFromFrontendId - não é mais necessária
         
         /// <summary>
         /// Normaliza um número de telefone ou ID de grupo para um formato padrão

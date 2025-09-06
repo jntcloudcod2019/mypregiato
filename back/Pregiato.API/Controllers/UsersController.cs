@@ -98,13 +98,11 @@ namespace Pregiato.API.Controllers
         }
 
         [HttpGet("check-admin/{email}")]
-        public async Task<ActionResult<bool>> CheckIfUserIsAdmin(string email)
+        public async Task<ActionResult<bool>> CheckAdminRole(string email)
         {
             try
             {
-                // Decodificar o email da URL
                 var decodedEmail = Uri.UnescapeDataString(email);
-                
                 var user = await _context.Users
                     .FirstOrDefaultAsync(u => u.Email.ToLower() == decodedEmail.ToLower());
 
@@ -113,8 +111,38 @@ namespace Pregiato.API.Controllers
                     return NotFound($"Usuário com email {decodedEmail} não encontrado");
                 }
 
-                var isAdmin = user.Role?.ToUpper() == "ADMIN";
-                return Ok(isAdmin);
+                return Ok(user.Role == "ADMIN");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Erro interno do servidor: {ex.Message}");
+            }
+        }
+
+        [HttpGet("operators")]
+        public async Task<ActionResult<List<UserDto>>> GetOperators()
+        {
+            try
+            {
+                var operators = await _context.Users
+                    .Where(u => u.Role == "OPERATOR")
+                    .OrderBy(u => u.FirstName)
+                    .ThenBy(u => u.LastName)
+                    .Select(u => new UserDto
+                    {
+                        Id = u.Id,
+                        ClerkId = u.ClerkId,
+                        Email = u.Email,
+                        FirstName = u.FirstName,
+                        LastName = u.LastName,
+                        ImageUrl = u.ImageUrl,
+                        Role = u.Role,
+                        CreatedAt = u.CreatedAt,
+                        UpdatedAt = u.UpdatedAt
+                    })
+                    .ToListAsync();
+
+                return Ok(operators);
             }
             catch (Exception ex)
             {

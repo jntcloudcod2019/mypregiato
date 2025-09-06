@@ -12,6 +12,7 @@ const QRCode = require('qrcode');
 const axios = require('axios');
 const cors = require('cors');
 const crypto = require('crypto');
+const { connectDatabase, isNumberInLeads } = require('./database');
 
 // opcionais
 let WhatsAppDataExtractor; try { WhatsAppDataExtractor = require('./WhatsAppDataExtractor'); } catch {}
@@ -103,7 +104,7 @@ class ApiClient {
     this.offline = false;
     this.failCount = 0;
     this.maxFailBeforeOpen = Number(process.env.API_CB_THRESHOLD || 5);
-    this.cooldownMs = Number(process.env.API_CB_COOLDOWN_MS || 15000);
+    this.cooldownMs = Number(process.env.API_CB_COOLDOWN_MS || 5000);
     this.lastOpen = 0;
     this.queue = [];
     this.maxQueue = Number(process.env.API_QUEUE_MAX || 500);
@@ -127,7 +128,7 @@ class ApiClient {
       } catch {
         // continua offline
       }
-    }, 5000);
+    }, 2000);
   }
 
   // jitter randômico
@@ -152,12 +153,12 @@ class ApiClient {
       Log.warn('[API] Fila offline atingiu limite – descartando o mais antigo');
     }
     this.queue.push({ path, payload, ts: Date.now() });
-    if (!this.flushTimer) {
-      this.flushTimer = setTimeout(() => {
-        this.flushTimer = null;
-        this.flushQueue();
-      }, 3000);
-    }
+      if (!this.flushTimer) {
+    this.flushTimer = setImmediate(() => {
+      this.flushTimer = null;
+      this.flushQueue();
+    });
+  }
   }
 
   async flushQueue() {
@@ -188,10 +189,10 @@ class ApiClient {
       if (this.failCount >= this.maxFailBeforeOpen) {
         this.openBreaker();
       }
-      // agenda um flush futuro
-      setTimeout(() => this.flushQueue(), this.backoffDelay());
-      throw e;
-    }
+        // agenda um flush futuro
+  this.flushQueue();
+  throw e;
+}
   }
 }
 
@@ -225,7 +226,7 @@ const bufferOut = [];
 const bufferOutMax = Number(process.env.RABBIT_BUFFER_MAX || 2000);
 
 function jitter(ms){ return Math.round(ms * (0.7 + Math.random() * 0.6)); }
-function backoff(attempt){ return Math.min(1000 * Math.pow(2, Math.min(attempt, 8)), 60000); }
+function backoff(attempt){ return Math.min(500 * Math.pow(2, Math.min(attempt, 4)), 10000); }
 
 async function ensureAmqp() {
   if (amqpHealthy && amqpChan) return true;
@@ -250,18 +251,18 @@ async function ensureAmqp() {
     await flushBuffer();
     await startConsumer();
 
-    // health check periódico (ping simples)
-    startRabbitHealth();
-    return true;
-  } catch (e) {
-    amqpReconnecting = false;
-    amqpHealthy = false;
-    Log.error('Falha RabbitMQ', { error: e?.message });
-    if (amqpAttempts < amqpMaxAttempts) {
-      setTimeout(ensureAmqp, delay);
-    }
-    return false;
+      // health check periódico (ping simples)
+  startRabbitHealth();
+  return true;
+} catch (e) {
+  amqpReconnecting = false;
+  amqpHealthy = false;
+  Log.error('Falha RabbitMQ', { error: e?.message });
+  if (amqpAttempts < amqpMaxAttempts) {
+    ensureAmqp();
   }
+  return false;
+}
 }
 
 function markAmqpDown() {
@@ -314,7 +315,7 @@ function startRabbitHealth() {
       Log.warn('[AMQP] health falhou', { error: e?.message });
       markAmqpDown();
     }
-  }, 30000);
+  }, 10000);
 }
 
 async function startConsumer() {
@@ -339,6 +340,13 @@ async function startConsumer() {
         await handleGenerateQR(payload.requestId);
         amqpChan.ack(msg);
         Log.info('[COMMAND] generate_qr processado com sucesso');
+      return;
+    }
+      if (payload.command === 'force_new_auth') {
+        Log.info('[COMMAND] force_new_auth recebido', { requestId: payload.requestId });
+        await handleForceNewAuth(payload.requestId);
+        amqpChan.ack(msg);
+        Log.info('[COMMAND] force_new_auth processado com sucesso');
         return;
       }
       if (payload.command === 'send_message') {
@@ -382,12 +390,45 @@ function buildClient() {
     qrMaxRetries: 3,
   puppeteer: {
     headless: true,
-      timeout: 60000,
-      protocolTimeout: 240000,
+    timeout: 60000,
+    protocolTimeout: 240000,
+    // Configurar apenas pasta de download (userDataDir conflita com LocalAuth)
+    downloadPath: path.join(process.cwd(), 'downloads'),
     args: [
-        '--no-sandbox','--disable-setuid-sandbox','--disable-dev-shm-usage','--disable-gpu',
-        '--disable-extensions','--mute-audio','--disable-web-security','--no-first-run'
-      ]
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-gpu',
+      '--disable-extensions',
+      '--mute-audio',
+      '--disable-web-security',
+      '--no-first-run',
+      '--disable-background-timer-throttling',
+      '--disable-backgrounding-occluded-windows',
+      '--disable-renderer-backgrounding',
+      '--disable-features=VizDisplayCompositor',
+      '--disable-ipc-flooding-protection',
+      '--disable-default-apps',
+      '--disable-sync',
+      '--metrics-recording-only',
+      '--no-default-browser-check',
+      '--no-experiments',
+      '--disable-translate',
+      '--disable-background-networking',
+      '--disable-background-timer-throttling',
+      '--disable-client-side-phishing-detection',
+      '--disable-component-extensions-with-background-pages',
+      '--disable-domain-reliability',
+      '--disable-features=TranslateUI',
+      '--disable-print-preview',
+      '--disable-prompt-on-repost',
+      '--disable-sync',
+      '--force-color-profile=srgb',
+      '--metrics-recording-only',
+      '--safebrowsing-disable-auto-update'
+    ],
+    // Usar versão mais recente do Chromium
+    executablePath: process.env.CHROME_PATH || undefined
   },
   locale: 'pt-BR',
   timezone: 'America/Sao_Paulo'
@@ -409,8 +450,39 @@ function buildClient() {
   client.on('ready', async () => {
     Log.info('[DEBUG] Evento ready disparado');
     try {
+      // Configurar comportamento de download após conexão
+      try {
+        const page = client.pupPage;
+        if (page) {
+          await page._client.send('Page.setDownloadBehavior', {
+            behavior: 'allow',
+            downloadPath: path.join(process.cwd(), 'downloads')
+          });
+          Log.info('[DOWNLOAD] Comportamento de download configurado');
+        }
+      } catch (downloadError) {
+        Log.warn('[DOWNLOAD] Erro ao configurar download:', { error: downloadError?.message });
+      }
+      
       await onReady();
       Log.info('[DEBUG] onReady() processado com sucesso');
+      
+      // Validação pós-ready - agora o cliente está garantidamente funcional
+      Log.info('[DEBUG] configurando validação pós-ready');
+      validationTimer = setTimeout(async () => {
+        Log.info('[DEBUG] executando validação pós-ready');
+        try {
+          await client.getChats();
+          isFullyValidated = true;
+          Log.info('[DEBUG] validação concluída com sucesso');
+          await sendSessionStatus();
+        } catch (e) {
+          Log.warn('Validação pós-ready falhou', { error: e?.message });
+          isConnected = false; isFullyValidated = false; connectedNumber = null;
+          await sendSessionStatus();
+        }
+      }, Number(process.env.VALIDATION_DELAY || 1000));
+      
     } catch (e) {
       Log.error('[DEBUG] onReady() falhou', { error: e?.message, stack: e?.stack });
       // Tentar enviar status mesmo com falha
@@ -456,7 +528,7 @@ async function onQR(qr) {
   qrExpireTimer = setTimeout(async () => {
     Log.warn('[QR] expirado');
     await publish('out.qrcode', { type: 'qr_expired', instanceId, qrCode: null, ts: new Date().toISOString() });
-  }, 3 * 60 * 1000);
+  }, 60 * 1000);
 }
 
 async function handleGenerateQR(_requestId) {
@@ -470,11 +542,69 @@ async function handleGenerateQR(_requestId) {
   
   Log.info('[QR_GEN] Criando e inicializando cliente diretamente');
   try {
+    Log.info('[QR_GEN] Chamando buildClient()...');
     client = buildClient();
+    Log.info('[QR_GEN] Cliente criado:', { clientExists: !!client, clientType: typeof client });
+    
+    Log.info('[QR_GEN] Chamando client.initialize()...');
     await client.initialize();
     Log.info('[QR_GEN] Cliente inicializado com sucesso');
+    
+    // Verificar se o cliente tem os métodos necessários
+    if (client && typeof client.getChats === 'function') {
+      Log.info('[QR_GEN] Cliente tem método getChats');
+    } else {
+      Log.warn('[QR_GEN] Cliente não tem método getChats:', { 
+        clientExists: !!client, 
+        hasGetChats: !!(client && client.getChats),
+        clientType: typeof client 
+      });
+    }
   } catch (e) {
-    Log.error('[QR_GEN] Erro na inicialização', { error: e?.message });
+    Log.error('[QR_GEN] Erro na inicialização', { error: e?.message, stack: e?.stack });
+    throw e;
+  }
+}
+
+async function handleForceNewAuth(_requestId) {
+  Log.info('[FORCE_AUTH] Iniciando processo de nova autenticação forçada', { requestId: _requestId });
+  await ensureAmqp();
+  
+  // Limpar estado atual
+  clearTimers();
+  isConnected = false;
+  isFullyValidated = false;
+  connectedNumber = null;
+  
+  // Desconectar cliente atual se existir
+  if (client) {
+    try {
+      Log.info('[FORCE_AUTH] Desconectando cliente atual');
+      await client.logout();
+  } catch (e) {
+      Log.warn('[FORCE_AUTH] Erro ao desconectar cliente', { error: e?.message });
+    }
+    client = null;
+  }
+  
+  // Limpar sessão salva
+  try {
+    Log.info('[FORCE_AUTH] Limpando sessão salva');
+    await backupAndClearSession();
+  } catch (e) {
+    Log.warn('[FORCE_AUTH] Erro ao limpar sessão', { error: e?.message });
+  }
+  
+
+  
+  // Agora gerar novo QR Code
+  Log.info('[FORCE_AUTH] Gerando novo QR Code');
+  try {
+    client = buildClient();
+    await client.initialize();
+    Log.info('[FORCE_AUTH] Cliente inicializado com sucesso - aguardando QR Code');
+  } catch (e) {
+    Log.error('[FORCE_AUTH] Erro na inicialização', { error: e?.message });
     throw e;
   }
 }
@@ -499,46 +629,23 @@ async function onReady() {
     } else {
       Log.info('[DEBUG] ResilientSender não disponível');
     }
-  } catch (e) { 
+  } catch (e) {
     Log.warn('ResilientSender indisponível', { error: e?.message }); 
   }
 
-  // Isolamento do bloco DataExtractor com timeout
+  // Isolamento do bloco DataExtractor
   try {
     Log.info('[DEBUG] inicializando DataExtractor');
     if (WhatsAppDataExtractor && !dataExtractor) {
       dataExtractor = new WhatsAppDataExtractor({ dataPath: './whatsapp_data' });
-      
-      // Adicionar timeout para evitar travamento
-      const initPromise = dataExtractor.initialize(client);
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('DataExtractor timeout')), 10000)
-      );
-      
-      await Promise.race([initPromise, timeoutPromise]);
+      await dataExtractor.initialize(client);
       Log.info('[DEBUG] DataExtractor inicializado com sucesso');
-    } else {
+      } else {
       Log.info('[DEBUG] DataExtractor não disponível ou já inicializado');
     }
   } catch (e) {
     Log.warn('Extractor falhou', { error: e?.message }); 
   }
-
-  // Validação simples pós-ready
-  Log.info('[DEBUG] configurando validationTimer');
-  validationTimer = setTimeout(async () => {
-    Log.info('[DEBUG] executando validação pós-ready');
-    try {
-      await client.getChats();
-      isFullyValidated = true;
-      Log.info('[DEBUG] validação concluída com sucesso');
-      await sendSessionStatus();
-  } catch (e) {
-      Log.warn('Validação pós-ready falhou', { error: e?.message });
-      isConnected = false; isFullyValidated = false; connectedNumber = null;
-      await sendSessionStatus();
-    }
-  }, Number(process.env.VALIDATION_DELAY || 3000));
 
   // Monitor de sanidade (mantém ativo e reconecta se cair)
   Log.info('[DEBUG] configurando monitorTimer');
@@ -551,7 +658,7 @@ async function onReady() {
       Log.warn('[WPP] monitor detectou queda', { error: e?.message });
       await onDisconnected('monitor');
     }
-  }, 30000);
+  }, 10000);
 
   Log.info('[DEBUG] enviando status inicial');
   await sendSessionStatus();
@@ -564,18 +671,40 @@ async function onDisconnected(reason) {
   isConnected = false; isFullyValidated = false; connectedNumber = null;
   await sendSessionStatus();
 
-  // Reconexão simples
-  const retryMs = jitter(backoff(1));
-  setTimeout(async () => {
-    try {
-      Log.info('[RECONNECT] Tentando reconectar após desconexão');
-      client = buildClient();
-      await client.initialize();
-      Log.info('[RECONNECT] Reconectado com sucesso');
-  } catch (e) {
-      Log.error('[RECONNECT] Falha na reconexão', { error: e?.message });
+  // Reconexão com delay e tratamento de erro melhorado
+  try {
+    Log.info('[RECONNECT] Aguardando 5 segundos antes de tentar reconectar...');
+    await new Promise(resolve => setTimeout(resolve, 5000));
+    
+    Log.info('[RECONNECT] Tentando reconectar após desconexão');
+    
+    // Limpar cliente anterior completamente
+    if (client) {
+      try {
+        await client.destroy();
+      } catch (e) {
+        Log.warn('[RECONNECT] Erro ao destruir cliente anterior:', { error: e?.message });
+      }
+      client = null;
     }
-  }, retryMs);
+    
+    // Criar novo cliente
+    client = buildClient();
+    await client.initialize();
+    Log.info('[RECONNECT] Reconectado com sucesso');
+  } catch (e) {
+    Log.error('[RECONNECT] Falha na reconexão', { error: e?.message, stack: e?.stack });
+    
+    // Se falhar, aguardar mais tempo antes de tentar novamente
+    setTimeout(async () => {
+      try {
+        Log.info('[RECONNECT] Tentativa de reconexão adicional...');
+        await onDisconnected('retry_after_failure');
+      } catch (retryError) {
+        Log.error('[RECONNECT] Falha na tentativa adicional:', { error: retryError?.message });
+      }
+    }, 30000); // 30 segundos
+  }
 }
 
 // ---- Inbound ----
@@ -641,8 +770,30 @@ async function onInbound(message) {
     
     if (message.fromMe) {
       Log.info('[INBOUND] Mensagem própria ignorada');
-    return;
-  }
+      return;
+    }
+
+    // Extrair número do remetente
+    const fromBare = (message.from || '').split('@')[0];
+    const fromNorm = normalizeNumber(fromBare);
+    
+    // Validar se o número está na lista de leads
+    const leadInfo = await isNumberInLeads(fromNorm);
+    
+    if (!leadInfo) {
+      Log.info('[INBOUND] Número não está na lista de leads - ignorando mensagem', { 
+        from: fromNorm,
+        messageType: message.type 
+      });
+      return; // Não processa a mensagem
+    }
+    
+    Log.info('[INBOUND] Número validado - processando mensagem', { 
+      from: fromNorm,
+      leadName: leadInfo.NameLead,
+      operatorId: leadInfo.OperatorId 
+    });
+
     let payload = buildInboundPayload(message);
 
     // Processar mídia se existir
@@ -683,9 +834,9 @@ async function onInbound(message) {
     Log.info('Inbound publicado', { 
       id: payload.externalMessageId, 
       type: payload.type,
-      hasMedia: !!payload.attachment 
+      hasMedia: !!payload.attachment
     });
-    } catch (e) {
+  } catch (e) {
     Log.error('Erro inbound', { error: e?.message });
   }
 }
@@ -760,25 +911,46 @@ async function sendMessageStatus(phone, externalMessageId, status) {
 }
 
 // ========================= Bootstrap =========================
+async function ensureDirectories() {
+  const dirs = [
+    path.join(process.cwd(), 'downloads'),
+    path.join(process.cwd(), 'logs'),
+    path.join(process.cwd(), 'temp')
+  ];
+  
+  for (const dir of dirs) {
+    try {
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+        Log.info(`Diretório criado: ${dir}`);
+      }
+    } catch (e) {
+      Log.warn(`Erro ao criar diretório ${dir}:`, { error: e.message });
+    }
+  }
+}
+
 (async function start() {
   Log.info('[INFO] Iniciando Zap Bot', { instanceId, sessionBaseDir, localAuthDir, API_BASE, RABBIT_URL });
 
+  // Criar diretórios necessários
+  await ensureDirectories();
+
+  // Conexão com o banco de dados
+  await connectDatabase();
+
+  // Atualizar cache periodicamente (a cada 5 minutos)
+  setInterval(async () => {
+    try {
+      const { loadOperatorLeadsCache } = require('./database');
+      await loadOperatorLeadsCache();
+    } catch (error) {
+      Log.error('Erro ao atualizar cache periodicamente:', { error: error.message });
+    }
+  }, 5 * 60 * 1000); // 5 minutos
+
   // RabbitMQ inicial
   await ensureAmqp();
-
-  // Timeout de emergência para detectar falhas de conexão
-  setTimeout(async () => {
-    if (!isConnected) {
-      Log.info('[EMERGENCY] Timeout: Sistema aguardando comando generate_qr após 60s');
-      try {
-        await sendSessionStatus();
-      } catch (e) {
-        Log.error('[EMERGENCY] Falha ao enviar status de emergência', { error: e?.message });
-      }
-    } else {
-      Log.info('[EMERGENCY] Timeout: Sistema funcionando normalmente');
-    }
-  }, 60000); // 1 minuto após inicialização
 
   // REMOVIDO: Subida automática via arquivos de sessão
   // Sempre aguardar comando generate_qr via RabbitMQ para inicialização limpa

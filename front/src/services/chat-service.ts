@@ -129,7 +129,7 @@ export interface SendMessageRequest {
     dataUrl: string;
     mimeType: string;
     fileName?: string;
-    mediaType?: 'image' | 'file' | 'audio';
+    mediaType?: 'text' | 'image' | 'video' | 'audio' | 'document' | 'voice' | 'sticker' | 'location' | 'contact' | 'system';
   };
 }
 
@@ -223,7 +223,7 @@ export interface SendMessageRequestDto {
     dataUrl: string;
     mimeType: string;
     fileName?: string;
-    mediaType?: 'image' | 'file' | 'audio';
+    mediaType?: 'text' | 'image' | 'video' | 'audio' | 'document' | 'voice' | 'sticker' | 'location' | 'contact' | 'system';
   };
 }
 
@@ -378,6 +378,70 @@ export const convertBackendMessage = (backendMessage: BackendMessageDto | Backen
   };
 };
 
+// ✅ MAPEADOR COMPLETO DE TIPOS DE MÍDIA (Frontend ↔ Backend)
+export const MediaTypeMapper = {
+  // Mapeamento Frontend → Backend
+  frontendToBackend: {
+    'text': 'text',
+    'image': 'image',
+    'video': 'video',
+    'audio': 'audio',
+    'document': 'document',
+    'voice': 'voice',
+    'sticker': 'sticker',
+    'location': 'location',
+    'contact': 'contact',
+    'system': 'system'
+  },
+  
+  // Mapeamento Backend → Frontend
+  backendToFrontend: {
+    'text': 'text',
+    'image': 'image',
+    'video': 'video',
+    'audio': 'audio',
+    'document': 'document',
+    'voice': 'voice',
+    'sticker': 'sticker',
+    'location': 'location',
+    'contact': 'contact',
+    'system': 'system'
+  },
+  
+  // Validar tipo de mídia
+  isValid: (mediaType: string): boolean => {
+    const validTypes = ['text', 'image', 'video', 'audio', 'document', 'voice', 'sticker', 'location', 'contact', 'system'];
+    return validTypes.includes(mediaType.toLowerCase());
+  },
+  
+  // Obter MIME type padrão baseado no tipo
+  getDefaultMimeType: (mediaType: string): string => {
+    const type = mediaType.toLowerCase();
+    switch (type) {
+      case 'image':
+        return 'image/jpeg';
+      case 'video':
+        return 'video/mp4';
+      case 'audio':
+        return 'audio/mpeg';
+      case 'voice':
+        return 'audio/ogg';
+      case 'document':
+        return 'application/pdf';
+      case 'sticker':
+        return 'image/webp';
+      case 'location':
+        return 'application/json';
+      case 'contact':
+        return 'application/json';
+      case 'system':
+        return 'text/plain';
+      default:
+        return 'text/plain';
+    }
+  }
+};
+
 // Função para converter ChatLog do backend para ChatListItem do frontend
 export const convertBackendChatLog = (backendChatLog: BackendChatLogDto): ChatListItem => {
   return {
@@ -457,8 +521,48 @@ export const chatsApi = {
     saveToCache(cacheKey, result);
     return result;
   },
-  send: async (id: string, text: string, clientMessageId: string, attachment?: { dataUrl: string; mimeType: string; fileName?: string; mediaType?: 'image' | 'file' | 'audio' }) => {
-    const request: SendMessageRequestDto = { text, clientMessageId, attachment };
+  send: async (id: string, text: string, clientMessageId: string, attachment?: { dataUrl: string; mimeType: string; fileName?: string; mediaType?: 'text' | 'image' | 'video' | 'audio' | 'document' | 'voice' | 'sticker' | 'location' | 'contact' | 'system' }) => {
+    // ✅ VALIDAÇÃO E NORMALIZAÇÃO DE TIPOS DE MÍDIA
+    let normalizedAttachment = attachment;
+    
+    if (attachment) {
+      // Validar tipo de mídia
+      if (!MediaTypeMapper.isValid(attachment.mediaType || 'text')) {
+        console.warn(`⚠️ Tipo de mídia inválido: ${attachment.mediaType}, usando 'text' como padrão`);
+        attachment.mediaType = 'text';
+      }
+      
+      // Normalizar MIME type se não fornecido
+      if (!attachment.mimeType) {
+        attachment.mimeType = MediaTypeMapper.getDefaultMimeType(attachment.mediaType || 'text');
+        console.log(`🔧 MIME type normalizado para ${attachment.mediaType}: ${attachment.mimeType}`);
+      }
+      
+      // Validar dataUrl para tipos de mídia
+      if (attachment.mediaType !== 'text' && !attachment.dataUrl) {
+        throw new Error(`DataUrl é obrigatório para tipo de mídia: ${attachment.mediaType}`);
+      }
+      
+      normalizedAttachment = {
+        ...attachment,
+        mediaType: attachment.mediaType || 'text',
+        mimeType: attachment.mimeType || MediaTypeMapper.getDefaultMimeType(attachment.mediaType || 'text')
+      };
+    }
+    
+    const request: SendMessageRequestDto = { 
+      text, 
+      clientMessageId, 
+      attachment: normalizedAttachment 
+    };
+    
+    console.log(`📤 [FLUXO X] Enviando mensagem via frontend:`, {
+      chatId: id,
+      text: text.substring(0, 50) + (text.length > 50 ? '...' : ''),
+      mediaType: normalizedAttachment?.mediaType || 'text',
+      mimeType: normalizedAttachment?.mimeType,
+      hasAttachment: !!normalizedAttachment
+    });
     
     try {
       // Usar o endpoint correto que salva no PayloadJson do ChatLogs

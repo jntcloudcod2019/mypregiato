@@ -1,0 +1,207 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Pregiato.API</name>
+    </assembly>
+    <members>
+        <member name="M:Pregiato.API.Controllers.ChatsController.NormalizePhoneE164Br(System.String,System.Boolean)">
+            <summary>
+            Normaliza um número de telefone ou ID de grupo para um formato padrão
+            CORRIGIDA para evitar duplicação de chats - conforme análise de engenharia reversa
+            </summary>
+            <param name="phone">Número de telefone ou ID de grupo</param>
+            <param name="isGroup">Se é um ID de grupo</param>
+            <returns>Número normalizado</returns>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TalentsController.GetTalents(System.Int32,System.Int32,System.String,System.String,System.Boolean)">
+            <summary>
+            Obtém todos os talentos com paginação
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TalentsController.GetTalent(System.Guid)">
+            <summary>
+            Obtém um talento por ID
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TalentsController.CreateTalent(Pregiato.Application.DTOs.CreateTalentDto)">
+            <summary>
+            Cria um novo talento
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TalentsController.UpdateTalent(System.Guid,Pregiato.Application.DTOs.UpdateTalentDto)">
+            <summary>
+            Atualiza um talento
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TalentsController.DeleteTalent(System.Guid)">
+            <summary>
+            Remove um talento
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TalentsController.CheckTalentExists(System.String,System.String)">
+            <summary>
+            Verifica se um talento existe por email ou documento
+            </summary>
+        </member>
+        <member name="T:Pregiato.API.Services.ChatHelper">
+            <summary>
+            Classe auxiliar para operações de chat
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatHelper.NormalizePhoneE164Br(System.String,System.Boolean)">
+            <summary>
+            Normaliza um número de telefone ou ID de grupo para um formato padrão
+            </summary>
+            <param name="phone">Número de telefone ou ID de grupo</param>
+            <param name="isGroup">Se é um ID de grupo</param>
+            <returns>Número normalizado</returns>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatHelper.ConsolidateDuplicateChats(Pregiato.Core.Entities.ChatLog,System.Collections.Generic.List{Pregiato.Core.Entities.ChatLog},Pregiato.Infrastructure.Data.PregiatoDbContext,Microsoft.Extensions.DependencyInjection.IServiceScope,Microsoft.Extensions.Logging.ILogger)">
+            <summary>
+            Consolida chats duplicados em um chat principal
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatLogService.GetShortContentType(System.String)">
+            <summary>
+            Converte tipos de conteúdo longos para versões curtas que cabem no banco
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatLogService.FindExistingChatByPhoneAsync(System.String)">
+            <summary>
+            Busca chat existente para um número, prevenindo duplicação
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatLogService.RemoveChatFromCache(System.String)">
+            <summary>
+            Remove chat duplicado do cache quando consolidado
+            </summary>
+        </member>
+        <member name="T:Pregiato.API.Services.ChatMappingService">
+            <summary>
+            Serviço resiliente para mapeamento de chats com múltiplas estratégias de fallback
+            e cache automático para otimização de performance
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatMappingService.GetConversationIdAsync(System.String,System.String)">
+            <summary>
+            Obtém ou cria o ConversationId para um chat com múltiplas estratégias resilientes
+            </summary>
+            <param name="chatId">ID do chat enviado pelo Zap Bot</param>
+            <param name="phoneNumber">Número de telefone normalizado</param>
+            <returns>Guid da conversa</returns>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatMappingService.TryMultipleMappingStrategies(System.String,System.String)">
+            <summary>
+            Tenta múltiplas estratégias de mapeamento em ordem de prioridade
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatMappingService.TryParseGuidFromChatId(System.String)">
+            <summary>
+            Estratégia 1: Tenta extrair GUID diretamente do chatId
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatMappingService.FindConversationByPhone(System.String)">
+            <summary>
+            Estratégia 2: Busca conversa existente pelo número de telefone
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatMappingService.FindConversationByPeerE164(System.String)">
+            <summary>
+            Estratégia 3: Busca conversa existente pelo PeerE164
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatMappingService.CreateNewConversation(System.String,System.String)">
+            <summary>
+            Estratégia 4: Cria uma nova conversa
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatMappingService.EmergencyRecovery(System.String,System.String,System.Exception)">
+            <summary>
+            Recuperação de emergência quando todas as estratégias falham
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatMappingService.GenerateDeterministicGuid(System.String)">
+            <summary>
+            Gera um GUID determinístico baseado no número de telefone
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatMappingService.ClearCache">
+            <summary>
+            Limpa o cache (útil para testes ou manutenção)
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatMappingService.GetCacheStats">
+            <summary>
+            Obtém estatísticas do cache
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ConversationService.GetOrCreateConversationAsync(System.String,System.String,System.Boolean,System.String)">
+            <summary>
+            Obtém ou cria uma conversa para um número específico (implementação da interface)
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ConversationService.UpdateLastMessageAsync(System.Guid,System.DateTime)">
+            <summary>
+            Atualiza a última mensagem de uma conversa
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ConversationService.GetOrCreateWhatsAppConversationAsync(System.String,System.String,System.Boolean,System.String)">
+            <summary>
+            Obtém ou cria uma conversa para um número específico (WhatsApp)
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ConversationService.ListConversationsAsync(System.String,System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Lista conversas com paginação (suporta tanto conversas originais quanto WhatsApp)
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ConversationService.AddMessageAsync(System.Guid,System.String,System.String,System.String,System.Boolean,System.String)">
+            <summary>
+            Adiciona uma mensagem a uma conversa
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.RabbitBackgroundService.CreateCompleteMessageInfo(Pregiato.API.Services.WhatsAppMessage,System.String)">
+            <summary>
+            Cria MessageInfo COMPLETO conforme estrutura do exemplo JSON
+            Garante que todos os campos sejam populados corretamente
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.RabbitBackgroundService.GetFileExtensionFromMimeType(System.String)">
+            <summary>
+            Obtém extensão de arquivo baseada no MIME type
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.RabbitBackgroundService.EstimateAudioDuration(System.Int64)">
+            <summary>
+            Estima duração de áudio baseada no tamanho do arquivo
+            Heurística: ~8KB por segundo para MP3 de qualidade média
+            </summary>
+        </member>
+        <member name="T:Pregiato.API.Services.WhatsAppMessage">
+            <summary>
+            Classe unificada para receber payloads do Zap-Blaster
+            Compatível com WhatsAppIncomingMessageDto do Application layer
+            </summary>
+        </member>
+        <member name="T:Pregiato.API.Services.WhatsAppAttachment">
+            <summary>
+            Classe unificada para attachments
+            </summary>
+        </member>
+        <member name="T:Pregiato.API.Services.WhatsAppLocation">
+            <summary>
+            Classe para dados de localização
+            </summary>
+        </member>
+        <member name="T:Pregiato.API.Services.WhatsAppContact">
+            <summary>
+            Classe para dados de contato
+            </summary>
+        </member>
+        <member name="T:Pregiato.API.Services.ContentTypeHelper">
+            <summary>
+            Converte tipos de conteúdo longos para versões curtas que cabem no banco
+            </summary>
+        </member>
+    </members>
+</doc>

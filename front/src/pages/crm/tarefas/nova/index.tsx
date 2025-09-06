@@ -29,34 +29,11 @@ export default function NovaTarefa() {
     tipo: "geral"
   })
 
-  // Mock data - em uma aplicação real, viria do backend
-  const leads = [
-    { id: 1, nome: "João Silva", empresa: "Tech Solutions" },
-    { id: 2, nome: "Ana Costa", empresa: "Startup Inovadora" },
-    { id: 3, nome: "Carlos Santos", empresa: "Corporação ABC" },
-    { id: 4, nome: "Fernanda Oliveira", empresa: "Negócio Digital" }
-  ]
-
-  const responsaveis = [
-    { value: "maria", label: "Maria Santos" },
-    { value: "pedro", label: "Pedro Lima" },
-    { value: "ana", label: "Ana Silva" }
-  ]
-
-  const prioridades = [
-    { value: "baixa", label: "Baixa", cor: "text-green-600" },
-    { value: "media", label: "Média", cor: "text-yellow-600" },
-    { value: "alta", label: "Alta", cor: "text-red-600" }
-  ]
-
-  const tiposTarefa = [
-    { value: "geral", label: "Geral" },
-    { value: "ligacao", label: "Ligação" },
-    { value: "email", label: "E-mail" },
-    { value: "reuniao", label: "Reunião" },
-    { value: "proposta", label: "Proposta" },
-    { value: "followup", label: "Follow-up" }
-  ]
+  // Dados virão da API - sem dados mockados
+  const leads: Array<{ id: number; nome: string; empresa: string }> = []
+  const responsaveis: Array<{ value: string; label: string }> = []
+  const prioridades: Array<{ value: string; label: string; cor: string }> = []
+  const tiposTarefa: Array<{ value: string; label: string }> = []
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({

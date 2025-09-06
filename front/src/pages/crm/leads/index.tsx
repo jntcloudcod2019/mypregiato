@@ -116,69 +116,23 @@ export default function LeadsPage() {
     setEditRows(rows)
   }
 
-  // Mock data - em uma aplicação real, viria do backend
-  const leads = [
-    {
-      id: 1,
-      nome: "João Silva",
-      email: "joao@empresa.com",
-      telefone: "(11) 99999-1111",
-      empresa: "Tech Solutions",
-      etapa: "novo",
-      responsavel: "Maria Santos",
-      dataUltimoContato: "2024-01-02",
-      valor: "R$ 15.000"
-    },
-    {
-      id: 2,
-      nome: "Ana Costa",
-      email: "ana@startup.com",
-      telefone: "(11) 99999-2222",
-      empresa: "Startup Inovadora",
-      etapa: "contato",
-      responsavel: "Pedro Lima",
-      dataUltimoContato: "2024-01-01",
-      valor: "R$ 25.000"
-    },
-    {
-      id: 3,
-      nome: "Carlos Santos",
-      email: "carlos@corp.com",
-      telefone: "(11) 99999-3333",
-      empresa: "Corporação ABC",
-      etapa: "proposta",
-      responsavel: "Maria Santos",
-      dataUltimoContato: "2023-12-30",
-      valor: "R$ 50.000"
-    },
-    {
-      id: 4,
-      nome: "Fernanda Oliveira",
-      email: "fernanda@negocio.com",
-      telefone: "(11) 99999-4444",
-      empresa: "Negócio Digital",
-      etapa: "fechado",
-      responsavel: "Pedro Lima",
-      dataUltimoContato: "2023-12-28",
-      valor: "R$ 35.000"
-    }
-  ]
+  // Dados de leads virão da API - sem dados mockados
 
-  const etapas = [
-    { value: "novo", label: "Novo", cor: "bg-blue-500" },
-    { value: "contato", label: "Contato", cor: "bg-yellow-500" },
-    { value: "agendamento", label: "Agendamento", cor: "bg-orange-500" },
-    { value: "seletiva", label: "Seletiva", cor: "bg-indigo-500" },
-    { value: "contrato", label: "Contrato", cor: "bg-green-500" },
-    { value: "finalizado", label: "Finalizado", cor: "bg-emerald-600" },
-    { value: "perdido", label: "Perdido", cor: "bg-red-500" }
-  ]
-
-  const responsaveis = ["Maria Santos", "Pedro Lima", "Ana Silva"]
+  // Etapas e responsáveis virão da API - sem dados hardcoded
 
   const getEtapaBadge = (etapa: string) => {
-    const etapaInfo = etapas.find(e => e.value === etapa)
-    return etapaInfo ? etapaInfo : { label: etapa, cor: "bg-gray-500" }
+    // Mapeamento básico de etapas - em produção virá da API
+    const etapaMap: Record<string, { label: string; cor: string }> = {
+      'novo': { label: 'Novo', cor: 'bg-blue-500' },
+      'contato': { label: 'Contato', cor: 'bg-yellow-500' },
+      'agendamento': { label: 'Agendamento', cor: 'bg-orange-500' },
+      'seletiva': { label: 'Seletiva', cor: 'bg-indigo-500' },
+      'contrato': { label: 'Contrato', cor: 'bg-green-500' },
+      'finalizado': { label: 'Finalizado', cor: 'bg-emerald-600' },
+      'perdido': { label: 'Perdido', cor: 'bg-red-500' }
+    }
+    
+    return etapaMap[etapa] || { label: etapa, cor: "bg-gray-500" }
   }
 
   useEffect(() => { 
@@ -238,7 +192,7 @@ export default function LeadsPage() {
     valor: ''
   }))
 
-  const dataset = leadsApi.length > 0 ? leadsApi : (dynamicLeads.length > 0 ? dynamicLeads : leads)
+  const dataset = leadsApi.length > 0 ? leadsApi : (dynamicLeads.length > 0 ? dynamicLeads : [])
 
   const filteredLeads = dataset.filter(lead => {
     const matchesSearch = lead.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||

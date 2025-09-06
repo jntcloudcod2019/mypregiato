@@ -16,7 +16,7 @@ function createTestMessage() {
     externalMessageId: crypto.randomUUID(),
     from: `${testPhone}@c.us`,
     fromNormalized: testPhone,
-    to: '5511888776655', // Número do bot (simulado)
+    to: '5511989908389', // Número do bot (simulado)
     type: 'text',
     timestamp: new Date().toISOString(),
     instanceId: instanceId,

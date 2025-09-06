@@ -1069,8 +1069,7 @@ namespace Pregiato.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Text")
-                        .HasMaxLength(5000)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("LONGTEXT");
 
                     b.Property<string>("Thumbnail")
                         .HasMaxLength(1000)
@@ -1299,6 +1298,63 @@ namespace Pregiato.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Operators", (string)null);
+                });
+
+            modelBuilder.Entity("Pregiato.Core.Entities.OperatorLeads", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+
+                    b.Property<DateTime?>("DateContact")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("EmailOperator")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("NameLead")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<string>("OperatorId")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("PhoneLead")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("SeletivaInfo")
+                        .HasColumnType("json");
+
+                    b.Property<bool>("StatusContact")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("StatusSeletiva")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(false);
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("OperatorLeads");
                 });
 
             modelBuilder.Entity("Pregiato.Core.Entities.QueueEvent", b =>

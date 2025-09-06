@@ -74,7 +74,7 @@ namespace Pregiato.Core.Entities
         public bool IsGroup { get; set; } = false;  // Mensagem de grupo
 
         // === CONTEÚDO DE TEXTO (NULLABLE) ===
-        [StringLength(5000)]  // Aumentado para mensagens longas
+        // Removido StringLength para suportar mensagens longas (Base64 de áudio, etc)
         public string? Text { get; set; }  // Conteúdo da mensagem (texto, legenda)
 
         // === CAMPOS DE MÍDIA (NULLABLE) ===
@@ -107,8 +107,10 @@ namespace Pregiato.Core.Entities
         public string? ContactPhone { get; set; }
 
         // === METADADOS FLEXÍVEIS ===
+        // Removido StringLength para suportar metadados extensos
         public string? Metadata { get; set; }  // JSON para extensões futuras
         
+        // Removido StringLength para suportar payload completo original
         public string? PayloadJson { get; set; }  // Payload completo original (backup)
 
         // === IDENTIFICADORES EXTERNOS ===

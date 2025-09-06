@@ -36,7 +36,7 @@ const getMessageType = (type?: string | number): MessageType => {
   // Se for número, mapear diretamente do enum
   if (typeof type === 'number') {
     console.log('🔢 Tipo numérico detectado:', type);
-    switch (type) {
+  switch (type) {
       case MessageType.Text: return MessageType.Text;
       case MessageType.Image: return MessageType.Image;
       case MessageType.Audio:
@@ -87,7 +87,7 @@ interface ChatMessageDto {
   direction: 'in' | 'out';
   text: string;
   ts: string;
-  type?: 'text' | 'image' | 'file' | 'audio';
+  type?: 'text' | 'image' | 'video' | 'audio' | 'voice' | 'document' | 'sticker' | 'location' | 'contact' | 'system';
   status: 'pending' | 'sent' | 'delivered' | 'read' | 'failed';
   attachment?: {
     dataUrl: string;
@@ -163,12 +163,15 @@ import MediaRenderer from '@/components/whatsapp/media-renderer';
 import { useOperatorStatus } from '@/hooks/useOperatorStatus';
 import { useTwilioPhone } from '@/hooks/useTwilioPhone';
 import { toast } from '@/hooks/use-toast';
-import Dock from '@/components/ui/dock';
 import { Search, Plus, Download, RefreshCw } from 'lucide-react';
 import crmIconUrl from '@/../public/icons/crm.svg';
 import { TimeTicker } from '@/components/ui/time-ticker';
 import { ChatListLayout } from '@/components/chat/ChatListLayout';
 import { cleanTitle } from '@/utils/chat-utils';
+import { LeadsContainer } from '@/components/attendance/LeadsContainer';
+import { LeadTrackingForm } from '@/components/attendance/LeadTrackingForm';
+
+import { ChatProvider } from '@/contexts/ChatContext';
 
 const formatMMSS = (ms: number) => {
   if (!isFinite(ms) || ms <= 0) return '00:00';
@@ -360,7 +363,7 @@ export default function AtendimentoPage() {
       } catch (error) {
         console.error(`❌ Erro ao buscar histórico para ${chatId}:`, error);
         history = [] as ChatMessageDto[];
-        historyCacheRef.current[chatId] = history;
+            historyCacheRef.current[chatId] = history;
       }
     }
     
@@ -462,7 +465,16 @@ export default function AtendimentoPage() {
         Object.keys(next).forEach(id => { if (!ids.has(id)) delete next[id]; });
         return next;
       });
-      setChats(unique);
+      // ✅ PRESERVAR CHATS LOCAIS: Manter chats criados pelo frontend
+      setChats(prev => {
+        const localChats = prev.filter(c => c.id.startsWith('chat_'));
+        const serverChats = unique.filter(c => !c.id.startsWith('chat_'));
+        const combined = [...localChats, ...serverChats];
+        
+        if (isDebugEnabled) console.debug(`[chat] Preservando ${localChats.length} chats locais + ${serverChats.length} chats do servidor`);
+        
+        return combined;
+      });
 
       if (isDebugEnabled) console.debug(`[chat] refreshChats concluído: ${unique.length} chats`);
     } catch (error) {
@@ -548,16 +560,16 @@ export default function AtendimentoPage() {
     const clientMessageId = crypto.randomUUID();
     const text = composer;
     setComposer('');
-    let attachment: { dataUrl: string; mimeType: string; fileName?: string; mediaType?: 'image' | 'file' | 'audio' } | undefined;
-    let optimisticType: 'text' | 'image' | 'file' | 'audio' = 'text';
+    let attachment: { dataUrl: string; mimeType: string; fileName?: string; mediaType?: 'image' | 'document' | 'audio' } | undefined;
+          let optimisticType: 'text' | 'image' | 'document' | 'audio' = 'text';
     if (file) {
       const isImage = (file.type || '').startsWith('image/');
       const { dataUrl, mimeType } = isImage
         ? await compressImageToDataUrl(file, 1280, 0.82, 600 * 1024)
         : { dataUrl: await readFileAsDataUrl(file), mimeType: file.type || 'application/octet-stream' };
       const isAudio = (file.type || '').startsWith('audio/');
-      const mediaType = isImage ? 'image' : isAudio ? 'audio' : 'file';
-      optimisticType = mediaType;
+      const mediaType = isImage ? 'image' : isAudio ? 'audio' : 'document';
+      optimisticType = mediaType as 'text' | 'image' | 'document' | 'audio';
       attachment = { dataUrl, mimeType, fileName: file.name, mediaType };
     }
     const optimistic: ChatMessageDto = {
@@ -579,6 +591,14 @@ export default function AtendimentoPage() {
 
   const sendAudio = async (dataUrl: string, mimeType: string, fileName = 'gravacao.webm') => {
     if (!selectedChatId) return;
+    
+    console.log('🎵 [DEBUG] sendAudio chamado:', {
+      dataUrlLength: dataUrl.length,
+      mimeType,
+      fileName,
+      selectedChatId
+    });
+    
     const clientMessageId = crypto.randomUUID();
     const optimistic: ChatMessageDto = {
       id: clientMessageId,
@@ -589,10 +609,15 @@ export default function AtendimentoPage() {
       type: 'audio',
       attachment: { dataUrl, mimeType, fileName }
     } as ChatMessageDto;
+    
+    console.log('🎵 [DEBUG] Mensagem otimista criada:', optimistic);
+    
     setMessages(prev => [...prev, optimistic]);
     try {
       await chatsApi.send(selectedChatId!, '', clientMessageId, { dataUrl, mimeType, fileName, mediaType: 'audio' });
-    } catch {
+      console.log('🎵 [DEBUG] Áudio enviado com sucesso via API');
+    } catch (error) {
+      console.error('🎵 [DEBUG] Erro ao enviar áudio:', error);
       setMessages(prev => prev.map(m => m.id === clientMessageId ? { ...m, status: 'failed' } : m));
     }
   };
@@ -606,19 +631,38 @@ export default function AtendimentoPage() {
       const mr = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
       audioChunksRef.current = [];
       mr.ondataavailable = (e: BlobEvent) => { if (e.data && e.data.size > 0) audioChunksRef.current.push(e.data); };
-      mr.onstop = async () => {
-        try {
-          const blob = new Blob(audioChunksRef.current, { type: mr.mimeType || 'audio/webm' });
-          const reader = new FileReader();
-          const dataUrl: string = await new Promise((res, rej) => { reader.onload = () => res(String(reader.result)); reader.onerror = rej; reader.readAsDataURL(blob); });
-          await sendAudio(dataUrl, blob.type || 'audio/webm');
-        } finally {
-          stream.getTracks().forEach(t => t.stop());
-          setIsRecording(false);
-          if (recordTickRef.current) { window.clearInterval(recordTickRef.current); recordTickRef.current = null; }
-          setRecordMs(0);
-        }
-      };
+              mr.onstop = async () => {
+          try {
+            const blob = new Blob(audioChunksRef.current, { type: mr.mimeType || 'audio/webm' });
+            console.log('🎵 [DEBUG] Blob de áudio criado:', {
+              size: blob.size,
+              type: blob.type,
+              chunks: audioChunksRef.current.length
+            });
+            
+            const reader = new FileReader();
+            const dataUrl: string = await new Promise((res, rej) => { 
+              reader.onload = () => {
+                const result = String(reader.result);
+                console.log('🎵 [DEBUG] DataURL gerado:', {
+                  length: result.length,
+                  startsWithData: result.startsWith('data:'),
+                  mimeType: result.split(';')[0]
+                });
+                res(result);
+              }; 
+              reader.onerror = rej; 
+              reader.readAsDataURL(blob); 
+            });
+            
+            await sendAudio(dataUrl, blob.type || 'audio/webm');
+          } finally {
+            stream.getTracks().forEach(t => t.stop());
+            setIsRecording(false);
+            if (recordTickRef.current) { window.clearInterval(recordTickRef.current); recordTickRef.current = null; }
+            setRecordMs(0);
+          }
+        };
       mr.start(100);
       mediaRecorderRef.current = mr;
       setIsRecording(true);
@@ -758,7 +802,7 @@ export default function AtendimentoPage() {
             direction: 'in',
             text: evt.message.text || evt.message.body || '',
             ts: evt.message.ts || evt.message.timestamp || new Date().toISOString(),
-            type: (evt.message.type as 'text' | 'image' | 'file' | 'audio') || 'text',
+            type: (evt.message.type as 'text' | 'image' | 'video' | 'audio' | 'voice' | 'document' | 'sticker' | 'location' | 'contact' | 'system') || 'text',
             status: 'delivered',
             attachment: evt.message.attachment ? {
               dataUrl: evt.message.attachment.dataUrl || '',
@@ -823,7 +867,7 @@ export default function AtendimentoPage() {
             direction: 'out',
             text: msg.text || msg.body || '',
             ts: msg.ts || msg.timestamp || new Date().toISOString(),
-            type: (msg.type as 'text' | 'image' | 'file' | 'audio') || 'text',
+            type: (msg.type as 'text' | 'image' | 'video' | 'audio' | 'voice' | 'document' | 'sticker' | 'location' | 'contact' | 'system') || 'text',
             status: 'sent',
             attachment: msg.attachment ? {
               dataUrl: msg.attachment.dataUrl || '',
@@ -896,7 +940,7 @@ export default function AtendimentoPage() {
       } catch (error) {
         console.error(`❌ Erro ao buscar histórico para ${chatId}:`, error);
         history = [] as ChatMessageDto[];
-        historyCacheRef.current[chatId] = history;
+            historyCacheRef.current[chatId] = history;
       }
     }
     
@@ -1033,16 +1077,30 @@ export default function AtendimentoPage() {
           <div className="lg:col-span-3"><OperatorStatusCard /></div>
         </div>
 
-        <div className="mb-2">
-          <Dock
-            items={[
-              { label: 'Buscar', icon: <Search className="h-5 w-5" />, onClick: () => refreshChats() },
-              { label: 'Novo Lead', icon: <Plus className="h-5 w-5" />, onClick: () => {} },
-              { label: 'CRM', icon: <img src={crmIconUrl} alt="CRM" className="h-5 w-5" />, onClick: () => { window.location.href = '/crm'; } },
-              { label: 'Histórico', icon: <Download className="h-5 w-5" />, onClick: () => { window.location.href = '/atendimento/historico'; } },
-              { label: 'Atualizar', icon: <RefreshCw className="h-5 w-5" />, onClick: () => refreshChats() },
-            ]}
-          />
+        {/* CONTAINER DE LEADS ALOCADOS */}
+        <div className="mb-4">
+          <ChatProvider value={{
+            refreshChats,
+            setSelectedChatId,
+            addChat: (chat: ChatListItem) => {
+              console.log('🔍 [ChatProvider] addChat chamado com:', chat);
+              
+              // ✅ Adicionar chat ao estado local da página (chats)
+              setChats(prev => {
+                console.log('🔍 [ChatProvider] Estado anterior:', prev.length, 'chats');
+                const newState = [...prev, chat];
+                console.log('🔍 [ChatProvider] Novo estado:', newState.length, 'chats');
+                return newState;
+              });
+              
+              // ✅ Adicionar chat ao store global usando useChatStore
+              useChatStore.getState().addChat(chat);
+              
+              console.log('✅ Chat adicionado ao estado local e store global via contexto:', chat);
+            }
+          }}>
+            <LeadsContainer />
+          </ChatProvider>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
@@ -1141,6 +1199,22 @@ export default function AtendimentoPage() {
                   <CardContent className="flex-1 p-0 relative overflow-hidden">
                     <ScrollArea className="h-full w-full" type="always">
                       <div className="px-4 py-2 space-y-2 min-h-full">
+                      {selectedChatId && activeTicket?.step === 3 && !activeTicket?.verified && (
+                        <div className="mb-6">
+                          <LeadTrackingForm 
+                            isVisible={true}
+                            phoneLead={activeChat?.contactPhoneE164 || ''}
+                            onUpdateSuccess={() => {
+                              toast({
+                                title: "Sucesso",
+                                description: "Progresso do lead atualizado com sucesso!",
+                                variant: "default"
+                              });
+                            }}
+                          />
+                        </div>
+                      )}
+
                       {selectedChatId && activeTicket?.step === 4 && !activeTicket?.verified && (
                         <div className="mb-3">
                           <p className="text-xs text-muted-foreground mb-2">Descreva o atendimento e finalize</p>
@@ -1180,6 +1254,14 @@ export default function AtendimentoPage() {
                               contactPhone={(m as ExtendedChatMessage).contactPhone}
                               className="mb-2"
                             />
+                            
+                            {/* DEBUG: Log do tipo de mensagem para áudio */}
+                            {m.type === 'audio' && (
+                              <div className="text-xs text-muted-foreground mt-1">
+                                🔍 DEBUG: Tipo={m.type}, getMessageType={getMessageType(m.type)}, 
+                                MessageType.Audio={MessageType.Audio}
+                              </div>
+                            )}
                             
                             {m.text && !isMediaOnlyContent(m.text, getMessageType(m.type)) && (
                               <div className="whitespace-pre-wrap break-words text-sm">

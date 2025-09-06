@@ -86,6 +86,7 @@ builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IWhatsAppService, WhatsAppService>();
 builder.Services.AddScoped<ILeadService, LeadService>();
 builder.Services.AddScoped<ILeadRepository, LeadRepository>();
+builder.Services.AddScoped<IOperatorLeadsService, Pregiato.Application.Services.OperatorLeadsService>();
 
 // Serviços de resiliência
 builder.Services.AddScoped<IEmojiResilienceService, EmojiResilienceService>();
@@ -97,6 +98,7 @@ builder.Services.AddScoped<IClerkAuthService, ClerkAuthService>();
 builder.Services.AddScoped<ITalentRepository, TalentRepository>();
 builder.Services.AddScoped<IImportedFileRepository, ImportedFileRepository>();
 builder.Services.AddScoped<IChatLogRepository, ChatLogRepository>();
+builder.Services.AddScoped<IOperatorLeadsRepository, OperatorLeadsRepository>();
 
 // Chat services
 builder.Services.AddScoped<ChatLogService>();

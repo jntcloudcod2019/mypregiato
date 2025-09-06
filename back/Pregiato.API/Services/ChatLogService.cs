@@ -320,11 +320,21 @@ namespace Pregiato.API.Services
             {
                 Id = clientMessageId,
                 Content = text,
+                body = text, // Campo body para compatibilidade com PayloadJson
                 Direction = "outbound",
                 Ts = timestamp,
+                timestamp = timestamp.ToString("O"), // Campo timestamp para compatibilidade
                 Status = "pending",
-                Type = attachment != null ? "media" : "text",
-                MediaUrl = attachment?.DataUrl
+                Type = attachment != null ? attachment.MediaType : "text", // ✅ Sempre string para compatibilidade
+                MediaUrl = attachment?.DataUrl,
+                
+                // Campos de mídia específicos
+                mimeType = attachment?.MimeType,
+                fileName = attachment?.FileName,
+                size = attachment?.DataUrl?.Length, // Tamanho aproximado do base64
+                
+                // Campo from para compatibilidade
+                from = "operator@frontend"
             };
             
             payload.Messages.Add(message);

@@ -281,6 +281,15 @@ export const MediaRenderer: React.FC<MediaRendererProps> = ({
         duration
       });
       
+      // Debug adicional para verificar se o áudio está sendo carregado
+      if (mediaSource) {
+        console.log('🎵 DEBUG ÁUDIO - MediaSource válido:', {
+          startsWithData: mediaSource.startsWith('data:'),
+          mimeTypeFromData: mediaSource.split(';')[0],
+          base64Length: mediaSource.split(',')[1]?.length || 0
+        });
+      }
+      
       return (
         <div className={cn("flex items-center gap-3 p-3 bg-muted rounded-lg", className)} style={{ maxWidth }}>
           {mediaSource ? (
@@ -303,11 +312,21 @@ export const MediaRenderer: React.FC<MediaRendererProps> = ({
                 }}
                 onError={(e) => {
                   console.error('🎵 Erro no áudio:', e);
+                  console.error('🎵 Detalhes do erro:', {
+                    error: e,
+                    audioElement: audioRef.current,
+                    src: mediaSource
+                  });
                   handleError('Erro ao carregar áudio');
                 }}
                 onCanPlay={() => console.log('🎵 Áudio pronto para reproduzir')}
                 onLoadStart={() => console.log('🎵 Iniciando carregamento do áudio')}
+                onLoad={() => console.log('🎵 Áudio carregado completamente')}
+                onAbort={() => console.log('🎵 Carregamento do áudio abortado')}
+                onSuspend={() => console.log('🎵 Carregamento do áudio suspenso')}
                 preload="metadata"
+                controls={false}
+                style={{ display: 'none' }}
               />
               
               {/* Controles customizados */}

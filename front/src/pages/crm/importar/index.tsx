@@ -5,37 +5,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../components/ui
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../components/ui/table';
 import { ScrollArea } from '../../../components/ui/scroll-area';
 import { Alert, AlertDescription, AlertTitle } from '../../../components/ui/alert';
-import { FileUp, FileDown, AlertTriangle, CheckCircle, XCircle, Download, RefreshCw, X, Users } from 'lucide-react';
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select';
-import { Input } from '../../../components/ui/input';
+import { FileUp, FileDown, AlertTriangle, CheckCircle, XCircle, Download, X, Users, Edit3, Save, X as XIcon, Plus, Eye } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select';
 import { Label } from '../../../components/ui/label';
 import { Badge } from '../../../components/ui/badge';
+import { Input } from '../../../components/ui/input';
 import Papa from 'papaparse';
 import api from '@/services/whatsapp-api';
 import { useNavigate } from 'react-router-dom';
 
-// Tipos de valores possíveis na planilha
+// Tipos simplificados
 type CellValue = string | number | boolean | null | undefined;
-
-// Interface genérica para linhas importadas
-interface ImportedRow {
-  [key: string]: CellValue;
-}
-
-// Interface para representar um mapeamento dinâmico de colunas
-interface ColumnMapping {
-  sourceColumn: string;   // Nome da coluna na planilha
-  targetField: string;    // Campo no sistema
-  required: boolean;      // Se é obrigatório
-  type: 'string' | 'number' | 'boolean' | 'date'; // Tipo de dado
-}
-
-// Interface para uma linha mapeada genericamente
-interface GenericMappedRow {
-  [key: string]: CellValue | Record<string, CellValue>;
-  // O campo extras armazena colunas que não foram explicitamente mapeadas
-  extras?: Record<string, CellValue>;
-}
+interface ImportedRow { [key: string]: CellValue; }
 
 // Interface para resultado de importação
 interface ImportResult {
@@ -58,246 +39,333 @@ interface ApiError {
   message?: string;
 }
 
-// Interface para erros da API
-interface ApiError {
-  response?: {
-    status?: number;
-    data?: {
-      message?: string;
-      errors?: Record<string, string[] | string>;
-    };
-  };
-  message?: string;
-}
-
-// Interface para metadados detectados da planilha
-interface SheetMetadata {
-  rowCount: number;
-  columnTypes: Record<string, string>;
-  sampleValues: Record<string, CellValue[]>;
-}
-
-// Interface para destinos de mapeamento pré-definidos
-interface MappingTarget {
-  fieldId: string;
-  name: string;
-  description: string;
-  type: 'string' | 'number' | 'boolean' | 'date';
-  required?: boolean;
-}
-
-// Detectores de tipo de dados
-const dataTypeDetectors = {
-  isDate: (value: CellValue): boolean => {
-    if (typeof value !== 'string') return false;
-    // Verifica formatos comuns de data
-    return /^\d{2}[/-]\d{2}[/-]\d{4}$/.test(value) || 
-           /^\d{4}[/-]\d{2}[/-]\d{2}$/.test(value) ||
-           !isNaN(Date.parse(value));
-  },
-  
-  isNumber: (value: CellValue): boolean => {
-    if (typeof value === 'number') return true;
-    if (typeof value !== 'string') return false;
-    return !isNaN(Number(value.replace(',', '.'))) && value.trim() !== '';
-  },
-  
-  isBoolean: (value: CellValue): boolean => {
-    if (typeof value === 'boolean') return true;
-    if (typeof value !== 'string') return false;
-    const normalized = value.trim().toLowerCase();
-    return ['true', 'false', 'sim', 'não', 'nao', 'yes', 'no', 's', 'n', '1', '0'].includes(normalized);
-  },
-  
-  detectType: (value: CellValue): 'string' | 'number' | 'boolean' | 'date' => {
-    if (dataTypeDetectors.isDate(value)) return 'date';
-    if (dataTypeDetectors.isNumber(value)) return 'number';
-    if (dataTypeDetectors.isBoolean(value)) return 'boolean';
-    return 'string';
-  }
-}
-
 export default function ImportarDadosPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('import');
   const [file, setFile] = useState<File | null>(null);
   const [headers, setHeaders] = useState<string[]>([]);
   const [rows, setRows] = useState<ImportedRow[]>([]);
-  const [sheetMetadata, setSheetMetadata] = useState<SheetMetadata | null>(null);
-  const [mappings, setMappings] = useState<ColumnMapping[]>([]);
-  const [importTarget, setImportTarget] = useState<string>('leads'); // Pode ser 'leads', 'talents', etc
+  const [importTarget, setImportTarget] = useState<string>('leads');
   const [processing, setProcessing] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [importHistory, setImportHistory] = useState<ImportResult[]>([]);
-  const [targetFields, setTargetFields] = useState<MappingTarget[]>([]);
   
-  // Predefinições para diferentes tipos de importação
-  useEffect(() => {
-    // Define campos de destino com base no tipo de importação selecionado
+  // Estados para edição
+  const [editingHeaders, setEditingHeaders] = useState<boolean>(false);
+  const [editingCells, setEditingCells] = useState<boolean>(false);
+  const [editableHeaders, setEditableHeaders] = useState<string[]>([]);
+  const [editableRows, setEditableRows] = useState<ImportedRow[]>([]);
+  const [editingCell, setEditingCell] = useState<{ rowIndex: number; header: string } | null>(null);
+  const [columnMappings, setColumnMappings] = useState<Record<string, string>>({});
+  const [showMappingModal, setShowMappingModal] = useState<boolean>(false);
+
+  // Campos disponíveis para mapeamento por tipo de importação
+  const getAvailableFields = () => {
     if (importTarget === 'leads') {
-      setTargetFields([
-        { fieldId: 'name', name: 'Nome', description: 'Nome do lead', type: 'string', required: true },
-        { fieldId: 'email', name: 'E-mail', description: 'Endereço de e-mail', type: 'string' },
-        { fieldId: 'phone', name: 'Telefone', description: 'Número de telefone', type: 'string' },
-        { fieldId: 'company', name: 'Empresa', description: 'Nome da empresa', type: 'string' },
-        { fieldId: 'description', name: 'Descrição', description: 'Observações sobre o lead', type: 'string' },
-        { fieldId: 'source', name: 'Fonte', description: 'Origem do lead', type: 'string' },
-        { fieldId: 'status', name: 'Status', description: 'Status ou etapa atual', type: 'string' }
-      ]);
+      return [
+        { value: 'name', label: 'Nome', description: 'Nome completo do lead' },
+        { value: 'email', label: 'E-mail', description: 'Endereço de e-mail' },
+        { value: 'phone', label: 'Telefone', description: 'Número de telefone' },
+        { value: 'company', label: 'Empresa', description: 'Nome da empresa' },
+        { value: 'description', label: 'Descrição', description: 'Observações ou descrição' },
+        { value: 'source', label: 'Fonte', description: 'Origem do lead' },
+        { value: 'status', label: 'Status', description: 'Status atual do lead' }
+      ];
     } else if (importTarget === 'talents') {
-      setTargetFields([
-        { fieldId: 'fullName', name: 'Nome completo', description: 'Nome completo do talento', type: 'string', required: true },
-        { fieldId: 'email', name: 'E-mail', description: 'Endereço de e-mail', type: 'string' },
-        { fieldId: 'phone', name: 'Telefone', description: 'Número de telefone', type: 'string' },
-        { fieldId: 'city', name: 'Cidade', description: 'Cidade de residência', type: 'string' },
-        { fieldId: 'birthDate', name: 'Data de nascimento', description: 'Data de nascimento', type: 'date' },
-        { fieldId: 'height', name: 'Altura', description: 'Altura em cm', type: 'number' }
-      ]);
+      return [
+        { value: 'fullName', label: 'Nome Completo', description: 'Nome completo do talento' },
+        { value: 'email', label: 'E-mail', description: 'Endereço de e-mail' },
+        { value: 'phone', label: 'Telefone', description: 'Número de telefone' },
+        { value: 'city', label: 'Cidade', description: 'Cidade de residência' },
+        { value: 'birthDate', label: 'Data de Nascimento', description: 'Data de nascimento' },
+        { value: 'height', label: 'Altura', description: 'Altura em centímetros' }
+      ];
     } else {
-      // Importação genérica
-      setTargetFields([
-        { fieldId: 'name', name: 'Nome', description: 'Campo de nome', type: 'string', required: true },
-        { fieldId: 'description', name: 'Descrição', description: 'Campo de descrição', type: 'string' },
-        { fieldId: 'value', name: 'Valor', description: 'Campo de valor', type: 'number' },
-        { fieldId: 'date', name: 'Data', description: 'Campo de data', type: 'date' },
-        { fieldId: 'status', name: 'Status', description: 'Campo de status', type: 'string' }
-      ]);
+      return [
+        { value: 'custom', label: 'Personalizado', description: 'Manter nome original da coluna' }
+      ];
     }
-  }, [importTarget]);
-  
-  // Função para analisar os dados da planilha e determinar os metadados
-  const analyzeSheetData = (headers: string[], data: ImportedRow[]): SheetMetadata => {
-    const sampleSize = Math.min(50, data.length); // Analisa até 50 linhas para determinar tipos
-    const samples: Record<string, CellValue[]> = {};
-    const types: Record<string, string> = {};
-    
-    // Inicializa arrays de amostras
-    headers.forEach(header => {
-      samples[header] = [];
-    });
-    
-    // Coleta amostras de valores
-    for (let i = 0; i < sampleSize; i++) {
-      const row = data[i];
-      headers.forEach(header => {
-        if (row[header] !== undefined && row[header] !== null && row[header] !== '') {
-          samples[header].push(row[header]);
-        }
-      });
-    }
-    
-    // Determina o tipo predominante para cada coluna
-    headers.forEach(header => {
-      const columnSamples = samples[header];
-      if (columnSamples.length === 0) {
-        types[header] = 'string'; // Default para colunas vazias
-        return;
-      }
-      
-      // Conta ocorrências de cada tipo
-      const typeCounts = {
-        string: 0,
-        number: 0,
-        boolean: 0,
-        date: 0
-      };
-      
-      columnSamples.forEach(value => {
-        const type = dataTypeDetectors.detectType(value);
-        typeCounts[type]++;
-      });
-      
-      // Determina o tipo predominante
-      let maxCount = 0;
-      let predominantType = 'string';
-      
-      Object.entries(typeCounts).forEach(([type, count]) => {
-        if (count > maxCount) {
-          maxCount = count;
-          predominantType = type;
-        }
-      });
-      
-      types[header] = predominantType;
-    });
-    
-    return {
-      rowCount: data.length,
-      columnTypes: types,
-      sampleValues: samples
-    };
   };
-  
-  // Função para mapear automaticamente as colunas com base nos metadados
-  const autoMapColumns = (headers: string[], metadata: SheetMetadata): ColumnMapping[] => {
-    const mappings: ColumnMapping[] = [];
-    const mappedFields = new Set<string>();
+
+  // Função para mapear coluna
+  const mapColumn = (columnName: string, fieldType: string) => {
+    setColumnMappings(prev => ({
+      ...prev,
+      [columnName]: fieldType
+    }));
+  };
+
+  // Função para obter o campo mapeado de uma coluna
+  const getMappedField = (columnName: string): string => {
+    return columnMappings[columnName] || 'custom';
+  };
+
+  // Função para detectar automaticamente o tipo de coluna
+  const detectColumnType = (columnName: string): string => {
+    const lowerColumnName = columnName.toLowerCase();
     
-    // Primeiro, tenta mapear por nome exato ou similar
+    if (importTarget === 'leads') {
+      if (lowerColumnName.includes('nome') || lowerColumnName.includes('name')) return 'name';
+      if (lowerColumnName.includes('email') || lowerColumnName.includes('e-mail')) return 'email';
+      if (lowerColumnName.includes('tel') || lowerColumnName.includes('fone') || lowerColumnName.includes('phone') || lowerColumnName.includes('celular')) return 'phone';
+      if (lowerColumnName.includes('empresa') || lowerColumnName.includes('company') || lowerColumnName.includes('organizacao')) return 'company';
+      if (lowerColumnName.includes('obs') || lowerColumnName.includes('desc') || lowerColumnName.includes('observacao') || lowerColumnName.includes('description')) return 'description';
+      if (lowerColumnName.includes('fonte') || lowerColumnName.includes('source') || lowerColumnName.includes('origem')) return 'source';
+      if (lowerColumnName.includes('status') || lowerColumnName.includes('etapa') || lowerColumnName.includes('situacao')) return 'status';
+    } else if (importTarget === 'talents') {
+      if (lowerColumnName.includes('nome') || lowerColumnName.includes('name') || lowerColumnName.includes('fullname')) return 'fullName';
+      if (lowerColumnName.includes('email') || lowerColumnName.includes('e-mail')) return 'email';
+      if (lowerColumnName.includes('tel') || lowerColumnName.includes('fone') || lowerColumnName.includes('phone') || lowerColumnName.includes('celular')) return 'phone';
+      if (lowerColumnName.includes('cidade') || lowerColumnName.includes('city')) return 'city';
+      if (lowerColumnName.includes('nascimento') || lowerColumnName.includes('birth') || lowerColumnName.includes('data')) return 'birthDate';
+      if (lowerColumnName.includes('altura') || lowerColumnName.includes('height')) return 'height';
+    }
+    
+    return 'custom'; // Coluna não reconhecida, manter como personalizada
+  };
+
+  // Função para aplicar mapeamento automático quando arquivo é carregado
+  const applyAutoMapping = (headers: string[]) => {
+    const newMappings: Record<string, string> = {};
+    
     headers.forEach(header => {
-      const lowerHeader = header.toLowerCase();
-      let mapped = false;
+      newMappings[header] = detectColumnType(header);
+    });
+    
+    setColumnMappings(newMappings);
+  };
+
+  // Função para obter o label do campo mapeado
+  const getMappedFieldLabel = (columnName: string): string => {
+    const fieldType = getMappedField(columnName);
+    if (fieldType === 'custom') return columnName;
+    
+    const availableFields = getAvailableFields();
+    const field = availableFields.find(f => f.value === fieldType);
+    return field ? field.label : columnName;
+  };
+
+  // Função para obter a descrição do campo mapeado
+  const getMappedFieldDescription = (columnName: string): string => {
+    const fieldType = getMappedField(columnName);
+    if (fieldType === 'custom') return 'Coluna personalizada';
+    
+    const availableFields = getAvailableFields();
+    const field = availableFields.find(f => f.value === fieldType);
+    return field ? field.description : 'Coluna personalizada';
+  };
+
+  // Função para aplicar mapeamento aos dados
+  const applyMappings = () => {
+    console.log('Aplicando mapeamento...');
+    console.log('Headers originais:', editableHeaders);
+    console.log('Mapeamentos:', columnMappings);
+    console.log('Dados originais:', editableRows);
+    
+    // NÃO alterar os dados originais, apenas reorganizar para a importação
+    // Os dados originais devem permanecer intactos para edição
+    console.log('Mapeamento aplicado com sucesso!');
+    setShowMappingModal(false);
+    
+    // Mostrar mensagem de sucesso
+    alert('Mapeamento aplicado com sucesso! Os dados originais foram preservados.');
+  };
+
+  // Função para mostrar prévia do mapeamento
+  const showMappingPreview = () => {
+    const previewData = editableRows.slice(0, 3).map(row => {
+      const mappedRow: Record<string, CellValue> = {};
       
-      // Tenta encontrar correspondência para cada campo alvo
-      for (const field of targetFields) {
-        if (mappedFields.has(field.fieldId)) continue;
-        
-        // Verifica correspondências diretas ou por palavras-chave
-        if (
-          lowerHeader === field.fieldId.toLowerCase() ||
-          lowerHeader === field.name.toLowerCase() ||
-          (field.fieldId === 'name' && (lowerHeader.includes('nome') || lowerHeader.includes('name'))) ||
-          (field.fieldId === 'email' && lowerHeader.includes('email')) ||
-          (field.fieldId === 'phone' && (lowerHeader.includes('tel') || lowerHeader.includes('fone') || lowerHeader.includes('phone'))) ||
-          (field.fieldId === 'company' && (lowerHeader.includes('empresa') || lowerHeader.includes('company'))) ||
-          (field.fieldId === 'description' && (lowerHeader.includes('obs') || lowerHeader.includes('desc'))) ||
-          (field.fieldId === 'source' && (lowerHeader.includes('fonte') || lowerHeader.includes('source'))) ||
-          (field.fieldId === 'status' && (lowerHeader.includes('status') || lowerHeader.includes('etapa')))
-        ) {
-          mappings.push({
-            sourceColumn: header,
-            targetField: field.fieldId,
-            required: field.required || false,
-            type: metadata.columnTypes[header] as 'string' | 'number' | 'boolean' | 'date'
-          });
-          mappedFields.add(field.fieldId);
-          mapped = true;
-          break;
+      editableHeaders.forEach(header => {
+        const fieldType = getMappedField(header);
+        if (fieldType === 'custom') {
+          mappedRow[header] = row[header];
+        } else {
+          mappedRow[fieldType] = row[header];
         }
-      }
+      });
       
-      // Se não encontrou correspondência, mas é um campo obrigatório, tenta mapear por tipo
-      if (!mapped) {
-        for (const field of targetFields) {
-          if (mappedFields.has(field.fieldId) || !field.required) continue;
-          
-          // Tenta mapear por tipo de dados
-          if (field.type === metadata.columnTypes[header]) {
-            mappings.push({
-              sourceColumn: header,
-              targetField: field.fieldId,
-              required: field.required,
-              type: metadata.columnTypes[header] as 'string' | 'number' | 'boolean' | 'date'
-            });
-            mappedFields.add(field.fieldId);
-            mapped = true;
-            break;
+      return mappedRow;
+    });
+    
+    console.log('Prévia do mapeamento:', previewData);
+    
+    const previewText = `Prévia do mapeamento (3 primeiras linhas):\n\n${JSON.stringify(previewData, null, 2)}`;
+    alert(previewText);
+  };
+
+  // Inicializar dados editáveis quando headers ou rows mudarem
+  useEffect(() => {
+    if (headers.length > 0) {
+      setEditableHeaders([...headers]);
+    }
+    if (rows.length > 0) {
+      setEditableRows([...rows]);
+    }
+  }, [headers, rows]);
+
+  // Monitorar mudanças no estado editableRows para debug
+  useEffect(() => {
+    console.log('editableRows atualizado:', editableRows.length, editableRows);
+  }, [editableRows]);
+
+  // Monitorar mudanças no estado editableHeaders para debug
+  useEffect(() => {
+    console.log('editableHeaders atualizado:', editableHeaders.length, editableHeaders);
+  }, [editableHeaders]);
+
+  // Função para salvar alterações nos cabeçalhos
+  const saveHeaderChanges = () => {
+    setHeaders([...editableHeaders]);
+    setEditingHeaders(false);
+  };
+
+  // Função para cancelar alterações nos cabeçalhos
+  const cancelHeaderChanges = () => {
+    setEditableHeaders([...headers]);
+    setEditingHeaders(false);
+  };
+
+  // Função para salvar alterações nas células
+  const saveCellChanges = () => {
+    setRows([...editableRows]);
+    setEditingCells(false);
+    setEditingCell(null);
+  };
+
+  // Função para cancelar alterações nas células
+  const cancelCellChanges = () => {
+    setEditableRows([...rows]);
+    setEditingCells(false);
+    setEditingCell(null);
+  };
+
+  // Função para editar cabeçalho
+  const startEditingHeader = (index: number, value: string) => {
+    // Abrir modal de mapeamento para editar o mapeamento da coluna
+    setShowMappingModal(true);
+  };
+
+  // Função para editar nome da coluna (renomear)
+  const startRenamingColumn = (index: number, currentName: string) => {
+    console.log('Renomeando coluna:', index, currentName);
+    const newName = prompt('Digite o novo nome da coluna:', currentName);
+    if (newName && newName.trim() && newName !== currentName) {
+      const newHeaders = [...editableHeaders];
+      const oldHeader = newHeaders[index];
+      newHeaders[index] = newName.trim();
+      setEditableHeaders(newHeaders);
+      
+      // Atualizar também as chaves das linhas
+      const newRows = editableRows.map(row => {
+        const newRow: ImportedRow = {};
+        Object.keys(row).forEach(key => {
+          if (key === oldHeader) {
+            newRow[newName.trim()] = row[key];
+          } else {
+            newRow[key] = row[key];
           }
-        }
-      }
+        });
+        return newRow;
+      });
+      setEditableRows(newRows);
       
-      // Se ainda não foi mapeada, adiciona como "extra"
-      if (!mapped) {
-        mappings.push({
-          sourceColumn: header,
-          targetField: 'extra_' + header.replace(/\s+/g, '_').toLowerCase(),
-          required: false,
-          type: (metadata.columnTypes[header] as 'string' | 'number' | 'boolean' | 'date') || 'string'
+      // Atualizar mapeamento se existir
+      if (columnMappings[oldHeader]) {
+        setColumnMappings(prev => {
+          const newMappings = { ...prev };
+          newMappings[newName.trim()] = newMappings[oldHeader];
+          delete newMappings[oldHeader];
+          return newMappings;
         });
       }
+    }
+  };
+
+  // Função para salvar cabeçalho editado
+  const saveHeader = (index: number, newValue: string) => {
+    if (newValue.trim()) {
+      const newHeaders = [...editableHeaders];
+      newHeaders[index] = newValue.trim();
+      setEditableHeaders(newHeaders);
+      
+      // Atualizar também as chaves das linhas
+      const oldHeader = headers[index];
+      const newRows = editableRows.map(row => {
+        const newRow: ImportedRow = {};
+        Object.keys(row).forEach(key => {
+          if (key === oldHeader) {
+            newRow[newValue.trim()] = row[key];
+          } else {
+            newRow[key] = row[key];
+          }
+        });
+        return newRow;
+      });
+      setEditableRows(newRows);
+    }
+  };
+
+  // Função para editar célula
+  const startEditingCell = (rowIndex: number, header: string) => {
+    setEditingCell({ rowIndex, header });
+  };
+
+  // Função para salvar célula editada
+  const saveCell = (rowIndex: number, header: string, newValue: CellValue) => {
+    const newRows = [...editableRows];
+    newRows[rowIndex] = { ...newRows[rowIndex], [header]: newValue };
+    setEditableRows(newRows);
+    setEditingCell(null);
+  };
+
+  // Função para remover coluna
+  const removeColumn = (headerIndex: number) => {
+    console.log('Removendo coluna:', headerIndex, editableHeaders[headerIndex]);
+    const headerToRemove = editableHeaders[headerIndex];
+    const newHeaders = editableHeaders.filter((_, index) => index !== headerIndex);
+    const newRows = editableRows.map(row => {
+      const newRow: ImportedRow = {};
+      Object.keys(row).forEach(key => {
+        if (key !== headerToRemove) {
+          newRow[key] = row[key];
+        }
+      });
+      return newRow;
     });
     
-    return mappings;
+    console.log('Novos headers:', newHeaders);
+    console.log('Novas rows:', newRows);
+    
+    setEditableHeaders(newHeaders);
+    setEditableRows(newRows);
+  };
+
+  // Função para adicionar nova coluna
+  const addNewColumn = () => {
+    const newColumnName = `Nova_Coluna_${editableHeaders.length + 1}`;
+    setEditableHeaders([...editableHeaders, newColumnName]);
+    
+    const newRows = editableRows.map(row => ({
+      ...row,
+      [newColumnName]: ''
+    }));
+    setEditableRows(newRows);
+  };
+
+  // Função para remover linha
+  const removeRow = (rowIndex: number) => {
+    const newRows = editableRows.filter((_, index) => index !== rowIndex);
+    setEditableRows(newRows);
+  };
+
+  // Função para adicionar nova linha
+  const addNewRow = () => {
+    const newRow: ImportedRow = {};
+    editableHeaders.forEach(header => {
+      newRow[header] = '';
+    });
+    setEditableRows([...editableRows, newRow]);
   };
   
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -316,16 +384,19 @@ export default function ImportarDadosPage() {
           complete: (results) => {
             const headers = results.meta.fields || [];
             const data = results.data as ImportedRow[];
+            console.log('CSV carregado:', headers.length, 'colunas,', data.length, 'linhas');
+            
             setHeaders(headers);
             setRows(data);
             
-            // Analisar metadados da planilha
-            const metadata = analyzeSheetData(headers, data);
-            setSheetMetadata(metadata);
+            // Atualizar diretamente os estados editáveis
+            setEditableHeaders([...headers]);
+            setEditableRows([...data]);
             
-            // Mapeia automaticamente as colunas
-            const mappings = autoMapColumns(headers, metadata);
-            setMappings(mappings);
+            // Aplicar mapeamento automático
+            applyAutoMapping(headers);
+            
+            console.log('Estados atualizados após carregamento CSV');
           },
           error: (error) => {
             console.error('Error parsing CSV:', error);
@@ -334,7 +405,6 @@ export default function ImportarDadosPage() {
         });
       } else if (fileExt === 'xlsx' || fileExt === 'xls') {
         try {
-          // Lazy load XLSX para evitar bundle grande
           const XLSX = await import('xlsx');
           const data = await selectedFile.arrayBuffer();
           const workbook = XLSX.read(data);
@@ -343,16 +413,19 @@ export default function ImportarDadosPage() {
           
           if (jsonData.length > 0) {
             const headers = Object.keys(jsonData[0]);
+            console.log('Excel carregado:', headers.length, 'colunas,', jsonData.length, 'linhas');
+            
             setHeaders(headers);
             setRows(jsonData);
             
-            // Analisar metadados da planilha
-            const metadata = analyzeSheetData(headers, jsonData);
-            setSheetMetadata(metadata);
+            // Atualizar diretamente os estados editáveis
+            setEditableHeaders([...headers]);
+            setEditableRows([...jsonData]);
             
-            // Mapeia automaticamente as colunas
-            const mappings = autoMapColumns(headers, metadata);
-            setMappings(mappings);
+            // Aplicar mapeamento automático
+            applyAutoMapping(headers);
+            
+            console.log('Estados atualizados após carregamento Excel');
           } else {
             alert('O arquivo Excel não contém dados.');
           }
@@ -369,22 +442,12 @@ export default function ImportarDadosPage() {
     }
   };
   
-  // Atualiza um mapeamento específico
-  const updateMapping = (index: number, field: Partial<ColumnMapping>) => {
-    setMappings(current => {
-      const updated = [...current];
-      updated[index] = { ...updated[index], ...field };
-      return updated;
-    });
-  };
-  
   // Função para traduzir mensagens de erro da API
   const translateApiError = (error: ApiError): string => {
     const status = error?.response?.status;
     const data = error?.response?.data;
     const message = error?.message;
 
-    // Mapear códigos de status para mensagens amigáveis
     const statusMessages: Record<number, string> = {
       400: 'Dados inválidos enviados. Verifique as informações e tente novamente.',
       401: 'Acesso não autorizado. Faça login novamente.',
@@ -398,7 +461,6 @@ export default function ImportarDadosPage() {
       504: 'Tempo limite excedido. Tente novamente.'
     };
 
-    // Verificar erros de validação específicos
     if (data?.errors) {
       const validationErrors = data.errors;
       
@@ -418,7 +480,6 @@ export default function ImportarDadosPage() {
         return 'Nome é obrigatório. Verifique se todos os registros possuem nome.';
       }
       
-      // Retornar o primeiro erro de validação
       const firstError = Object.values(validationErrors)[0];
       if (Array.isArray(firstError) && firstError.length > 0) {
         return String(firstError[0]);
@@ -469,79 +530,29 @@ export default function ImportarDadosPage() {
     return errors;
   };
 
-  // Processa os dados para importação
+  // Processa os dados para importação - USANDO MAPEAMENTO CORRETO
   const processData = async () => {
-    if (rows.length === 0 || mappings.length === 0) {
+    if (editableRows.length === 0) {
       alert('Não há dados para processar.');
-      return;
-    }
-    
-    // Verifica campos obrigatórios
-    const requiredFields = targetFields.filter(f => f.required).map(f => f.fieldId);
-    const mappedRequiredFields = new Set(mappings
-      .filter(m => requiredFields.includes(m.targetField))
-      .map(m => m.targetField));
-      
-    if (mappedRequiredFields.size < requiredFields.length) {
-      const missingFields = requiredFields.filter(f => !mappedRequiredFields.has(f));
-      alert(`Campos obrigatórios não mapeados: ${missingFields.join(', ')}`);
       return;
     }
     
     setProcessing(true);
     try {
-      // Mapeia as linhas conforme os mapeamentos definidos
-      const mappedData = rows.map(row => {
-        const mappedRow: GenericMappedRow = {};
-        const extras: Record<string, CellValue> = {};
+      // Mapeamento baseado no sistema de mapeamento implementado
+      const mappedData = editableRows.map(row => {
+        const mappedRow: Record<string, CellValue> = {};
         
-        // Aplica mapeamentos de colunas
-        mappings.forEach(mapping => {
-          const { sourceColumn, targetField, type } = mapping;
-          let value = row[sourceColumn];
-          
-          // Converte o valor conforme o tipo esperado
-          if (value !== undefined && value !== null) {
-            if (type === 'string') {
-              value = String(value);
-            } else if (type === 'number') {
-              // Para campos como telefone que podem ser detectados como número mas devem ser string
-              if (targetField === 'phone') {
-                value = String(value);
+        editableHeaders.forEach(header => {
+          const fieldType = getMappedField(header);
+          if (fieldType === 'custom') {
+            // Para colunas personalizadas, manter o nome original
+            mappedRow[header] = row[header];
               } else {
-                const numValue = typeof value === 'string' ? Number(value.replace(',', '.')) : Number(value);
-                value = isNaN(numValue) ? 0 : numValue;
-              }
-            } else if (type === 'boolean') {
-              if (typeof value === 'string') {
-                const normalized = value.trim().toLowerCase();
-                value = ['true', 'sim', 'yes', 's', '1'].includes(normalized);
-              } else {
-                value = Boolean(value);
-              }
-            } else if (type === 'date' && value) {
-              try {
-                // Tenta converter para data ISO
-                const dateValue = typeof value === 'string' ? new Date(value) : new Date(Number(value));
-                value = dateValue.toISOString();
-              } catch {
-                value = null; // Data inválida
-              }
-            }
-          }
-          
-          // Armazena no campo apropriado ou nos extras
-          if (targetField.startsWith('extra_')) {
-            extras[targetField.substring(6)] = value;
-          } else {
-            mappedRow[targetField] = value;
+            // Para colunas mapeadas, usar o campo do sistema
+            mappedRow[fieldType] = row[header];
           }
         });
-        
-        // Adiciona campos extras se houver
-        if (Object.keys(extras).length > 0) {
-          mappedRow.extras = extras;
-        }
         
         return mappedRow;
       });
@@ -570,13 +581,12 @@ export default function ImportarDadosPage() {
     } catch (error) {
       console.error('Error processing data:', error);
       
-      // Extrair erros detalhados
       const errorDetails = extractImportErrors(error as unknown);
       
       setResult({
         created: 0,
         skipped: 0,
-        errors: rows.length,
+        errors: editableRows.length,
         errorSamples: errorDetails,
         timestamp: new Date().toISOString()
       });
@@ -587,22 +597,67 @@ export default function ImportarDadosPage() {
 
   // Função para navegar para a página de alocação de leads
   const handleNavigateToAllocation = () => {
-    if (rows.length === 0) {
+    console.log('=== DEBUG NAVEGAÇÃO ===');
+    console.log('handleNavigateToAllocation chamada');
+    console.log('editableRows.length:', editableRows.length);
+    console.log('editableRows (primeiras 2 linhas):', editableRows.slice(0, 2));
+    console.log('editableHeaders:', editableHeaders);
+    console.log('importTarget:', importTarget);
+    console.log('navigate function:', typeof navigate);
+    console.log('Current URL:', window.location.href);
+    
+    if (editableRows.length === 0) {
       alert('Não há dados para alocar. Importe um arquivo primeiro.');
       return;
     }
 
-    // Passa os dados via state do React Router
-    navigate('/crm/importar/alocacao-leads', {
-      state: {
-        rows: rows,
-        headers: headers,
-        mappings: mappings,
-        targetFields: targetFields,
+    const targetPath = '/crm/importar/alocacao-leads';
+    const navigationState = {
+      rows: editableRows,
+      headers: editableHeaders,
         importTarget: importTarget,
-        sheetMetadata: sheetMetadata
-      }
-    });
+      // Adicionar campos que a página alocacao-leads espera
+      mappings: editableHeaders.map(header => ({
+        sourceColumn: header,
+        targetField: getMappedField(header),
+        required: false,
+        type: 'string' as const
+      })),
+      targetFields: getAvailableFields().map(field => ({
+        fieldId: field.value,
+        name: field.label,
+        type: 'string' as const,
+        required: false
+      }))
+    };
+    
+    console.log('Navegando para:', targetPath);
+    console.log('State sendo enviado:', navigationState);
+    
+    // Teste simples: navegação direta sem state primeiro
+    try {
+      console.log('Tentando navegação com state...');
+      navigate(targetPath, {
+        state: navigationState
+      });
+      
+      // Verificar se funcionou
+      setTimeout(() => {
+        console.log('URL após navegação com state:', window.location.href);
+        if (window.location.href.includes('alocacao-leads')) {
+          console.log('✅ Navegação com state funcionou!');
+        } else {
+          console.log('❌ Navegação com state falhou');
+          // Tentar navegação direta
+          console.log('Tentando navegação direta...');
+          window.location.href = targetPath;
+        }
+      }, 500);
+      
+    } catch (error) {
+      console.error('Erro na navegação:', error);
+      alert('Erro ao navegar para a página de alocação: ' + error);
+    }
   };
 
   const downloadReport = () => {
@@ -678,10 +733,10 @@ export default function ImportarDadosPage() {
                       Importar CSV/Excel
                     </Button>
                     
-                    {rows.length > 0 && (
+                    {editableRows.length > 0 && (
                       <>
                         <Button variant="outline" onClick={processData} disabled={processing}>
-                          {processing ? 'Processando...' : `Importar ${rows.length} linhas`}
+                          {processing ? 'Processando...' : `Importar ${editableRows.length} linhas`}
                         </Button>
 
                         <Button
@@ -697,98 +752,46 @@ export default function ImportarDadosPage() {
                   </div>
                 </div>
                 
-                {sheetMetadata && (
+                {editableRows.length > 0 && (
                   <div className="border rounded-md p-3 bg-muted/50">
                     <div className="flex justify-between items-center mb-2">
                       <h3 className="font-medium">Dados detectados</h3>
-                      <Badge variant="outline">{rows.length} linhas</Badge>
+                      <Badge variant="outline">{editableRows.length} linhas</Badge>
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      <p>Foram encontradas {headers.length} colunas. Os tipos de dados foram analisados automaticamente.</p>
-                    </div>
-                  </div>
-                )}
-                
-                {rows.length > 0 && (
-                  <div className="space-y-6">
-                    {/* Mapeamento de colunas */}
-                    <Card>
-                      <CardHeader className="py-3">
-                        <CardTitle className="text-lg">Mapeamento de colunas</CardTitle>
-                        <CardDescription>
-                          Configure como os campos da planilha serão importados
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          <div className="border rounded-md">
-                            <ScrollArea className="h-[400px] w-full">
-                              <Table>
-                                <TableHeader className="sticky top-0 bg-background z-10">
-                                  <TableRow>
-                                    <TableHead className="w-[200px]">Coluna da Planilha</TableHead>
-                                    <TableHead className="w-[250px]">Mapear para</TableHead>
-                                    <TableHead className="w-[100px]">Obrigatório</TableHead>
-                                  </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                  {mappings.map((mapping, index) => (
-                                    <TableRow key={index}>
-                                      <TableCell>
-                                        <Badge variant="outline" className="text-xs">
-                                          {mapping.sourceColumn}
-                                        </Badge>
-                                      </TableCell>
-                                      <TableCell>
-                                        <Select 
-                                          value={mapping.targetField} 
-                                          onValueChange={(value) => updateMapping(index, { targetField: value })}
-                                        >
-                                          <SelectTrigger className="w-full">
-                                            <SelectValue placeholder="Selecione o campo" />
-                                          </SelectTrigger>
-                                          <SelectContent>
-                                            <SelectGroup>
-                                              <SelectItem value={`extra_${mapping.sourceColumn.replace(/\s+/g, '_').toLowerCase()}`}>
-                                                {mapping.sourceColumn} (Manter original)
-                                              </SelectItem>
-                                              {targetFields.map(field => (
-                                                <SelectItem key={field.fieldId} value={field.fieldId}>
-                                                  {field.name} {field.required && '*'}
-                                                </SelectItem>
-                                              ))}
-                                            </SelectGroup>
-                                          </SelectContent>
-                                        </Select>
-                                      </TableCell>
-                                      <TableCell>
-                                        <Badge variant={mapping.required ? "destructive" : "secondary"} className="text-xs">
-                                          {mapping.required ? 'Sim' : 'Não'}
-                                        </Badge>
-                                      </TableCell>
-                                    </TableRow>
-                                  ))}
-                                </TableBody>
-                              </Table>
-                            </ScrollArea>
-                          </div>
-                          
+                      <p>Foram encontradas {editableHeaders.length} colunas. O mapeamento automático foi aplicado.</p>
+                      <div className="mt-2 flex items-center gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setShowMappingModal(true)}
+                        >
+                          <Edit3 className="h-4 w-4 mr-2" />
+                          Editar Mapeamento
+                        </Button>
                           <Button 
                             variant="outline" 
                             size="sm" 
-                            onClick={() => {
-                              if (!sheetMetadata) return;
-                              const newMappings = autoMapColumns(headers, sheetMetadata);
-                              setMappings(newMappings);
-                            }}
-                          >
-                            <RefreshCw className="h-4 w-4 mr-1" />
-                            Mapear automaticamente
+                          onClick={showMappingPreview}
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          Ver Prévia
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={applyMappings}
+                        >
+                          <Save className="h-4 w-4 mr-2" />
+                          Aplicar Mapeamento
                           </Button>
                         </div>
-                      </CardContent>
-                    </Card>
+                    </div>
+                  </div>
+                )}
                     
+                {editableRows.length > 0 && (
+                  <div className="space-y-6">
                     {/* Visualização dos dados */}
                     <Card>
                       <CardHeader className="py-3">
@@ -803,52 +806,98 @@ export default function ImportarDadosPage() {
                             <Table>
                               <TableHeader>
                                 <TableRow>
-                                  {headers.map(header => (
-                                    <TableHead key={header}>
+                                  {editableHeaders.map((header, headerIndex) => (
+                                    <TableHead key={headerIndex}>
                                       <div className="flex flex-col">
-                                        <span>{header}</span>
-                                        <span className="text-xs text-muted-foreground">
-                                          {(() => {
-                                            const mapping = mappings.find(m => m.sourceColumn === header);
-                                            if (!mapping) return 'não mapeado';
-                                            
-                                            const targetField = targetFields.find(f => f.fieldId === mapping.targetField);
-                                            if (targetField) return targetField.name;
-                                            
-                                            return mapping.targetField.startsWith('extra_') 
-                                              ? 'campo extra' 
-                                              : mapping.targetField;
-                                          })()}
+                                        <span className="font-medium">{header}</span>
+                                        <div className="flex items-center gap-1 mt-1">
+                                          <Badge 
+                                            variant={getMappedField(header) === 'custom' ? 'outline' : 'default'}
+                                            className="text-xs"
+                                          >
+                                            {getMappedFieldLabel(header)}
+                                          </Badge>
+                                          <Edit3 
+                                            className="h-3 w-3 text-muted-foreground cursor-pointer hover:text-primary" 
+                                            onClick={() => startEditingHeader(headerIndex, header)} 
+                                            aria-label="Editar mapeamento"
+                                          />
+                                          <Edit3 
+                                            className="h-3 w-3 text-blue-500 cursor-pointer hover:text-blue-700" 
+                                            onClick={() => startRenamingColumn(headerIndex, header)} 
+                                            aria-label="Renomear coluna"
+                                          />
+                                          <XIcon 
+                                            className="h-3 w-3 text-muted-foreground cursor-pointer hover:text-destructive" 
+                                            onClick={() => removeColumn(headerIndex)} 
+                                            aria-label="Remover coluna"
+                                          />
+                                        </div>
+                                        <span className="text-xs text-muted-foreground mt-1">
+                                          {getMappedFieldDescription(header)}
                                         </span>
                                       </div>
                                     </TableHead>
                                   ))}
+                                  <TableHead>
+                                    <div className="flex items-center gap-1">
+                                      <Button variant="ghost" size="sm" onClick={addNewColumn}>
+                                        <Plus className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                  </TableHead>
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
-                                {rows.slice(0, 10).map((row, rowIndex) => (
+                                {editableRows.map((row, rowIndex) => (
                                   <TableRow key={rowIndex}>
-                                    {headers.map(header => (
-                                      <TableCell key={`${rowIndex}-${header}`}>
-                                        {String(row[header] || '')}
+                                    {editableHeaders.map((header, headerIndex) => (
+                                      <TableCell key={`${rowIndex}-${headerIndex}`}>
+                                        {editingCell?.rowIndex === rowIndex && editingCell?.header === header ? (
+                                          <Input
+                                            autoFocus
+                                            value={String(row[header] || '')}
+                                            onChange={(e) => saveCell(rowIndex, header, e.target.value)}
+                                            onBlur={() => saveCell(rowIndex, header, row[header])}
+                                            onKeyDown={(e) => {
+                                              if (e.key === 'Enter') saveCell(rowIndex, header, row[header]);
+                                              if (e.key === 'Escape') cancelCellChanges();
+                                            }}
+                                          />
+                                        ) : (
+                                          <div className="flex items-center gap-1">
+                                            <span>{String(row[header] || '')}</span>
+                                            <Edit3 className="h-4 w-4 text-muted-foreground cursor-pointer" onClick={() => startEditingCell(rowIndex, header)} />
+                                          </div>
+                                        )}
                                       </TableCell>
                                     ))}
+                                    <TableCell>
+                                      <Button variant="ghost" size="sm" onClick={() => removeRow(rowIndex)}>
+                                        <X className="h-4 w-4" />
+                                      </Button>
+                                    </TableCell>
                                   </TableRow>
                                 ))}
+                                <TableRow>
+                                  <TableCell colSpan={editableHeaders.length + 1} className="text-center">
+                                    <Button variant="ghost" size="sm" onClick={addNewRow}>
+                                      <Plus className="h-4 w-4" />
+                                    </Button>
+                                  </TableCell>
+                                </TableRow>
                               </TableBody>
                             </Table>
                           </ScrollArea>
                         </div>
                         
-                        {rows.length > 10 && (
+                        {editableRows.length > 10 && (
                           <p className="text-xs text-muted-foreground mt-2">
-                            Mostrando 10 de {rows.length} linhas
+                            Mostrando 10 de {editableRows.length} linhas
                           </p>
                         )}
                       </CardContent>
                     </Card>
-                    
-                    {/* Botão removido - agora está no topo junto com o botão de importar arquivo */}
                   </div>
                 )}
                 
@@ -992,6 +1041,73 @@ export default function ImportarDadosPage() {
           </Card>
         </TabsContent>
       </Tabs>
+      
+      {/* Modal de Edição de Mapeamento */}
+      {showMappingModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Editar Mapeamento de Colunas</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowMappingModal(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Configure como cada coluna deve ser mapeada para o sistema:
+              </p>
+              
+              <div className="space-y-3">
+                {editableHeaders.map((header, index) => (
+                  <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">{header}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Mapeado para: {getMappedFieldLabel(header)}
+                      </p>
+                    </div>
+                    
+                    <Select
+                      value={getMappedField(header)}
+                      onValueChange={(value) => mapColumn(header, value)}
+                    >
+                      <SelectTrigger className="w-48">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {getAvailableFields().map((field) => (
+                          <SelectItem key={field.value} value={field.value}>
+                            {field.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="flex justify-end gap-2 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowMappingModal(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={applyMappings}
+                >
+                  Aplicar Mapeamento
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

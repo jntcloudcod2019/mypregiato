@@ -1,0 +1,1896 @@
+2025-09-05 13:24:32.344 -03:00 [WRN] As of ""2025-09-05T16:24:27.7339310+00:00"", the heartbeat has been running for ""00:00:01.0560725"" which is longer than ""00:00:01"". This could be caused by thread pool starvation.
+2025-09-05 13:24:32.585 -03:00 [INF] 📱 QR Code recebido via RabbitMQ
+2025-09-05 13:25:33.740 -03:00 [INF] Request finished GET /whatsappHub - 101 in 87405939.6130ms
+2025-09-05 13:25:33.999 -03:00 [INF] Request finished GET /whatsappHub - 101 in 87406617.5480ms
+2025-09-05 13:25:33.999 -03:00 [INF] Request finished GET /whatsappHub - 101 in 87406061.8590ms
+2025-09-05 13:25:33.999 -03:00 [INF] Request finished GET /whatsappHub - 101 in 87406061.6780ms
+2025-09-05 13:26:54.511 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-09-05 13:26:58.511 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 3992.8290ms
+2025-09-05 13:27:04.669 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-09-05 13:27:04.691 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 21.8680ms
+2025-09-05 13:43:42.618 -03:00 [INF] Request starting GET /api/whatsapp/queue/metrics
+2025-09-05 13:43:42.618 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 13:43:42.618 -03:00 [INF] Request starting GET /api/whatsapp/conversations
+2025-09-05 13:43:42.648 -03:00 [INF] Request finished GET /api/whatsapp/conversations - 404 in 28.4220ms
+2025-09-05 13:43:42.648 -03:00 [INF] Request finished GET /api/whatsapp/queue/metrics - 404 in 28.4890ms
+2025-09-05 13:43:42.662 -03:00 [INF] Request starting GET /api/whatsapp/conversations
+2025-09-05 13:43:42.663 -03:00 [INF] Request starting GET /api/whatsapp/queue/metrics
+2025-09-05 13:43:42.663 -03:00 [INF] Request finished GET /api/whatsapp/conversations - 404 in 0.6160ms
+2025-09-05 13:43:42.663 -03:00 [INF] Request finished GET /api/whatsapp/queue/metrics - 404 in 0.0800ms
+2025-09-05 13:43:46.199 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-05 13:43:46.199 -03:00 [INF] Request starting GET /api/chats
+2025-09-05 13:43:46.199 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 13:43:46.200 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 13:43:46.199 -03:00 [INF] Request starting GET /api/health
+2025-09-05 13:43:46.219 -03:00 [INF] Request finished GET /api/health - 200 in 18.7690ms
+2025-09-05 13:43:46.236 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 13:43:46.237 -03:00 [INF] Request starting GET /api/health
+2025-09-05 13:43:46.237 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 13:43:46.239 -03:00 [INF] Request finished GET /api/health - 200 in 1.2290ms
+2025-09-05 13:43:46.245 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 13:43:46.246 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 13:43:46.248 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 12.6800ms
+2025-09-05 13:43:46.248 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 3.7500ms
+2025-09-05 13:43:46.248 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 2.6880ms
+2025-09-05 13:43:46.249 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 11.2220ms
+2025-09-05 13:43:46.257 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 13:43:46.288 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 13:43:46.303 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 13:43:46.316 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 13:43:46.479 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 279.2880ms
+2025-09-05 13:43:46.480 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-05 13:43:46.497 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 16.8300ms
+2025-09-05 13:43:46.744 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 4125.8520ms
+2025-09-05 13:43:46.750 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 550.9860ms
+2025-09-05 13:43:47.063 -03:00 [INF] Request finished GET /api/chats - 200 in 863.5170ms
+2025-09-05 13:43:47.091 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 891.1260ms
+2025-09-05 13:43:47.300 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 13:43:47.484 -03:00 [INF] Request starting GET /api/health
+2025-09-05 13:43:47.491 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 13:43:47.306 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 13:43:47.564 -03:00 [INF] Request finished GET /api/health - 200 in 79.8180ms
+2025-09-05 13:43:47.883 -03:00 [INF] Request finished GET /whatsappHub - 101 in 1593.8300ms
+2025-09-05 13:43:47.899 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 13:43:47.902 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 2.7270ms
+2025-09-05 13:43:47.912 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 420.9170ms
+2025-09-05 13:43:47.915 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 13:43:47.929 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 14.7650ms
+2025-09-05 13:43:47.930 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 624.4450ms
+2025-09-05 13:43:47.931 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 13:43:47.936 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 4.6250ms
+2025-09-05 13:43:47.938 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 13:43:47.944 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 6.5410ms
+2025-09-05 13:43:47.945 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 13:43:47.950 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 4.2680ms
+2025-09-05 13:43:47.952 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 13:43:47.955 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 3.6770ms
+2025-09-05 13:43:47.956 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 13:43:48.018 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 61.6650ms
+2025-09-05 13:43:48.279 -03:00 [INF] Request starting GET /api/health
+2025-09-05 13:43:48.280 -03:00 [INF] Request finished GET /api/health - 200 in 0.7760ms
+2025-09-05 13:43:48.682 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 13:43:49.573 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 871.9430ms
+2025-09-05 13:43:49.666 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 13:43:49.775 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 2475.1040ms
+2025-09-05 13:43:55.137 -03:00 [INF] Request starting GET /api/chats/e7e636e9-d7ab-4536-a65a-123a7962ffb0/messages
+2025-09-05 13:43:55.289 -03:00 [INF] 🔍 Buscando mensagens para ID: e7e636e9-d7ab-4536-a65a-123a7962ffb0
+2025-09-05 13:43:55.420 -03:00 [INF] 📄 Busca por GUID ID do ChatLog: Não encontrado
+2025-09-05 13:43:55.456 -03:00 [INF] 📄 Busca por ChatId como GUID: Encontrado
+2025-09-05 13:43:55.457 -03:00 [INF] ✅ Chat encontrado: 04941e3e-c7b9-4579-99b7-78aa436bd544, ContactPhoneE164: 175690719487805
+2025-09-05 13:43:55.548 -03:00 [INF] PayloadJson no formato NOVO detectado: 1 mensagens
+2025-09-05 13:43:55.548 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 1
+2025-09-05 13:43:55.549 -03:00 [INF] 🔍 DEBUG TIPO: Original=text, Convertido=text
+2025-09-05 13:43:55.550 -03:00 [INF] ✅ Retornando 1 mensagens convertidas
+2025-09-05 13:43:55.567 -03:00 [INF] Request finished GET /api/chats/e7e636e9-d7ab-4536-a65a-123a7962ffb0/messages - 200 in 430.0150ms
+2025-09-05 13:43:55.572 -03:00 [INF] Request starting GET /api/chats/e7e636e9-d7ab-4536-a65a-123a7962ffb0/messages
+2025-09-05 13:43:55.579 -03:00 [INF] 🔍 Buscando mensagens para ID: e7e636e9-d7ab-4536-a65a-123a7962ffb0
+2025-09-05 13:43:55.600 -03:00 [INF] 📄 Busca por GUID ID do ChatLog: Não encontrado
+2025-09-05 13:43:55.604 -03:00 [INF] 📄 Busca por ChatId como GUID: Encontrado
+2025-09-05 13:43:55.604 -03:00 [INF] ✅ Chat encontrado: 04941e3e-c7b9-4579-99b7-78aa436bd544, ContactPhoneE164: 175690719487805
+2025-09-05 13:43:55.604 -03:00 [INF] PayloadJson no formato NOVO detectado: 1 mensagens
+2025-09-05 13:43:55.604 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 1
+2025-09-05 13:43:55.604 -03:00 [INF] 🔍 DEBUG TIPO: Original=text, Convertido=text
+2025-09-05 13:43:55.605 -03:00 [INF] ✅ Retornando 1 mensagens convertidas
+2025-09-05 13:43:55.605 -03:00 [INF] Request finished GET /api/chats/e7e636e9-d7ab-4536-a65a-123a7962ffb0/messages - 200 in 32.2920ms
+2025-09-05 13:43:59.206 -03:00 [INF] Request finished GET /whatsappHub - 101 in 9539.1780ms
+2025-09-05 13:43:59.208 -03:00 [INF] Request finished GET /whatsappHub - 101 in 12892.2120ms
+2025-09-05 13:55:37.230 -03:00 [INF] Request starting GET /api/chats
+2025-09-05 13:55:37.230 -03:00 [INF] Request starting GET /api/health
+2025-09-05 13:55:37.237 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-05 13:55:37.225 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 13:55:37.230 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 13:55:37.237 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 13:55:37.828 -03:00 [INF] Request finished GET /api/health - 200 in 602.0010ms
+2025-09-05 13:55:38.011 -03:00 [INF] Request starting GET /api/health
+2025-09-05 13:55:38.012 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 13:55:38.013 -03:00 [INF] Request finished GET /api/health - 200 in 1.1280ms
+2025-09-05 13:55:38.015 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 13:55:38.023 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 13:55:38.057 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 33.8320ms
+2025-09-05 13:55:38.057 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 43.2560ms
+2025-09-05 13:55:38.057 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 45.4620ms
+2025-09-05 13:55:38.068 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 13:55:38.073 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 4.1600ms
+2025-09-05 13:55:38.079 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 13:55:38.123 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 13:55:38.137 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 13:55:38.151 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 13:55:38.209 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 993.1530ms
+2025-09-05 13:55:38.212 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-05 13:55:38.222 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 9.7390ms
+2025-09-05 13:55:38.953 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 1727.4330ms
+2025-09-05 13:55:38.953 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 1715.9630ms
+2025-09-05 13:55:38.957 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 13:55:38.957 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 13:55:38.968 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 10.4790ms
+2025-09-05 13:55:38.969 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 11.3440ms
+2025-09-05 13:55:38.972 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 13:55:38.975 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 3.2060ms
+2025-09-05 13:55:38.976 -03:00 [INF] Request finished GET /api/chats - 200 in 1746.3170ms
+2025-09-05 13:55:38.981 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 13:55:38.981 -03:00 [INF] Request starting GET /api/chats
+2025-09-05 13:55:38.985 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 4.1390ms
+2025-09-05 13:55:38.987 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 13:55:38.990 -03:00 [INF] Request finished GET /api/chats - 200 in 8.8930ms
+2025-09-05 13:55:38.991 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 4.2470ms
+2025-09-05 13:55:38.993 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 13:55:38.999 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 6.3730ms
+2025-09-05 13:55:39.023 -03:00 [INF] Request starting GET /api/health
+2025-09-05 13:55:39.023 -03:00 [INF] Request finished GET /api/health - 200 in 0.2730ms
+2025-09-05 13:55:39.024 -03:00 [INF] Request finished GET /whatsappHub - 101 in 872.6270ms
+2025-09-05 13:55:39.048 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 13:55:39.048 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.5590ms
+2025-09-05 13:55:39.052 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 13:55:39.143 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 1912.9470ms
+2025-09-05 13:55:39.144 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 13:55:39.232 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 87.8410ms
+2025-09-05 13:57:46.737 -03:00 [WRN] As of ""2025-09-05T16:57:45.6455030+00:00"", the heartbeat has been running for ""00:00:01.0687182"" which is longer than ""00:00:01"". This could be caused by thread pool starvation.
+2025-09-05 13:58:21.440 -03:00 [INF] Request starting GET /api/chats/chat_1757091501206_wa4gv9itr/messages
+2025-09-05 13:58:21.440 -03:00 [INF] Request starting GET /api/health
+2025-09-05 13:58:21.443 -03:00 [INF] Request finished GET /whatsappHub - 101 in 162389.1130ms
+2025-09-05 13:58:21.469 -03:00 [INF] Request finished GET /api/health - 200 in 29.5480ms
+2025-09-05 13:58:21.512 -03:00 [INF] 🔍 Buscando mensagens para ID: chat_1757091501206_wa4gv9itr
+2025-09-05 13:58:21.536 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 13:58:21.550 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 13.0230ms
+2025-09-05 13:58:21.575 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 13:58:22.533 -03:00 [INF] 📄 Busca por ContactPhoneE164 (chat_1757091501206_wa4gv9itr): Não encontrado
+2025-09-05 13:58:22.599 -03:00 [INF] 📄 Busca por número normalizado (55175709150120649): Não encontrado
+2025-09-05 13:58:22.600 -03:00 [WRN] ❌ Chat não encontrado para ID: chat_1757091501206_wa4gv9itr
+2025-09-05 13:58:22.688 -03:00 [INF] Request finished GET /api/chats/chat_1757091501206_wa4gv9itr/messages - 404 in 1248.5420ms
+2025-09-05 13:58:22.690 -03:00 [INF] Request starting GET /api/chats/chat_1757091501206_wa4gv9itr/messages
+2025-09-05 13:58:22.692 -03:00 [INF] 🔍 Buscando mensagens para ID: chat_1757091501206_wa4gv9itr
+2025-09-05 13:58:22.711 -03:00 [INF] 📄 Busca por ContactPhoneE164 (chat_1757091501206_wa4gv9itr): Não encontrado
+2025-09-05 13:58:22.716 -03:00 [INF] 📄 Busca por número normalizado (55175709150120649): Não encontrado
+2025-09-05 13:58:22.716 -03:00 [WRN] ❌ Chat não encontrado para ID: chat_1757091501206_wa4gv9itr
+2025-09-05 13:58:22.718 -03:00 [INF] Request finished GET /api/chats/chat_1757091501206_wa4gv9itr/messages - 404 in 27.3920ms
+2025-09-05 13:58:24.617 -03:00 [INF] Request starting POST /api/attendances/chat_1757091501206_wa4gv9itr/step
+2025-09-05 13:58:24.991 -03:00 [INF] Request finished POST /api/attendances/chat_1757091501206_wa4gv9itr/step - 400 in 374.6260ms
+2025-09-05 13:58:31.857 -03:00 [INF] Request starting POST /api/attendances/chat_1757091501206_wa4gv9itr/step
+2025-09-05 13:58:32.042 -03:00 [INF] Request finished POST /api/attendances/chat_1757091501206_wa4gv9itr/step - 400 in 184.1610ms
+2025-09-05 13:58:33.306 -03:00 [INF] Request starting POST /api/attendances/chat_1757091501206_wa4gv9itr/step
+2025-09-05 13:58:33.325 -03:00 [INF] Request finished POST /api/attendances/chat_1757091501206_wa4gv9itr/step - 400 in 18.0450ms
+2025-09-05 14:16:34.842 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 14:16:34.842 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 14:16:34.842 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 14:16:36.432 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 1589.5920ms
+2025-09-05 14:16:36.432 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 1589.5670ms
+2025-09-05 14:16:36.443 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 14:16:36.568 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 124.4820ms
+2025-09-05 14:16:36.569 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 14:16:36.571 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 1.9350ms
+2025-09-05 14:16:36.652 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 1810.0540ms
+2025-09-05 14:19:15.675 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 14:19:16.029 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 354.0780ms
+2025-09-05 14:19:16.032 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 14:19:16.045 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 12.2820ms
+2025-09-05 14:19:16.046 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 14:19:16.054 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 7.5170ms
+2025-09-05 14:19:48.440 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 14:19:48.491 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 51.3250ms
+2025-09-05 14:19:48.493 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 14:19:48.504 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 10.9990ms
+2025-09-05 14:19:48.506 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 14:19:48.510 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 4.2940ms
+2025-09-05 14:21:32.491 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 14:21:32.991 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 502.0280ms
+2025-09-05 14:21:32.997 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 14:21:33.012 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 15.0300ms
+2025-09-05 14:21:33.014 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 14:21:33.037 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 22.8690ms
+2025-09-05 14:21:53.792 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 14:21:53.792 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 14:21:53.793 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 14:21:53.869 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 70.3250ms
+2025-09-05 14:21:53.884 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 14:21:53.977 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 92.8530ms
+2025-09-05 14:21:53.978 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 14:21:54.004 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 25.8390ms
+2025-09-05 14:21:54.942 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 1149.9760ms
+2025-09-05 14:21:55.225 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 1433.5980ms
+2025-09-05 14:22:09.481 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 14:22:09.604 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 123.0130ms
+2025-09-05 14:22:09.606 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 14:22:09.614 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 7.9150ms
+2025-09-05 14:22:09.616 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 14:22:09.623 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 6.8650ms
+2025-09-05 14:22:17.062 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 14:22:19.250 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 2188.2600ms
+2025-09-05 14:22:19.274 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 14:22:19.292 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 17.3330ms
+2025-09-05 14:22:19.294 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 14:22:19.298 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 4.1790ms
+2025-09-05 14:22:52.199 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 14:22:56.049 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 3779.7590ms
+2025-09-05 14:22:56.241 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 14:22:56.380 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 138.6110ms
+2025-09-05 14:22:56.387 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 14:22:56.461 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 74.2810ms
+2025-09-05 14:24:26.283 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 14:24:33.590 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 7305.4820ms
+2025-09-05 14:24:33.641 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 14:24:34.962 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 1320.5190ms
+2025-09-05 14:24:34.973 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 14:24:35.043 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 69.8070ms
+2025-09-05 14:35:32.425 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 14:35:32.425 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 14:35:32.425 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 14:35:38.309 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 5883.0600ms
+2025-09-05 14:35:38.309 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 5884.0000ms
+2025-09-05 14:35:38.364 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 14:35:38.514 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 149.9460ms
+2025-09-05 14:35:38.524 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 14:35:38.660 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 135.8780ms
+2025-09-05 14:35:39.014 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 6589.3690ms
+2025-09-05 14:43:35.336 -03:00 [INF] Request finished GET /whatsappHub - 101 in 3589076.3940ms
+2025-09-05 14:43:35.336 -03:00 [INF] Request finished GET /whatsappHub - 101 in 2713758.0420ms
+2025-09-05 14:43:35.336 -03:00 [INF] Request finished GET /whatsappHub - 101 in 3589030.3920ms
+2025-09-05 14:43:35.336 -03:00 [INF] Request finished GET /whatsappHub - 101 in 2877210.0780ms
+2025-09-05 14:43:35.336 -03:00 [INF] Request finished GET /whatsappHub - 101 in 2877253.9000ms
+2025-09-05 14:43:35.336 -03:00 [INF] Request finished GET /whatsappHub - 101 in 2877196.2340ms
+2025-09-05 16:13:05.246 -03:00 [INF] Aplicação está sendo finalizada...
+2025-09-05 16:13:07.121 -03:00 [INF] Desconectando do RabbitMQ...
+2025-09-05 16:13:07.675 -03:00 [INF] RabbitMQ Background Service cancelado graciosamente
+2025-09-05 16:13:07.676 -03:00 [INF] RabbitMQ Background Service finalizado
+2025-09-05 16:13:07.677 -03:00 [INF] Processamento de batch cancelado graciosamente
+2025-09-05 16:13:07.677 -03:00 [INF] Processamento de batch finalizado
+2025-09-05 16:13:07.702 -03:00 [INF] Aplicação foi finalizada
+2025-09-05 19:24:53.235 -03:00 [INF] Iniciando Pregiato API...
+2025-09-05 19:24:53.441 -03:00 [INF] RabbitMQ Background Service iniciado
+2025-09-05 19:24:53.442 -03:00 [INF] Tentando conectar ao RabbitMQ...
+2025-09-05 19:24:54.985 -03:00 [INF] ✅ Conexão RabbitMQ estabelecida com amqps://mouse.rmq5.cloudamqp.com:5671
+2025-09-05 19:24:56.538 -03:00 [INF] 📋 Filas RabbitMQ configuradas
+2025-09-05 19:24:56.731 -03:00 [INF] 🎧 Consumidor de QR codes configurado
+2025-09-05 19:24:56.958 -03:00 [INF] 🎧 Consumidor de mensagens WhatsApp configurado
+2025-09-05 19:24:57.253 -03:00 [INF] 🎧 Consumidor de status da sessão configurado
+2025-09-05 19:24:57.470 -03:00 [INF] 🎧 Consumidor de status de mensagens configurado
+2025-09-05 19:24:57.472 -03:00 [INF] ✅ RabbitMQ conectado e configurado
+2025-09-05 19:24:57.480 -03:00 [INF] Processamento de batch iniciado
+2025-09-05 19:26:03.139 -03:00 [INF] Request starting GET /api/whatsapp/queue/metrics
+2025-09-05 19:26:03.139 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-09-05 19:26:03.139 -03:00 [INF] Request starting GET /api/whatsapp/conversations
+2025-09-05 19:26:03.143 -03:00 [INF] Request finished GET /api/whatsapp/queue/metrics - 404 in 4.2210ms
+2025-09-05 19:26:03.143 -03:00 [INF] Request finished GET /api/whatsapp/conversations - 404 in 4.3410ms
+2025-09-05 19:26:03.183 -03:00 [INF] Request starting GET /api/whatsapp/queue/metrics
+2025-09-05 19:26:03.183 -03:00 [INF] Request finished GET /api/whatsapp/queue/metrics - 404 in 0.2700ms
+2025-09-05 19:26:03.183 -03:00 [INF] Request starting GET /api/whatsapp/conversations
+2025-09-05 19:26:03.184 -03:00 [INF] Request finished GET /api/whatsapp/conversations - 404 in 0.7350ms
+2025-09-05 19:26:04.813 -03:00 [INF] Request starting GET /api/chats
+2025-09-05 19:26:04.814 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathanfrnnd3@gmail.com
+2025-09-05 19:26:04.811 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-09-05 19:26:04.817 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-05 19:26:04.816 -03:00 [INF] Request starting GET /api/health
+2025-09-05 19:26:05.054 -03:00 [INF] Request finished GET /api/health - 200 in 238.6700ms
+2025-09-05 19:26:05.061 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:26:05.063 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:26:05.066 -03:00 [INF] Request starting GET /api/health
+2025-09-05 19:26:05.068 -03:00 [INF] Request finished GET /api/health - 200 in 1.9090ms
+2025-09-05 19:26:05.078 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:26:05.078 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.4250ms
+2025-09-05 19:26:05.078 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 17.4030ms
+2025-09-05 19:26:05.078 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 15.7810ms
+2025-09-05 19:26:05.081 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:26:05.082 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.4560ms
+2025-09-05 19:26:05.087 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:26:05.129 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:26:05.143 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:26:05.146 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 329.2560ms
+2025-09-05 19:26:05.150 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-05 19:26:05.165 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:26:05.180 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 30.3540ms
+2025-09-05 19:26:07.821 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathanfrnnd3@gmail.com - 200 in 3006.6010ms
+2025-09-05 19:26:07.826 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathanfrnnd3@gmail.com
+2025-09-05 19:26:07.839 -03:00 [INF] Request finished GET /api/chats - 200 in 3025.8070ms
+2025-09-05 19:26:07.843 -03:00 [INF] Request starting GET /api/chats
+2025-09-05 19:26:07.861 -03:00 [INF] Request starting GET /api/health
+2025-09-05 19:26:07.861 -03:00 [INF] Request finished GET /api/health - 200 in 0.4380ms
+2025-09-05 19:26:07.867 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:26:07.870 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 2.9940ms
+2025-09-05 19:26:07.875 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 3064.3360ms
+2025-09-05 19:26:07.875 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 4736.6520ms
+2025-09-05 19:26:07.877 -03:00 [INF] Request finished GET /whatsappHub - 101 in 2712.4020ms
+2025-09-05 19:26:07.880 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-09-05 19:26:07.881 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:26:07.887 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-09-05 19:26:07.968 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 81.2390ms
+2025-09-05 19:26:07.968 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 88.3090ms
+2025-09-05 19:26:07.971 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-09-05 19:26:07.977 -03:00 [INF] Request finished GET /api/chats - 200 in 133.4570ms
+2025-09-05 19:26:07.979 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathanfrnnd3@gmail.com - 200 in 152.7340ms
+2025-09-05 19:26:07.984 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 12.5980ms
+2025-09-05 19:26:07.986 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-09-05 19:26:07.999 -03:00 [INF] Request starting GET /api/health
+2025-09-05 19:26:08.000 -03:00 [INF] Request finished GET /api/health - 200 in 1.0820ms
+2025-09-05 19:26:08.002 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 16.1100ms
+2025-09-05 19:26:08.002 -03:00 [INF] Request finished GET /whatsappHub - 101 in 121.2430ms
+2025-09-05 19:26:08.010 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-09-05 19:26:08.012 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:26:08.013 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.6590ms
+2025-09-05 19:26:08.024 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 14.0440ms
+2025-09-05 19:26:08.031 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:26:08.032 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-09-05 19:26:08.878 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 845.7410ms
+2025-09-05 19:26:08.896 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-09-05 19:26:08.931 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 35.1740ms
+2025-09-05 19:26:08.935 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-09-05 19:26:08.947 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 12.0340ms
+2025-09-05 19:26:44.960 -03:00 [INF] Request finished GET /whatsappHub - 101 in 39831.4330ms
+2025-09-05 19:26:44.960 -03:00 [INF] Request finished GET /whatsappHub - 101 in 36928.4220ms
+2025-09-05 19:26:44.961 -03:00 [INF] Request finished GET /whatsappHub - 101 in 39873.1870ms
+2025-09-05 19:26:44.960 -03:00 [INF] Request finished GET /whatsappHub - 101 in 39816.8880ms
+2025-09-05 19:28:31.009 -03:00 [INF] Request starting GET /api/whatsapp/queue/metrics
+2025-09-05 19:28:31.009 -03:00 [INF] Request starting GET /api/whatsapp/conversations
+2025-09-05 19:28:31.009 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:28:31.015 -03:00 [INF] Request finished GET /api/whatsapp/queue/metrics - 404 in 6.6370ms
+2025-09-05 19:28:31.018 -03:00 [INF] Request finished GET /api/whatsapp/conversations - 404 in 9.3400ms
+2025-09-05 19:28:31.027 -03:00 [INF] Request starting GET /api/whatsapp/queue/metrics
+2025-09-05 19:28:31.027 -03:00 [INF] Request starting GET /api/whatsapp/conversations
+2025-09-05 19:28:31.034 -03:00 [INF] Request finished GET /api/whatsapp/conversations - 404 in 6.7020ms
+2025-09-05 19:28:31.027 -03:00 [INF] Request finished GET /api/whatsapp/queue/metrics - 404 in 0.2880ms
+2025-09-05 19:28:31.504 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 495.1690ms
+2025-09-05 19:28:31.505 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:28:31.550 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 44.5040ms
+2025-09-05 19:28:48.902 -03:00 [INF] Request starting GET /api/users/operators
+2025-09-05 19:28:49.583 -03:00 [INF] Request finished GET /api/users/operators - 200 in 681.5790ms
+2025-09-05 19:28:50.577 -03:00 [INF] Request starting GET /api/users/operators
+2025-09-05 19:28:50.635 -03:00 [INF] Request finished GET /api/users/operators - 200 in 58.2130ms
+2025-09-05 19:29:20.746 -03:00 [INF] Request starting GET /api/health
+2025-09-05 19:29:20.746 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-05 19:29:20.746 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:29:20.747 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:29:20.747 -03:00 [INF] Request starting GET /api/chats
+2025-09-05 19:29:20.747 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:29:20.764 -03:00 [INF] Request finished GET /api/health - 200 in 18.7050ms
+2025-09-05 19:29:20.795 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:29:20.796 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:29:20.797 -03:00 [INF] Request starting GET /api/health
+2025-09-05 19:29:20.802 -03:00 [INF] Request finished GET /api/health - 200 in 4.6720ms
+2025-09-05 19:29:20.807 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:29:20.809 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:29:20.811 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 16.1240ms
+2025-09-05 19:29:20.811 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 1.9380ms
+2025-09-05 19:29:20.811 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 14.9010ms
+2025-09-05 19:29:20.811 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 4.0980ms
+2025-09-05 19:29:20.820 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:29:20.847 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:29:20.847 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 101.0620ms
+2025-09-05 19:29:20.848 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-05 19:29:20.855 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 6.9140ms
+2025-09-05 19:29:20.861 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:29:20.874 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:29:21.588 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 840.4470ms
+2025-09-05 19:29:21.597 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 849.7130ms
+2025-09-05 19:29:21.621 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:29:21.665 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:29:21.679 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 933.3690ms
+2025-09-05 19:29:21.681 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:29:21.705 -03:00 [INF] Request finished GET /api/chats - 200 in 957.5250ms
+2025-09-05 19:29:21.723 -03:00 [INF] Request starting GET /api/health
+2025-09-05 19:29:21.725 -03:00 [INF] Request finished GET /api/health - 200 in 2.9500ms
+2025-09-05 19:29:21.729 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 48.0900ms
+2025-09-05 19:29:21.735 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 114.0140ms
+2025-09-05 19:29:21.737 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 72.6890ms
+2025-09-05 19:29:21.742 -03:00 [INF] Request finished GET /whatsappHub - 101 in 895.5330ms
+2025-09-05 19:29:21.747 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:29:21.755 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:29:21.756 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 9.0770ms
+2025-09-05 19:29:21.756 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.8860ms
+2025-09-05 19:29:21.762 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:29:21.815 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 52.7540ms
+2025-09-05 19:29:21.831 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:29:21.837 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:29:21.848 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 10.8160ms
+2025-09-05 19:29:21.853 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:29:21.859 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 6.4660ms
+2025-09-05 19:29:22.537 -03:00 [INF] Request starting GET /api/health
+2025-09-05 19:29:22.537 -03:00 [INF] Request finished GET /whatsappHub - 101 in 705.8440ms
+2025-09-05 19:29:22.538 -03:00 [INF] Request finished GET /api/health - 200 in 1.7330ms
+2025-09-05 19:29:22.547 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:29:22.547 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.5930ms
+2025-09-05 19:29:22.551 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:29:36.505 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:29:36.539 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 33.8600ms
+2025-09-05 19:29:36.545 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:29:36.553 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 8.2480ms
+2025-09-05 19:29:36.557 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:29:36.564 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 6.6260ms
+2025-09-05 19:29:47.170 -03:00 [INF] Request finished GET /whatsappHub - 101 in 26349.6750ms
+2025-09-05 19:29:47.170 -03:00 [INF] Request finished GET /whatsappHub - 101 in 26294.8840ms
+2025-09-05 19:29:47.172 -03:00 [INF] Request finished GET /whatsappHub - 101 in 26311.2950ms
+2025-09-05 19:29:47.172 -03:00 [INF] Request finished GET /whatsappHub - 101 in 24620.7540ms
+2025-09-05 19:29:49.103 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:29:49.103 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-05 19:29:49.103 -03:00 [INF] Request starting GET /api/chats
+2025-09-05 19:29:49.103 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:29:49.102 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:29:49.103 -03:00 [INF] Request starting GET /api/health
+2025-09-05 19:29:49.130 -03:00 [INF] Request finished GET /api/health - 200 in 27.3820ms
+2025-09-05 19:29:49.138 -03:00 [INF] Request starting GET /api/health
+2025-09-05 19:29:49.139 -03:00 [INF] Request finished GET /api/health - 200 in 1.0760ms
+2025-09-05 19:29:49.246 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:29:49.251 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:29:49.252 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:29:49.254 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 2.5580ms
+2025-09-05 19:29:49.255 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 9.6530ms
+2025-09-05 19:29:49.256 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 3.6880ms
+2025-09-05 19:29:49.256 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:29:49.257 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 1.3120ms
+2025-09-05 19:29:49.276 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:29:49.288 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:29:49.292 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 190.1410ms
+2025-09-05 19:29:49.294 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-05 19:29:49.302 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 8.4050ms
+2025-09-05 19:29:49.302 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:29:49.305 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 202.6640ms
+2025-09-05 19:29:49.306 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:29:49.307 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 204.7600ms
+2025-09-05 19:29:49.307 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 204.9960ms
+2025-09-05 19:29:49.312 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:29:49.312 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:29:49.318 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:29:49.320 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 14.0560ms
+2025-09-05 19:29:49.327 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 14.5250ms
+2025-09-05 19:29:49.334 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 21.5550ms
+2025-09-05 19:29:49.337 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:29:49.355 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 18.1930ms
+2025-09-05 19:29:49.362 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:29:49.371 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 9.0670ms
+2025-09-05 19:29:49.373 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:29:49.382 -03:00 [INF] Request finished GET /api/chats - 200 in 280.0990ms
+2025-09-05 19:29:49.387 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 14.4060ms
+2025-09-05 19:29:49.394 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:29:49.403 -03:00 [INF] Request starting GET /api/health
+2025-09-05 19:29:49.403 -03:00 [INF] Request finished GET /api/health - 200 in 0.3240ms
+2025-09-05 19:29:49.405 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 11.1120ms
+2025-09-05 19:29:49.407 -03:00 [INF] Request finished GET /whatsappHub - 101 in 130.7420ms
+2025-09-05 19:29:49.428 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:29:49.429 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.3940ms
+2025-09-05 19:29:49.431 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:29:51.131 -03:00 [INF] Request starting GET /api/health
+2025-09-05 19:29:51.169 -03:00 [INF] Request finished GET /api/health - 200 in 37.5550ms
+2025-09-05 19:29:51.178 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:29:51.195 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 17.5420ms
+2025-09-05 19:29:51.198 -03:00 [INF] Request finished GET /whatsappHub - 101 in 1767.0820ms
+2025-09-05 19:29:51.210 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:30:11.174 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:30:11.177 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:30:11.322 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 145.8420ms
+2025-09-05 19:30:11.329 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 154.6210ms
+2025-09-05 19:30:41.745 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:30:42.428 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 682.2740ms
+2025-09-05 19:30:42.502 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:30:42.651 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 149.5310ms
+2025-09-05 19:30:42.653 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:30:42.892 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 239.1340ms
+2025-09-05 19:31:36.272 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:31:36.928 -03:00 [INF] Request finished GET /whatsappHub - 101 in 107626.1170ms
+2025-09-05 19:31:36.928 -03:00 [INF] Request finished GET /whatsappHub - 101 in 105718.5090ms
+2025-09-05 19:31:36.933 -03:00 [INF] Request finished GET /whatsappHub - 101 in 107615.1860ms
+2025-09-05 19:31:36.941 -03:00 [INF] Request finished GET /whatsappHub - 101 in 107652.3500ms
+2025-09-05 19:31:38.116 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 1837.8640ms
+2025-09-05 19:31:40.675 -03:00 [INF] Request starting GET /api/health
+2025-09-05 19:31:40.675 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-05 19:31:40.694 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:31:40.694 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:31:40.721 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:31:40.792 -03:00 [INF] Request starting GET /api/chats
+2025-09-05 19:31:40.827 -03:00 [INF] Request finished GET /api/health - 200 in 151.1590ms
+2025-09-05 19:31:40.920 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:31:40.921 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 1.4220ms
+2025-09-05 19:31:40.923 -03:00 [INF] Request starting GET /api/health
+2025-09-05 19:31:40.926 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:31:40.928 -03:00 [INF] Request finished GET /api/health - 200 in 4.8790ms
+2025-09-05 19:31:40.929 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 2.8630ms
+2025-09-05 19:31:40.944 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:31:40.995 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:31:40.996 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 1.5880ms
+2025-09-05 19:31:41.007 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:31:41.008 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.9740ms
+2025-09-05 19:31:41.014 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:31:41.066 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:31:41.101 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:31:41.136 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 442.2350ms
+2025-09-05 19:31:41.141 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 447.7930ms
+2025-09-05 19:31:41.155 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:31:41.155 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:31:41.197 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 476.1510ms
+2025-09-05 19:31:41.206 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:31:41.222 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 66.9670ms
+2025-09-05 19:31:41.229 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:31:41.267 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 111.7610ms
+2025-09-05 19:31:41.270 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 594.2870ms
+2025-09-05 19:31:41.270 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 40.5840ms
+2025-09-05 19:31:41.289 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:31:41.292 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-05 19:31:41.328 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 121.9220ms
+2025-09-05 19:31:41.366 -03:00 [INF] Request finished GET /api/chats - 200 in 574.6700ms
+2025-09-05 19:31:41.387 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 97.9710ms
+2025-09-05 19:31:41.416 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 124.4930ms
+2025-09-05 19:31:41.417 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:31:41.419 -03:00 [INF] Request starting GET /api/health
+2025-09-05 19:31:41.420 -03:00 [INF] Request finished GET /api/health - 200 in 0.2170ms
+2025-09-05 19:31:41.422 -03:00 [INF] Request finished GET /whatsappHub - 101 in 321.0200ms
+2025-09-05 19:31:41.445 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 28.3600ms
+2025-09-05 19:31:41.450 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:31:41.460 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:31:41.468 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 7.3730ms
+2025-09-05 19:31:41.503 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:31:41.519 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 68.2350ms
+2025-09-05 19:31:42.222 -03:00 [INF] Request starting GET /api/health
+2025-09-05 19:31:42.222 -03:00 [INF] Request finished GET /whatsappHub - 101 in 719.2680ms
+2025-09-05 19:31:42.234 -03:00 [INF] Request finished GET /api/health - 200 in 12.3230ms
+2025-09-05 19:31:42.265 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:31:42.268 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 3.1500ms
+2025-09-05 19:31:42.277 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:38:35.124 -03:00 [INF] Aplicação está sendo finalizada...
+2025-09-05 19:38:35.213 -03:00 [INF] Request finished GET /whatsappHub - 101 in 414197.9170ms
+2025-09-05 19:38:35.213 -03:00 [INF] Request finished GET /whatsappHub - 101 in 414267.9170ms
+2025-09-05 19:38:35.213 -03:00 [INF] Request finished GET /whatsappHub - 101 in 412934.5210ms
+2025-09-05 19:38:35.213 -03:00 [INF] Request finished GET /whatsappHub - 101 in 414145.4140ms
+2025-09-05 19:38:35.271 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:38:35.272 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:38:35.272 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:38:35.272 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:38:35.283 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 10.6410ms
+2025-09-05 19:38:35.283 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 10.8110ms
+2025-09-05 19:38:35.285 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 13.9190ms
+2025-09-05 19:38:35.286 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 13.2740ms
+2025-09-05 19:38:35.302 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:38:35.302 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.4500ms
+2025-09-05 19:38:35.320 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:38:35.324 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:38:35.329 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 8.4970ms
+2025-09-05 19:38:35.393 -03:00 [INF] Request finished GET /whatsappHub - 200 in 68.6390ms
+2025-09-05 19:38:35.410 -03:00 [INF] Desconectando do RabbitMQ...
+2025-09-05 19:38:35.831 -03:00 [INF] RabbitMQ Background Service cancelado graciosamente
+2025-09-05 19:38:35.832 -03:00 [INF] Processamento de batch cancelado graciosamente
+2025-09-05 19:38:35.832 -03:00 [INF] RabbitMQ Background Service finalizado
+2025-09-05 19:38:35.832 -03:00 [INF] Processamento de batch finalizado
+2025-09-05 19:38:35.834 -03:00 [INF] Aplicação foi finalizada
+2025-09-05 19:40:38.486 -03:00 [INF] Iniciando Pregiato API...
+2025-09-05 19:40:38.799 -03:00 [INF] RabbitMQ Background Service iniciado
+2025-09-05 19:40:38.801 -03:00 [INF] Tentando conectar ao RabbitMQ...
+2025-09-05 19:40:40.352 -03:00 [INF] ✅ Conexão RabbitMQ estabelecida com amqps://mouse.rmq5.cloudamqp.com:5671
+2025-09-05 19:40:42.929 -03:00 [INF] 📋 Filas RabbitMQ configuradas
+2025-09-05 19:40:43.130 -03:00 [INF] 🎧 Consumidor de QR codes configurado
+2025-09-05 19:40:43.315 -03:00 [INF] 🎧 Consumidor de mensagens WhatsApp configurado
+2025-09-05 19:40:43.525 -03:00 [INF] 🎧 Consumidor de status da sessão configurado
+2025-09-05 19:40:43.773 -03:00 [INF] 🎧 Consumidor de status de mensagens configurado
+2025-09-05 19:40:43.798 -03:00 [INF] ✅ RabbitMQ conectado e configurado
+2025-09-05 19:40:43.813 -03:00 [INF] Processamento de batch iniciado
+2025-09-05 19:40:44.825 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:40:44.843 -03:00 [INF] Request finished GET /whatsappHub - 404 in 18.2030ms
+2025-09-05 19:40:50.169 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:40:50.169 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:40:50.169 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:40:59.037 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:40:59.037 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:40:59.037 -03:00 [INF] Request starting GET /api/health
+2025-09-05 19:40:59.037 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:40:59.037 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-05 19:40:59.050 -03:00 [INF] Request starting GET /api/chats
+2025-09-05 19:40:59.121 -03:00 [INF] Request finished GET /api/health - 200 in 83.7200ms
+2025-09-05 19:40:59.127 -03:00 [INF] Request starting GET /api/health
+2025-09-05 19:40:59.129 -03:00 [INF] Request finished GET /api/health - 200 in 2.2220ms
+2025-09-05 19:40:59.225 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:40:59.245 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 207.8670ms
+2025-09-05 19:40:59.251 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 25.9130ms
+2025-09-05 19:40:59.251 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-05 19:40:59.259 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 7.5000ms
+2025-09-05 19:40:59.271 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:40:59.279 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 8.3290ms
+2025-09-05 19:40:59.288 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:40:59.291 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:40:59.292 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 1.3830ms
+2025-09-05 19:40:59.292 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 4.3220ms
+2025-09-05 19:40:59.302 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:40:59.346 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:40:59.368 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:40:59.384 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:41:02.224 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 3186.6730ms
+2025-09-05 19:41:02.225 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 12055.7760ms
+2025-09-05 19:41:02.252 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:41:02.266 -03:00 [INF] Request finished GET /api/chats - 200 in 3215.7180ms
+2025-09-05 19:41:02.292 -03:00 [INF] Request starting GET /api/chats
+2025-09-05 19:41:02.313 -03:00 [INF] Request starting GET /api/health
+2025-09-05 19:41:02.313 -03:00 [INF] Request finished GET /api/health - 200 in 0.4590ms
+2025-09-05 19:41:02.315 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 12146.7420ms
+2025-09-05 19:41:02.318 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 3281.3600ms
+2025-09-05 19:41:02.320 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 12151.1200ms
+2025-09-05 19:41:02.334 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:41:02.335 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 3297.5010ms
+2025-09-05 19:41:02.336 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:41:02.341 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:41:02.343 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 90.1520ms
+2025-09-05 19:41:02.357 -03:00 [INF] Request finished GET /api/chats - 200 in 64.6410ms
+2025-09-05 19:41:02.383 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 47.2890ms
+2025-09-05 19:41:02.390 -03:00 [INF] Request starting GET /api/health
+2025-09-05 19:41:02.391 -03:00 [INF] Request finished GET /api/health - 200 in 0.7430ms
+2025-09-05 19:41:02.392 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 50.2170ms
+2025-09-05 19:41:02.406 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 71.5470ms
+2025-09-05 19:41:02.420 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:41:02.421 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 1.0850ms
+2025-09-05 19:41:02.410 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:41:02.426 -03:00 [INF] Request finished GET /whatsappHub - 101 in 3079.8790ms
+2025-09-05 19:41:02.454 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 43.3200ms
+2025-09-05 19:41:02.457 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:41:02.460 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:41:02.467 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 7.6960ms
+2025-09-05 19:41:02.473 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:41:02.484 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 11.5120ms
+2025-09-05 19:41:02.487 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:41:02.497 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 9.6000ms
+2025-09-05 19:42:55.828 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:42:56.482 -03:00 [INF] Request finished GET /whatsappHub - 101 in 113986.5680ms
+2025-09-05 19:42:56.568 -03:00 [INF] Request finished GET /whatsappHub - 101 in 117199.9450ms
+2025-09-05 19:42:57.461 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 1635.4890ms
+2025-09-05 19:42:57.477 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:42:57.716 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 240.4360ms
+2025-09-05 19:42:57.747 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:42:57.794 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 47.0520ms
+2025-09-05 19:43:35.762 -03:00 [INF] Request starting GET /api/users/operators
+2025-09-05 19:43:36.732 -03:00 [INF] Request finished GET /api/users/operators - 200 in 970.5630ms
+2025-09-05 19:43:37.166 -03:00 [INF] Request starting GET /api/users/operators
+2025-09-05 19:43:37.236 -03:00 [INF] Request finished GET /api/users/operators - 200 in 70.9000ms
+2025-09-05 19:43:46.993 -03:00 [INF] Request starting GET /api/users/operators
+2025-09-05 19:43:47.064 -03:00 [INF] Request finished GET /api/users/operators - 200 in 71.1350ms
+2025-09-05 19:43:47.095 -03:00 [INF] Request starting POST /api/operator-leads/allocate
+2025-09-05 19:43:48.755 -03:00 [INF] Request finished POST /api/operator-leads/allocate - 200 in 1660.1610ms
+2025-09-05 19:43:54.111 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:43:54.110 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-05 19:43:54.111 -03:00 [INF] Request starting GET /api/chats
+2025-09-05 19:43:54.111 -03:00 [INF] Request starting GET /api/health
+2025-09-05 19:43:54.135 -03:00 [INF] Request finished GET /api/health - 200 in 23.9140ms
+2025-09-05 19:43:54.149 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:43:54.150 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:43:54.152 -03:00 [INF] Request starting GET /api/health
+2025-09-05 19:43:54.152 -03:00 [INF] Request finished GET /api/health - 200 in 0.7280ms
+2025-09-05 19:43:54.154 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 4.1670ms
+2025-09-05 19:43:54.162 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 12.7910ms
+2025-09-05 19:43:54.166 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:43:54.167 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.8850ms
+2025-09-05 19:43:54.169 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:43:54.172 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 2.8860ms
+2025-09-05 19:43:54.170 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:43:54.200 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:43:54.216 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:43:54.232 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:43:54.254 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 143.6750ms
+2025-09-05 19:43:54.257 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:43:54.259 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 148.6770ms
+2025-09-05 19:43:54.263 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-05 19:43:54.264 -03:00 [INF] Request finished GET /api/chats - 200 in 153.5850ms
+2025-09-05 19:43:54.267 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 10.2470ms
+2025-09-05 19:43:54.270 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 7.2950ms
+2025-09-05 19:43:54.271 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:43:54.284 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 13.4490ms
+2025-09-05 19:43:54.287 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:43:54.301 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 14.0760ms
+2025-09-05 19:43:54.303 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:43:54.307 -03:00 [INF] Request starting GET /api/health
+2025-09-05 19:43:54.310 -03:00 [INF] Request finished GET /api/health - 200 in 2.9370ms
+2025-09-05 19:43:54.317 -03:00 [INF] Request finished GET /whatsappHub - 101 in 85.0840ms
+2025-09-05 19:43:54.321 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 17.8280ms
+2025-09-05 19:43:54.326 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:43:54.352 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 25.7390ms
+2025-09-05 19:43:54.354 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:43:54.354 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.5370ms
+2025-09-05 19:43:54.455 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:43:55.833 -03:00 [INF] Request starting GET /api/health
+2025-09-05 19:43:55.834 -03:00 [INF] Request finished GET /whatsappHub - 101 in 1379.2010ms
+2025-09-05 19:43:55.855 -03:00 [INF] Request finished GET /api/health - 200 in 21.9330ms
+2025-09-05 19:43:55.869 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:43:55.870 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.9990ms
+2025-09-05 19:43:55.878 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:43:59.621 -03:00 [INF] Request finished GET /whatsappHub - 101 in 5405.4270ms
+2025-09-05 19:43:59.621 -03:00 [INF] Request finished GET /whatsappHub - 101 in 180237.4170ms
+2025-09-05 19:43:59.621 -03:00 [INF] Request finished GET /whatsappHub - 101 in 5451.0860ms
+2025-09-05 19:43:59.621 -03:00 [INF] Request finished GET /whatsappHub - 101 in 180319.6800ms
+2025-09-05 19:43:59.621 -03:00 [INF] Request finished GET /whatsappHub - 101 in 3742.6620ms
+2025-09-05 19:43:59.622 -03:00 [INF] Request finished GET /whatsappHub - 101 in 5422.1650ms
+2025-09-05 19:44:04.188 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-05 19:44:04.189 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:44:04.189 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:44:04.189 -03:00 [INF] Request starting GET /api/health
+2025-09-05 19:44:04.189 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:44:04.193 -03:00 [INF] Request starting GET /api/chats
+2025-09-05 19:44:04.264 -03:00 [INF] Request finished GET /api/health - 200 in 73.1870ms
+2025-09-05 19:44:04.290 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:44:04.293 -03:00 [INF] Request starting GET /api/health
+2025-09-05 19:44:04.295 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:44:04.297 -03:00 [INF] Request finished GET /api/health - 200 in 4.0020ms
+2025-09-05 19:44:04.308 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 18.8930ms
+2025-09-05 19:44:04.313 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 17.9110ms
+2025-09-05 19:44:04.325 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:44:04.325 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.4140ms
+2025-09-05 19:44:04.328 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:44:04.328 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:44:04.329 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.4850ms
+2025-09-05 19:44:04.356 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:44:04.360 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 172.7320ms
+2025-09-05 19:44:04.366 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-05 19:44:04.375 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:44:04.403 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 37.6060ms
+2025-09-05 19:44:04.411 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:44:04.467 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 280.7340ms
+2025-09-05 19:44:04.472 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:44:04.484 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 12.4460ms
+2025-09-05 19:44:04.527 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 339.5930ms
+2025-09-05 19:44:04.534 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 346.8410ms
+2025-09-05 19:44:04.535 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:44:04.545 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:44:04.562 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 17.4130ms
+2025-09-05 19:44:04.567 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:44:04.587 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 20.0080ms
+2025-09-05 19:44:04.591 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:44:04.606 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 14.9290ms
+2025-09-05 19:44:04.614 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:44:04.631 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 17.3270ms
+2025-09-05 19:44:04.638 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:44:04.661 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 22.9530ms
+2025-09-05 19:44:04.693 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 158.8160ms
+2025-09-05 19:44:04.749 -03:00 [INF] Request finished GET /api/chats - 200 in 556.4600ms
+2025-09-05 19:44:04.800 -03:00 [INF] Request starting GET /api/health
+2025-09-05 19:44:04.800 -03:00 [INF] Request finished GET /api/health - 200 in 0.4390ms
+2025-09-05 19:44:04.800 -03:00 [INF] Request finished GET /whatsappHub - 101 in 389.5450ms
+2025-09-05 19:44:04.813 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:44:04.813 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.6130ms
+2025-09-05 19:44:04.819 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:44:05.224 -03:00 [INF] Request finished GET /whatsappHub - 101 in 404.5730ms
+2025-09-05 19:44:05.224 -03:00 [INF] Request starting GET /api/health
+2025-09-05 19:44:06.351 -03:00 [INF] Request finished GET /api/health - 200 in 1126.0540ms
+2025-09-05 19:44:06.379 -03:00 [INF] Request starting GET /api/health
+2025-09-05 19:44:06.380 -03:00 [INF] Request starting GET /api/chats/chat_1757112245993_znzujbr7z/messages
+2025-09-05 19:44:06.403 -03:00 [INF] Request finished GET /api/health - 200 in 23.9540ms
+2025-09-05 19:44:06.403 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:44:06.423 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 19:44:06.425 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 21.5470ms
+2025-09-05 19:44:06.425 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 1.6390ms
+2025-09-05 19:44:06.437 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:44:06.463 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 19:44:06.539 -03:00 [INF] 🔍 Buscando mensagens para ID: chat_1757112245993_znzujbr7z
+2025-09-05 19:44:06.667 -03:00 [INF] 📄 Busca por ContactPhoneE164 (chat_1757112245993_znzujbr7z): Não encontrado
+2025-09-05 19:44:06.726 -03:00 [INF] 📄 Busca por número normalizado (5517571122459937): Não encontrado
+2025-09-05 19:44:06.726 -03:00 [WRN] ❌ Chat não encontrado para ID: chat_1757112245993_znzujbr7z
+2025-09-05 19:44:06.779 -03:00 [INF] Request finished GET /api/chats/chat_1757112245993_znzujbr7z/messages - 404 in 398.7480ms
+2025-09-05 19:44:06.785 -03:00 [INF] Request starting GET /api/chats/chat_1757112245993_znzujbr7z/messages
+2025-09-05 19:44:06.787 -03:00 [INF] 🔍 Buscando mensagens para ID: chat_1757112245993_znzujbr7z
+2025-09-05 19:44:06.814 -03:00 [INF] 📄 Busca por ContactPhoneE164 (chat_1757112245993_znzujbr7z): Não encontrado
+2025-09-05 19:44:06.816 -03:00 [INF] 📄 Busca por número normalizado (5517571122459937): Não encontrado
+2025-09-05 19:44:06.817 -03:00 [WRN] ❌ Chat não encontrado para ID: chat_1757112245993_znzujbr7z
+2025-09-05 19:44:06.821 -03:00 [INF] Request finished GET /api/chats/chat_1757112245993_znzujbr7z/messages - 404 in 36.5720ms
+2025-09-05 19:44:17.944 -03:00 [INF] Request starting POST /api/attendances/chat_1757112245993_znzujbr7z/step
+2025-09-05 19:44:18.106 -03:00 [INF] Request finished POST /api/attendances/chat_1757112245993_znzujbr7z/step - 400 in 162.3010ms
+2025-09-05 19:47:02.520 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:47:03.600 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 1083.0360ms
+2025-09-05 19:47:03.613 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:47:03.630 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 16.6870ms
+2025-09-05 19:47:03.634 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:47:03.646 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 12.0530ms
+2025-09-05 19:47:28.614 -03:00 [INF] Request starting POST /api/attendances/chat_1757112245993_znzujbr7z/step
+2025-09-05 19:47:28.681 -03:00 [INF] Request finished POST /api/attendances/chat_1757112245993_znzujbr7z/step - 400 in 66.6870ms
+2025-09-05 19:47:39.965 -03:00 [INF] Request starting POST /api/attendances/chat_1757112245993_znzujbr7z/step
+2025-09-05 19:47:40.767 -03:00 [INF] Request finished POST /api/attendances/chat_1757112245993_znzujbr7z/step - 400 in 821.6260ms
+2025-09-05 19:52:12.543 -03:00 [INF] Request starting POST /api/attendances/chat_1757112245993_znzujbr7z/step
+2025-09-05 19:52:12.662 -03:00 [INF] Request finished POST /api/attendances/chat_1757112245993_znzujbr7z/step - 400 in 118.5460ms
+2025-09-05 19:52:20.906 -03:00 [INF] Request starting POST /api/attendances/chat_1757112245993_znzujbr7z/step
+2025-09-05 19:52:20.930 -03:00 [INF] Request finished POST /api/attendances/chat_1757112245993_znzujbr7z/step - 400 in 24.5220ms
+2025-09-05 19:54:17.609 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:54:17.609 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:54:17.609 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:54:22.409 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 4798.4510ms
+2025-09-05 19:54:22.408 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 4798.4920ms
+2025-09-05 19:54:22.419 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:54:22.466 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 46.9040ms
+2025-09-05 19:54:22.471 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:54:22.488 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 17.5310ms
+2025-09-05 19:54:22.493 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 4883.9660ms
+2025-09-05 19:55:13.051 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:55:13.140 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 88.8280ms
+2025-09-05 19:55:13.145 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:55:13.162 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 16.8790ms
+2025-09-05 19:55:13.165 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:55:13.205 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 40.3500ms
+2025-09-05 19:57:41.778 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:57:41.992 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 213.4150ms
+2025-09-05 19:57:41.995 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:57:42.006 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 10.9590ms
+2025-09-05 19:57:42.010 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:57:42.061 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 51.5640ms
+2025-09-05 19:59:03.378 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:59:03.693 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 314.6990ms
+2025-09-05 19:59:03.695 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:59:03.700 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 4.7400ms
+2025-09-05 19:59:03.705 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:59:03.718 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 12.3690ms
+2025-09-05 19:59:29.660 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:59:29.660 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:59:29.660 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:59:29.743 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 82.9050ms
+2025-09-05 19:59:29.915 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 254.4540ms
+2025-09-05 19:59:29.923 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:59:29.938 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 14.7740ms
+2025-09-05 19:59:29.943 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 19:59:29.949 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 6.3990ms
+2025-09-05 19:59:29.992 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 331.4800ms
+2025-09-05 20:06:11.398 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:06:11.398 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:06:11.398 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:06:12.088 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 689.8450ms
+2025-09-05 20:06:12.088 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 689.8380ms
+2025-09-05 20:06:12.091 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:06:12.101 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 10.8030ms
+2025-09-05 20:06:12.105 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:06:12.110 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 4.7930ms
+2025-09-05 20:06:12.129 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 730.3810ms
+2025-09-05 20:06:54.397 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:06:54.525 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 127.3800ms
+2025-09-05 20:06:54.530 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:06:54.546 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 16.0530ms
+2025-09-05 20:06:54.561 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:06:54.575 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 14.2550ms
+2025-09-05 20:11:04.365 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:11:05.188 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 823.2290ms
+2025-09-05 20:11:05.203 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:11:05.253 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 49.9820ms
+2025-09-05 20:11:05.255 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:11:05.270 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 15.2010ms
+2025-09-05 20:13:02.620 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:13:02.620 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:13:02.620 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:13:03.119 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 499.5690ms
+2025-09-05 20:13:03.128 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 507.9820ms
+2025-09-05 20:13:03.185 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:13:03.278 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 658.6220ms
+2025-09-05 20:13:03.886 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:13:03.870 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 682.7540ms
+2025-09-05 20:13:04.306 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 419.9900ms
+2025-09-05 20:14:58.806 -03:00 [INF] Request starting GET /api/chats/chat_1757114098369_j951l526a/messages
+2025-09-05 20:14:58.806 -03:00 [INF] Request starting GET /api/health
+2025-09-05 20:14:58.806 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:14:58.831 -03:00 [INF] Request finished GET /whatsappHub - 101 in 1852394.8910ms
+2025-09-05 20:14:58.831 -03:00 [INF] Request finished GET /api/health - 200 in 25.2370ms
+2025-09-05 20:14:58.848 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 20:14:58.862 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 14.0170ms
+2025-09-05 20:14:58.876 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 20:14:58.879 -03:00 [INF] 🔍 Buscando mensagens para ID: chat_1757114098369_j951l526a
+2025-09-05 20:14:59.796 -03:00 [INF] 📄 Busca por ContactPhoneE164 (chat_1757114098369_j951l526a): Não encontrado
+2025-09-05 20:14:59.840 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:14:59.849 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 1030.2690ms
+2025-09-05 20:14:59.916 -03:00 [INF] 📄 Busca por número normalizado (551757114098369951526): Não encontrado
+2025-09-05 20:14:59.919 -03:00 [WRN] ❌ Chat não encontrado para ID: chat_1757114098369_j951l526a
+2025-09-05 20:15:00.075 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 234.0310ms
+2025-09-05 20:15:00.088 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:15:00.185 -03:00 [INF] Request finished GET /api/chats/chat_1757114098369_j951l526a/messages - 404 in 1379.2030ms
+2025-09-05 20:15:00.280 -03:00 [INF] Request starting GET /api/chats/chat_1757114098369_j951l526a/messages
+2025-09-05 20:15:00.287 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 199.2880ms
+2025-09-05 20:15:00.288 -03:00 [INF] 🔍 Buscando mensagens para ID: chat_1757114098369_j951l526a
+2025-09-05 20:15:00.303 -03:00 [INF] 📄 Busca por ContactPhoneE164 (chat_1757114098369_j951l526a): Não encontrado
+2025-09-05 20:15:00.313 -03:00 [INF] 📄 Busca por número normalizado (551757114098369951526): Não encontrado
+2025-09-05 20:15:00.315 -03:00 [WRN] ❌ Chat não encontrado para ID: chat_1757114098369_j951l526a
+2025-09-05 20:15:00.316 -03:00 [INF] Request finished GET /api/chats/chat_1757114098369_j951l526a/messages - 404 in 35.5900ms
+2025-09-05 20:15:58.456 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:15:59.396 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 923.8300ms
+2025-09-05 20:15:59.623 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:15:59.651 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 28.3410ms
+2025-09-05 20:15:59.749 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:15:59.833 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 83.7760ms
+2025-09-05 20:16:00.476 -03:00 [INF] Request starting POST /api/attendances/chat_1757114098369_j951l526a/step
+2025-09-05 20:16:00.513 -03:00 [INF] Request finished POST /api/attendances/chat_1757114098369_j951l526a/step - 400 in 36.3800ms
+2025-09-05 20:17:29.741 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:17:29.967 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 226.3650ms
+2025-09-05 20:17:29.969 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:17:29.972 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 2.9740ms
+2025-09-05 20:17:29.974 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:17:30.000 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 25.7910ms
+2025-09-05 20:17:33.589 -03:00 [INF] Request starting POST /api/attendances/chat_1757114098369_j951l526a/step
+2025-09-05 20:17:33.603 -03:00 [INF] Request finished POST /api/attendances/chat_1757114098369_j951l526a/step - 400 in 13.9530ms
+2025-09-05 20:17:36.258 -03:00 [INF] Request starting POST /api/attendances/chat_1757114098369_j951l526a/step
+2025-09-05 20:17:36.286 -03:00 [INF] Request finished POST /api/attendances/chat_1757114098369_j951l526a/step - 400 in 28.5450ms
+2025-09-05 20:17:39.820 -03:00 [INF] Request starting POST /api/attendances/chat_1757114098369_j951l526a/step
+2025-09-05 20:17:39.827 -03:00 [INF] Request finished POST /api/attendances/chat_1757114098369_j951l526a/step - 400 in 5.8820ms
+2025-09-05 20:17:54.831 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:17:55.175 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 345.8290ms
+2025-09-05 20:17:55.178 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:17:55.185 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 7.3130ms
+2025-09-05 20:17:55.189 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:17:55.203 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 14.5160ms
+2025-09-05 20:22:26.995 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:22:27.010 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:22:27.011 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:22:29.924 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 2913.6170ms
+2025-09-05 20:22:29.924 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 2928.3920ms
+2025-09-05 20:22:29.930 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:22:29.941 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 11.1200ms
+2025-09-05 20:22:29.943 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:22:29.946 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 2934.9370ms
+2025-09-05 20:22:29.953 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 10.8990ms
+2025-09-05 20:24:58.127 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:25:00.334 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 2207.4110ms
+2025-09-05 20:25:00.350 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:25:00.405 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 55.3110ms
+2025-09-05 20:25:00.409 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:25:00.415 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 6.0130ms
+2025-09-05 20:25:14.450 -03:00 [INF] Request starting POST /api/chats/chat_1757114098369_j951l526a/send
+2025-09-05 20:25:14.909 -03:00 [INF] 🔍 Buscando chat para ID: chat_1757114098369_j951l526a
+2025-09-05 20:25:15.003 -03:00 [INF] 📄 Busca por ContactPhoneE164: Não encontrado
+2025-09-05 20:25:15.004 -03:00 [WRN] ❌ Chat não encontrado para ID: chat_1757114098369_j951l526a
+2025-09-05 20:25:15.009 -03:00 [INF] Request finished POST /api/chats/chat_1757114098369_j951l526a/send - 404 in 558.8980ms
+2025-09-05 20:26:32.643 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:26:33.137 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 492.4570ms
+2025-09-05 20:26:33.147 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:26:33.160 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 12.8980ms
+2025-09-05 20:26:33.161 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:26:33.195 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 33.9760ms
+2025-09-05 20:26:34.985 -03:00 [INF] Request starting POST /api/attendances/chat_1757114098369_j951l526a/step
+2025-09-05 20:26:35.034 -03:00 [INF] Request finished POST /api/attendances/chat_1757114098369_j951l526a/step - 400 in 49.0070ms
+2025-09-05 20:26:35.779 -03:00 [INF] Request starting POST /api/attendances/chat_1757114098369_j951l526a/step
+2025-09-05 20:26:35.782 -03:00 [INF] Request finished POST /api/attendances/chat_1757114098369_j951l526a/step - 400 in 3.1770ms
+2025-09-05 20:26:38.272 -03:00 [INF] Request starting POST /api/attendances/chat_1757114098369_j951l526a/step
+2025-09-05 20:26:38.884 -03:00 [INF] Request finished POST /api/attendances/chat_1757114098369_j951l526a/step - 400 in 612.1670ms
+2025-09-05 20:26:39.708 -03:00 [INF] Request starting POST /api/attendances/chat_1757114098369_j951l526a/step
+2025-09-05 20:26:39.731 -03:00 [INF] Request finished POST /api/attendances/chat_1757114098369_j951l526a/step - 400 in 23.1250ms
+2025-09-05 20:26:41.299 -03:00 [INF] Request starting POST /api/attendances/chat_1757114098369_j951l526a/step
+2025-09-05 20:26:41.695 -03:00 [INF] Request finished POST /api/attendances/chat_1757114098369_j951l526a/step - 400 in 395.4800ms
+2025-09-05 20:28:24.966 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:28:24.966 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:28:24.966 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:28:25.118 -03:00 [INF] Request starting POST /api/attendances/chat_1757114098369_j951l526a/step
+2025-09-05 20:28:25.140 -03:00 [INF] Request finished POST /api/attendances/chat_1757114098369_j951l526a/step - 400 in 21.7430ms
+2025-09-05 20:28:26.051 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 1085.2610ms
+2025-09-05 20:28:26.159 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:28:26.546 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 386.5650ms
+2025-09-05 20:28:26.555 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:28:26.607 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 52.1970ms
+2025-09-05 20:28:27.098 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 2131.7470ms
+2025-09-05 20:28:27.114 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 2148.0110ms
+2025-09-05 20:28:30.783 -03:00 [INF] Request starting GET /api/health
+2025-09-05 20:28:30.786 -03:00 [INF] Request starting GET /api/chats/chat_1757114910631_jwmwfuhur/messages
+2025-09-05 20:28:30.854 -03:00 [INF] Request finished GET /api/health - 200 in 70.9150ms
+2025-09-05 20:28:30.888 -03:00 [INF] Request finished GET /whatsappHub - 101 in 812011.8100ms
+2025-09-05 20:28:30.900 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 20:28:30.904 -03:00 [INF] 🔍 Buscando mensagens para ID: chat_1757114910631_jwmwfuhur
+2025-09-05 20:28:30.910 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 10.0510ms
+2025-09-05 20:28:30.943 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 20:28:31.141 -03:00 [INF] 📄 Busca por ContactPhoneE164 (chat_1757114910631_jwmwfuhur): Não encontrado
+2025-09-05 20:28:31.302 -03:00 [INF] 📄 Busca por número normalizado (551757114910631): Não encontrado
+2025-09-05 20:28:31.303 -03:00 [WRN] ❌ Chat não encontrado para ID: chat_1757114910631_jwmwfuhur
+2025-09-05 20:28:31.315 -03:00 [INF] Request finished GET /api/chats/chat_1757114910631_jwmwfuhur/messages - 404 in 528.7900ms
+2025-09-05 20:28:31.331 -03:00 [INF] Request starting GET /api/chats/chat_1757114910631_jwmwfuhur/messages
+2025-09-05 20:28:31.340 -03:00 [INF] 🔍 Buscando mensagens para ID: chat_1757114910631_jwmwfuhur
+2025-09-05 20:28:31.371 -03:00 [INF] 📄 Busca por ContactPhoneE164 (chat_1757114910631_jwmwfuhur): Não encontrado
+2025-09-05 20:28:31.506 -03:00 [INF] 📄 Busca por número normalizado (551757114910631): Não encontrado
+2025-09-05 20:28:31.514 -03:00 [WRN] ❌ Chat não encontrado para ID: chat_1757114910631_jwmwfuhur
+2025-09-05 20:28:31.516 -03:00 [INF] Request finished GET /api/chats/chat_1757114910631_jwmwfuhur/messages - 404 in 185.0750ms
+2025-09-05 20:28:33.357 -03:00 [INF] Request starting POST /api/attendances/chat_1757114910631_jwmwfuhur/step
+2025-09-05 20:28:33.408 -03:00 [INF] Request finished POST /api/attendances/chat_1757114910631_jwmwfuhur/step - 400 in 52.3350ms
+2025-09-05 20:28:40.876 -03:00 [INF] Request starting DELETE /api/chats/chat_1757114098369_j951l526a
+2025-09-05 20:28:40.880 -03:00 [INF] Request finished DELETE /api/chats/chat_1757114098369_j951l526a - 404 in 4.2220ms
+2025-09-05 20:28:44.001 -03:00 [INF] Request starting DELETE /api/chats/chat_1757112245993_znzujbr7z
+2025-09-05 20:28:44.042 -03:00 [INF] Request finished DELETE /api/chats/chat_1757112245993_znzujbr7z - 404 in 38.8700ms
+2025-09-05 20:28:51.582 -03:00 [INF] Request finished GET /whatsappHub - 101 in 20632.2260ms
+2025-09-05 20:28:51.584 -03:00 [INF] Request finished GET /whatsappHub - 101 in 2687245.7620ms
+2025-09-05 20:28:51.584 -03:00 [INF] Request finished GET /whatsappHub - 101 in 2685111.4640ms
+2025-09-05 20:28:51.584 -03:00 [INF] Request finished GET /whatsappHub - 101 in 2687218.0370ms
+2025-09-05 20:28:51.591 -03:00 [INF] Request finished GET /whatsappHub - 101 in 2687216.8920ms
+2025-09-05 20:28:54.171 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:28:54.172 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:28:54.172 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-05 20:28:54.172 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:28:54.193 -03:00 [INF] Request starting GET /api/chats
+2025-09-05 20:28:54.186 -03:00 [INF] Request starting GET /api/health
+2025-09-05 20:28:54.314 -03:00 [INF] Request finished GET /api/health - 200 in 119.2920ms
+2025-09-05 20:28:54.325 -03:00 [INF] Request starting GET /api/health
+2025-09-05 20:28:54.328 -03:00 [INF] Request finished GET /api/health - 200 in 2.9220ms
+2025-09-05 20:28:54.381 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 20:28:54.387 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 20:28:54.390 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 8.4160ms
+2025-09-05 20:28:54.390 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 2.8790ms
+2025-09-05 20:28:54.391 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 20:28:54.391 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.1910ms
+2025-09-05 20:28:54.395 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 20:28:54.396 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.8330ms
+2025-09-05 20:28:54.406 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 20:28:54.428 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 20:28:54.445 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 20:28:54.461 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 20:28:54.475 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 304.1260ms
+2025-09-05 20:28:54.477 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-05 20:28:54.489 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 11.7160ms
+2025-09-05 20:28:54.539 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 368.8460ms
+2025-09-05 20:28:54.539 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 368.8600ms
+2025-09-05 20:28:54.545 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:28:54.545 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:28:54.564 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 18.7380ms
+2025-09-05 20:28:54.565 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 19.7950ms
+2025-09-05 20:28:54.568 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:28:54.575 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 6.9810ms
+2025-09-05 20:28:54.577 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:28:54.622 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 45.1620ms
+2025-09-05 20:28:54.627 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:28:54.657 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 30.7170ms
+2025-09-05 20:28:54.659 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:28:54.687 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 28.4440ms
+2025-09-05 20:28:54.710 -03:00 [INF] Request finished GET /api/chats - 200 in 516.8430ms
+2025-09-05 20:28:54.728 -03:00 [INF] Request starting GET /api/health
+2025-09-05 20:28:54.729 -03:00 [INF] Request finished GET /api/health - 200 in 0.2720ms
+2025-09-05 20:28:54.730 -03:00 [INF] Request finished GET /whatsappHub - 101 in 268.6470ms
+2025-09-05 20:28:54.735 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 20:28:54.737 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 2.3070ms
+2025-09-05 20:28:54.752 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 20:28:55.356 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 1185.5790ms
+2025-09-05 20:28:55.452 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:28:55.646 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 193.8560ms
+2025-09-05 20:28:56.286 -03:00 [INF] Request finished GET /whatsappHub - 101 in 1520.0070ms
+2025-09-05 20:28:56.297 -03:00 [INF] Request starting GET /api/health
+2025-09-05 20:28:56.376 -03:00 [INF] Request finished GET /api/health - 200 in 78.9340ms
+2025-09-05 20:28:56.443 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 20:28:56.454 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 11.1620ms
+2025-09-05 20:28:56.529 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 20:29:01.905 -03:00 [INF] Request starting GET /api/health
+2025-09-05 20:29:01.905 -03:00 [INF] Request starting GET /api/chats/chat_1757114941834_qyr3bzhzt/messages
+2025-09-05 20:29:01.960 -03:00 [INF] Request finished GET /api/health - 200 in 52.9350ms
+2025-09-05 20:29:01.974 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 20:29:01.977 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 2.9470ms
+2025-09-05 20:29:01.986 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 20:29:01.992 -03:00 [INF] Request finished GET /whatsappHub - 101 in 5462.8020ms
+2025-09-05 20:29:01.993 -03:00 [INF] 🔍 Buscando mensagens para ID: chat_1757114941834_qyr3bzhzt
+2025-09-05 20:29:02.154 -03:00 [INF] 📄 Busca por ContactPhoneE164 (chat_1757114941834_qyr3bzhzt): Não encontrado
+2025-09-05 20:29:02.257 -03:00 [INF] 📄 Busca por número normalizado (5517571149418343): Não encontrado
+2025-09-05 20:29:02.258 -03:00 [WRN] ❌ Chat não encontrado para ID: chat_1757114941834_qyr3bzhzt
+2025-09-05 20:29:02.271 -03:00 [INF] Request finished GET /api/chats/chat_1757114941834_qyr3bzhzt/messages - 404 in 366.2740ms
+2025-09-05 20:29:02.286 -03:00 [INF] Request starting GET /api/chats/chat_1757114941834_qyr3bzhzt/messages
+2025-09-05 20:29:02.293 -03:00 [INF] 🔍 Buscando mensagens para ID: chat_1757114941834_qyr3bzhzt
+2025-09-05 20:29:02.396 -03:00 [INF] 📄 Busca por ContactPhoneE164 (chat_1757114941834_qyr3bzhzt): Não encontrado
+2025-09-05 20:29:02.455 -03:00 [INF] 📄 Busca por número normalizado (5517571149418343): Não encontrado
+2025-09-05 20:29:02.455 -03:00 [WRN] ❌ Chat não encontrado para ID: chat_1757114941834_qyr3bzhzt
+2025-09-05 20:29:02.468 -03:00 [INF] Request finished GET /api/chats/chat_1757114941834_qyr3bzhzt/messages - 404 in 182.2670ms
+2025-09-05 20:29:04.454 -03:00 [INF] Request starting POST /api/attendances/chat_1757114941834_qyr3bzhzt/step
+2025-09-05 20:29:04.622 -03:00 [INF] Request finished POST /api/attendances/chat_1757114941834_qyr3bzhzt/step - 400 in 168.4610ms
+2025-09-05 20:29:05.784 -03:00 [INF] Request starting POST /api/attendances/chat_1757114941834_qyr3bzhzt/step
+2025-09-05 20:29:06.298 -03:00 [INF] Request finished POST /api/attendances/chat_1757114941834_qyr3bzhzt/step - 400 in 514.5180ms
+2025-09-05 20:30:24.068 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:30:24.848 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 779.4540ms
+2025-09-05 20:30:24.851 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:30:24.879 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 28.4370ms
+2025-09-05 20:30:24.891 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:30:24.915 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 23.8110ms
+2025-09-05 20:30:25.407 -03:00 [INF] Request finished GET /whatsappHub - 101 in 90961.6800ms
+2025-09-05 20:30:25.407 -03:00 [INF] Request finished GET /whatsappHub - 101 in 90978.3490ms
+2025-09-05 20:30:25.407 -03:00 [INF] Request finished GET /whatsappHub - 101 in 83420.7940ms
+2025-09-05 20:30:25.407 -03:00 [INF] Request finished GET /whatsappHub - 101 in 91001.4680ms
+2025-09-05 20:32:28.725 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-05 20:32:28.726 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:32:28.725 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:32:28.725 -03:00 [INF] Request starting GET /api/health
+2025-09-05 20:32:28.725 -03:00 [INF] Request starting GET /api/chats
+2025-09-05 20:32:28.725 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:32:28.874 -03:00 [INF] Request finished GET /api/health - 200 in 150.2540ms
+2025-09-05 20:32:28.931 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 20:32:28.930 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 20:32:28.933 -03:00 [INF] Request starting GET /api/health
+2025-09-05 20:32:28.936 -03:00 [INF] Request finished GET /api/health - 200 in 0.3150ms
+2025-09-05 20:32:28.945 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 20:32:28.950 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 20:32:28.959 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 29.2740ms
+2025-09-05 20:32:28.959 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 14.4170ms
+2025-09-05 20:32:28.960 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 29.0570ms
+2025-09-05 20:32:28.962 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 12.6680ms
+2025-09-05 20:32:28.975 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 20:32:29.044 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 20:32:29.074 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 20:32:29.132 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 20:32:29.274 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 550.1930ms
+2025-09-05 20:32:29.284 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-05 20:32:29.309 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 25.3730ms
+2025-09-05 20:32:32.915 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 4191.3830ms
+2025-09-05 20:32:32.939 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:32:33.056 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 4332.6220ms
+2025-09-05 20:32:33.062 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:32:33.072 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 132.3350ms
+2025-09-05 20:32:33.091 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 29.7610ms
+2025-09-05 20:32:33.097 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:32:33.160 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 63.4660ms
+2025-09-05 20:32:33.163 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:32:33.212 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 48.8010ms
+2025-09-05 20:32:33.214 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:32:33.248 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 34.0580ms
+2025-09-05 20:32:33.249 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:32:33.288 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 38.1430ms
+2025-09-05 20:32:33.350 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 4626.1080ms
+2025-09-05 20:32:33.354 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:32:33.458 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 104.1790ms
+2025-09-05 20:32:33.471 -03:00 [INF] Request finished GET /api/chats - 200 in 4747.7440ms
+2025-09-05 20:32:33.475 -03:00 [INF] Request starting GET /api/chats
+2025-09-05 20:32:33.496 -03:00 [INF] Request finished GET /api/chats - 200 in 20.8590ms
+2025-09-05 20:32:33.515 -03:00 [INF] Request starting GET /api/health
+2025-09-05 20:32:33.515 -03:00 [INF] Request finished GET /api/health - 200 in 0.4020ms
+2025-09-05 20:32:33.523 -03:00 [INF] Request finished GET /whatsappHub - 101 in 4390.8260ms
+2025-09-05 20:32:33.545 -03:00 [INF] Request starting GET /api/health
+2025-09-05 20:32:33.545 -03:00 [INF] Request finished GET /api/health - 200 in 0.5860ms
+2025-09-05 20:32:33.560 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 20:32:33.567 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 7.1620ms
+2025-09-05 20:32:33.749 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 20:32:33.751 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 1.6110ms
+2025-09-05 20:32:33.766 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 20:32:33.825 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 20:32:35.871 -03:00 [INF] Request starting GET /api/health
+2025-09-05 20:32:35.873 -03:00 [INF] Request finished GET /api/health - 200 in 1.4190ms
+2025-09-05 20:32:35.877 -03:00 [INF] Request starting GET /api/chats/chat_1757115155794_jzi4s01bk/messages
+2025-09-05 20:32:35.883 -03:00 [INF] Request finished GET /whatsappHub - 101 in 2058.6030ms
+2025-09-05 20:32:35.954 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 20:32:35.955 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 1.3940ms
+2025-09-05 20:32:35.991 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 20:32:35.953 -03:00 [INF] 🔍 Buscando mensagens para ID: chat_1757115155794_jzi4s01bk
+2025-09-05 20:32:36.072 -03:00 [INF] 📄 Busca por ContactPhoneE164 (chat_1757115155794_jzi4s01bk): Não encontrado
+2025-09-05 20:32:36.140 -03:00 [INF] 📄 Busca por número normalizado (551757115155794401): Não encontrado
+2025-09-05 20:32:36.144 -03:00 [WRN] ❌ Chat não encontrado para ID: chat_1757115155794_jzi4s01bk
+2025-09-05 20:32:36.211 -03:00 [INF] Request finished GET /api/chats/chat_1757115155794_jzi4s01bk/messages - 404 in 334.1010ms
+2025-09-05 20:32:36.219 -03:00 [INF] Request starting GET /api/chats/chat_1757115155794_jzi4s01bk/messages
+2025-09-05 20:32:36.223 -03:00 [INF] 🔍 Buscando mensagens para ID: chat_1757115155794_jzi4s01bk
+2025-09-05 20:32:36.246 -03:00 [INF] 📄 Busca por ContactPhoneE164 (chat_1757115155794_jzi4s01bk): Não encontrado
+2025-09-05 20:32:36.254 -03:00 [INF] 📄 Busca por número normalizado (551757115155794401): Não encontrado
+2025-09-05 20:32:36.257 -03:00 [WRN] ❌ Chat não encontrado para ID: chat_1757115155794_jzi4s01bk
+2025-09-05 20:32:36.257 -03:00 [INF] Request finished GET /api/chats/chat_1757115155794_jzi4s01bk/messages - 404 in 37.6540ms
+2025-09-05 20:32:37.671 -03:00 [INF] Request starting POST /api/attendances/chat_1757115155794_jzi4s01bk/step
+2025-09-05 20:32:37.739 -03:00 [INF] Request finished POST /api/attendances/chat_1757115155794_jzi4s01bk/step - 400 in 67.5070ms
+2025-09-05 20:32:38.705 -03:00 [INF] Request starting POST /api/attendances/chat_1757115155794_jzi4s01bk/step
+2025-09-05 20:32:38.820 -03:00 [INF] Request finished POST /api/attendances/chat_1757115155794_jzi4s01bk/step - 400 in 115.0760ms
+2025-09-05 20:32:39.527 -03:00 [INF] Request finished GET /whatsappHub - 101 in 3535.7860ms
+2025-09-05 20:32:39.584 -03:00 [INF] Request finished GET /whatsappHub - 101 in 10510.5480ms
+2025-09-05 20:32:52.515 -03:00 [INF] Request finished GET /whatsappHub - 101 in 18746.0130ms
+2025-09-05 20:32:52.518 -03:00 [INF] Request finished GET /whatsappHub - 101 in 23471.6710ms
+2025-09-05 20:32:52.518 -03:00 [INF] Request finished GET /whatsappHub - 101 in 23540.1140ms
+2025-09-05 20:32:56.708 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:32:56.718 -03:00 [INF] Request starting GET /api/whatsapp/queue/metrics
+2025-09-05 20:32:56.721 -03:00 [INF] Request starting GET /api/whatsapp/conversations
+2025-09-05 20:32:56.750 -03:00 [INF] Request finished GET /api/whatsapp/queue/metrics - 404 in 31.6550ms
+2025-09-05 20:32:56.753 -03:00 [INF] Request finished GET /api/whatsapp/conversations - 404 in 32.0180ms
+2025-09-05 20:32:56.773 -03:00 [INF] Request starting GET /api/whatsapp/queue/metrics
+2025-09-05 20:32:56.774 -03:00 [INF] Request finished GET /api/whatsapp/queue/metrics - 404 in 0.1820ms
+2025-09-05 20:32:56.789 -03:00 [INF] Request starting GET /api/whatsapp/conversations
+2025-09-05 20:32:56.789 -03:00 [INF] Request finished GET /api/whatsapp/conversations - 404 in 0.1720ms
+2025-09-05 20:32:58.217 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-05 20:32:58.218 -03:00 [INF] Request starting GET /api/health
+2025-09-05 20:32:58.223 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:32:58.218 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:32:58.226 -03:00 [INF] Request starting GET /api/chats
+2025-09-05 20:32:58.666 -03:00 [INF] Request finished GET /api/health - 200 in 448.1930ms
+2025-09-05 20:32:58.854 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 20:32:58.865 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 20:32:58.869 -03:00 [INF] Request starting GET /api/health
+2025-09-05 20:32:58.903 -03:00 [INF] Request finished GET /api/health - 200 in 34.6800ms
+2025-09-05 20:32:58.907 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 2198.6550ms
+2025-09-05 20:32:58.908 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 689.9720ms
+2025-09-05 20:32:59.001 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:32:59.031 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:32:59.036 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 20:32:59.136 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 20:32:59.156 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 154.2410ms
+2025-09-05 20:32:59.238 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:32:59.248 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 394.1670ms
+2025-09-05 20:32:59.251 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 385.9340ms
+2025-09-05 20:32:59.253 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 116.1400ms
+2025-09-05 20:32:59.267 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 1044.5350ms
+2025-09-05 20:32:59.356 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:32:59.276 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 240.5000ms
+2025-09-05 20:32:59.536 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 20:32:59.583 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 552.2660ms
+2025-09-05 20:32:59.755 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 517.0480ms
+2025-09-05 20:32:59.761 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 20:32:59.798 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 442.8760ms
+2025-09-05 20:32:59.803 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:32:59.966 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 20:32:59.968 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 20:32:59.976 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 172.9540ms
+2025-09-05 20:32:59.984 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:32:59.987 -03:00 [INF] Request finished GET /api/chats - 200 in 1760.6430ms
+2025-09-05 20:32:59.993 -03:00 [INF] Request starting GET /api/chats
+2025-09-05 20:33:00.012 -03:00 [INF] Request starting GET /api/health
+2025-09-05 20:33:00.016 -03:00 [INF] Request finished GET /api/health - 200 in 3.8370ms
+2025-09-05 20:33:00.040 -03:00 [INF] Request finished GET /whatsappHub - 101 in 72.2930ms
+2025-09-05 20:33:00.041 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 20:33:00.043 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 1.3010ms
+2025-09-05 20:33:00.053 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 69.5360ms
+2025-09-05 20:33:00.059 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:33:00.065 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 20:33:00.144 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 85.0440ms
+2025-09-05 20:33:00.159 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:33:00.184 -03:00 [INF] Request finished GET /api/chats - 200 in 190.6270ms
+2025-09-05 20:33:00.209 -03:00 [INF] Request starting GET /api/health
+2025-09-05 20:33:00.216 -03:00 [INF] Request finished GET /api/health - 200 in 6.1670ms
+2025-09-05 20:33:00.216 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 1998.8350ms
+2025-09-05 20:33:00.217 -03:00 [INF] Request finished GET /whatsappHub - 101 in 152.2350ms
+2025-09-05 20:33:00.220 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 60.8830ms
+2025-09-05 20:33:00.226 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:33:00.227 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-05 20:33:00.239 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 20:33:00.240 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.9720ms
+2025-09-05 20:33:00.249 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 23.8770ms
+2025-09-05 20:33:00.273 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 45.5750ms
+2025-09-05 20:33:00.399 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 20:33:08.048 -03:00 [INF] Request finished GET /whatsappHub - 101 in 7648.0630ms
+2025-09-05 20:33:08.062 -03:00 [INF] Request starting GET /api/chats/chat_1757115187774_l2h31a4w0/messages
+2025-09-05 20:33:08.062 -03:00 [INF] Request starting GET /api/health
+2025-09-05 20:33:08.102 -03:00 [INF] Request finished GET /api/health - 200 in 39.9310ms
+2025-09-05 20:33:08.119 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 20:33:08.152 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 32.3640ms
+2025-09-05 20:33:08.150 -03:00 [INF] 🔍 Buscando mensagens para ID: chat_1757115187774_l2h31a4w0
+2025-09-05 20:33:08.186 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 20:33:08.389 -03:00 [INF] 📄 Busca por ContactPhoneE164 (chat_1757115187774_l2h31a4w0): Não encontrado
+2025-09-05 20:33:08.428 -03:00 [INF] 📄 Busca por número normalizado (55175711518777423140): Não encontrado
+2025-09-05 20:33:08.428 -03:00 [WRN] ❌ Chat não encontrado para ID: chat_1757115187774_l2h31a4w0
+2025-09-05 20:33:08.457 -03:00 [INF] Request finished GET /api/chats/chat_1757115187774_l2h31a4w0/messages - 404 in 395.1560ms
+2025-09-05 20:33:08.458 -03:00 [INF] Request starting GET /api/chats/chat_1757115187774_l2h31a4w0/messages
+2025-09-05 20:33:08.476 -03:00 [INF] 🔍 Buscando mensagens para ID: chat_1757115187774_l2h31a4w0
+2025-09-05 20:33:08.518 -03:00 [INF] 📄 Busca por ContactPhoneE164 (chat_1757115187774_l2h31a4w0): Não encontrado
+2025-09-05 20:33:08.545 -03:00 [INF] 📄 Busca por número normalizado (55175711518777423140): Não encontrado
+2025-09-05 20:33:08.545 -03:00 [WRN] ❌ Chat não encontrado para ID: chat_1757115187774_l2h31a4w0
+2025-09-05 20:33:08.545 -03:00 [INF] Request finished GET /api/chats/chat_1757115187774_l2h31a4w0/messages - 404 in 86.9580ms
+2025-09-05 20:33:10.498 -03:00 [INF] Request starting POST /api/attendances/chat_1757115187774_l2h31a4w0/step
+2025-09-05 20:33:10.555 -03:00 [INF] Request finished POST /api/attendances/chat_1757115187774_l2h31a4w0/step - 400 in 57.7340ms
+2025-09-05 20:33:11.991 -03:00 [INF] Request starting POST /api/attendances/chat_1757115187774_l2h31a4w0/step
+2025-09-05 20:33:12.090 -03:00 [INF] Request finished POST /api/attendances/chat_1757115187774_l2h31a4w0/step - 400 in 104.7250ms
+2025-09-05 20:33:54.589 -03:00 [INF] Request starting PUT /api/operator-leads/update-tracking
+2025-09-05 20:33:54.974 -03:00 [INF] Request finished PUT /api/operator-leads/update-tracking - 400 in 385.0700ms
+2025-09-05 20:34:32.191 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:34:35.969 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 3780.8470ms
+2025-09-05 20:34:35.987 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:34:36.060 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 72.9230ms
+2025-09-05 20:34:36.064 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:34:36.121 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 56.2540ms
+2025-09-05 20:34:37.165 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:34:37.225 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 59.6600ms
+2025-09-05 20:34:37.225 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:34:37.290 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 64.3670ms
+2025-09-05 20:34:37.291 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:34:37.332 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 40.6240ms
+2025-09-05 20:34:53.649 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:34:53.776 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 126.8060ms
+2025-09-05 20:34:53.779 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:34:53.818 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 38.7370ms
+2025-09-05 20:34:53.820 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:34:53.840 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 20.0980ms
+2025-09-05 20:35:11.359 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:35:11.464 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 104.7240ms
+2025-09-05 20:35:11.485 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:35:11.504 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 18.9520ms
+2025-09-05 20:35:11.510 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:35:11.530 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 20.0480ms
+2025-09-05 20:35:12.587 -03:00 [INF] Request starting PUT /api/operator-leads/update-tracking
+2025-09-05 20:35:13.372 -03:00 [INF] Request finished PUT /api/operator-leads/update-tracking - 400 in 784.0330ms
+2025-09-05 20:36:07.327 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:36:07.809 -03:00 [INF] Request starting PUT /api/operator-leads/update-tracking
+2025-09-05 20:36:08.076 -03:00 [INF] Request finished PUT /api/operator-leads/update-tracking - 400 in 265.9230ms
+2025-09-05 20:36:09.643 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 2319.2450ms
+2025-09-05 20:36:09.689 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:36:09.967 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 278.9020ms
+2025-09-05 20:36:10.108 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:36:10.225 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 116.8660ms
+2025-09-05 20:43:33.637 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:43:33.638 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:43:33.637 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:43:36.078 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 2440.6480ms
+2025-09-05 20:43:36.078 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 2440.7620ms
+2025-09-05 20:43:36.095 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:43:36.110 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 15.3180ms
+2025-09-05 20:43:36.116 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:43:36.147 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 30.6010ms
+2025-09-05 20:43:36.239 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 2601.9920ms
+2025-09-05 20:47:41.323 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:47:44.986 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 3663.3980ms
+2025-09-05 20:47:45.015 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:47:45.053 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 37.9780ms
+2025-09-05 20:47:45.056 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:47:45.065 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 8.6360ms
+2025-09-05 20:57:35.732 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:57:35.732 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:57:35.732 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:57:35.964 -03:00 [INF] Request starting PUT /api/operator-leads/update-tracking
+2025-09-05 20:57:36.038 -03:00 [INF] Request finished PUT /api/operator-leads/update-tracking - 400 in 72.3650ms
+2025-09-05 20:57:37.746 -03:00 [INF] Request starting PUT /api/operator-leads/update-tracking
+2025-09-05 20:57:38.025 -03:00 [INF] Request finished PUT /api/operator-leads/update-tracking - 400 in 277.9670ms
+2025-09-05 20:57:41.267 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 5530.8140ms
+2025-09-05 20:57:41.267 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 5531.3850ms
+2025-09-05 20:57:41.389 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:57:41.527 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 137.3970ms
+2025-09-05 20:57:41.532 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 20:57:41.539 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 7.1950ms
+2025-09-05 20:57:41.578 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 5846.1690ms
+2025-09-05 20:57:49.942 -03:00 [INF] Aplicação está sendo finalizada...
+2025-09-05 20:57:50.155 -03:00 [INF] Request finished GET /whatsappHub - 101 in 1490185.3040ms
+2025-09-05 20:57:50.155 -03:00 [INF] Request finished GET /whatsappHub - 101 in 1490390.3730ms
+2025-09-05 20:57:50.155 -03:00 [INF] Request finished GET /whatsappHub - 101 in 1490615.0000ms
+2025-09-05 20:57:50.154 -03:00 [INF] Request finished GET /whatsappHub - 101 in 1481968.1250ms
+2025-09-05 20:57:50.227 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 20:57:50.227 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 20:57:50.227 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 20:57:50.228 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 20:57:50.239 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 12.5730ms
+2025-09-05 20:57:50.241 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 13.6770ms
+2025-09-05 20:57:50.241 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 12.8620ms
+2025-09-05 20:57:50.242 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 14.6140ms
+2025-09-05 20:57:50.294 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 20:57:50.334 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 20:57:50.372 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 20:57:50.393 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 20:58:20.445 -03:00 [INF] Request finished GET /whatsappHub - 101 in 30109.6300ms
+2025-09-05 20:58:20.446 -03:00 [INF] Request finished GET /whatsappHub - 101 in 30050.2590ms
+2025-09-05 20:58:20.445 -03:00 [INF] Request finished GET /whatsappHub - 101 in 30149.2540ms
+2025-09-05 20:58:20.445 -03:00 [INF] Request finished GET /whatsappHub - 101 in 30071.1800ms
+2025-09-05 20:58:20.634 -03:00 [INF] Desconectando do RabbitMQ...
+2025-09-05 20:58:21.281 -03:00 [INF] Processamento de batch cancelado graciosamente
+2025-09-05 20:58:21.281 -03:00 [INF] RabbitMQ Background Service cancelado graciosamente
+2025-09-05 20:58:21.283 -03:00 [INF] RabbitMQ Background Service finalizado
+2025-09-05 20:58:21.283 -03:00 [INF] Processamento de batch finalizado
+2025-09-05 20:58:21.295 -03:00 [INF] Aplicação foi finalizada
+2025-09-05 21:15:45.643 -03:00 [INF] Iniciando Pregiato API...
+2025-09-05 21:15:45.827 -03:00 [INF] RabbitMQ Background Service iniciado
+2025-09-05 21:15:45.829 -03:00 [INF] Tentando conectar ao RabbitMQ...
+2025-09-05 21:15:47.406 -03:00 [INF] ✅ Conexão RabbitMQ estabelecida com amqps://mouse.rmq5.cloudamqp.com:5671
+2025-09-05 21:15:50.534 -03:00 [INF] 📋 Filas RabbitMQ configuradas
+2025-09-05 21:15:50.747 -03:00 [INF] 🎧 Consumidor de QR codes configurado
+2025-09-05 21:15:50.934 -03:00 [INF] 🎧 Consumidor de mensagens WhatsApp configurado
+2025-09-05 21:15:51.118 -03:00 [INF] 🎧 Consumidor de status da sessão configurado
+2025-09-05 21:15:51.312 -03:00 [INF] 🎧 Consumidor de status de mensagens configurado
+2025-09-05 21:15:51.317 -03:00 [INF] ✅ RabbitMQ conectado e configurado
+2025-09-05 21:15:51.326 -03:00 [INF] Processamento de batch iniciado
+2025-09-05 21:16:04.754 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:16:09.528 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-05 21:16:09.550 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:16:09.566 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:16:09.566 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:16:09.598 -03:00 [INF] Request starting GET /api/health
+2025-09-05 21:16:09.651 -03:00 [INF] Request finished GET /api/health - 200 in 52.7460ms
+2025-09-05 21:16:09.652 -03:00 [INF] Request starting GET /api/health
+2025-09-05 21:16:09.653 -03:00 [INF] Request finished GET /api/health - 200 in 0.5550ms
+2025-09-05 21:16:09.654 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 125.5700ms
+2025-09-05 21:16:09.655 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-05 21:16:09.656 -03:00 [INF] Request starting GET /api/chats
+2025-09-05 21:16:09.659 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 3.5540ms
+2025-09-05 21:16:09.810 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 21:16:09.810 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 21:16:09.846 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 35.5250ms
+2025-09-05 21:16:09.846 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 35.5250ms
+2025-09-05 21:16:09.855 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 21:16:09.856 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 21:16:09.857 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 1.1560ms
+2025-09-05 21:16:09.857 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 1.1200ms
+2025-09-05 21:16:09.870 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 21:16:09.902 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 21:16:09.916 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 21:16:09.929 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 21:16:13.646 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 4080.1750ms
+2025-09-05 21:16:13.646 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 4096.0490ms
+2025-09-05 21:16:13.657 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 8904.2300ms
+2025-09-05 21:16:13.658 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:16:13.658 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:16:13.753 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 95.2040ms
+2025-09-05 21:16:13.802 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 143.8770ms
+2025-09-05 21:16:13.803 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:16:13.825 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 21.8970ms
+2025-09-05 21:16:13.826 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:16:13.828 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 1.8460ms
+2025-09-05 21:16:13.829 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:16:13.830 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 1.6310ms
+2025-09-05 21:16:13.831 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:16:13.833 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 1.8380ms
+2025-09-05 21:16:13.851 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 4284.9720ms
+2025-09-05 21:16:13.855 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:16:13.862 -03:00 [INF] Request finished GET /api/chats - 200 in 4206.2220ms
+2025-09-05 21:16:13.864 -03:00 [INF] Request starting GET /api/chats
+2025-09-05 21:16:13.895 -03:00 [INF] Request finished GET /api/chats - 200 in 30.2630ms
+2025-09-05 21:16:13.910 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 54.6860ms
+2025-09-05 21:16:14.148 -03:00 [INF] Request starting GET /api/health
+2025-09-05 21:16:14.149 -03:00 [INF] Request finished GET /api/health - 200 in 0.6290ms
+2025-09-05 21:16:14.159 -03:00 [INF] Request finished GET /whatsappHub - 101 in 4256.5330ms
+2025-09-05 21:16:14.184 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 21:16:14.185 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.6260ms
+2025-09-05 21:16:14.441 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 21:16:16.381 -03:00 [INF] Request starting GET /api/health
+2025-09-05 21:16:16.390 -03:00 [INF] Request starting GET /api/chats/chat_1757117776313_ysptahvlf/messages
+2025-09-05 21:16:16.392 -03:00 [INF] Request finished GET /api/health - 200 in 11.4250ms
+2025-09-05 21:16:16.392 -03:00 [INF] Request finished GET /whatsappHub - 101 in 1951.1930ms
+2025-09-05 21:16:16.417 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 21:16:16.428 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 10.7690ms
+2025-09-05 21:16:16.440 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 21:16:16.471 -03:00 [INF] 🔍 Buscando mensagens para ID: chat_1757117776313_ysptahvlf
+2025-09-05 21:16:16.562 -03:00 [INF] 📄 Busca por ContactPhoneE164 (chat_1757117776313_ysptahvlf): Não encontrado
+2025-09-05 21:16:16.593 -03:00 [INF] 📄 Busca por número normalizado (551757117776313): Não encontrado
+2025-09-05 21:16:16.593 -03:00 [WRN] ❌ Chat não encontrado para ID: chat_1757117776313_ysptahvlf
+2025-09-05 21:16:16.647 -03:00 [INF] Request finished GET /api/chats/chat_1757117776313_ysptahvlf/messages - 404 in 257.8300ms
+2025-09-05 21:16:16.651 -03:00 [INF] Request starting GET /api/chats/chat_1757117776313_ysptahvlf/messages
+2025-09-05 21:16:16.653 -03:00 [INF] 🔍 Buscando mensagens para ID: chat_1757117776313_ysptahvlf
+2025-09-05 21:16:16.656 -03:00 [INF] 📄 Busca por ContactPhoneE164 (chat_1757117776313_ysptahvlf): Não encontrado
+2025-09-05 21:16:16.658 -03:00 [INF] 📄 Busca por número normalizado (551757117776313): Não encontrado
+2025-09-05 21:16:16.658 -03:00 [WRN] ❌ Chat não encontrado para ID: chat_1757117776313_ysptahvlf
+2025-09-05 21:16:16.659 -03:00 [INF] Request finished GET /api/chats/chat_1757117776313_ysptahvlf/messages - 404 in 7.9490ms
+2025-09-05 21:16:22.236 -03:00 [INF] Request starting POST /api/attendances/chat_1757117776313_ysptahvlf/step
+2025-09-05 21:16:22.367 -03:00 [INF] Request finished POST /api/attendances/chat_1757117776313_ysptahvlf/step - 400 in 131.3730ms
+2025-09-05 21:16:23.397 -03:00 [INF] Request starting POST /api/attendances/chat_1757117776313_ysptahvlf/step
+2025-09-05 21:16:23.409 -03:00 [INF] Request finished POST /api/attendances/chat_1757117776313_ysptahvlf/step - 400 in 11.6910ms
+2025-09-05 21:17:12.607 -03:00 [INF] Request starting PUT /api/operator-leads/update-tracking
+2025-09-05 21:17:12.742 -03:00 [INF] Request finished PUT /api/operator-leads/update-tracking - 400 in 135.2040ms
+2025-09-05 21:17:32.885 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:17:32.998 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 112.2880ms
+2025-09-05 21:17:33.000 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:17:33.007 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 7.3570ms
+2025-09-05 21:17:33.008 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:17:33.013 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 4.4090ms
+2025-09-05 21:20:11.051 -03:00 [INF] Request finished GET /whatsappHub - 101 in 234604.8340ms
+2025-09-05 21:20:11.064 -03:00 [INF] Request finished GET /whatsappHub - 101 in 241148.7470ms
+2025-09-05 21:20:11.051 -03:00 [INF] Request finished GET /whatsappHub - 101 in 241174.5680ms
+2025-09-05 21:20:11.053 -03:00 [INF] Request finished GET /whatsappHub - 101 in 241117.2830ms
+2025-09-05 21:20:14.501 -03:00 [INF] Request starting GET /api/chats
+2025-09-05 21:20:14.502 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-05 21:20:14.501 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:20:14.502 -03:00 [INF] Request starting GET /api/health
+2025-09-05 21:20:14.502 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:20:14.502 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:20:14.630 -03:00 [INF] Request finished GET /api/health - 200 in 127.5380ms
+2025-09-05 21:20:14.655 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 21:20:14.656 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 21:20:14.659 -03:00 [INF] Request starting GET /api/health
+2025-09-05 21:20:14.661 -03:00 [INF] Request finished GET /api/health - 200 in 1.1570ms
+2025-09-05 21:20:14.669 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 21:20:14.677 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 21:20:14.687 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 17.4240ms
+2025-09-05 21:20:14.687 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 31.3720ms
+2025-09-05 21:20:14.687 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 9.5110ms
+2025-09-05 21:20:14.687 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 30.7960ms
+2025-09-05 21:20:14.696 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 21:20:14.730 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 21:20:14.744 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 21:20:14.756 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 21:20:14.776 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 276.2650ms
+2025-09-05 21:20:14.778 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-05 21:20:14.783 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 5.1230ms
+2025-09-05 21:20:15.215 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 714.4280ms
+2025-09-05 21:20:15.223 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:20:15.244 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 743.6720ms
+2025-09-05 21:20:15.246 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:20:15.252 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 751.6050ms
+2025-09-05 21:20:15.252 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 6.0690ms
+2025-09-05 21:20:15.256 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:20:15.256 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:20:15.261 -03:00 [INF] Request finished GET /api/chats - 200 in 760.6950ms
+2025-09-05 21:20:15.261 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 38.3540ms
+2025-09-05 21:20:15.264 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 7.2070ms
+2025-09-05 21:20:15.265 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:20:15.269 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 3.7850ms
+2025-09-05 21:20:15.270 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:20:15.273 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 2.7990ms
+2025-09-05 21:20:15.277 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:20:15.295 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 39.5110ms
+2025-09-05 21:20:15.308 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 31.1450ms
+2025-09-05 21:20:15.311 -03:00 [INF] Request starting GET /api/health
+2025-09-05 21:20:15.312 -03:00 [INF] Request finished GET /api/health - 200 in 0.7950ms
+2025-09-05 21:20:15.315 -03:00 [INF] Request finished GET /whatsappHub - 101 in 571.0210ms
+2025-09-05 21:20:15.361 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 21:20:15.362 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.7990ms
+2025-09-05 21:20:15.441 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 21:20:16.328 -03:00 [INF] Request starting GET /api/health
+2025-09-05 21:20:16.330 -03:00 [INF] Request finished GET /whatsappHub - 101 in 889.0080ms
+2025-09-05 21:20:16.340 -03:00 [INF] Request finished GET /api/health - 200 in 12.0340ms
+2025-09-05 21:20:16.351 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 21:20:16.352 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 1.0630ms
+2025-09-05 21:20:16.359 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 21:20:17.322 -03:00 [INF] Request starting GET /api/health
+2025-09-05 21:20:17.322 -03:00 [INF] Request starting GET /api/chats/chat_1757118017071_fe7hih4d4/messages
+2025-09-05 21:20:17.322 -03:00 [INF] Request finished GET /whatsappHub - 101 in 962.7050ms
+2025-09-05 21:20:17.356 -03:00 [INF] Request finished GET /api/health - 200 in 34.1590ms
+2025-09-05 21:20:17.377 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 21:20:17.387 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 10.0110ms
+2025-09-05 21:20:17.418 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 21:20:17.452 -03:00 [INF] 🔍 Buscando mensagens para ID: chat_1757118017071_fe7hih4d4
+2025-09-05 21:20:17.594 -03:00 [INF] 📄 Busca por ContactPhoneE164 (chat_1757118017071_fe7hih4d4): Não encontrado
+2025-09-05 21:20:17.625 -03:00 [INF] 📄 Busca por número normalizado (551757118017071744): Não encontrado
+2025-09-05 21:20:17.626 -03:00 [WRN] ❌ Chat não encontrado para ID: chat_1757118017071_fe7hih4d4
+2025-09-05 21:20:17.642 -03:00 [INF] Request finished GET /api/chats/chat_1757118017071_fe7hih4d4/messages - 404 in 320.1420ms
+2025-09-05 21:20:17.663 -03:00 [INF] Request starting GET /api/chats/chat_1757118017071_fe7hih4d4/messages
+2025-09-05 21:20:17.668 -03:00 [INF] 🔍 Buscando mensagens para ID: chat_1757118017071_fe7hih4d4
+2025-09-05 21:20:17.676 -03:00 [INF] 📄 Busca por ContactPhoneE164 (chat_1757118017071_fe7hih4d4): Não encontrado
+2025-09-05 21:20:17.686 -03:00 [INF] 📄 Busca por número normalizado (551757118017071744): Não encontrado
+2025-09-05 21:20:17.687 -03:00 [WRN] ❌ Chat não encontrado para ID: chat_1757118017071_fe7hih4d4
+2025-09-05 21:20:17.688 -03:00 [INF] Request finished GET /api/chats/chat_1757118017071_fe7hih4d4/messages - 404 in 25.2160ms
+2025-09-05 21:20:19.393 -03:00 [INF] Request starting POST /api/attendances/chat_1757118017071_fe7hih4d4/step
+2025-09-05 21:20:19.743 -03:00 [INF] Request finished POST /api/attendances/chat_1757118017071_fe7hih4d4/step - 400 in 350.1350ms
+2025-09-05 21:21:00.540 -03:00 [INF] Request starting PUT /api/operator-leads/update-tracking
+2025-09-05 21:21:00.577 -03:00 [INF] Request finished PUT /api/operator-leads/update-tracking - 400 in 36.2590ms
+2025-09-05 21:28:01.173 -03:00 [INF] Aplicação está sendo finalizada...
+2025-09-05 21:28:01.494 -03:00 [INF] Request finished GET /whatsappHub - 101 in 466795.7780ms
+2025-09-05 21:28:01.494 -03:00 [INF] Request finished GET /whatsappHub - 101 in 466763.8720ms
+2025-09-05 21:28:01.494 -03:00 [INF] Request finished GET /whatsappHub - 101 in 466738.0870ms
+2025-09-05 21:28:01.494 -03:00 [INF] Request finished GET /whatsappHub - 101 in 464076.5460ms
+2025-09-05 21:28:01.780 -03:00 [INF] Desconectando do RabbitMQ...
+2025-09-05 21:28:02.309 -03:00 [INF] Processamento de batch cancelado graciosamente
+2025-09-05 21:28:02.309 -03:00 [INF] RabbitMQ Background Service cancelado graciosamente
+2025-09-05 21:28:02.310 -03:00 [INF] RabbitMQ Background Service finalizado
+2025-09-05 21:28:02.309 -03:00 [INF] Processamento de batch finalizado
+2025-09-05 21:28:02.314 -03:00 [INF] Aplicação foi finalizada
+2025-09-05 21:29:59.422 -03:00 [INF] Iniciando Pregiato API...
+2025-09-05 21:30:00.523 -03:00 [INF] RabbitMQ Background Service iniciado
+2025-09-05 21:30:00.558 -03:00 [INF] Tentando conectar ao RabbitMQ...
+2025-09-05 21:30:04.417 -03:00 [INF] ✅ Conexão RabbitMQ estabelecida com amqps://mouse.rmq5.cloudamqp.com:5671
+2025-09-05 21:30:06.020 -03:00 [INF] 📋 Filas RabbitMQ configuradas
+2025-09-05 21:30:06.234 -03:00 [INF] 🎧 Consumidor de QR codes configurado
+2025-09-05 21:30:06.425 -03:00 [INF] 🎧 Consumidor de mensagens WhatsApp configurado
+2025-09-05 21:30:06.618 -03:00 [INF] 🎧 Consumidor de status da sessão configurado
+2025-09-05 21:30:06.808 -03:00 [INF] 🎧 Consumidor de status de mensagens configurado
+2025-09-05 21:30:06.817 -03:00 [INF] ✅ RabbitMQ conectado e configurado
+2025-09-05 21:30:06.819 -03:00 [INF] Processamento de batch iniciado
+2025-09-05 21:30:11.386 -03:00 [INF] Request starting PUT /api/operator-leads/update-tracking
+2025-09-05 21:30:11.668 -03:00 [INF] Request finished PUT /api/operator-leads/update-tracking - 400 in 282.6830ms
+2025-09-05 21:30:30.895 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:30:32.939 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 2044.2260ms
+2025-09-05 21:30:32.946 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:30:32.985 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 39.3680ms
+2025-09-05 21:30:32.987 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:30:33.160 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 172.4040ms
+2025-09-05 21:30:35.326 -03:00 [INF] Request starting PUT /api/operator-leads/update-tracking
+2025-09-05 21:30:35.340 -03:00 [INF] Request finished PUT /api/operator-leads/update-tracking - 400 in 13.8850ms
+2025-09-05 21:30:57.185 -03:00 [INF] Aplicação está sendo finalizada...
+2025-09-05 21:30:57.221 -03:00 [INF] Desconectando do RabbitMQ...
+2025-09-05 21:30:57.661 -03:00 [INF] RabbitMQ Background Service cancelado graciosamente
+2025-09-05 21:30:57.661 -03:00 [INF] Processamento de batch cancelado graciosamente
+2025-09-05 21:30:57.663 -03:00 [INF] RabbitMQ Background Service finalizado
+2025-09-05 21:30:57.663 -03:00 [INF] Processamento de batch finalizado
+2025-09-05 21:30:57.665 -03:00 [INF] Aplicação foi finalizada
+2025-09-05 21:33:17.988 -03:00 [INF] Iniciando Pregiato API...
+2025-09-05 21:33:18.264 -03:00 [INF] RabbitMQ Background Service iniciado
+2025-09-05 21:33:18.297 -03:00 [INF] Tentando conectar ao RabbitMQ...
+2025-09-05 21:33:19.997 -03:00 [INF] ✅ Conexão RabbitMQ estabelecida com amqps://mouse.rmq5.cloudamqp.com:5671
+2025-09-05 21:33:24.009 -03:00 [INF] 📋 Filas RabbitMQ configuradas
+2025-09-05 21:33:24.225 -03:00 [INF] 🎧 Consumidor de QR codes configurado
+2025-09-05 21:33:24.409 -03:00 [INF] 🎧 Consumidor de mensagens WhatsApp configurado
+2025-09-05 21:33:24.590 -03:00 [INF] 🎧 Consumidor de status da sessão configurado
+2025-09-05 21:33:25.035 -03:00 [INF] 🎧 Consumidor de status de mensagens configurado
+2025-09-05 21:33:25.304 -03:00 [INF] ✅ RabbitMQ conectado e configurado
+2025-09-05 21:33:25.314 -03:00 [INF] Processamento de batch iniciado
+2025-09-05 21:33:39.044 -03:00 [INF] Request starting PUT /api/operator-leads/update-tracking
+2025-09-05 21:33:39.776 -03:00 [INF] Request finished PUT /api/operator-leads/update-tracking - 400 in 732.6280ms
+2025-09-05 21:34:11.949 -03:00 [INF] Aplicação está sendo finalizada...
+2025-09-05 21:34:11.975 -03:00 [INF] Desconectando do RabbitMQ...
+2025-09-05 21:34:12.394 -03:00 [INF] Processamento de batch cancelado graciosamente
+2025-09-05 21:34:12.394 -03:00 [INF] RabbitMQ Background Service cancelado graciosamente
+2025-09-05 21:34:12.394 -03:00 [INF] Processamento de batch finalizado
+2025-09-05 21:34:12.394 -03:00 [INF] RabbitMQ Background Service finalizado
+2025-09-05 21:34:12.396 -03:00 [INF] Aplicação foi finalizada
+2025-09-05 21:35:17.561 -03:00 [INF] Iniciando Pregiato API...
+2025-09-05 21:35:17.915 -03:00 [INF] RabbitMQ Background Service iniciado
+2025-09-05 21:35:17.924 -03:00 [INF] Tentando conectar ao RabbitMQ...
+2025-09-05 21:35:20.410 -03:00 [INF] ✅ Conexão RabbitMQ estabelecida com amqps://mouse.rmq5.cloudamqp.com:5671
+2025-09-05 21:35:21.949 -03:00 [INF] 📋 Filas RabbitMQ configuradas
+2025-09-05 21:35:22.145 -03:00 [INF] 🎧 Consumidor de QR codes configurado
+2025-09-05 21:35:22.334 -03:00 [INF] 🎧 Consumidor de mensagens WhatsApp configurado
+2025-09-05 21:35:22.522 -03:00 [INF] 🎧 Consumidor de status da sessão configurado
+2025-09-05 21:35:22.714 -03:00 [INF] 🎧 Consumidor de status de mensagens configurado
+2025-09-05 21:35:22.718 -03:00 [INF] ✅ RabbitMQ conectado e configurado
+2025-09-05 21:35:22.723 -03:00 [INF] Processamento de batch iniciado
+2025-09-05 21:35:30.408 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:35:33.299 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 2895.1440ms
+2025-09-05 21:35:33.326 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:35:33.367 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 40.8410ms
+2025-09-05 21:35:33.373 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:35:33.507 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 134.2130ms
+2025-09-05 21:51:30.283 -03:00 [INF] Iniciando Pregiato API...
+2025-09-05 21:51:30.424 -03:00 [INF] RabbitMQ Background Service iniciado
+2025-09-05 21:51:30.426 -03:00 [INF] Tentando conectar ao RabbitMQ...
+2025-09-05 21:51:32.179 -03:00 [INF] ✅ Conexão RabbitMQ estabelecida com amqps://mouse.rmq5.cloudamqp.com:5671
+2025-09-05 21:51:34.079 -03:00 [INF] 📋 Filas RabbitMQ configuradas
+2025-09-05 21:51:34.297 -03:00 [INF] 🎧 Consumidor de QR codes configurado
+2025-09-05 21:51:34.481 -03:00 [INF] 🎧 Consumidor de mensagens WhatsApp configurado
+2025-09-05 21:51:34.665 -03:00 [INF] 🎧 Consumidor de status da sessão configurado
+2025-09-05 21:51:34.855 -03:00 [INF] 🎧 Consumidor de status de mensagens configurado
+2025-09-05 21:51:34.856 -03:00 [INF] ✅ RabbitMQ conectado e configurado
+2025-09-05 21:51:34.859 -03:00 [INF] Processamento de batch iniciado
+2025-09-05 21:52:11.551 -03:00 [INF] Request starting PUT /api/operator-leads/update-tracking
+2025-09-05 21:52:18.242 -03:00 [INF] Request finished PUT /api/operator-leads/update-tracking - 200 in 6689.4620ms
+2025-09-05 21:52:34.406 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:52:34.406 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:52:34.406 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:52:35.820 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 1413.8530ms
+2025-09-05 21:52:36.350 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 1943.9850ms
+2025-09-05 21:52:36.350 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 1944.2220ms
+2025-09-05 21:52:36.366 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:52:36.459 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 92.5290ms
+2025-09-05 21:52:36.462 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:52:36.468 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 5.5680ms
+2025-09-05 21:52:46.481 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:52:46.566 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 85.0020ms
+2025-09-05 21:52:46.568 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:52:46.575 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 7.5660ms
+2025-09-05 21:52:46.579 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:52:46.603 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 24.3120ms
+2025-09-05 21:53:32.763 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:53:33.934 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 1171.0990ms
+2025-09-05 21:53:33.970 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:53:34.041 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 70.9190ms
+2025-09-05 21:53:34.046 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:53:34.084 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 38.4670ms
+2025-09-05 21:55:22.690 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:55:23.116 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 426.9560ms
+2025-09-05 21:55:23.121 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:55:23.157 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 36.5660ms
+2025-09-05 21:55:23.163 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:55:23.184 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 21.5960ms
+2025-09-05 21:55:27.861 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-05 21:55:27.901 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:55:27.904 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:55:27.908 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:55:27.917 -03:00 [INF] Request starting GET /api/chats
+2025-09-05 21:55:27.917 -03:00 [INF] Request starting GET /api/health
+2025-09-05 21:55:27.987 -03:00 [INF] Request finished GET /api/health - 200 in 69.3260ms
+2025-09-05 21:55:27.989 -03:00 [INF] Request starting GET /api/health
+2025-09-05 21:55:27.991 -03:00 [INF] Request finished GET /api/health - 200 in 1.1730ms
+2025-09-05 21:55:28.157 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 21:55:28.165 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 21:55:28.172 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 21:55:28.182 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 21:55:28.205 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 344.3230ms
+2025-09-05 21:55:28.209 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-05 21:55:28.218 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 9.3050ms
+2025-09-05 21:55:28.222 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 40.9290ms
+2025-09-05 21:55:28.222 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 65.4190ms
+2025-09-05 21:55:28.222 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 57.5900ms
+2025-09-05 21:55:28.222 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 50.6250ms
+2025-09-05 21:55:28.252 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 21:55:28.310 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 21:55:28.328 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 21:55:28.336 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 434.9900ms
+2025-09-05 21:55:28.337 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 433.6540ms
+2025-09-05 21:55:28.343 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:55:28.348 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 21:55:28.350 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:55:28.373 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 30.7320ms
+2025-09-05 21:55:28.374 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 24.1990ms
+2025-09-05 21:55:28.378 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:55:28.388 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 10.3040ms
+2025-09-05 21:55:28.403 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:55:28.438 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 34.5800ms
+2025-09-05 21:55:28.442 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:55:28.456 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 13.9010ms
+2025-09-05 21:55:28.461 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:55:28.494 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 32.6500ms
+2025-09-05 21:55:28.616 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 707.5880ms
+2025-09-05 21:55:28.622 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:55:28.689 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 67.3110ms
+2025-09-05 21:55:29.486 -03:00 [INF] Request finished GET /api/chats - 200 in 1569.7360ms
+2025-09-05 21:55:29.513 -03:00 [INF] Request starting GET /api/health
+2025-09-05 21:55:29.514 -03:00 [INF] Request finished GET /api/health - 200 in 0.8200ms
+2025-09-05 21:55:29.520 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 21:55:29.521 -03:00 [INF] Request finished GET /whatsappHub - 101 in 1269.2190ms
+2025-09-05 21:55:29.521 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 1.0880ms
+2025-09-05 21:55:29.527 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 21:55:29.917 -03:00 [INF] Request starting GET /api/health
+2025-09-05 21:55:29.918 -03:00 [INF] Request finished GET /api/health - 200 in 1.2510ms
+2025-09-05 21:55:29.919 -03:00 [INF] Request finished GET /whatsappHub - 101 in 392.3410ms
+2025-09-05 21:55:29.925 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 21:55:29.926 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.6110ms
+2025-09-05 21:55:29.930 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 21:55:52.359 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:55:53.311 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 952.3670ms
+2025-09-05 21:55:53.323 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:55:53.381 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 57.9870ms
+2025-09-05 21:55:53.395 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:55:53.581 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 185.8510ms
+2025-09-05 21:57:05.597 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:57:07.271 -03:00 [INF] Request finished GET /whatsappHub - 101 in 98960.5220ms
+2025-09-05 21:57:07.271 -03:00 [INF] Request finished GET /whatsappHub - 101 in 97341.4940ms
+2025-09-05 21:57:07.271 -03:00 [INF] Request finished GET /whatsappHub - 101 in 98922.5060ms
+2025-09-05 21:57:07.338 -03:00 [INF] Request finished GET /whatsappHub - 101 in 99008.6710ms
+2025-09-05 21:57:08.489 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 2891.9620ms
+2025-09-05 21:57:10.955 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-05 21:57:10.956 -03:00 [INF] Request starting GET /api/chats
+2025-09-05 21:57:10.954 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:57:10.956 -03:00 [INF] Request starting GET /api/health
+2025-09-05 21:57:10.956 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:57:10.954 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:57:11.140 -03:00 [INF] Request finished GET /api/health - 200 in 185.6700ms
+2025-09-05 21:57:11.224 -03:00 [INF] Request starting GET /api/health
+2025-09-05 21:57:11.228 -03:00 [INF] Request finished GET /api/health - 200 in 3.8690ms
+2025-09-05 21:57:11.229 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 21:57:11.229 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 21:57:11.245 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 21:57:11.309 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 80.2900ms
+2025-09-05 21:57:11.309 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 63.7300ms
+2025-09-05 21:57:11.309 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 80.5200ms
+2025-09-05 21:57:11.322 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 21:57:11.323 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 21:57:11.323 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.7200ms
+2025-09-05 21:57:11.380 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 21:57:11.420 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 21:57:11.461 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 21:57:11.997 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 1042.4520ms
+2025-09-05 21:57:12.003 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 1048.9530ms
+2025-09-05 21:57:12.007 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 1053.5340ms
+2025-09-05 21:57:12.140 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:57:12.146 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:57:12.147 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-05 21:57:12.206 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 65.4000ms
+2025-09-05 21:57:12.210 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 62.7540ms
+2025-09-05 21:57:12.218 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 71.7230ms
+2025-09-05 21:57:12.221 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:57:12.252 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 31.0900ms
+2025-09-05 21:57:12.256 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:57:12.260 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 1305.5100ms
+2025-09-05 21:57:12.267 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:57:12.268 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 12.5840ms
+2025-09-05 21:57:12.274 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:57:12.347 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 73.1570ms
+2025-09-05 21:57:12.349 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 81.9760ms
+2025-09-05 21:57:12.359 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 21:57:12.370 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 10.7930ms
+2025-09-05 21:57:12.791 -03:00 [INF] Request finished GET /api/chats - 200 in 1836.4790ms
+2025-09-05 21:57:12.797 -03:00 [INF] Request starting GET /api/chats
+2025-09-05 21:57:12.816 -03:00 [INF] Request starting GET /api/health
+2025-09-05 21:57:12.817 -03:00 [INF] Request finished GET /api/health - 200 in 0.6620ms
+2025-09-05 21:57:12.824 -03:00 [INF] Request finished GET /api/chats - 200 in 27.1650ms
+2025-09-05 21:57:12.830 -03:00 [INF] Request finished GET /whatsappHub - 101 in 1368.7470ms
+2025-09-05 21:57:12.838 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 21:57:12.843 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 5.2190ms
+2025-09-05 21:57:12.849 -03:00 [INF] Request starting GET /api/health
+2025-09-05 21:57:12.850 -03:00 [INF] Request finished GET /api/health - 200 in 0.5810ms
+2025-09-05 21:57:12.860 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 21:57:12.862 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 1.6670ms
+2025-09-05 21:57:12.870 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 22:03:43.330 -03:00 [INF] Aplicação está sendo finalizada...
+2025-09-05 22:03:44.280 -03:00 [INF] Request finished GET /whatsappHub - 101 in 391409.7770ms
+2025-09-05 22:03:44.280 -03:00 [INF] Request finished GET /whatsappHub - 101 in 392899.6590ms
+2025-09-05 22:03:44.280 -03:00 [INF] Request finished GET /whatsappHub - 101 in 392860.4580ms
+2025-09-05 22:03:44.280 -03:00 [INF] Request finished GET /whatsappHub - 101 in 392956.3660ms
+2025-09-05 22:03:44.358 -03:00 [INF] Desconectando do RabbitMQ...
+2025-09-05 22:03:44.781 -03:00 [INF] RabbitMQ Background Service cancelado graciosamente
+2025-09-05 22:03:44.782 -03:00 [INF] Processamento de batch cancelado graciosamente
+2025-09-05 22:03:44.782 -03:00 [INF] RabbitMQ Background Service finalizado
+2025-09-05 22:03:44.782 -03:00 [INF] Processamento de batch finalizado
+2025-09-05 22:03:44.787 -03:00 [INF] Aplicação foi finalizada
+2025-09-05 22:13:06.064 -03:00 [INF] Iniciando Pregiato API...
+2025-09-05 22:13:06.190 -03:00 [INF] RabbitMQ Background Service iniciado
+2025-09-05 22:13:06.191 -03:00 [INF] Tentando conectar ao RabbitMQ...
+2025-09-05 22:13:07.974 -03:00 [INF] ✅ Conexão RabbitMQ estabelecida com amqps://mouse.rmq5.cloudamqp.com:5671
+2025-09-05 22:13:09.938 -03:00 [INF] 📋 Filas RabbitMQ configuradas
+2025-09-05 22:13:10.137 -03:00 [INF] 🎧 Consumidor de QR codes configurado
+2025-09-05 22:13:10.765 -03:00 [INF] 🎧 Consumidor de mensagens WhatsApp configurado
+2025-09-05 22:13:10.965 -03:00 [INF] 🎧 Consumidor de status da sessão configurado
+2025-09-05 22:13:11.153 -03:00 [INF] 🎧 Consumidor de status de mensagens configurado
+2025-09-05 22:13:11.154 -03:00 [INF] ✅ RabbitMQ conectado e configurado
+2025-09-05 22:13:11.158 -03:00 [INF] Processamento de batch iniciado
+2025-09-05 22:14:54.787 -03:00 [INF] Request starting GET /api/chats
+2025-09-05 22:14:54.787 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 22:14:54.787 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-05 22:14:54.786 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 22:14:54.787 -03:00 [INF] Request starting GET /api/health
+2025-09-05 22:14:54.787 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 22:14:56.229 -03:00 [INF] Request finished GET /api/health - 200 in 1928.1660ms
+2025-09-05 22:14:56.389 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 22:14:56.389 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 22:14:56.399 -03:00 [INF] Request starting GET /api/health
+2025-09-05 22:14:56.400 -03:00 [INF] Request finished GET /api/health - 200 in 1.7260ms
+2025-09-05 22:14:56.478 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 22:14:56.478 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 22:14:56.533 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 144.0360ms
+2025-09-05 22:14:56.533 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 144.0360ms
+2025-09-05 22:14:56.533 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 55.3120ms
+2025-09-05 22:14:56.533 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 55.1600ms
+2025-09-05 22:14:56.603 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 22:14:56.697 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 22:14:56.735 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 22:14:56.772 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 22:14:57.304 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 3003.7600ms
+2025-09-05 22:14:57.336 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-05 22:14:57.346 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 9.1480ms
+2025-09-05 22:15:08.849 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 22:15:08.849 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 22:15:14.500 -03:00 [INF] Request finished GET /api/chats - 200 in 20194.0220ms
+2025-09-05 22:15:14.503 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 20202.8300ms
+2025-09-05 22:15:14.503 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 20202.8450ms
+2025-09-05 22:15:14.503 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 5653.9950ms
+2025-09-05 22:15:14.503 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 5655.3440ms
+2025-09-05 22:15:14.510 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 20205.5810ms
+2025-09-05 22:15:15.194 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 22:15:15.195 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 22:15:15.220 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 22:15:15.224 -03:00 [INF] Request starting GET /api/chats
+2025-09-05 22:15:15.194 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 22:15:15.242 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 22:15:16.410 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 1216.1890ms
+2025-09-05 22:15:16.409 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 1188.9320ms
+2025-09-05 22:15:16.409 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 1214.1180ms
+2025-09-05 22:15:16.452 -03:00 [INF] Request starting GET /api/health
+2025-09-05 22:15:16.507 -03:00 [INF] Request finished GET /api/health - 200 in 54.6540ms
+2025-09-05 22:15:16.507 -03:00 [INF] Request finished GET /whatsappHub - 101 in 19810.6010ms
+2025-09-05 22:15:16.518 -03:00 [INF] Request finished GET /api/chats - 200 in 1293.8700ms
+2025-09-05 22:15:16.578 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 1384.9320ms
+2025-09-05 22:15:16.650 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 1408.4290ms
+2025-09-05 22:15:16.941 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 22:15:16.946 -03:00 [INF] Request starting GET /api/health
+2025-09-05 22:15:16.997 -03:00 [INF] Request finished GET /api/health - 200 in 50.7690ms
+2025-09-05 22:15:17.033 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 92.4490ms
+2025-09-05 22:15:17.089 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 22:15:17.089 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.4580ms
+2025-09-05 22:15:17.207 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 22:15:42.367 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 22:15:49.023 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 6659.2370ms
+2025-09-05 22:15:49.071 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 22:15:52.024 -03:00 [WRN] As of ""2025-09-06T01:15:51.2226100+00:00"", the heartbeat has been running for ""00:00:01.5978502"" which is longer than ""00:00:01"". This could be caused by thread pool starvation.
+2025-09-05 22:15:52.137 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 3062.6280ms
+2025-09-05 22:15:52.211 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 22:15:52.865 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 653.2390ms
+2025-09-05 22:16:30.727 -03:00 [INF] Request finished GET /whatsappHub - 101 in 93955.1360ms
+2025-09-05 22:16:30.727 -03:00 [INF] Request finished GET /whatsappHub - 101 in 93992.1040ms
+2025-09-05 22:16:30.727 -03:00 [INF] Request finished GET /whatsappHub - 101 in 73520.1980ms
+2025-09-05 22:16:30.727 -03:00 [INF] Request finished GET /whatsappHub - 101 in 94124.5620ms
+2025-09-05 22:16:34.663 -03:00 [INF] Request starting GET /api/health
+2025-09-05 22:16:34.663 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-05 22:16:34.663 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 22:16:34.663 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 22:16:34.663 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 22:16:34.664 -03:00 [INF] Request starting GET /api/chats
+2025-09-05 22:16:34.667 -03:00 [INF] Request finished GET /api/health - 200 in 4.6540ms
+2025-09-05 22:16:34.668 -03:00 [INF] Request starting GET /api/health
+2025-09-05 22:16:34.669 -03:00 [INF] Request finished GET /api/health - 200 in 0.3790ms
+2025-09-05 22:16:34.688 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 22:16:34.689 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 1.0830ms
+2025-09-05 22:16:34.689 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 22:16:34.690 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.9490ms
+2025-09-05 22:16:34.692 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 22:16:34.692 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 22:16:34.692 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.2930ms
+2025-09-05 22:16:34.692 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.2850ms
+2025-09-05 22:16:34.695 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 22:16:34.708 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 45.2120ms
+2025-09-05 22:16:34.709 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 22:16:34.709 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-05 22:16:34.713 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 3.3720ms
+2025-09-05 22:16:34.721 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 22:16:34.733 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 22:16:35.228 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 564.8900ms
+2025-09-05 22:16:35.228 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 564.8080ms
+2025-09-05 22:16:35.228 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 565.0080ms
+2025-09-05 22:16:35.229 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 22:16:35.229 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 22:16:35.229 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 22:16:35.232 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 2.5890ms
+2025-09-05 22:16:35.232 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 2.6770ms
+2025-09-05 22:16:35.232 -03:00 [INF] Request finished GET /api/chats - 200 in 568.2990ms
+2025-09-05 22:16:35.234 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 22:16:35.235 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 5.9140ms
+2025-09-05 22:16:35.236 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 2.2300ms
+2025-09-05 22:16:35.237 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 22:16:35.240 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 2.6090ms
+2025-09-05 22:16:35.241 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 22:16:35.244 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 2.7470ms
+2025-09-05 22:16:35.245 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-05 22:16:35.247 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 2.5950ms
+2025-09-05 22:16:35.258 -03:00 [INF] Request starting GET /api/health
+2025-09-05 22:16:35.259 -03:00 [INF] Request finished GET /api/health - 200 in 0.3340ms
+2025-09-05 22:16:35.260 -03:00 [INF] Request finished GET /whatsappHub - 101 in 526.6790ms
+2025-09-05 22:16:35.263 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 22:16:35.263 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.4620ms
+2025-09-05 22:16:35.284 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-05 22:16:37.296 -03:00 [INF] Request finished GET /whatsappHub - 101 in 2011.3650ms
+2025-09-05 22:16:37.296 -03:00 [INF] Request starting GET /api/health
+2025-09-05 22:16:37.296 -03:00 [INF] Request finished GET /api/health - 200 in 0.3000ms
+2025-09-05 22:16:37.302 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-05 22:16:37.302 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.3560ms
+2025-09-05 22:16:37.304 -03:00 [INF] Request starting GET /whatsappHub
