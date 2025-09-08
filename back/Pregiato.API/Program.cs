@@ -90,6 +90,8 @@ builder.Services.AddScoped<IOperatorLeadsService, Pregiato.Application.Services.
 
 // Serviços de resiliência
 builder.Services.AddScoped<IEmojiResilienceService, EmojiResilienceService>();
+builder.Services.AddSingleton<IResilienceService, ResilienceService>();
+builder.Services.AddHostedService<ResilienceService>(provider => (ResilienceService)provider.GetRequiredService<IResilienceService>());
 
 // Clerk Authentication Services
 builder.Services.AddScoped<IClerkAuthService, ClerkAuthService>();
@@ -152,6 +154,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("AllowAll");
+
+// Middleware de resiliência (antes da autenticação)
+app.UseResilience();
 
 // Clerk Authentication Middleware
 app.UseClerkAuthentication();

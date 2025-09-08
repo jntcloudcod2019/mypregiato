@@ -13,6 +13,26 @@
             <param name="isGroup">Se é um ID de grupo</param>
             <returns>Número normalizado</returns>
         </member>
+        <member name="T:Pregiato.API.Controllers.HealthController">
+            <summary>
+            Controller para monitoramento de saúde dos serviços
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.HealthController.GetHealth">
+            <summary>
+            Verifica o status de saúde geral da API
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.HealthController.GetDetailedHealth">
+            <summary>
+            Verifica o status detalhado de todos os serviços
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.HealthController.ForceHealthCheck">
+            <summary>
+            Força a verificação de saúde de todos os serviços
+            </summary>
+        </member>
         <member name="M:Pregiato.API.Controllers.TalentsController.GetTalents(System.Int32,System.Int32,System.String,System.String,System.Boolean)">
             <summary>
             Obtém todos os talentos com paginação
@@ -41,6 +61,21 @@
         <member name="M:Pregiato.API.Controllers.TalentsController.CheckTalentExists(System.String,System.String)">
             <summary>
             Verifica se um talento existe por email ou documento
+            </summary>
+        </member>
+        <member name="T:Pregiato.API.Middleware.ErrorResponse">
+            <summary>
+            Classe para padronizar respostas de erro
+            </summary>
+        </member>
+        <member name="T:Pregiato.API.Middleware.ResilienceMiddleware">
+            <summary>
+            Middleware que intercepta exceções e aplica resiliência automática
+            </summary>
+        </member>
+        <member name="T:Pregiato.API.Middleware.ResilienceMiddlewareExtensions">
+            <summary>
+            Extensão para registrar o middleware de resiliência
             </summary>
         </member>
         <member name="T:Pregiato.API.Services.ChatHelper">
@@ -160,6 +195,16 @@
             Adiciona uma mensagem a uma conversa
             </summary>
         </member>
+        <member name="M:Pregiato.API.Services.RabbitBackgroundService.TestConnectionAsync">
+            <summary>
+            Testa a conectividade do RabbitMQ para o serviço de resiliência
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.RabbitBackgroundService.ReconnectAsync">
+            <summary>
+            Reconecta ao RabbitMQ para o serviço de resiliência
+            </summary>
+        </member>
         <member name="M:Pregiato.API.Services.RabbitBackgroundService.CreateCompleteMessageInfo(Pregiato.API.Services.WhatsAppMessage,System.String)">
             <summary>
             Cria MessageInfo COMPLETO conforme estrutura do exemplo JSON
@@ -201,6 +246,66 @@
         <member name="T:Pregiato.API.Services.ContentTypeHelper">
             <summary>
             Converte tipos de conteúdo longos para versões curtas que cabem no banco
+            </summary>
+        </member>
+        <member name="T:Pregiato.API.Services.ResilienceService">
+            <summary>
+            Serviço de resiliência que monitora e recupera automaticamente falhas de infraestrutura
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ResilienceService.PerformHealthChecks">
+            <summary>
+            Executa verificações de saúde de todos os serviços críticos
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ResilienceService.CheckDatabaseHealth">
+            <summary>
+            Verifica a saúde do banco de dados
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ResilienceService.CheckRabbitMQHealth">
+            <summary>
+            Verifica a saúde do RabbitMQ
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ResilienceService.RecoverDatabaseConnection">
+            <summary>
+            Recupera a conexão do banco de dados
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ResilienceService.RecoverRabbitMQConnection">
+            <summary>
+            Recupera a conexão do RabbitMQ
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ResilienceService.ExecuteWithResilienceAsync``1(System.Func{System.Threading.Tasks.Task{``0}},System.String,System.Threading.CancellationToken)">
+            <summary>
+            Executa uma operação com resiliência automática
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ResilienceService.ExecuteWithResilienceAsync(System.Func{System.Threading.Tasks.Task},System.String,System.Threading.CancellationToken)">
+            <summary>
+            Executa uma operação sem retorno com resiliência automática
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ResilienceService.IsRecoverableException(System.Exception)">
+            <summary>
+            Verifica se uma exceção é recuperável
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ResilienceService.IsDatabaseException(System.Exception)">
+            <summary>
+            Verifica se é uma exceção de banco de dados
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ResilienceService.IsRabbitMQException(System.Exception)">
+            <summary>
+            Verifica se é uma exceção do RabbitMQ
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ResilienceService.GetHealthStatus">
+            <summary>
+            Obtém o status de saúde dos serviços
             </summary>
         </member>
     </members>

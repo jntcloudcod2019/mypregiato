@@ -112,7 +112,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           chat.messages.map((message, index) => (
             <div
               key={index}
-              className={`flex ${message.isFromMe ? 'justify-end' : 'justify-start'}`}
+              className={`flex ${message.fromMe ? 'justify-end' : 'justify-start'}`}
             >
               <div
                 className={`max-w-[70%] rounded-lg px-3 py-2 ${

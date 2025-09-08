@@ -533,6 +533,66 @@ namespace Pregiato.API.Services
 
         public bool IsConnected => _connected && _connection?.IsOpen == true;
 
+        /// <summary>
+        /// Testa a conectividade do RabbitMQ para o serviço de resiliência
+        /// </summary>
+        public async Task TestConnectionAsync()
+        {
+            if (!IsConnected)
+                throw new InvalidOperationException("RabbitMQ não está conectado");
+
+            try
+            {
+                // Teste simples de conectividade
+                if (_channel?.IsOpen != true)
+                    throw new InvalidOperationException("Canal RabbitMQ não está aberto");
+
+                await Task.CompletedTask;
+            }
+            catch (Exception)
+            {
+                _connected = false;
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Reconecta ao RabbitMQ para o serviço de resiliência
+        /// </summary>
+        public async Task ReconnectAsync()
+        {
+            _logger.LogInformation("🔄 Iniciando reconexão ao RabbitMQ...");
+
+            // Fechar conexões existentes
+            try
+            {
+                _channel?.Close();
+                _connection?.Close();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Erro ao fechar conexões existentes durante reconexão");
+            }
+
+            _connected = false;
+            _channel = null;
+            _connection = null;
+
+            // Tentar reconectar
+            await ConnectToRabbitMQAsync();
+
+            if (_connected && _connection?.IsOpen == true)
+            {
+                SetupQueues();
+                SetupConsumers();
+                _logger.LogInformation("✅ Reconexão ao RabbitMQ bem-sucedida");
+            }
+            else
+            {
+                throw new InvalidOperationException("Falha na reconexão ao RabbitMQ");
+            }
+        }
+
         // Método para enviar mensagens
         public async Task PublishAsync<T>(string routingKey, T message, CancellationToken cancellationToken = default)
         {
@@ -1233,8 +1293,6 @@ namespace Pregiato.API.Services
                                 _logger.LogError(ex, "❌ Erro ao processar mídia: {Filename}", message.attachment.fileName);
                             }
                         }
-
-                        // === DEBUG DETALHADO PARA MENSAGENS DE ÁUDIO ===
                        
 
                         // Criar MessageInfo COMPLETO conforme exemplo JSON

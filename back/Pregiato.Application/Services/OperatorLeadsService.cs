@@ -8,22 +8,26 @@ namespace Pregiato.Application.Services
     public class OperatorLeadsService : IOperatorLeadsService
     {
         private readonly IOperatorLeadsRepository _repository;
+        private readonly IResilienceService _resilienceService;
 
-        public OperatorLeadsService(IOperatorLeadsRepository repository)
+        public OperatorLeadsService(
+            IOperatorLeadsRepository repository,
+            IResilienceService resilienceService)
         {
             _repository = repository;
+            _resilienceService = resilienceService;
         }
 
         public async Task<bool> AllocateLeadsAsync(BulkOperatorLeadsDto bulkDto)
         {
+            var allLeads = new List<OperatorLeads>();
+            
             try
             {
                 if (bulkDto.Operators == null || !bulkDto.Operators.Any())
                 {
                     throw new ArgumentException("Lista de operadores não pode estar vazia");
                 }
-
-                var allLeads = new List<OperatorLeads>();
                 
                 foreach (var operatorData in bulkDto.Operators)
                 {
@@ -37,6 +41,7 @@ namespace Pregiato.Application.Services
                         var operatorLead = new OperatorLeads
                         {
                             Id = Guid.NewGuid(),
+                            OperatorId = operatorData.OperatorId,
                             EmailOperator = operatorData.EmailOperator,
                             NameLead = lead.NameLead,
                             PhoneLead = lead.PhoneLead,
@@ -55,31 +60,95 @@ namespace Pregiato.Application.Services
             }
             catch (Exception ex)
             {
-                // Log do erro (implementar com Serilog ou similar)
                 Console.WriteLine($"Erro ao alocar leads em lote: {ex.Message}");
+                
+                // Aplicar resiliência apenas para erros específicos de infraestrutura
+                if (IsInfrastructureError(ex))
+                {
+                    try
+                    {
+                        Console.WriteLine("🔄 Aplicando resiliência para erro de infraestrutura...");
+                        
+                        // Tentar novamente com resiliência
+                        await _resilienceService.ExecuteWithResilienceAsync(async () =>
+                        {
+                            await _repository.AddRangeAsync(allLeads);
+                        }, "AllocateLeadsAsync-Retry");
+                        
+                        Console.WriteLine("✅ Operação recuperada com sucesso via resiliência");
+                        return true;
+                    }
+                    catch (Exception resilienceEx)
+                    {
+                        Console.WriteLine($"❌ Falha na recuperação via resiliência: {resilienceEx.Message}");
+                        throw resilienceEx;
+                    }
+                }
+                
                 throw;
             }
         }
 
+        /// <summary>
+        /// Verifica se o erro é relacionado à infraestrutura (banco, RabbitMQ, etc.)
+        /// </summary>
+        private static bool IsInfrastructureError(Exception ex)
+        {
+            return ex is Microsoft.EntityFrameworkCore.DbUpdateException ||
+                   ex is System.Net.Sockets.SocketException ||
+                   ex is System.TimeoutException ||
+                   ex is System.InvalidOperationException ||
+                   (ex.Message?.Contains("Field") == true && ex.Message?.Contains("doesn't have a default value") == true) ||
+                   (ex.Message?.Contains("Connection") == true && ex.Message?.Contains("database") == true) ||
+                   (ex.Message?.Contains("RabbitMQ") == true) ||
+                   (ex.Message?.Contains("AMQP") == true) ||
+                   (ex.InnerException != null && IsInfrastructureError(ex.InnerException));
+        }
+
         public async Task<bool> AllocateSingleLeadAsync(OperatorLeadsDto dto)
         {
+            var operatorLeads = new OperatorLeads
+            {
+                Id = Guid.NewGuid(),
+                OperatorId = dto.OperatorId,
+                EmailOperator = dto.EmailOperator,
+                NameLead = dto.NameLead,
+                PhoneLead = dto.PhoneLead,
+                CreatedAt = DateTime.UtcNow
+            };
+            
             try
             {
-                var operatorLeads = new OperatorLeads
-                {
-                    Id = Guid.NewGuid(),
-                    EmailOperator = dto.EmailOperator,
-                    NameLead = dto.NameLead,
-                    PhoneLead = dto.PhoneLead,
-                    CreatedAt = DateTime.UtcNow
-                };
-
                 await _repository.AddAsync(operatorLeads);
                 return true;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Erro ao alocar lead individual: {ex.Message}");
+                
+                // Aplicar resiliência apenas para erros específicos de infraestrutura
+                if (IsInfrastructureError(ex))
+                {
+                    try
+                    {
+                        Console.WriteLine("🔄 Aplicando resiliência para erro de infraestrutura...");
+                        
+                        // Tentar novamente com resiliência
+                        await _resilienceService.ExecuteWithResilienceAsync(async () =>
+                        {
+                            await _repository.AddAsync(operatorLeads);
+                        }, "AllocateSingleLeadAsync-Retry");
+                        
+                        Console.WriteLine("✅ Operação recuperada com sucesso via resiliência");
+                        return true;
+                    }
+                    catch (Exception resilienceEx)
+                    {
+                        Console.WriteLine($"❌ Falha na recuperação via resiliência: {resilienceEx.Message}");
+                        throw resilienceEx;
+                    }
+                }
+                
                 throw;
             }
         }

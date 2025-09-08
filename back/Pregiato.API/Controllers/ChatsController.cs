@@ -19,14 +19,16 @@ namespace Pregiato.API.Controllers
         private readonly IHubContext<WhatsAppHub> _hub;
         private readonly RabbitBackgroundService _rabbit;
         private readonly ILogger<ChatsController> _logger;
+        private readonly ConversationService _conversationService;
 
-        public ChatsController(ChatLogService chatService, PregiatoDbContext db, IHubContext<WhatsAppHub> hub, RabbitBackgroundService rabbit, ILogger<ChatsController> logger)
+        public ChatsController(ChatLogService chatService, PregiatoDbContext db, IHubContext<WhatsAppHub> hub, RabbitBackgroundService rabbit, ILogger<ChatsController> logger, ConversationService conversationService)
         {
             _chatService = chatService;
             _db = db;
             _hub = hub;
             _rabbit = rabbit;
             _logger = logger;
+            _conversationService = conversationService;
         }
 
         [HttpGet]
@@ -105,13 +107,13 @@ namespace Pregiato.API.Controllers
                         // DEBUG: Log específico para mensagens de áudio
                         if (message.Type == "audio" || message.Type == "voice")
                         {
-                            _logger.LogInformation("🎵 DEBUG ÁUDIO: Type={Type}, Body_Length={BodyLength}, Body_Preview={BodyPreview}, MediaUrl={MediaUrl}", 
+                            _logger.LogInformation("🎵 DEBUG ÁUDIO: Type={Type}", 
                                 message.Type, message.body?.Length ?? 0, 
                                 message.body?.Length > 50 ? message.body.Substring(0, 50) + "..." : message.body,
                                 message.MediaUrl);
                         }
                         
-                        // ✅ DEBUG: Log do tipo antes da conversão
+                      
                         _logger.LogInformation("🔍 DEBUG TIPO: Original={OriginalType}, Convertido={ConvertedType}", 
                             message.Type, message.Type?.ToLower() ?? "text");
                         
@@ -119,7 +121,7 @@ namespace Pregiato.API.Controllers
                         {
                             id = message.Id,
                             conversationId = chat.Id.ToString(),
-                            direction = message.Direction == "inbound" ? "In" : "Out",
+                            direction = message.Direction == "outbound" ? "Out" : "In", // ✅ CORREÇÃO: outbound = Out, inbound = In
                             type = !string.IsNullOrEmpty(message.Type) ? message.Type.ToLower() : "text", // ✅ SEMPRE string para consistência
                             
                             // DEBUG adicional para tipos
@@ -138,11 +140,11 @@ namespace Pregiato.API.Controllers
                             externalMessageId = message.Id,
                             text = message.body ?? message.Content ?? message.ActualContent ?? "",
                             ts = message.timestamp ?? message.Ts.ToString("O"),
-                            fromMe = message.Direction == "outbound",
+                            fromMe = message.Direction == "outbound", // ✅ CORREÇÃO: outbound = true, inbound = false
                             
                             // CORREÇÃO: Campos adicionais que o frontend espera
                             timestamp = !string.IsNullOrEmpty(message.timestamp) ? DateTime.Parse(message.timestamp) : message.Ts,
-                            isFromMe = message.Direction == "outbound",
+                            isFromMe = message.Direction == "outbound", // ✅ CORREÇÃO: outbound = true, inbound = false
                             
                             // CORREÇÃO CRÍTICA: Para áudio/voice, usar body como dataUrl (base64)
                             attachment = (message.Type == "audio" || message.Type == "voice") && !string.IsNullOrEmpty(message.body) ? new
@@ -180,23 +182,51 @@ namespace Pregiato.API.Controllers
         }
 
         public class SendRequest {
-            public string text { get; set; } = string.Empty;
-            public string clientMessageId { get; set; } = string.Empty;
-            public AttachmentDto? attachment { get; set; }
+            public ContactDto Contact { get; set; } = new();
+            public List<MessageDto> Messages { get; set; } = new();
         }
 
-        public class AttachmentDto {
-            public string dataUrl { get; set; } = string.Empty; // data:mime;base64,...
-            public string mimeType { get; set; } = string.Empty;
+        public class ContactDto {
+            public string Name { get; set; } = string.Empty;
+            public string PhoneE164 { get; set; } = string.Empty;
+            public string? ProfilePic { get; set; }
+        }
+
+        public class MessageDto {
+            public string Id { get; set; } = string.Empty;
+            public string? Content { get; set; }
+            public string body { get; set; } = string.Empty;
+            public string? MediaUrl { get; set; }
+            public string Direction { get; set; } = string.Empty;
+            public string Ts { get; set; } = string.Empty;
+            public string timestamp { get; set; } = string.Empty;
+            public bool IsRead { get; set; }
+            public string Status { get; set; } = string.Empty;
+            public string Type { get; set; } = string.Empty;
+            public string from { get; set; } = string.Empty;
+            public string? mimeType { get; set; }
             public string? fileName { get; set; }
-            public string? mediaType { get; set; } // image | file
+            public int? size { get; set; }
+            public int? duration { get; set; }
+            public string? thumbnail { get; set; }
+            public double? latitude { get; set; }
+            public double? longitude { get; set; }
+            public string? locationAddress { get; set; }
+            public string? contactName { get; set; }
+            public string? contactPhone { get; set; }
+            public string ActualContent { get; set; } = string.Empty;
+            public string ActualTs { get; set; } = string.Empty;
         }
 
         [HttpPost("{id}/send")]
         public async Task<IActionResult> Send(string id, [FromBody] SendRequest req)
         {
-            if (string.IsNullOrWhiteSpace(req.text) || string.IsNullOrWhiteSpace(req.clientMessageId))
-                return BadRequest(new { error = "text e clientMessageId são obrigatórios" });
+            if (req.Contact == null || req.Messages == null || !req.Messages.Any())
+                return BadRequest(new { error = "Contact e Messages são obrigatórios" });
+
+            var message = req.Messages.First();
+            if (string.IsNullOrWhiteSpace(message.Id))
+                return BadRequest(new { error = "Message.Id é obrigatório" });
 
             ChatLog? chat = null;
             
@@ -217,22 +247,65 @@ namespace Pregiato.API.Controllers
                 _logger.LogInformation($"📄 Busca por ContactPhoneE164: {(chat != null ? "Encontrado" : "Não encontrado")}");
             }
             
-            // ✅ REMOVIDO: Criação automática de chat - agora o chat deve existir antes de enviar mensagens
-            
-            if (chat == null) 
+            // ✅ OPÇÃO 1.1: Se chat não existe, criar TODA a estrutura (PRIMEIRA MENSAGEM)
+            if (chat == null)
             {
-                _logger.LogWarning($"❌ Chat não encontrado para ID: {id}");
-                return NotFound();
+                _logger.LogInformation($"🆕 Chat não encontrado para ID: {id} - Criando nova estrutura");
+                
+                // Usar dados do PayloadJson
+                var normalizedPhone = NormalizePhoneE164Br(req.Contact.PhoneE164);
+                var leadName = req.Contact.Name;
+                
+                // Criar Conversation
+                var conversation = await _conversationService.GetOrCreateConversationAsync(
+                    normalizedPhone, 
+                    "frontend", // instanceId diferente do ZapBot
+                    false, // isGroup
+                    leadName
+                );
+                
+                // Criar ChatLog com PayloadJson ESTRUTURAL
+                chat = new ChatLog
+                {
+                    Id = Guid.NewGuid(),
+                    ChatId = conversation.Id, // RELACIONAMENTO CRÍTICO
+                    PhoneNumber = normalizedPhone, // ✅ CAMPO PhoneNumber preenchido
+                    ContactPhoneE164 = normalizedPhone,
+                    Title = leadName,
+                    PayloadJson = JsonSerializer.Serialize(new ChatLogService.ChatPayload
+                    {
+                        Contact = new ChatLogService.ContactInfo
+                        {
+                            Name = $"Chat com {normalizedPhone}",
+                            PhoneE164 = normalizedPhone,
+                            ProfilePic = null
+                        },
+                        Messages = new List<ChatLogService.MessageInfo>() // Lista vazia inicial
+                    }),
+                    UnreadCount = 0,
+                    LastMessageAt = DateTime.UtcNow,
+                    CreatedAt = DateTime.UtcNow
+                };
+                
+                await _db.ChatLogs.AddAsync(chat);
+                await _db.SaveChangesAsync();
+                
+                _logger.LogInformation($"✅ ChatLog criado: {chat.Id} para {normalizedPhone}");
             }
             _logger.LogInformation($"✅ Chat encontrado: {chat.Id}, ChatId: {chat.ChatId}");
 
-            var (updatedChat, msg) = await _chatService.AddOutboundPendingAsync(chat.Id, req.text, req.clientMessageId, DateTime.UtcNow, 
-                req.attachment != null ? new ChatLogService.ChatAttachment { 
-                    DataUrl = req.attachment.dataUrl, 
-                    MimeType = req.attachment.mimeType, 
-                    FileName = req.attachment.fileName, 
-                    MediaType = req.attachment.mediaType 
-                } : null);
+            // Usar dados do PayloadJson para processar a mensagem
+            var messageBody = message.body; // Campo body do PayloadJson (base64 para mídia, texto para texto)
+            var messageType = message.Type;
+            var attachment = !string.IsNullOrEmpty(message.mimeType) ? new ChatLogService.ChatAttachment
+            {
+                DataUrl = message.body, // Base64 da mídia
+                MimeType = message.mimeType,
+                FileName = message.fileName,
+                MediaType = messageType
+            } : null;
+
+            var (updatedChat, msg) = await _chatService.AddOutboundPendingAsync(chat.Id, messageBody, message.Id, DateTime.UtcNow, attachment);
 
             await _hub.Clients.Group("whatsapp").SendAsync("message.outbound", new { chatId = updatedChat.Id, message = msg });
 
@@ -265,17 +338,24 @@ namespace Pregiato.API.Controllers
             var cmd = new
             {
                 command = "send_message",
-                to = toNormalized,
-                isGroup = isGroup,
-                body = req.text,
-                clientMessageId = req.clientMessageId,
+                phone = toNormalized, // ✅ DESTINATÁRIO: Número para onde enviar a mensagem
+                to = toNormalized, // Manter para compatibilidade
+                from = "5511977240565", // ✅ REMETENTE: Número conectado no ZapBot (fixo)
+                body = messageBody, // Campo body do PayloadJson (base64 para mídia, texto para texto)
+                clientMessageId = message.Id,
                 chatId = updatedChat.ChatId,
-                attachment = req.attachment
+                attachment = attachment != null ? new
+                {
+                    dataUrl = attachment.DataUrl,
+                    mimeType = attachment.MimeType,
+                    fileName = attachment.FileName,
+                    mediaType = attachment.MediaType
+                } : null
             };
             
             await _rabbit.PublishAsync("whatsapp.outgoing", cmd);
             
-            return Ok(new { success = true, messageId = req.clientMessageId });
+            return Ok(new { success = true, messageId = message.Id });
         }
         
         // ✅ REMOVIDO: Função ExtractPhoneFromFrontendId - não é mais necessária

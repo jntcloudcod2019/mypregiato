@@ -101,25 +101,28 @@ namespace Pregiato.API.Controllers
         public IActionResult SessionUpdated([FromBody] SessionUpdatedRequest req)
         {
             var current = _rabbit.GetSessionStatus();
-            // Ignorar chamadas repetidas com mesmo estado (somente 1x no início, ou quando houver mudança)
+            
+            // ✅ CORREÇÃO: Sempre atualizar o status, mas logar apenas mudanças significativas
             var isSame = current.sessionConnected == req.sessionConnected
                          && string.Equals(current.connectedNumber ?? string.Empty, req.connectedNumber ?? string.Empty, StringComparison.Ordinal)
                          && current.isFullyValidated == req.isFullyValidated;
 
-            // Se já inicializado e não houve mudança, ignorar (responder OK e não logar)
-            if (_sessionInitialized && isSame)
-            {
-                return Ok(new { success = true, skipped = true });
-            }
-
-            // Atualizar somente quando houver mudança real ou primeira vez
+            // Sempre atualizar o status (ZapBot pode estar corrigindo dados incorretos)
             _rabbit.SetSessionStatus(req.sessionConnected, req.connectedNumber, req.isFullyValidated);
             _sessionInitialized = true;
             _lastSessionUpdateUtc = DateTime.UtcNow;
             
-            // Log apenas quando houver mudança real
-            _logger.LogInformation("📥 Webhook session/updated: connected={Connected} number={Number} validated={Validated} (mudança detectada)", 
-                req.sessionConnected, req.connectedNumber, req.isFullyValidated);
+            // Log apenas quando houver mudança real ou primeira vez
+            if (!_sessionInitialized || !isSame)
+            {
+                _logger.LogInformation("📥 Webhook session/updated: connected={Connected} number={Number} validated={Validated} (mudança detectada)", 
+                    req.sessionConnected, req.connectedNumber, req.isFullyValidated);
+            }
+            else
+            {
+                _logger.LogDebug("📥 Webhook session/updated: connected={Connected} number={Number} validated={Validated} (sem mudança)", 
+                    req.sessionConnected, req.connectedNumber, req.isFullyValidated);
+            }
             
             return Ok(new { success = true, updated = true });
         }

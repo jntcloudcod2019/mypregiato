@@ -257,7 +257,7 @@ export default function HistoricoPage() {
                       <div className="text-sm">{message.body}</div>
                       <div className="text-xs opacity-75 mt-1">
                         {new Date(message.ts).toLocaleString()}
-                      </div>
+                    </div>
                   </div>
                 </div>
               ))}

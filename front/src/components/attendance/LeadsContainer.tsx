@@ -34,7 +34,11 @@ interface LeadsResponse {
   message: string;
 }
 
-export const LeadsContainer: React.FC = () => {
+interface LeadsContainerProps {
+  existingChats?: ChatListItem[];
+}
+
+export const LeadsContainer: React.FC<LeadsContainerProps> = ({ existingChats = [] }) => {
   console.log('🔍 LeadsContainer renderizando...');
   
   const { user } = useUser();
@@ -82,7 +86,17 @@ export const LeadsContainer: React.FC = () => {
   // ✅ FUNÇÃO PARA VERIFICAR SE JÁ EXISTE CHAT COM O MESMO NÚMERO
   const checkExistingChat = async (phoneNumber: string): Promise<ChatListItem | null> => {
     try {
-      // Buscar na lista de chats existentes por número de telefone
+      // ✅ 1. PRIMEIRO: Verificar no estado local (chats já carregados na página)
+      const localExistingChat = existingChats.find((chat: ChatListItem) => 
+        chat.contactPhoneE164 === phoneNumber
+      );
+
+      if (localExistingChat) {
+        console.log('🔍 [LeadsContainer] Chat existente encontrado no estado local:', localExistingChat);
+        return localExistingChat;
+      }
+
+      // ✅ 2. SEGUNDO: Verificar no backend via API
       const response = await fetch('http://localhost:5656/api/chats', {
         method: 'GET',
         headers: {
@@ -96,16 +110,16 @@ export const LeadsContainer: React.FC = () => {
       }
 
       const data = await response.json();
-      const chats = data.items || [];
+      const backendChats = data.items || [];
       
       // Procurar por chat com o mesmo número de telefone
-      const existingChat = chats.find((chat: ChatListItem) => 
+      const backendExistingChat = backendChats.find((chat: ChatListItem) => 
         chat.contactPhoneE164 === phoneNumber
       );
 
-      if (existingChat) {
-        console.log('🔍 [LeadsContainer] Chat existente encontrado:', existingChat);
-        return existingChat;
+      if (backendExistingChat) {
+        console.log('🔍 [LeadsContainer] Chat existente encontrado no backend:', backendExistingChat);
+        return backendExistingChat;
       }
 
       console.log('🔍 [LeadsContainer] Nenhum chat existente encontrado para:', phoneNumber);

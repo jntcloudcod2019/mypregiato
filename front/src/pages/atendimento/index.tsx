@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { unifiedChatApi } from '@/services/conversations-api';
-import { MessageType } from '@/types/message';
+import { MessageType, MessageDirection } from '@/types/message';
 
 // Função para detectar se o texto é apenas base64 de mídia
 const isMediaOnlyContent = (text: string, messageType: MessageType): boolean => {
@@ -84,7 +84,7 @@ const getMessageType = (type?: string | number): MessageType => {
 interface ChatMessageDto {
   id: string;
   externalMessageId?: string;
-  direction: 'in' | 'out';
+  direction: MessageDirection; // Usar enum MessageDirection em vez de strings
   text: string;
   ts: string;
   type?: 'text' | 'image' | 'video' | 'audio' | 'voice' | 'document' | 'sticker' | 'location' | 'contact' | 'system';
@@ -574,7 +574,7 @@ export default function AtendimentoPage() {
     }
     const optimistic: ChatMessageDto = {
       id: clientMessageId,
-      direction: 'out',
+      direction: MessageDirection.Out,
       text,
       status: 'pending',
       ts: new Date().toISOString(),
@@ -583,7 +583,10 @@ export default function AtendimentoPage() {
     } as ChatMessageDto;
     setMessages(prev => [...prev, optimistic]);
     try {
-      await chatsApi.send(selectedChatId, text, clientMessageId, attachment);
+      // Passar o nome do lead e telefone para a API
+      const leadName = activeChat?.title || '';
+      const phoneNumber = activeChat?.contactPhoneE164 || '';
+      await chatsApi.send(phoneNumber, text, clientMessageId, leadName, attachment);
     } catch {
       setMessages(prev => prev.map(m => m.id === clientMessageId ? { ...m, status: 'failed' } : m));
     }
@@ -602,7 +605,7 @@ export default function AtendimentoPage() {
     const clientMessageId = crypto.randomUUID();
     const optimistic: ChatMessageDto = {
       id: clientMessageId,
-      direction: 'out',
+      direction: MessageDirection.Out,
       text: '',
       status: 'pending',
       ts: new Date().toISOString(),
@@ -614,7 +617,10 @@ export default function AtendimentoPage() {
     
     setMessages(prev => [...prev, optimistic]);
     try {
-      await chatsApi.send(selectedChatId!, '', clientMessageId, { dataUrl, mimeType, fileName, mediaType: 'audio' });
+      // Passar o nome do lead e telefone para a API
+      const leadName = activeChat?.title || '';
+      const phoneNumber = activeChat?.contactPhoneE164 || '';
+      await chatsApi.send(phoneNumber, '', clientMessageId, leadName, { dataUrl, mimeType, fileName, mediaType: 'audio' });
       console.log('🎵 [DEBUG] Áudio enviado com sucesso via API');
     } catch (error) {
       console.error('🎵 [DEBUG] Erro ao enviar áudio:', error);
@@ -734,20 +740,27 @@ export default function AtendimentoPage() {
           const id: string | undefined = chat?.id || evt?.chatId;
           
           if (id && chat) {
-            // VERIFICAÇÃO MAIS ROBUSTA: buscar por múltiplos critérios
-            const existingChat = chats.find(c => 
-              c.id === id || 
-              c.contactPhoneE164 === chat.contactPhoneE164 ||
-              (chat.contactPhoneE164 && c.contactPhoneE164 === chat.contactPhoneE164)
-            );
+            // ✅ VERIFICAÇÃO MAIS ROBUSTA
+            const existingChat = chats.find(c => {
+              // Verificar por ID exato
+              if (c.id === id) return true;
+              
+              // Verificar por telefone (normalizado)
+              const normalizedPhone = chat.contactPhoneE164?.replace(/\D/g, '');
+              const existingPhone = c.contactPhoneE164?.replace(/\D/g, '');
+              if (normalizedPhone && existingPhone && normalizedPhone === existingPhone) return true;
+              
+              return false;
+            });
             
             if (existingChat) {
-              console.log('⚠️ Chat JÁ EXISTE! Ignorando chat.created e não criando duplicata:', {
+              console.log('⚠️ Chat JÁ EXISTE! Tratando como chat.updated:', {
                 existingId: existingChat.id,
                 newId: id,
                 phone: chat.contactPhoneE164
               });
-              // NÃO fazer nada - chat já existe, ignora o evento chat.created
+              // ✅ TRATAR COMO ATUALIZAÇÃO em vez de ignorar
+              queueChatPatch(existingChat.id, chat as Partial<ChatListItem>);
               return;
             } else {
               console.log('✅ Realmente é novo chat, criando:', id);
@@ -799,7 +812,7 @@ export default function AtendimentoPage() {
           const chatMessage: ChatMessageDto = {
             id: evt.message.id || crypto.randomUUID(),
             externalMessageId: evt.message.externalMessageId,
-            direction: 'in',
+            direction: MessageDirection.In,
             text: evt.message.text || evt.message.body || '',
             ts: evt.message.ts || evt.message.timestamp || new Date().toISOString(),
             type: (evt.message.type as 'text' | 'image' | 'video' | 'audio' | 'voice' | 'document' | 'sticker' | 'location' | 'contact' | 'system') || 'text',
@@ -864,7 +877,7 @@ export default function AtendimentoPage() {
           const chatMessage: ChatMessageDto = {
             id: msg.id,
             externalMessageId: msg.externalMessageId,
-            direction: 'out',
+            direction: MessageDirection.Out,
             text: msg.text || msg.body || '',
             ts: msg.ts || msg.timestamp || new Date().toISOString(),
             type: (msg.type as 'text' | 'image' | 'video' | 'audio' | 'voice' | 'document' | 'sticker' | 'location' | 'contact' | 'system') || 'text',
@@ -902,7 +915,7 @@ export default function AtendimentoPage() {
           if (!evt?.chatId || !evt?.readUpTo) return;
           setLastReadAt(evt.chatId, String(evt.readUpTo));
           if (evt.chatId === selectedChatIdRef.current) {
-            setMessages(prev => prev.map(m => (new Date(m.ts).getTime() <= new Date(evt.readUpTo).getTime() && m.direction==='in') ? { ...m, status: 'read' } : m));
+            setMessages(prev => prev.map(m => (new Date(m.ts).getTime() <= new Date(evt.readUpTo).getTime() && m.direction === MessageDirection.In) ? { ...m, status: 'read' } : m));
           }
         });
 
@@ -1099,7 +1112,7 @@ export default function AtendimentoPage() {
               console.log('✅ Chat adicionado ao estado local e store global via contexto:', chat);
             }
           }}>
-            <LeadsContainer />
+            <LeadsContainer existingChats={chats} />
           </ChatProvider>
         </div>
 
@@ -1236,8 +1249,8 @@ export default function AtendimentoPage() {
                       )}
 
                       {messages.map((m) => (
-                        <div key={(m.id||m.externalMessageId)!} className={`mb-3 flex ${m.direction==='out'?'justify-end':'justify-start'}`}>
-                          <div className={`max-w-[85%] md:max-w-[70%] px-3 py-2 rounded-lg ${m.direction==='out'?'bg-primary text-primary-foreground':'bg-muted'}`} translate="no">
+                        <div key={(m.id||m.externalMessageId)!} className={`mb-3 flex ${m.direction === MessageDirection.Out ? 'justify-end' : 'justify-start'}`}>
+                          <div className={`max-w-[85%] md:max-w-[70%] px-3 py-2 rounded-lg ${m.direction === MessageDirection.Out ? 'bg-primary text-primary-foreground' : 'bg-muted'}`} translate="no">
                             {/* Renderizador unificado de mídia */}
                             <MediaRenderer
                               type={getMessageType(m.type)}
@@ -1255,13 +1268,6 @@ export default function AtendimentoPage() {
                               className="mb-2"
                             />
                             
-                            {/* DEBUG: Log do tipo de mensagem para áudio */}
-                            {m.type === 'audio' && (
-                              <div className="text-xs text-muted-foreground mt-1">
-                                🔍 DEBUG: Tipo={m.type}, getMessageType={getMessageType(m.type)}, 
-                                MessageType.Audio={MessageType.Audio}
-                              </div>
-                            )}
                             
                             {m.text && !isMediaOnlyContent(m.text, getMessageType(m.type)) && (
                               <div className="whitespace-pre-wrap break-words text-sm">
@@ -1270,7 +1276,7 @@ export default function AtendimentoPage() {
                             )}
                             <div className="flex gap-2 justify-end items-center text-[10px] opacity-70 mt-1">
                               <span>{new Date(m.ts).toLocaleTimeString('pt-BR')}</span>
-                              {m.direction==='out' && (
+                              {m.direction === MessageDirection.Out && (
                                 (() => {
                                   const isRead = lastReadAtIso && new Date(m.ts).getTime() <= new Date(lastReadAtIso).getTime();
                                   return isRead ? (

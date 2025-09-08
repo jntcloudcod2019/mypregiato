@@ -5,7 +5,10 @@ namespace Pregiato.Core.Entities
     public class OperatorLeads
     {
         public Guid Id { get; set; }
-      
+        
+        [Required]
+        [MaxLength(255)]
+        public string OperatorId { get; set; } // ID do operador (ClerkId)
         
         [Required]
         [MaxLength(255)]

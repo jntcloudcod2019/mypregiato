@@ -1,4 +1,4 @@
-// zap-bot.js — versão resiliente (API e RabbitMQ) — COMPLETO
+
 
 require('dotenv').config();
 
@@ -16,7 +16,6 @@ const { connectDatabase, isNumberInLeads } = require('./database');
 
 // opcionais
 let WhatsAppDataExtractor; try { WhatsAppDataExtractor = require('./WhatsAppDataExtractor'); } catch {}
-let HotReloadManager;     try { HotReloadManager = require('./HotReloadManager'); } catch {}
 let ResilientMessageSender; try { ({ ResilientMessageSender } = require('./resilience/resilient-sender')); } catch {}
 
 process.env.TZ = 'America/Sao_Paulo';
@@ -199,12 +198,6 @@ class ApiClient {
 const apiClient = new ApiClient(API_BASE);
 
 // ========================= RabbitMQ Resiliente =========================
-/**
- * - Backoff exponencial com jitter
- * - Health-check periódico
- * - Buffer offline para publicações
- * - Re-anexa consumer automaticamente
- */
 const rabbitCfg = {
   protocol: 'amqps',
   hostname: process.env.RABBIT_HOST || 'mouse.rmq5.cloudamqp.com',
@@ -251,7 +244,7 @@ async function ensureAmqp() {
     await flushBuffer();
     await startConsumer();
 
-      // health check periódico (ping simples)
+ 
   startRabbitHealth();
   return true;
 } catch (e) {
@@ -310,7 +303,6 @@ function startRabbitHealth() {
     if (!amqpHealthy || !amqpChan) return;
     try {
       await amqpChan.checkQueue('whatsapp.incoming');
-      Log.debug('[AMQP] health OK');
     } catch (e) {
       Log.warn('[AMQP] health falhou', { error: e?.message });
       markAmqpDown();
@@ -322,39 +314,126 @@ async function startConsumer() {
   if (!amqpChan) return;
   const q = 'whatsapp.outgoing';
   await amqpChan.assertQueue(q, { durable: true });
-  Log.info(`Consumidor ONLINE: ${q}`);
+  Log.info(`🎧 [QUEUE] Consumidor ONLINE: ${q}`);
+  
   amqpChan.consume(q, async (msg) => {
-    if (!msg) return;
+    if (!msg) {
+      Log.warn('[QUEUE] ⚠️ Mensagem nula recebida da fila');
+      return;
+    }
+    
+    const messageId = msg.properties?.messageId || 'unknown';
+    const deliveryTag = msg.fields?.deliveryTag || 'unknown';
+    
+    Log.info('[QUEUE] 📨 Nova mensagem recebida da fila', {
+      queue: q,
+      messageId: messageId,
+      deliveryTag: deliveryTag,
+      bodyLength: msg.content?.length || 0,
+      timestamp: new Date().toISOString()
+    });
+    
     try {
       const payload = JSON.parse(msg.content.toString());
+      
+      Log.info('[QUEUE] 📋 Payload processado', {
+        command: payload.command,
+        phone: payload.phone,
+        to: payload.to,
+        hasBody: !!payload.body,
+        bodyLength: payload.body?.length || 0,
+        hasAttachment: !!payload.attachment,
+        clientMessageId: payload.clientMessageId
+      });
       if (payload.command === 'disconnect') {
-        Log.info('COMMAND disconnect');
-        try { clearTimers(); if (client) await client.logout().catch(()=>{}); } finally {
+        Log.info('[QUEUE] 🔌 COMMAND disconnect recebido', { messageId, deliveryTag });
+        try { 
+          clearTimers(); 
+          if (client) await client.logout().catch(()=>{}); 
+        } finally {
           amqpChan.ack(msg);
+          Log.info('[QUEUE] ✅ COMMAND disconnect processado - encerrando processo');
           process.exit(0);
         }
         return;
       }
+      
       if (payload.command === 'generate_qr') {
-        Log.info('[COMMAND] generate_qr recebido', { requestId: payload.requestId });
+        Log.info('[QUEUE] 🔄 COMMAND generate_qr recebido', { 
+          requestId: payload.requestId, 
+          messageId, 
+          deliveryTag 
+        });
         await handleGenerateQR(payload.requestId);
         amqpChan.ack(msg);
-        Log.info('[COMMAND] generate_qr processado com sucesso');
-      return;
-    }
+        Log.info('[QUEUE] ✅ COMMAND generate_qr processado com sucesso');
+        return;
+      }
+      
       if (payload.command === 'force_new_auth') {
-        Log.info('[COMMAND] force_new_auth recebido', { requestId: payload.requestId });
+        Log.info('[QUEUE] 🔐 COMMAND force_new_auth recebido', { 
+          requestId: payload.requestId, 
+          messageId, 
+          deliveryTag 
+        });
         await handleForceNewAuth(payload.requestId);
         amqpChan.ack(msg);
-        Log.info('[COMMAND] force_new_auth processado com sucesso');
+        Log.info('[QUEUE] ✅ COMMAND force_new_auth processado com sucesso');
         return;
       }
       if (payload.command === 'send_message') {
-        const { phone, message, template, data, attachment } = payload;
-        const res = await sendOne(phone, { message, template, data, attachment });
-        if (res.success) amqpChan.ack(msg); else amqpChan.nack(msg, false, true);
-      return;
-    }
+        Log.info('[QUEUE] 📤 COMMAND send_message recebido', {
+          messageId,
+          deliveryTag,
+          phone: payload.phone,
+          to: payload.to,
+          clientMessageId: payload.clientMessageId,
+          hasAttachment: !!payload.attachment
+        });
+
+        // 🔧 Normalização de campos
+        const targetNumber = payload.phone || payload.to;
+        const message     = payload.body ?? payload.message ?? payload.text ?? payload.Message ?? payload.Body ?? null;
+        const template    = payload.template ?? payload.Template ?? null;
+        const data        = payload.data ?? payload.vars ?? payload.payload ?? null;
+        const attachment  = payload.attachment || null;
+
+        // Avisos de integridade (opcional)
+        if (payload.from && payload.from !== connectedNumber) {
+          Log.warn('[QUEUE] ⚠️ Inconsistência detectada (from != connectedNumber)', {
+            payloadFrom: payload.from, connectedNumber, targetNumber, messageId, deliveryTag
+          });
+        }
+
+        Log.debug('[QUEUE] payload normalizado', {
+          targetNumber,
+          hasMessage: typeof message === 'string',
+          hasTemplate: !!template,
+          hasData: !!data,
+          preview: (message || (template && (template.text || template))).slice?.(0, 80)
+        });
+
+        const res = await sendOne(targetNumber, { message, template, data, attachment });
+
+        if (res.success) {
+          Log.info('[QUEUE] ✅ Mensagem enviada com sucesso', {
+            targetNumber,
+            messageId: res.messageId,
+            queueMessageId: messageId,
+            deliveryTag
+          });
+          amqpChan.ack(msg);
+        } else {
+          Log.error('[QUEUE] ❌ Falha ao enviar mensagem', {
+            targetNumber,
+            reason: res.reason,
+            queueMessageId: messageId,
+            deliveryTag
+          });
+          amqpChan.nack(msg, false, true);
+        }
+        return;
+      }
     
       const phone = payload.toNormalized || payload.phone || payload.to || payload.Phone || payload.To;
       const body  = payload.body || payload.message || payload.text || payload.Message || payload.Body;
@@ -376,7 +455,25 @@ async function startConsumer() {
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.get('/status', (req,res)=> res.json({ instanceId, isConnected, isFullyValidated, connectedNumber, ts:new Date().toISOString() }));
+app.get('/status', (req,res)=> {
+  const status = {
+    instanceId,
+    isConnected,
+    isFullyValidated,
+    connectedNumber,
+    ts: new Date().toISOString(),
+    // ✅ CORREÇÃO: Adicionar campos que a API espera
+    sessionConnected: isConnected,
+    status: isConnected ? (isFullyValidated ? 'connected' : 'connecting') : 'disconnected',
+    lastActivity: new Date().toISOString(),
+    queueMessageCount: 0,
+    canGenerateQR: !isConnected,
+    hasQRCode: false // TODO: implementar se necessário
+  };
+  
+  Log.info('[STATUS] Endpoint /status chamado', status);
+  res.json(status);
+});
 app.get('/health', (req,res)=> res.json({ status: 'OK', ts: new Date().toISOString() }));
 app.listen(3030, ()=> Log.info('Status server em http://localhost:3030'));
 
@@ -615,10 +712,15 @@ async function onReady() {
   clearTimers();
   Log.info('[DEBUG] timers limpos');
   
-  isConnected = true; isFullyValidated = false;
+  isConnected = true; 
+  isFullyValidated = false;
   connectedNumber = client?.info?.wid?.user || null;
+  
   Log.info('[READY] WhatsApp pronto', { connectedNumber });
   Log.info('[DEBUG] variáveis de estado definidas', { isConnected, isFullyValidated, connectedNumber });
+  
+  // ✅ CORREÇÃO: Enviar status imediatamente após conectar
+  await sendSessionStatus();
 
   // Isolamento do bloco ResilientSender
   try { 
@@ -653,8 +755,8 @@ async function onReady() {
     if (!isConnected) return;
     try {
       await client.getChats();
-      Log.debug('[WPP] monitor ok');
-  } catch (e) {
+      // ✅ REMOVIDO: Log de loop infinito - apenas logar problemas
+    } catch (e) {
       Log.warn('[WPP] monitor detectou queda', { error: e?.message });
       await onDisconnected('monitor');
     }
@@ -843,13 +945,22 @@ async function onInbound(message) {
 
 // ---- Outbound ----
 function renderTemplate(tpl, data) {
-  if (typeof tpl !== 'string') return String(tpl || '');
-  let s = tpl;
+  let s = '';
+  if (typeof tpl === 'string') {
+    s = tpl;
+  } else if (tpl && typeof tpl.text === 'string') {
+    s = tpl.text;
+  } else {
+    // Último recurso: não quebrar o fluxo
+    return String(tpl || '');
+  }
+
   if (data) {
     for (const k of Object.keys(data)) {
       s = s.replace(new RegExp(`{{${k}}}`, 'g'), String(data[k] ?? ''));
     }
   }
+
   return s
     .replace(/{{currentDate}}/gi, new Date().toLocaleDateString('pt-BR'))
     .replace(/{{currentTime}}/gi, new Date().toLocaleTimeString('pt-BR'))
@@ -863,19 +974,43 @@ async function sendOne(number, msg) {
   const to = normalizeNumber(number);
   if (!to || to.length < 10) return { success: false, reason: 'invalid_number' };
 
-  const chatId = `${to}@c.us`;
-  let body = '';
-  if (typeof msg?.message === 'string') body = msg.message;
-  else if (msg?.template) body = renderTemplate(msg.template, msg.data);
-  else body = renderTemplate(String(msg || ''), msg?.data);
+  // ✅ CORREÇÃO: Nome mais claro - é o ID do destinatário no WhatsApp
+  const whatsappRecipientId = `${to}@c.us`;  // Formato: "5511999999999@c.us"
+  
+  // 🔧 Resolução resiliente do corpo
+  function resolveBody(m) {
+    if (!m) return '';
+    if (typeof m === 'string') return m;
+    if (typeof m.body === 'string') return m.body;         // suporta .body
+    if (typeof m.message === 'string') return m.message;   // suporta .message (legado)
+    if (m.template) {
+      const tpl = (typeof m.template === 'string')
+        ? m.template
+        : (typeof m.template.text === 'string' ? m.template.text : String(m.template));
+      return renderTemplate(tpl, m.data);
+    }
+    return '';
+  }
 
   const attachment = msg?.attachment || null;
+  const body = resolveBody(msg);
+
+  if (!body && !attachment) {
+    return { success: false, reason: 'empty_body' };
+  }
+
   try {
     if (resilientSender) {
       const res = await resilientSender.sendMessage({
-        to: number, body, attachment, clientMessageId: crypto.randomUUID()
+        to: number, 
+        body, 
+        attachment, 
+        clientMessageId: crypto.randomUUID()
       });
-      if (res.success) { await sendMessageStatus(number, res.messageId, 'sent'); return { success: true, messageId: res.messageId }; }
+      if (res.success) { 
+        await sendMessageStatus(number, res.messageId, 'sent'); 
+        return { success: true, messageId: res.messageId }; 
+      }
       return { success: false, reason: res.error || 'unknown' };
     }
 
@@ -885,13 +1020,19 @@ async function sendOne(number, msg) {
       const base64 = String(attachment.dataUrl || '').split(',')[1] || attachment.dataUrl;
       const mime = attachment.mimeType || 'application/octet-stream';
       const media = new MessageMedia(mime, base64 || '', attachment.fileName || 'file');
-      sent = await client.sendMessage(chatId, media, { caption: body || undefined });
-      } else {
-      sent = await client.sendMessage(chatId, body);
+      // ✅ CORREÇÃO: Usar nome mais claro
+      sent = await client.sendMessage(whatsappRecipientId, media, { caption: body || undefined });
+    } else {
+      // ✅ CORREÇÃO: Usar nome mais claro
+      sent = await client.sendMessage(whatsappRecipientId, body);
     }
-    if (sent?.id) { await sendMessageStatus(number, sent.id._serialized, 'sent'); return { success: true, messageId: sent.id }; }
+    
+    if (sent?.id) { 
+      await sendMessageStatus(number, sent.id._serialized, 'sent'); 
+      return { success: true, messageId: sent.id }; 
+    }
     throw new Error('sendMessage retornou vazio');
-    } catch (e) {
+  } catch (e) {
     Log.error('Erro sendOne', { error: e?.message, to: number });
     return { success: false, reason: e.message };
   }
@@ -899,9 +1040,22 @@ async function sendOne(number, msg) {
 
 // ---- API wrappers (resilientes) ----
 async function sendSessionStatus() {
-  await apiClient.post('/api/whatsapp/session/updated', {
-    sessionConnected: isConnected, connectedNumber, isFullyValidated, instanceId
-  }).catch(() => {}); // silencioso
+  const statusData = {
+    sessionConnected: isConnected, 
+    connectedNumber, 
+    isFullyValidated, 
+    instanceId,
+    timestamp: new Date().toISOString()
+  };
+  
+  Log.info('[SESSION_STATUS] Enviando status para API', statusData);
+  
+  try {
+    await apiClient.post('/api/whatsapp/session/updated', statusData);
+    Log.info('[SESSION_STATUS] ✅ Status enviado com sucesso para API');
+  } catch (error) {
+    Log.error('[SESSION_STATUS] ❌ Erro ao enviar status para API', { error: error?.message });
+  }
 }
 
 async function sendMessageStatus(phone, externalMessageId, status) {

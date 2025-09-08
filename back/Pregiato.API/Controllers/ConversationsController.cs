@@ -70,9 +70,6 @@ namespace Pregiato.API.Controllers
             return Ok(new { messages, total = conversation.Messages.Count });
         }
 
-        // ✅ ENDPOINT REMOVIDO - USAR FLUXO EXISTENTE
-        // O frontend deve usar o fluxo normal: criar chat e depois enviar mensagens
-        // via /api/chats/{id}/send que já funciona perfeitamente
 
         [HttpPost("{id:guid}/send")]
         public async Task<IActionResult> Send(Guid id, [FromBody] SendMessageRequest request)
@@ -174,8 +171,6 @@ namespace Pregiato.API.Controllers
             return clean;
         }
 
-        // ✅ MÉTODO REMOVIDO - USAR FLUXO EXISTENTE
-        // O frontend deve usar o fluxo normal de criação de chats
     }
 
     public class SendMessageRequest
@@ -193,6 +188,5 @@ namespace Pregiato.API.Controllers
         public string? MediaType { get; set; }
     }
 
-    // ✅ CLASSE REMOVIDA - USAR FLUXO EXISTENTE
-    // O frontend deve usar o fluxo normal de criação de chats
+    
 }

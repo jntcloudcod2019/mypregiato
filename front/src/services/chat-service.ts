@@ -280,7 +280,8 @@ export const convertBackendMessage = (backendMessage: BackendMessageDto | Backen
       fromMe?: boolean;
       isFromMe?: boolean;
     };
-    const direction = hybridMessage.direction === 'Out' ? MessageDirection.Out : MessageDirection.In;
+    // Usar fromMe para determinar a direção (backend envia fromMe, não direction)
+    const direction = hybridMessage.fromMe || hybridMessage.isFromMe ? MessageDirection.Out : MessageDirection.In;
     
     return {
       id: hybridMessage.id || hybridMessage.externalMessageId || '',
@@ -521,7 +522,7 @@ export const chatsApi = {
     saveToCache(cacheKey, result);
     return result;
   },
-  send: async (id: string, text: string, clientMessageId: string, attachment?: { dataUrl: string; mimeType: string; fileName?: string; mediaType?: 'text' | 'image' | 'video' | 'audio' | 'document' | 'voice' | 'sticker' | 'location' | 'contact' | 'system' }) => {
+  send: async (id: string, text: string, clientMessageId: string, leadName?: string, attachment?: { dataUrl: string; mimeType: string; fileName?: string; mediaType?: 'text' | 'image' | 'video' | 'audio' | 'document' | 'voice' | 'sticker' | 'location' | 'contact' | 'system' }) => {
     // ✅ VALIDAÇÃO E NORMALIZAÇÃO DE TIPOS DE MÍDIA
     let normalizedAttachment = attachment;
     
@@ -550,10 +551,39 @@ export const chatsApi = {
       };
     }
     
-    const request: SendMessageRequestDto = { 
-      text, 
-      clientMessageId, 
-      attachment: normalizedAttachment 
+    // ✅ CORREÇÃO: Enviar no formato PayloadJson padrão
+    const request = {
+      // Estrutura padrão do PayloadJson
+      Contact: {
+        Name: leadName || `Cliente ${id}`, // Usar nome do lead se disponível
+        PhoneE164: id, // Número do telefone do lead (id é o telefone)
+        ProfilePic: null
+      },
+      Messages: [{
+        Id: clientMessageId,
+        Content: null, // Sempre null conforme exemplo
+        body: normalizedAttachment?.dataUrl || text, // Base64 para mídia, texto para texto
+        MediaUrl: null, // Sempre null conforme exemplo
+        Direction: "outbound",
+        Ts: new Date().toISOString(),
+        timestamp: new Date().toISOString(),
+        IsRead: false,
+        Status: "pending",
+        Type: normalizedAttachment?.mediaType || "text",
+        from: `${id}@c.us`,
+        mimeType: normalizedAttachment?.mimeType || null,
+        fileName: normalizedAttachment?.fileName || null,
+        size: normalizedAttachment?.dataUrl ? normalizedAttachment.dataUrl.length : null,
+        duration: null,
+        thumbnail: null,
+        latitude: null,
+        longitude: null,
+        locationAddress: null,
+        contactName: leadName || `Cliente ${id}`, // Nome do lead
+        contactPhone: id, // Telefone do lead
+        ActualContent: normalizedAttachment?.dataUrl || text, // Conteúdo real (base64 para mídia, texto para texto)
+        ActualTs: new Date().toISOString()
+      }]
     };
     
     console.log(`📤 [FLUXO X] Enviando mensagem via frontend:`, {

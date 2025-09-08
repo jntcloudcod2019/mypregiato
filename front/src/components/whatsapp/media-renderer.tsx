@@ -187,6 +187,10 @@ export const MediaRenderer: React.FC<MediaRendererProps> = ({
 
   // Renderização por tipo
   switch (type) {
+    case MessageType.Text:
+      // Para mensagens de texto, não renderizar nada (o texto é renderizado pelo componente pai)
+      return null;
+      
     case MessageType.Image:
       return (
         <div className={cn("relative group", className)} style={{ maxWidth }}>
