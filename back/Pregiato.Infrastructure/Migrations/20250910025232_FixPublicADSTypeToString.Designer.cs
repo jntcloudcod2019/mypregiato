@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Pregiato.Infrastructure.Data;
 
@@ -10,9 +11,11 @@ using Pregiato.Infrastructure.Data;
 namespace Pregiato.Infrastructure.Migrations
 {
     [DbContext(typeof(PregiatoDbContext))]
-    partial class PregiatoDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250910025232_FixPublicADSTypeToString")]
+    partial class FixPublicADSTypeToString
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

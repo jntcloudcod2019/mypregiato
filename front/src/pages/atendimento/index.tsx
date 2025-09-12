@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { unifiedChatApi } from '@/services/conversations-api';
-import { MessageType, MessageDirection } from '@/types/message';
+import { MessageType } from '@/types/message';
+import { MessageDirection } from '@/services/chat-service';
+import { normalizePhone } from '@/utils/phoneUtils';
 
 // Função para detectar se o texto é apenas base64 de mídia
 const isMediaOnlyContent = (text: string, messageType: MessageType): boolean => {
@@ -740,14 +742,14 @@ export default function AtendimentoPage() {
           const id: string | undefined = chat?.id || evt?.chatId;
           
           if (id && chat) {
-            // ✅ VERIFICAÇÃO MAIS ROBUSTA
+            // ✅ VERIFICAÇÃO MAIS ROBUSTA COM NORMALIZAÇÃO CONSISTENTE
             const existingChat = chats.find(c => {
               // Verificar por ID exato
               if (c.id === id) return true;
               
-              // Verificar por telefone (normalizado)
-              const normalizedPhone = chat.contactPhoneE164?.replace(/\D/g, '');
-              const existingPhone = c.contactPhoneE164?.replace(/\D/g, '');
+              // Verificar por telefone (normalizado de forma consistente com backend)
+              const normalizedPhone = normalizePhone(chat.contactPhoneE164 || '');
+              const existingPhone = normalizePhone(c.contactPhoneE164 || '');
               if (normalizedPhone && existingPhone && normalizedPhone === existingPhone) return true;
               
               return false;
@@ -760,7 +762,8 @@ export default function AtendimentoPage() {
                 phone: chat.contactPhoneE164
               });
               // ✅ TRATAR COMO ATUALIZAÇÃO em vez de ignorar
-              queueChatPatch(existingChat.id, chat as Partial<ChatListItem>);
+              // Usar o ID do chat existente para evitar duplicação
+              queueChatPatch(existingChat.id, { ...chat, id: existingChat.id } as Partial<ChatListItem>);
               return;
             } else {
               console.log('✅ Realmente é novo chat, criando:', id);
@@ -792,7 +795,42 @@ export default function AtendimentoPage() {
           const ts: string | undefined = evt?.message?.ts || evt?.message?.timestamp;
           const text: string | undefined = evt?.message?.text || evt?.message?.body;
           const chatId: string = evt?.chatId;
+          const from: string | undefined = evt?.message?.from; // ✅ ADICIONADO: Campo from
           if (!id || !chatId) return;
+
+          // ✅ NOVA LÓGICA: Verificar se chat já existe pelo número de telefone
+          if (from) {
+            // Extrair número do telefone (remover @c.us)
+            const phoneNumber = from.replace('@c.us', '').replace('@g.us', '');
+            const normalizedPhone = normalizePhone(phoneNumber);
+            
+            if (normalizedPhone) {
+              // Buscar chat existente pelo telefone normalizado
+              const existingChat = chats.find(c => {
+                const existingPhone = normalizePhone(c.contactPhoneE164 || '');
+                return existingPhone && existingPhone === normalizedPhone;
+              });
+              
+              if (existingChat) {
+                console.log('✅ Chat existente encontrado pelo telefone:', {
+                  from,
+                  phoneNumber,
+                  normalizedPhone,
+                  existingChatId: existingChat.id,
+                  newChatId: chatId
+                });
+                
+                // Usar o chat existente em vez do novo
+                evt.chatId = existingChat.id;
+              } else {
+                console.log('❌ Nenhum chat existente encontrado para:', {
+                  from,
+                  phoneNumber,
+                  normalizedPhone
+                });
+              }
+            }
+          }
 
           if (processedInboundIdsRef.current.has(id)) return;
           processedInboundIdsRef.current.add(id);
@@ -861,11 +899,17 @@ export default function AtendimentoPage() {
           const tsVal = ts || new Date().toISOString();
           const isCurrentOpen = chatId === selectedChatIdRef.current;
 
-          queueChatPatch(chatId, {
-            lastMessageAt: tsVal,
-            lastMessagePreview: preview,
-            unreadCount: isCurrentOpen ? 0 : undefined
-          } as Partial<ChatListItem>);
+          // ✅ VERIFICAÇÃO: Só atualizar se o chat já existe
+          const existingChat = chats.find(c => c.id === chatId);
+          if (existingChat) {
+            queueChatPatch(chatId, {
+              lastMessageAt: tsVal,
+              lastMessagePreview: preview,
+              unreadCount: isCurrentOpen ? 0 : undefined
+            } as Partial<ChatListItem>);
+          } else {
+            console.log('⚠️ Chat não encontrado para message.inbound, ignorando atualização:', chatId);
+          }
         });
 
         connection.on('message.outbound', (evt: MessageEvent) => {

@@ -997,6 +997,12 @@ public class PregiatoDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Id).ValueGeneratedOnAdd();
             
+            // ✅ CORREÇÃO: Configurar o campo OperatorId que estava faltando
+            entity.Property(e => e.OperatorId)
+                .IsRequired()
+                .HasMaxLength(255)
+                .HasColumnType("varchar(255)");
+            
             entity.Property(e => e.EmailOperator)
                 .IsRequired()
                 .HasMaxLength(255)
@@ -1011,6 +1017,19 @@ public class PregiatoDbContext : DbContext
                 .IsRequired()
                 .HasMaxLength(50)
                 .HasColumnType("varchar(50)");
+            
+            // === NOVOS CAMPOS ADICIONADOS ===
+            
+            entity.Property(e => e.Responsible)
+                .HasMaxLength(255)
+                .HasColumnType("varchar(255)");
+            
+            entity.Property(e => e.Age)
+                .HasColumnType("int");
+            
+            entity.Property(e => e.PublicADS)
+                .HasMaxLength(255)
+                .HasColumnType("varchar(255)");
             
             entity.Property(e => e.CreatedAt)
                 .HasColumnType("datetime(6)")

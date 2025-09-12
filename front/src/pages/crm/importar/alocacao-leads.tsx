@@ -304,6 +304,10 @@ const AlocacaoLeadsPage: React.FC = () => {
         leads: Array<{
           nameLead: string;
           phoneLead: string;
+          // === NOVOS CAMPOS ADICIONADOS ===
+          responsible?: string | null;
+          age?: number | null;
+          publicADS?: string | null;
         }>;
       }>();
       
@@ -331,11 +335,33 @@ const AlocacaoLeadsPage: React.FC = () => {
           const nameLead = String(lead['Nome'] || lead['Participante'] || lead['Cliente'] || 'Nome não informado');
           const phoneLead = String(lead['Telefone'] || lead['Celular'] || lead['Phone'] || 'Telefone não informado');
           
-          console.log(`Lead mapeado:`, { nameLead, phoneLead, originalLead: lead });
+          // === NOVOS CAMPOS ADICIONADOS ===
+          // Extrair responsável (pode vir de diferentes colunas)
+          const responsible = String(lead['Responsável'] || lead['Responsavel'] || lead['Responsible'] || '');
+          
+          // Extrair idade (converter para número se possível)
+          const ageStr = String(lead['Idade'] || lead['Age'] || '');
+          const age = ageStr && !isNaN(Number(ageStr)) ? Number(ageStr) : null;
+          
+          // Extrair se veio de publicidade/anúncios (string)
+          const publicADS = String(lead['PublicADS'] || lead['Publicidade'] || lead['Anuncio'] || '');
+          
+          console.log(`Lead mapeado:`, { 
+            nameLead, 
+            phoneLead, 
+            responsible, 
+            age, 
+            publicADS, 
+            originalLead: lead 
+          });
           
           return {
             nameLead,
-            phoneLead
+            phoneLead,
+            // === NOVOS CAMPOS ADICIONADOS ===
+            responsible: responsible || null,
+            age: age,
+            publicADS: publicADS
           };
         }).filter(lead => lead.nameLead !== 'Nome não informado' && lead.phoneLead !== 'Telefone não informado');
         

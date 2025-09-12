@@ -25,14 +25,28 @@ namespace Pregiato.Infrastructure.Repositories
         public async Task<IEnumerable<OperatorLeads>> AddRangeAsync(IEnumerable<OperatorLeads> operatorLeads)
         {
             var leadsList = operatorLeads.ToList();
+            
+            // ✅ DEBUG: Log de cada lead antes de inserir
+            Console.WriteLine($"🔍 DEBUG Repository: Inserindo {leadsList.Count} leads");
             foreach (var lead in leadsList)
             {
+                Console.WriteLine($"🔍 DEBUG Repository: Lead - OperatorId='{lead.OperatorId}', EmailOperator='{lead.EmailOperator}', NameLead='{lead.NameLead}', PhoneLead='{lead.PhoneLead}'");
                 lead.CreatedAt = DateTime.UtcNow;
             }
             
-            _context.OperatorLeads.AddRange(leadsList);
-            await _context.SaveChangesAsync();
-            return leadsList;
+            try
+            {
+                _context.OperatorLeads.AddRange(leadsList);
+                await _context.SaveChangesAsync();
+                Console.WriteLine($"✅ DEBUG Repository: {leadsList.Count} leads inseridos com sucesso");
+                return leadsList;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ DEBUG Repository: Erro ao inserir leads: {ex.Message}");
+                Console.WriteLine($"❌ DEBUG Repository: Inner Exception: {ex.InnerException?.Message}");
+                throw;
+            }
         }
 
         public async Task<OperatorLeads> GetByIdAsync(Guid id)

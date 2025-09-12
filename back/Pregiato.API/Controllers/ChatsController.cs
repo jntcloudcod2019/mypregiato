@@ -122,7 +122,7 @@ namespace Pregiato.API.Controllers
                             id = message.Id,
                             conversationId = chat.Id.ToString(),
                             direction = message.Direction == "outbound" ? "Out" : "In", // ✅ CORREÇÃO: outbound = Out, inbound = In
-                            type = !string.IsNullOrEmpty(message.Type) ? message.Type.ToLower() : "text", // ✅ SEMPRE string para consistência
+                            type = !string.IsNullOrEmpty(message.Type) ? message.Type.ToLower() : "text",
                             
                             // DEBUG adicional para tipos
                             _debug_originalType = message.Type,
@@ -145,6 +145,9 @@ namespace Pregiato.API.Controllers
                             // CORREÇÃO: Campos adicionais que o frontend espera
                             timestamp = !string.IsNullOrEmpty(message.timestamp) ? DateTime.Parse(message.timestamp) : message.Ts,
                             isFromMe = message.Direction == "outbound", // ✅ CORREÇÃO: outbound = true, inbound = false
+                            
+                            // ✅ ADICIONADO: Campo from para verificação de chat existente
+                            from = message.Direction == "inbound" ? $"{message.from}@c.us" : "operator@frontend",
                             
                             // CORREÇÃO CRÍTICA: Para áudio/voice, usar body como dataUrl (base64)
                             attachment = (message.Type == "audio" || message.Type == "voice") && !string.IsNullOrEmpty(message.body) ? new

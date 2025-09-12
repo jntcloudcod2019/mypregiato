@@ -6,7 +6,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Search, Download, RefreshCw, User, Phone, MessageCircle } from 'lucide-react';
 import { useUser } from '@clerk/clerk-react';
-import { MessageDirection, MessageType, MessageStatus } from '@/types/message';
+import { MessageType, MessageStatus } from '@/types/message';
+import { MessageDirection } from '@/services/chat-service';
 import { toast } from '@/hooks/use-toast';
 
 interface ChatMessage {

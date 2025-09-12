@@ -1,16 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useUser } from '@clerk/clerk-react';
+import { OperatorLead } from '@/types/operator-lead';
 
 interface UserInfo {
   id: string;
   email: string;
   name: string;
   // Adicione outros campos conforme necessário
-}
-
-interface OperatorLead {
-  nameLead: string;
-  phoneLead: string;
 }
 
 interface UserCache {
@@ -56,7 +52,19 @@ export const useUserCache = () => {
       const response = await fetch(`http://localhost:5656/api/operator-leads/by-email/${encodeURIComponent(email)}`);
       if (response.ok) {
         const data = await response.json();
-        return data.success ? data.data : [];
+        if (data.success && data.data) {
+          // PublicADS já é string, não precisa de conversão
+          return data.data.map((lead: {
+            nameLead: string;
+            phoneLead: string;
+            responsible?: string | null;
+            age?: number | null;
+            publicADS?: string | null;
+          }) => ({
+            ...lead
+          }));
+        }
+        return [];
       }
       return [];
     } catch (error) {

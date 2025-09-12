@@ -14,12 +14,6 @@ const cors = require('cors');
 const crypto = require('crypto');
 const { connectDatabase, isNumberInLeads } = require('./database');
 
-// opcionais
-let WhatsAppDataExtractor; try { WhatsAppDataExtractor = require('./WhatsAppDataExtractor'); } catch {}
-let ResilientMessageSender; try { ({ ResilientMessageSender } = require('./resilience/resilient-sender')); } catch {}
-
-process.env.TZ = 'America/Sao_Paulo';
-
 const instanceId = process.env.INSTANCE_ID || 'zap-prod';
 const isDocker = process.env.NODE_ENV === 'production' || fs.existsSync('/.dockerenv');
 
@@ -112,23 +106,7 @@ class ApiClient {
     this.startHealthLoop();
   }
 
-  // health loop: tenta voltar do modo offline
-  startHealthLoop() {
-    setInterval(async () => {
-      if (!this.offline) return;
-      const now = Date.now();
-      if (now - this.lastOpen < this.cooldownMs) return;
-      try {
-        await axios.get(this.baseUrl + '/health', { timeout: 4000 });
-        Log.info('[API] Saúde OK – voltando do modo offline');
-        this.offline = false;
-        this.failCount = 0;
-        this.flushQueue();
-      } catch {
-        // continua offline
-      }
-    }, 2000);
-  }
+ 
 
   // jitter randômico
   jitter(ms) { return Math.round(ms * (0.7 + Math.random() * 0.6)); }
@@ -192,6 +170,21 @@ class ApiClient {
   this.flushQueue();
   throw e;
 }
+  }
+
+  // Health check loop para monitorar a API
+  startHealthLoop() {
+    setInterval(async () => {
+      if (this.offline) {
+        // Se está offline, tenta reconectar
+        const now = Date.now();
+        if (now - this.lastOpen > this.cooldownMs) {
+          Log.info('[API] Tentando reconectar após cooldown');
+          this.offline = false;
+          this.failCount = 0;
+        }
+      }
+    }, 30000); // Verifica a cada 30 segundos
   }
 }
 
@@ -478,6 +471,44 @@ app.get('/health', (req,res)=> res.json({ status: 'OK', ts: new Date().toISOStri
 app.listen(3030, ()=> Log.info('Status server em http://localhost:3030'));
 
 // ========================= WhatsApp Client =========================
+
+// ✅ CORREÇÃO: Função para obter connectedNumber de forma robusta
+async function getConnectedNumber() {
+  try {
+    // Tentar obter do client.info primeiro
+    if (client?.info?.wid?.user) {
+      Log.info('[CONNECTED_NUMBER] Obtido do client.info:', client.info.wid.user);
+      return client.info.wid.user;
+    }
+    
+    // Se não estiver disponível, tentar obter do getState
+    if (client?.getState) {
+      const state = await client.getState();
+      Log.info('[CONNECTED_NUMBER] Estado do cliente:', state);
+      
+      if (state === 'CONNECTED' && client.info?.wid?.user) {
+        Log.info('[CONNECTED_NUMBER] Obtido após getState:', client.info.wid.user);
+        return client.info.wid.user;
+      }
+    }
+    
+    // Se ainda não conseguir, aguardar um pouco e tentar novamente
+    Log.warn('[CONNECTED_NUMBER] client.info não disponível, aguardando...');
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    if (client?.info?.wid?.user) {
+      Log.info('[CONNECTED_NUMBER] Obtido após delay:', client.info.wid.user);
+      return client.info.wid.user;
+    }
+    
+    Log.warn('[CONNECTED_NUMBER] Não foi possível obter o número conectado');
+    return null;
+  } catch (error) {
+    Log.error('[CONNECTED_NUMBER] Erro ao obter número conectado:', { error: error?.message });
+    return null;
+  }
+}
+
 function buildClient() {
   if (client) return client;
   client = new Client({
@@ -714,7 +745,9 @@ async function onReady() {
   
   isConnected = true; 
   isFullyValidated = false;
-  connectedNumber = client?.info?.wid?.user || null;
+  
+  // ✅ CORREÇÃO: Tentar obter connectedNumber de forma mais robusta
+  connectedNumber = await getConnectedNumber();
   
   Log.info('[READY] WhatsApp pronto', { connectedNumber });
   Log.info('[DEBUG] variáveis de estado definidas', { isConnected, isFullyValidated, connectedNumber });
@@ -783,9 +816,17 @@ async function onDisconnected(reason) {
     // Limpar cliente anterior completamente
     if (client) {
       try {
-        await client.destroy();
+        // ✅ CORREÇÃO: Usar logout() ao invés de destroy() para evitar erro de contexto
+        await client.logout();
+        Log.info('[RECONNECT] Cliente anterior desconectado com sucesso');
       } catch (e) {
-        Log.warn('[RECONNECT] Erro ao destruir cliente anterior:', { error: e?.message });
+        Log.warn('[RECONNECT] Erro ao desconectar cliente anterior:', { error: e?.message });
+        // Tentar destroy() como fallback apenas se logout() falhar
+        try {
+          await client.destroy();
+        } catch (destroyError) {
+          Log.warn('[RECONNECT] Erro ao destruir cliente anterior:', { error: destroyError?.message });
+        }
       }
       client = null;
     }
@@ -879,22 +920,21 @@ async function onInbound(message) {
     const fromBare = (message.from || '').split('@')[0];
     const fromNorm = normalizeNumber(fromBare);
     
-    // Validar se o número está na lista de leads
+    // Buscar informações do lead (opcional - não bloqueia processamento)
     const leadInfo = await isNumberInLeads(fromNorm);
     
-    if (!leadInfo) {
-      Log.info('[INBOUND] Número não está na lista de leads - ignorando mensagem', { 
+    if (leadInfo) {
+      Log.info('[INBOUND] Número encontrado na lista de leads - processando mensagem', { 
+        from: fromNorm,
+        leadName: leadInfo.NameLead,
+        operatorId: leadInfo.OperatorId 
+      });
+    } else {
+      Log.info('[INBOUND] Número não está na lista de leads - processando mesmo assim', { 
         from: fromNorm,
         messageType: message.type 
       });
-      return; // Não processa a mensagem
     }
-    
-    Log.info('[INBOUND] Número validado - processando mensagem', { 
-      from: fromNorm,
-      leadName: leadInfo.NameLead,
-      operatorId: leadInfo.OperatorId 
-    });
 
     let payload = buildInboundPayload(message);
 

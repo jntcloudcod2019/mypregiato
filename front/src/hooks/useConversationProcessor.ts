@@ -1,7 +1,8 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { useChatStore } from '@/store/chat-store';
 import { qrCodeQueueService } from '@/services/qr-code-queue-service';
-import { MessageDto, MessageDirection, MessageType, MessageStatus } from '@/types/message';
+import { MessageDto, MessageType, MessageStatus } from '@/types/message';
+import { MessageDirection } from '@/services/chat-service';
 import { convertBackendMessage } from '@/services/conversations-api';
 import { toast } from '@/hooks/use-toast';
 

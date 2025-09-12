@@ -20,19 +20,7 @@ import { ChatListItem } from '@/components/chat/ChatListLayout';
 import { useChatContext } from '@/contexts/ChatContext';
 import { toast } from '@/hooks/use-toast';
 import { useUserCache } from '@/hooks/useUserCache';
-
-// ✅ INTERFACES LOCAIS
-interface OperatorLead {
-  nameLead: string;
-  phoneLead: string;
-}
-
-interface LeadsResponse {
-  success: boolean;
-  data: OperatorLead[];
-  count: number;
-  message: string;
-}
+import { OperatorLead, LeadsResponse } from '@/types/operator-lead';
 
 interface LeadsContainerProps {
   existingChats?: ChatListItem[];
@@ -80,7 +68,11 @@ export const LeadsContainer: React.FC<LeadsContainerProps> = ({ existingChats = 
 
   const filteredLeads = leads.filter(lead =>
     lead.nameLead.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    lead.phoneLead.includes(searchTerm)
+    lead.phoneLead.includes(searchTerm) ||
+    // === NOVOS CAMPOS ADICIONADOS NA BUSCA ===
+    (lead.responsible && lead.responsible.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (lead.age && lead.age.toString().includes(searchTerm)) ||
+    (lead.publicADS && lead.publicADS.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   // ✅ FUNÇÃO PARA VERIFICAR SE JÁ EXISTE CHAT COM O MESMO NÚMERO
@@ -356,6 +348,24 @@ export const LeadsContainer: React.FC<LeadsContainerProps> = ({ existingChats = 
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Phone className="h-3 w-3" />
                       {lead.phoneLead}
+                    </div>
+                    {/* === NOVOS CAMPOS ADICIONADOS === */}
+                    <div className="flex items-center gap-3 mt-1">
+                      {lead.age && (
+                        <Badge variant="secondary" className="text-xs px-2 py-0.5">
+                          {lead.age} anos
+                        </Badge>
+                      )}
+                      {lead.responsible && (
+                        <Badge variant="outline" className="text-xs px-2 py-0.5">
+                          {lead.responsible}
+                        </Badge>
+                      )}
+                      {lead.publicADS && (
+                        <Badge variant="default" className="text-xs px-2 py-0.5 bg-orange-500 hover:bg-orange-600">
+                          {lead.publicADS}
+                        </Badge>
+                      )}
                     </div>
                   </div>
                   

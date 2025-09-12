@@ -20,6 +20,17 @@ namespace Pregiato.API.Controllers
         {
             try
             {
+                // ✅ DEBUG: Log do payload recebido
+                Console.WriteLine($"🔍 DEBUG Controller: Payload recebido - Operators count: {bulkDto?.Operators?.Count ?? 0}");
+                
+                if (bulkDto?.Operators != null)
+                {
+                    foreach (var op in bulkDto.Operators)
+                    {
+                        Console.WriteLine($"🔍 DEBUG Controller: Operator - OperatorId='{op.OperatorId}', EmailOperator='{op.EmailOperator}', LeadsCount={op.Leads?.Count ?? 0}");
+                    }
+                }
+                
                 if (bulkDto == null)
                 {
                     return BadRequest("Payload não pode ser nulo");
@@ -27,7 +38,20 @@ namespace Pregiato.API.Controllers
 
                 if (!ModelState.IsValid)
                 {
-                    return BadRequest(ModelState);
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                    Console.WriteLine($"❌ DEBUG Controller: ModelState inválido: {string.Join(", ", errors)}");
+                    
+                    // ✅ DEBUG: Log detalhado de cada erro
+                    foreach (var error in errors)
+                    {
+                        Console.WriteLine($"❌ DEBUG Controller: Erro de validação: {error}");
+                    }
+                    
+                    return BadRequest(new { 
+                        success = false, 
+                        message = "Dados inválidos", 
+                        errors = errors 
+                    });
                 }
 
                 var result = await _operatorLeadsService.AllocateLeadsAsync(bulkDto);

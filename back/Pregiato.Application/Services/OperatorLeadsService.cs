@@ -45,6 +45,10 @@ namespace Pregiato.Application.Services
                             EmailOperator = operatorData.EmailOperator,
                             NameLead = lead.NameLead,
                             PhoneLead = lead.PhoneLead,
+                            // === NOVOS CAMPOS ADICIONADOS ===
+                            Responsible = lead.Responsible,
+                            Age = lead.Age,
+                            PublicADS = lead.PublicADS,
                             CreatedAt = DateTime.UtcNow
                         };
                         allLeads.Add(operatorLead);
@@ -195,7 +199,10 @@ namespace Pregiato.Application.Services
                 return operatorLeads.Select(ol => new OperatorLeadDto
                 {
                     NameLead = ol.NameLead,
-                    PhoneLead = ol.PhoneLead
+                    PhoneLead = ol.PhoneLead,
+                    Responsible = ol.Responsible,
+                    Age = ol.Age,
+                    PublicADS = ol.PublicADS
                 });
             }
             catch (Exception ex)

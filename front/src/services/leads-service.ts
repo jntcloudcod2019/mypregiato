@@ -36,17 +36,8 @@ api.interceptors.response.use(
   }
 );
 
-export interface OperatorLead {
-  nameLead: string;
-  phoneLead: string;
-}
-
-export interface LeadsResponse {
-  success: boolean;
-  data: OperatorLead[];
-  count: number;
-  message: string;
-}
+// Interfaces movidas para @/types/operator-lead.ts
+export { OperatorLead, LeadsResponse } from '@/types/operator-lead';
 
 export interface CreateConversationRequest {
   contactPhoneE164: string;

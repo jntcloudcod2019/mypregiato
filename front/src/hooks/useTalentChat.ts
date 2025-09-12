@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { conversationsApi, rabbitMQService } from '../services/whatsapp-api';
 
 export interface Message {
@@ -38,7 +37,7 @@ export const useTalentChat = (conversationId: string) => {
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
 
-  const fetchConversation = async () => {
+  const fetchConversation = useCallback(async () => {
     try {
       setLoading(true);
       const response = await conversationsApi.getById(conversationId);
@@ -50,9 +49,9 @@ export const useTalentChat = (conversationId: string) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [conversationId]);
 
-  const fetchMessages = async () => {
+  const fetchMessages = useCallback(async () => {
     try {
       // Por enquanto, vamos simular mensagens já que não temos endpoint específico
       // TODO: Implementar endpoint de mensagens no backend
@@ -60,7 +59,7 @@ export const useTalentChat = (conversationId: string) => {
     } catch (err) {
       console.error('Erro ao buscar mensagens:', err);
     }
-  };
+  }, []);
 
   const sendMessage = async (body: string, type: 'text' | 'image' | 'audio' | 'video' | 'document' = 'text', mediaUrl?: string, fileName?: string) => {
     try {
@@ -97,7 +96,7 @@ export const useTalentChat = (conversationId: string) => {
       fetchConversation();
       fetchMessages();
     }
-  }, [conversationId]);
+  }, [conversationId, fetchConversation, fetchMessages]);
 
   return {
     conversation,

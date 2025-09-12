@@ -13,6 +13,7 @@ import {
   MessageSquare
 } from 'lucide-react';
 import { ActiveChat, WhatsAppMessage } from '@/types/attendance';
+import { MessageDirection } from '@/services/chat-service';
 
 interface ChatWindowProps {
   chat: ActiveChat;
@@ -112,18 +113,18 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           chat.messages.map((message, index) => (
             <div
               key={index}
-              className={`flex ${message.fromMe ? 'justify-end' : 'justify-start'}`}
+              className={`flex ${message.direction === MessageDirection.Out ? 'justify-end' : 'justify-start'}`}
             >
               <div
                 className={`max-w-[70%] rounded-lg px-3 py-2 ${
-                  message.isFromMe
+                  message.direction === MessageDirection.Out
                     ? 'bg-blue-500 text-white'
                     : 'bg-gray-100 text-gray-900'
                 }`}
               >
                 <p className="text-sm">{message.body}</p>
                 <p className={`text-xs mt-1 ${
-                  message.isFromMe ? 'text-blue-100' : 'text-gray-500'
+                  message.direction === MessageDirection.Out ? 'text-blue-100' : 'text-gray-500'
                 }`}>
                   {formatTime(message.timestamp)}
                 </p>

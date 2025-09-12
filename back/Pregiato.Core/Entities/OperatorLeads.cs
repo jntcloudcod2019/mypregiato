@@ -8,25 +8,40 @@ namespace Pregiato.Core.Entities
         
         [Required]
         [MaxLength(255)]
-        public string OperatorId { get; set; } // ID do operador (ClerkId)
+        public string OperatorId { get; set; } = string.Empty; 
         
         [Required]
         [MaxLength(255)]
-        public string EmailOperator { get; set; } // Email do operador
+        public string EmailOperator { get; set; } = string.Empty; 
         
         [Required]
         [MaxLength(500)]
-        public string NameLead { get; set; } // Nome do lead
+        public string NameLead { get; set; } = string.Empty; 
         
         [Required]
         [MaxLength(50)]
-        public string PhoneLead { get; set; } // Telefone do lead
+        public string PhoneLead { get; set; } = string.Empty; 
+        
+        /// <summary>
+        /// Responsável pelo lead (nome da pessoa responsável)
+        /// </summary>
+        [MaxLength(255)]
+        public string? Responsible { get; set; }
+        
+        /// <summary>
+        /// Idade do lead
+        /// </summary>
+        public int? Age { get; set; }
+        
+        /// <summary>
+        /// Indica se o lead veio de publicidade/anúncios (string)
+        /// </summary>
+        [MaxLength(255)]
+        public string? PublicADS { get; set; }
         
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         
         public DateTime? UpdatedAt { get; set; }
-        
-        // === NOVOS CAMPOS DE RASTREAMENTO ===
         
         /// <summary>
         /// Indica se o contato foi realizado com o lead

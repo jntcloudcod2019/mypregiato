@@ -89,8 +89,8 @@ export default function RelatoriosPage() {
     <div className="p-6 space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-          Relatórios e Análises
+        <h1 className="text-3xl font-bold">
+          Relatórios
         </h1>
         <p className="text-muted-foreground mt-1">
           Gere relatórios detalhados sobre sua performance de vendas

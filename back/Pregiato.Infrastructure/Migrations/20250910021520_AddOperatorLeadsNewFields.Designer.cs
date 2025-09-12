@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Pregiato.Infrastructure.Data;
 
@@ -10,9 +11,11 @@ using Pregiato.Infrastructure.Data;
 namespace Pregiato.Infrastructure.Migrations
 {
     [DbContext(typeof(PregiatoDbContext))]
-    partial class PregiatoDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250910021520_AddOperatorLeadsNewFields")]
+    partial class AddOperatorLeadsNewFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1337,9 +1340,10 @@ namespace Pregiato.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
 
-                    b.Property<string>("PublicADS")
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
+                    b.Property<bool>("PublicADS")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("Responsible")
                         .HasMaxLength(255)

@@ -20,6 +20,7 @@ using Pregiato.Infrastructure.Data;
 using System.Collections.Concurrent;
 using Pregiato.Application.Services;
 using Pregiato.API.Services;
+using Pregiato.Core.Entities;
 
 namespace Pregiato.API.Services
 {
@@ -315,6 +316,7 @@ namespace Pregiato.API.Services
                             message = new {
                                 id = whatsappMessage.externalMessageId,
                                 externalMessageId = whatsappMessage.externalMessageId,
+                                from = whatsappMessage.from, // ✅ ADICIONADO: Campo from original (ex: "5511949908369@c.us")
                                 fromMe = whatsappMessage.fromMe,
                                 text = whatsappMessage.body,
                                 body = whatsappMessage.body,
@@ -435,7 +437,7 @@ namespace Pregiato.API.Services
                         await ProcessMessageStatusUpdate(messageStatus);
                         
                         // Emitir via SignalR para frontend
-                        await _hubContext.Clients.All.SendAsync("messageStatus.update", new
+                        await _hubContext.Clients.All.SendAsync("message.status", new
                         {
                             phone = messageStatus.phone,
                             messageId = messageStatus.messageId,
