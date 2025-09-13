@@ -131,28 +131,57 @@ namespace Pregiato.API.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Status()
         {
-            var (sessionConnectedCached, numberCached, validatedCached) = _rabbit.GetSessionStatus();
             bool botUp = false;
-            bool sessionConnected = sessionConnectedCached;
-            bool isFullyValidated = validatedCached;
-            string? connectedNumber = numberCached;
+            bool sessionConnected = false;
+            bool isFullyValidated = false;
+            string? connectedNumber = null;
+            string status = "disconnected";
+            string lastActivity = DateTime.UtcNow.ToString("O");
 
             try
             {
-                // Confiar prioritariamente no cache atualizado via /session/updated (batimento do bot)
-                // Opcionalmente, podemos pingar a porta 3030 apenas para saber se o processo está UP
-                using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(2) };
+                // ✅ CORREÇÃO: Consultar diretamente o zap bot para obter status atual
+                using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(3) };
                 try
                 {
                     var resp = await client.GetAsync("http://localhost:3030/status");
                     botUp = resp.IsSuccessStatusCode;
+                    
+                    if (botUp && resp.IsSuccessStatusCode)
+                    {
+                        var jsonContent = await resp.Content.ReadAsStringAsync();
+                        var botStatus = JsonSerializer.Deserialize<JsonElement>(jsonContent);
+                        
+                        // Extrair dados do zap bot
+                        sessionConnected = botStatus.TryGetProperty("sessionConnected", out var sessionConnectedProp) && sessionConnectedProp.GetBoolean();
+                        isFullyValidated = botStatus.TryGetProperty("isFullyValidated", out var validatedProp) && validatedProp.GetBoolean();
+                        connectedNumber = botStatus.TryGetProperty("connectedNumber", out var numberProp) ? numberProp.GetString() : null;
+                        lastActivity = botStatus.TryGetProperty("lastActivity", out var activityProp) ? activityProp.GetString() ?? lastActivity : lastActivity;
+                        
+                        // Determinar status baseado nos dados do bot
+                        if (sessionConnected && isFullyValidated)
+                            status = "connected";
+                        else if (sessionConnected)
+                            status = "connecting";
+                        else if (botUp)
+                            status = "connecting";
+                        else
+                            status = "disconnected";
+                            
+                        _logger.LogInformation("📊 Status obtido do zap bot: connected={Connected}, validated={Validated}, number={Number}", 
+                            sessionConnected, isFullyValidated, connectedNumber);
+                    }
                 }
-                catch
+                catch (Exception ex)
                 {
+                    _logger.LogWarning("⚠️ Erro ao consultar status do zap bot: {Error}", ex.Message);
                     botUp = false;
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Erro geral ao obter status");
+            }
 
             var hasQr = !string.IsNullOrEmpty(_rabbit.GetCachedQr());
 
@@ -163,9 +192,9 @@ namespace Pregiato.API.Controllers
                 isFullyValidated,
                 isConnected = sessionConnected,
                 connectedNumber,
-                status = sessionConnected ? "connected" : (botUp ? "connecting" : "disconnected"),
-                    lastActivity = DateTime.UtcNow.ToString("O"),
-                    queueMessageCount = 0,
+                status,
+                lastActivity,
+                queueMessageCount = 0,
                 canGenerateQR = !sessionConnected,
                 hasQRCode = hasQr
             });

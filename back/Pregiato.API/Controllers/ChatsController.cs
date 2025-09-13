@@ -104,14 +104,7 @@ namespace Pregiato.API.Controllers
                     
                     foreach (var message in payload.Messages)
                     {
-                        // DEBUG: Log específico para mensagens de áudio
-                        if (message.Type == "audio" || message.Type == "voice")
-                        {
-                            _logger.LogInformation("🎵 DEBUG ÁUDIO: Type={Type}", 
-                                message.Type, message.body?.Length ?? 0, 
-                                message.body?.Length > 50 ? message.body.Substring(0, 50) + "..." : message.body,
-                                message.MediaUrl);
-                        }
+                        // ✅ REMOVIDO: Log de debug de áudio que imprimia base64
                         
                       
                         _logger.LogInformation("🔍 DEBUG TIPO: Original={OriginalType}, Convertido={ConvertedType}", 

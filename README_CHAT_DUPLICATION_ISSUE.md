@@ -343,6 +343,183 @@ connection.on('message.inbound', async (evt: MessageEvent) => {
 });
 ```
 
+### **6. Correção do Status do Zap Bot**
+```csharp
+// PROBLEMA: API retornando status incorreto do zap bot
+// Zap bot enviava: { "sessionConnected": true, "connectedNumber": "5511977240565", "isFullyValidated": true }
+// API retornava: { "sessionConnected": false, "connectedNumber": null, "isFullyValidated": false }
+
+// ✅ CORREÇÃO: Consultar diretamente o zap bot em vez de usar cache interno
+[HttpGet("status")]
+public async Task<IActionResult> Status()
+{
+    // Consultar diretamente o zap bot para obter status atual
+    var resp = await client.GetAsync("http://localhost:3030/status");
+    var botStatus = JsonSerializer.Deserialize<JsonElement>(jsonContent);
+    
+    // Extrair dados do zap bot
+    sessionConnected = botStatus.TryGetProperty("sessionConnected", out var sessionConnectedProp) && sessionConnectedProp.GetBoolean();
+    isFullyValidated = botStatus.TryGetProperty("isFullyValidated", out var validatedProp) && validatedProp.GetBoolean();
+    connectedNumber = botStatus.TryGetProperty("connectedNumber", out var numberProp) ? numberProp.GetString() : null;
+    
+    // Determinar status baseado nos dados do bot
+    if (sessionConnected && isFullyValidated)
+        status = "connected";
+    else if (sessionConnected)
+        status = "connecting";
+    else
+        status = "disconnected";
+}
+```
+
+### **7. Correção de Mensagens em Tempo Real**
+```typescript
+// PROBLEMA: Mensagens inbound não apareciam em tempo real, precisava refresh
+// Causa: Conflito de chatId entre backend e frontend
+
+// ✅ CORREÇÃO: Usar finalChatId consistente em todo o fluxo
+connection.on('message.inbound', async (evt: MessageEvent) => {
+  let finalChatId = chatId; // Usar chatId original como fallback
+  
+  // Verificar se chat já existe pelo telefone
+  if (from) {
+    const existingChat = chats.find(c => {
+      const existingPhone = normalizePhone(c.contactPhoneE164 || '');
+      return existingPhone && existingPhone === normalizedPhone;
+    });
+    
+    if (existingChat) {
+      finalChatId = existingChat.id; // ✅ Usar ID do chat existente
+      evt.chatId = existingChat.id;
+    }
+  }
+  
+  // ✅ Usar finalChatId em todas as verificações
+  if (finalChatId === currentSelected && evt.message) {
+    // Adicionar mensagem ao chat ativo
+    setMessages(prev => [...prev, chatMessage]);
+    requestAnimationFrame(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }));
+  } else {
+    // Atualizar cache para quando for aberto
+    historyCacheRef.current[finalChatId] = historyCacheRef.current[finalChatId] || [];
+    historyCacheRef.current[finalChatId].push(chatMessage);
+  }
+  
+  // ✅ Atualizar preview do chat usando finalChatId
+  queueChatPatch(finalChatId, {
+    lastMessageAt: tsVal,
+    lastMessagePreview: preview,
+    unreadCount: isCurrentOpen ? 0 : undefined
+  });
+});
+```
+
+### **8. Correção Final da Criação de Chats Duplicados**
+```typescript
+// PROBLEMA: Frontend ainda criava novos chats mesmo com correções anteriores
+// Causa 1: scheduleCommitChats() sempre criava novos chats sem validação
+// Causa 2: LeadsContainer não normalizava telefones consistentemente
+
+// ✅ CORREÇÃO 1: Validação rigorosa na criação de novos chats
+const scheduleCommitChats = () => {
+  for (const [chatId, patch] of patches) {
+    if (!indexMap.has(chatId)) {
+      // ✅ Só criar se tiver dados mínimos necessários
+      if (patch.contactPhoneE164 || patch.title) {
+        // ✅ Verificar se não é chat temporário ou inválido
+        if (!chatId.startsWith('temp_') && !chatId.includes('undefined') && !chatId.includes('null')) {
+          console.log('✅ Criando novo chat válido:', { chatId, patch });
+          newChats.push({ id: chatId, ...patch });
+        } else {
+          console.log('⚠️ Ignorando criação de chat inválido:', { chatId, patch });
+        }
+      } else {
+        console.log('⚠️ Ignorando criação de chat sem dados mínimos:', { chatId, patch });
+      }
+    }
+  }
+};
+
+// ✅ CORREÇÃO 2: Normalização consistente no LeadsContainer
+const checkExistingChat = async (phoneNumber: string) => {
+  const normalizedPhone = phoneNumber.replace(/\D/g, ''); // Remover caracteres não numéricos
+  
+  const localExistingChat = existingChats.find((chat: ChatListItem) => {
+    const chatPhone = chat.contactPhoneE164?.replace(/\D/g, '') || '';
+    return chatPhone === normalizedPhone; // ✅ Comparação normalizada
+  });
+  
+  const backendExistingChat = backendChats.find((chat: ChatListItem) => {
+    const chatPhone = chat.contactPhoneE164?.replace(/\D/g, '') || '';
+    return chatPhone === normalizedPhone; // ✅ Comparação normalizada
+  });
+};
+```
+
+### **9. Solução Final - Validação por Telefone (SUCESSO)**
+```typescript
+// ✅ SOLUÇÃO FINAL: Validar por telefone em vez de chatId
+// PROBLEMA: Zap bot envia chatId diferente a cada mensagem
+// SOLUÇÃO: Usar campo 'from' que contém o número consistente
+
+// ✅ CORREÇÃO 1: scheduleCommitChats valida por telefone
+const scheduleCommitChats = () => {
+  for (const [chatId, patch] of patches) {
+    if (!indexMap.has(chatId)) {
+      // ✅ VERIFICAÇÃO PRINCIPAL: Verificar se já existe chat com o mesmo telefone
+      const patchPhone = patch.contactPhoneE164;
+      let chatExistsByPhone = false;
+      
+      if (patchPhone) {
+        const normalizedPatchPhone = patchPhone.replace(/\D/g, '');
+        
+        // Verificar se já existe chat com o mesmo telefone
+        chatExistsByPhone = existingChats.some(existingChat => {
+          const existingPhone = existingChat.contactPhoneE164?.replace(/\D/g, '') || '';
+          return existingPhone === normalizedPatchPhone;
+        });
+      }
+      
+      if (chatExistsByPhone) {
+        console.log('⚠️ Chat já existe pelo telefone, ignorando criação:', { chatId, patchPhone });
+        continue; // ✅ Pular criação deste chat
+      }
+      
+      // Só criar se realmente for novo
+      newChats.push({ id: chatId, ...patch });
+    }
+  }
+};
+
+// ✅ CORREÇÃO 2: message.inbound extrai telefone do campo 'from'
+connection.on('message.inbound', async (evt: MessageEvent) => {
+  const from: string | undefined = evt?.message?.from; // Campo consistente do zap bot
+  
+  if (from) {
+    const phoneNumber = from.replace('@c.us', '').replace('@g.us', '');
+    const normalizedPhone = normalizePhone(phoneNumber);
+    
+    // Buscar chat existente pelo telefone normalizado
+    const existingChat = chats.find(c => {
+      const existingPhone = normalizePhone(c.contactPhoneE164 || '');
+      return existingPhone && existingPhone === normalizedPhone;
+    });
+    
+    if (existingChat) {
+      finalChatId = existingChat.id; // ✅ Usar chat existente
+      evt.chatId = existingChat.id;
+    }
+  }
+  
+  // ✅ Incluir telefone no patch para validação
+  queueChatPatch(finalChatId, {
+    lastMessageAt: tsVal,
+    lastMessagePreview: preview,
+    contactPhoneE164: phoneNumber // ✅ Telefone para validação
+  });
+});
+```
+
 ## 📊 Status Atual
 
 - ✅ **Banco de Dados**: Funcionando corretamente
@@ -351,7 +528,11 @@ connection.on('message.inbound', async (evt: MessageEvent) => {
 - ✅ **Normalização**: Consistente entre componentes
 - ✅ **Posicionamento de Mensagens**: Corrigido enum MessageDirection inconsistente
 - ✅ **Criação Duplicada de Chats**: Corrigida lógica de criação no frontend
-- 🔄 **Teste**: Aguardando validação do fluxo completo
+- ✅ **Status do Zap Bot**: Corrigida consulta direta ao zap bot
+- ✅ **Mensagens em Tempo Real**: Corrigido conflito de chatId para exibição instantânea
+- ✅ **Criação de Chats Duplicados**: Validação rigorosa e normalização consistente
+- ✅ **Validação por Telefone**: Implementada com sucesso - mensagens chegam no chat existente
+- ✅ **Teste**: Fluxo completo validado e funcionando
 
 PlayLoadJson que e responsavel por armazenar as mensagens de um chat
 

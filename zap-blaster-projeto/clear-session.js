@@ -8,7 +8,7 @@ const instanceId = process.env.INSTANCE_ID || 'zap-prod';
 // Caminho da sessão
 const isDocker = process.env.NODE_ENV === 'production' || fs.existsSync('/.dockerenv');
 const sessionPath = isDocker 
-  ? `/app/session/${instanceId}`
+  ? `/session/${instanceId}`
   : path.join(process.cwd(), 'session', instanceId);
 
 function clearSession() {

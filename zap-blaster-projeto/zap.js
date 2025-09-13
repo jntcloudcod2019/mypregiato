@@ -1057,7 +1057,23 @@ async function sendOne(number, msg) {
     // fallback
     let sent;
     if (attachment) {
-      const base64 = String(attachment.dataUrl || '').split(',')[1] || attachment.dataUrl;
+      // ✅ CORREÇÃO: Para áudio, usar base64 do body se não houver dataUrl
+      let base64;
+      if (attachment.dataUrl) {
+        // Para outros tipos de mídia (imagem, documento)
+        base64 = String(attachment.dataUrl).split(',')[1] || attachment.dataUrl;
+      } else if (body && (attachment.mediaType === 'audio' || attachment.mediaType === 'voice')) {
+        // Para áudio, usar base64 do body
+        base64 = String(body).split(',')[1] || body;
+        Log.info('🎵 Usando base64 do body para áudio', { 
+          mediaType: attachment.mediaType,
+          mimeType: attachment.mimeType,
+          bodyLength: body?.length || 0
+        });
+      } else {
+        throw new Error('Sem dados de mídia disponíveis');
+      }
+      
       const mime = attachment.mimeType || 'application/octet-stream';
       const media = new MessageMedia(mime, base64 || '', attachment.fileName || 'file');
       // ✅ CORREÇÃO: Usar nome mais claro

@@ -38,7 +38,23 @@ class ResilientMessageSender {
             // Preparar opções de mensagem
             const messageOptions = {};
             if (attachment) {
-                const base64Data = String(attachment.dataUrl || '').split(',')[1];
+                // ✅ CORREÇÃO: Para áudio, usar base64 do body se dataUrl não existir
+                let base64Data;
+                if (attachment.dataUrl) {
+                    // Para outros tipos de mídia (imagem, documento)
+                    base64Data = String(attachment.dataUrl).split(',')[1];
+                } else if (body && (attachment.mediaType === 'audio' || attachment.mediaType === 'voice')) {
+                    // Para áudio, usar base64 do body
+                    base64Data = String(body).split(',')[1];
+                    this.logger.info('🎵 ResilientSender: Usando base64 do body para áudio', { 
+                        mediaType: attachment.mediaType,
+                        mimeType: attachment.mimeType,
+                        bodyLength: body?.length || 0
+                    });
+                } else {
+                    throw new Error('Sem dados de mídia disponíveis');
+                }
+                
                 const mimeType = attachment.mimeType || 'application/octet-stream';
                 const { MessageMedia } = require('whatsapp-web.js');
                 messageOptions.media = new MessageMedia(mimeType, base64Data || '', attachment.fileName || undefined);

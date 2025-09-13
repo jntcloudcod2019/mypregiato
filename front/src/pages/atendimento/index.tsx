@@ -135,6 +135,7 @@ interface MessageEvent {
     ts?: string;
     timestamp?: string;
     type?: string;
+    from?: string; // ✅ ADICIONADO: Campo from para identificação do remetente
     attachment?: {
       dataUrl?: string;
       mimeType?: string;
@@ -501,11 +502,39 @@ export default function AtendimentoPage() {
           return p ? ({ ...c, ...p }) : c;
         });
         
-        // Adicionar novos chats
+        // Adicionar novos chats APENAS se realmente necessário
         const newChats: ChatListItem[] = [];
         for (const [chatId, patch] of patches) {
           if (!indexMap.has(chatId)) {
-            // É um novo chat - criar objeto completo
+            // ✅ VERIFICAÇÃO PRINCIPAL: Verificar se já existe chat com o mesmo telefone
+            const patchPhone = patch.contactPhoneE164;
+            let chatExistsByPhone = false;
+            
+            if (patchPhone) {
+              // Normalizar telefone do patch
+              const normalizedPatchPhone = patchPhone.replace(/\D/g, '');
+              
+              // Verificar se já existe chat com o mesmo telefone
+              chatExistsByPhone = existingChats.some(existingChat => {
+                const existingPhone = existingChat.contactPhoneE164?.replace(/\D/g, '') || '';
+                return existingPhone === normalizedPatchPhone;
+              });
+            }
+            
+            if (chatExistsByPhone) {
+              console.log('⚠️ Chat já existe pelo telefone, ignorando criação:', { 
+                chatId, 
+                patchPhone, 
+                existingChats: existingChats.map(c => ({ id: c.id, phone: c.contactPhoneE164 }))
+              });
+              continue; // Pular criação deste chat
+            }
+            
+            // ✅ VERIFICAÇÃO: Só criar novo chat se tiver dados mínimos necessários
+            if (patch.contactPhoneE164 || patch.title) {
+              // ✅ VERIFICAÇÃO ADICIONAL: Verificar se não é um chat temporário ou inválido
+              if (!chatId.startsWith('temp_') && !chatId.includes('undefined') && !chatId.includes('null')) {
+                console.log('✅ Criando novo chat válido:', { chatId, patch });
             newChats.push({
               id: chatId,
               title: patch.title || patch.contactPhoneE164 || `Chat ${chatId.slice(0, 8)}`,
@@ -514,6 +543,12 @@ export default function AtendimentoPage() {
               lastMessagePreview: patch.lastMessagePreview || '',
               unreadCount: patch.unreadCount || 0
             } as ChatListItem);
+              } else {
+                console.log('⚠️ Ignorando criação de chat inválido:', { chatId, patch });
+              }
+            } else {
+              console.log('⚠️ Ignorando criação de chat sem dados mínimos:', { chatId, patch });
+            }
           }
         }
         
@@ -799,6 +834,8 @@ export default function AtendimentoPage() {
           if (!id || !chatId) return;
 
           // ✅ NOVA LÓGICA: Verificar se chat já existe pelo número de telefone
+          let finalChatId = chatId; // Usar chatId original como fallback
+          
           if (from) {
             // Extrair número do telefone (remover @c.us)
             const phoneNumber = from.replace('@c.us', '').replace('@g.us', '');
@@ -821,6 +858,7 @@ export default function AtendimentoPage() {
                 });
                 
                 // Usar o chat existente em vez do novo
+                finalChatId = existingChat.id;
                 evt.chatId = existingChat.id;
               } else {
                 console.log('❌ Nenhum chat existente encontrado para:', {
@@ -838,13 +876,13 @@ export default function AtendimentoPage() {
             processedInboundIdsRef.current = new Set(Array.from(processedInboundIdsRef.current).slice(-1000));
           }
 
-          const fallbackKey = `${chatId}|${text || ''}|${ts || ''}`;
-          const lastKey = lastMessageKeyByChatRef.current[chatId];
+          const fallbackKey = `${finalChatId}|${text || ''}|${ts || ''}`;
+          const lastKey = lastMessageKeyByChatRef.current[finalChatId];
           if (lastKey === fallbackKey) return;
-          lastMessageKeyByChatRef.current[chatId] = fallbackKey;
+          lastMessageKeyByChatRef.current[finalChatId] = fallbackKey;
 
           const currentSelected = selectedChatIdRef.current;
-          setTickets(prev => ({ ...prev, [chatId]: prev[chatId] || { status: 'novo', step: 1 } }));
+          setTickets(prev => ({ ...prev, [finalChatId]: prev[finalChatId] || { status: 'novo', step: 1 } }));
 
           // NOVA LÓGICA: Criar mensagem sempre, não só para chat selecionado
           const chatMessage: ChatMessageDto = {
@@ -862,7 +900,7 @@ export default function AtendimentoPage() {
             } : null
           };
 
-          if (chatId === currentSelected && evt.message) {
+          if (finalChatId === currentSelected && evt.message) {
             // Se é o chat atualmente aberto, adicionar à lista de mensagens
             setMessages(prev => {
               // Verificar se a mensagem já existe para evitar duplicatas
@@ -879,8 +917,8 @@ export default function AtendimentoPage() {
             requestAnimationFrame(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }));
           } else {
             // Se não é o chat atual, atualizar cache para quando for aberto
-            historyCacheRef.current[chatId] = historyCacheRef.current[chatId] || [];
-            const cachedMessages = historyCacheRef.current[chatId];
+            historyCacheRef.current[finalChatId] = historyCacheRef.current[finalChatId] || [];
+            const cachedMessages = historyCacheRef.current[finalChatId];
             
             // Verificar se a mensagem já existe no cache
             const exists = cachedMessages.some(m => m.id === chatMessage.id || m.externalMessageId === chatMessage.externalMessageId);
@@ -888,7 +926,7 @@ export default function AtendimentoPage() {
               cachedMessages.push(chatMessage);
               // Ordenar por timestamp
               cachedMessages.sort((a, b) => new Date(a.ts).getTime() - new Date(b.ts).getTime());
-              console.debug('[chat] Mensagem adicionada ao cache do chat:', chatId);
+              console.debug('[chat] Mensagem adicionada ao cache do chat:', finalChatId);
             }
           }
 
@@ -897,18 +935,26 @@ export default function AtendimentoPage() {
                                            evt?.message?.type === 'file' ? (evt?.message?.attachment?.fileName || 'Arquivo') :
                                            'Mensagem');
           const tsVal = ts || new Date().toISOString();
-          const isCurrentOpen = chatId === selectedChatIdRef.current;
+          const isCurrentOpen = finalChatId === selectedChatIdRef.current;
 
           // ✅ VERIFICAÇÃO: Só atualizar se o chat já existe
-          const existingChat = chats.find(c => c.id === chatId);
+          const existingChat = chats.find(c => c.id === finalChatId);
           if (existingChat) {
-            queueChatPatch(chatId, {
-              lastMessageAt: tsVal,
-              lastMessagePreview: preview,
-              unreadCount: isCurrentOpen ? 0 : undefined
-            } as Partial<ChatListItem>);
+            // ✅ EXTRAIR TELEFONE DO CAMPO FROM para garantir consistência
+            let contactPhoneE164 = existingChat.contactPhoneE164;
+            if (from) {
+              const phoneNumber = from.replace('@c.us', '').replace('@g.us', '');
+              contactPhoneE164 = phoneNumber;
+            }
+            
+            queueChatPatch(finalChatId, {
+            lastMessageAt: tsVal,
+            lastMessagePreview: preview,
+              unreadCount: isCurrentOpen ? 0 : undefined,
+              contactPhoneE164: contactPhoneE164 // ✅ Incluir telefone para validação
+          } as Partial<ChatListItem>);
           } else {
-            console.log('⚠️ Chat não encontrado para message.inbound, ignorando atualização:', chatId);
+            console.log('⚠️ Chat não encontrado para message.inbound, ignorando atualização:', finalChatId);
           }
         });
 

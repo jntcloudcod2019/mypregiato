@@ -79,9 +79,12 @@ export const LeadsContainer: React.FC<LeadsContainerProps> = ({ existingChats = 
   const checkExistingChat = async (phoneNumber: string): Promise<ChatListItem | null> => {
     try {
       // ✅ 1. PRIMEIRO: Verificar no estado local (chats já carregados na página)
-      const localExistingChat = existingChats.find((chat: ChatListItem) => 
-        chat.contactPhoneE164 === phoneNumber
-      );
+      // ✅ CORREÇÃO: Usar normalização consistente de telefones
+      const normalizedPhone = phoneNumber.replace(/\D/g, ''); // Remover caracteres não numéricos
+      const localExistingChat = existingChats.find((chat: ChatListItem) => {
+        const chatPhone = chat.contactPhoneE164?.replace(/\D/g, '') || '';
+        return chatPhone === normalizedPhone;
+      });
 
       if (localExistingChat) {
         console.log('🔍 [LeadsContainer] Chat existente encontrado no estado local:', localExistingChat);
@@ -104,10 +107,11 @@ export const LeadsContainer: React.FC<LeadsContainerProps> = ({ existingChats = 
       const data = await response.json();
       const backendChats = data.items || [];
       
-      // Procurar por chat com o mesmo número de telefone
-      const backendExistingChat = backendChats.find((chat: ChatListItem) => 
-        chat.contactPhoneE164 === phoneNumber
-      );
+      // Procurar por chat com o mesmo número de telefone (normalizado)
+      const backendExistingChat = backendChats.find((chat: ChatListItem) => {
+        const chatPhone = chat.contactPhoneE164?.replace(/\D/g, '') || '';
+        return chatPhone === normalizedPhone;
+      });
 
       if (backendExistingChat) {
         console.log('🔍 [LeadsContainer] Chat existente encontrado no backend:', backendExistingChat);

@@ -17,6 +17,7 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Pregiato.Core.Entities;
 using Pregiato.Infrastructure.Data;
+using Pregiato.Infrastructure.Repositories;
 using System.Collections.Concurrent;
 using Pregiato.Application.Services;
 using Pregiato.API.Services;
@@ -93,7 +94,8 @@ namespace Pregiato.API.Services
             IMemoryCache cache,
             IOptions<RabbitMQConfig> rabbitConfig,
             ConversationService conversationService,
-            MediaStorageService mediaStorageService)
+            MediaStorageService mediaStorageService
+)
         {
             _logger = logger;
             _hubContext = hubContext;
@@ -304,14 +306,21 @@ namespace Pregiato.API.Services
                         _logger.LogInformation("📨 Mensagem WhatsApp recebida via RabbitMQ: {From} -> {To}",
                             whatsappMessage.from, whatsappMessage.to);
 
-                        // Usar chatId do payload se disponível, senão gerar baseado no fromNormalized
-                        var chatId = !string.IsNullOrEmpty(whatsappMessage.chatId)
-                            ? whatsappMessage.chatId
-                            : $"chat_{whatsappMessage.fromNormalized}";
-
+                        // ✅ CORREÇÃO: Buscar chatId real do banco de dados usando escopo
+                        string realChatId;
+                        using (var scope = _services.CreateScope())
+                        {
+                            var context = scope.ServiceProvider.GetRequiredService<PregiatoDbContext>();
+                            var chatLog = context.ChatLogs
+                                .Where(c => c.ContactPhoneE164 == whatsappMessage.fromNormalized)
+                                .FirstOrDefault();
+                            
+                            realChatId = chatLog?.ChatId.ToString() ?? $"chat_{whatsappMessage.fromNormalized}";
+                        }
+                        
                         // Notificar clientes via SignalR com chatId correto
                         await _hubContext.Clients.Group("whatsapp").SendAsync("message.inbound", new {
-                            chatId = chatId,
+                            chatId = realChatId,
                             fromNormalized = whatsappMessage.fromNormalized,
                             message = new {
                                 id = whatsappMessage.externalMessageId,
@@ -327,31 +336,8 @@ namespace Pregiato.API.Services
                             }
                         });
 
-                        // Converter chatId para Guid usando abordagem simples e segura
-                        Guid conversationId;
-                        try
-                        {
-                            // Tentar converter diretamente se for um GUID válido
-                            if (Guid.TryParse(chatId.Replace("chat_", ""), out Guid directGuid))
-                            {
-                                conversationId = directGuid;
-                            }
-                            else
-                            {
-                                // Para casos onde não é GUID, gerar um baseado no telefone
-                                var phoneHash = whatsappMessage.fromNormalized?.GetHashCode() ?? 0;
-                                conversationId = Guid.Parse($"{Math.Abs(phoneHash):X8}-0000-0000-0000-000000000000");
-                            }
-                        }
-                        catch
-                        {
-                            // Fallback: usar um GUID baseado no timestamp e telefone
-                            var fallbackId = $"{DateTime.UtcNow.Ticks}_{whatsappMessage.fromNormalized}".GetHashCode();
-                            conversationId = Guid.Parse($"{Math.Abs(fallbackId):X8}-0000-0000-0000-000000000001");
-                        }
-
                         // Processar a mensagem para criar/atualizar chat e obter ConversationId
-                        conversationId = await ProcessIncomingMessage(whatsappMessage);
+                        var conversationId = await ProcessIncomingMessage(whatsappMessage);
 
                         if (conversationId != Guid.Empty)
                         {
@@ -712,11 +698,7 @@ namespace Pregiato.API.Services
                 _logger.LogInformation("📤 Publicando comando: {Command}", json);
                 _logger.LogInformation("📤 Routing Key: whatsapp.outgoing");
                 _logger.LogInformation("📤 Body length: {Length} bytes", body.Length);
-                _logger.LogInformation("📤 Body as string: {BodyString}", Encoding.UTF8.GetString(body));
-                
-                // Verificar se há caracteres especiais
-                var bodyHex = BitConverter.ToString(body);
-                _logger.LogInformation("📤 Body hex: {BodyHex}", bodyHex);
+                // ✅ REMOVIDO: Logs que imprimiam body completo e hex
                 
                 _channel.BasicPublish(
                     exchange: "",
@@ -834,8 +816,7 @@ namespace Pregiato.API.Services
         {
             try
             {
-                _logger.LogDebug("📎 Processando attachment: FileName='{FileName}' ({Length} chars), MimeType='{MimeType}', DataUrl Length={DataUrlLength}", 
-                    attachment.fileName, attachment.fileName?.Length ?? 0, attachment.mimeType, attachment.dataUrl?.Length ?? 0);
+                // ✅ REMOVIDO: Log que imprimia informações do attachment
 
                 // Definir MediaUrl (truncar para evitar erro de campo muito longo)
                 messageEntity.MediaUrl = TruncateString(attachment.dataUrl, 500);
@@ -847,8 +828,7 @@ namespace Pregiato.API.Services
                 var fileName = ExtractFileName(attachment.fileName);
                 messageEntity.FileName = TruncateString(fileName, 100);
 
-                _logger.LogInformation("📎 Attachment processado com sucesso: FileName='{FileName}' ({Length} chars), MimeType='{MimeType}'", 
-                    messageEntity.FileName, messageEntity.FileName?.Length ?? 0, messageEntity.MimeType);
+                // ✅ REMOVIDO: Log que imprimia informações do attachment processado
             }
             catch (Exception ex)
             {
@@ -971,8 +951,7 @@ namespace Pregiato.API.Services
                 (messageType == MessageType.Audio || messageType == MessageType.Voice || 
                  messageType == MessageType.Image || messageType == MessageType.Video))
             {
-                _logger.LogInformation("💾 Salvando base64 no body para mensagem {Type}: {Length} chars", 
-                    messageType, whatsappMessage.attachment.dataUrl.Length);
+                // ✅ REMOVIDO: Log que imprimia tamanho do base64
                 return whatsappMessage.attachment.dataUrl;
             }
             
@@ -1300,8 +1279,7 @@ namespace Pregiato.API.Services
                         // Criar MessageInfo COMPLETO conforme exemplo JSON
                         var messageInfo = CreateCompleteMessageInfo(message, mediaUrl);
                         
-                        _logger.LogInformation("💾 MessageInfo criado para PayloadJson: Type={Type}, Body_Length={BodyLength}, MediaUrl={MediaUrl}", 
-                            messageInfo.Type, messageInfo.body?.Length ?? 0, messageInfo.MediaUrl);
+                        // ✅ REMOVIDO: Log que imprimia informações do MessageInfo
                         
                         // Criar ChatPayload completo
                         var chatPayload = new ChatLogService.ChatPayload
@@ -1394,20 +1372,12 @@ namespace Pregiato.API.Services
                             }
                         }
 
-                        // === DEBUG RÁPIDO PARA ÁUDIO ===
-                        if (message.type == "audio" || message.type == "voice")
-                        {
-                            _logger.LogInformation("🎵 [AUDIO] body: {HasBody}, attachment: {HasAttachment}, mimeType: {MimeType}", 
-                                !string.IsNullOrEmpty(message.body) ? $"{message.body.Length}chars" : "VAZIO",
-                                message.attachment != null ? "SIM" : "NÃO", 
-                                message.attachment?.mimeType ?? "NULL");
-                        }
+                        // ✅ REMOVIDO: Debug de áudio que imprimia informações do body
 
                         // Criar nova MessageInfo COMPLETO conforme exemplo JSON
                         var messageInfo = CreateCompleteMessageInfo(message, mediaUrl);
                         
-                        _logger.LogInformation("💾 MessageInfo criado para chat existente: Type={Type}, Body_Length={BodyLength}, MediaUrl={MediaUrl}", 
-                            messageInfo.Type, messageInfo.body?.Length ?? 0, messageInfo.MediaUrl);
+                        // ✅ REMOVIDO: Log que imprimia informações do MessageInfo
                         
                         // VERIFICAR SE A MENSAGEM JÁ EXISTS (evitar duplicatas)
                         _logger.LogInformation("🔍 Verificando duplicata para MessageId: {MessageId}", messageInfo.Id);
@@ -1521,12 +1491,12 @@ namespace Pregiato.API.Services
                 if (!string.IsNullOrEmpty(message.attachment?.dataUrl))
                 {
                     messageInfo.body = message.attachment.dataUrl;
-                    _logger.LogInformation("🎵 ÁUDIO: Body populado com base64 do attachment ({Length} chars)", messageInfo.body.Length);
+                    // ✅ REMOVIDO: Log que imprimia tamanho do base64
                 }
                 else if (!string.IsNullOrEmpty(message.body))
                 {
                     messageInfo.body = message.body;
-                    _logger.LogInformation("🎵 ÁUDIO: Body populado com base64 do body original ({Length} chars)", messageInfo.body.Length);
+                    // ✅ REMOVIDO: Log que imprimia tamanho do base64
                 }
                 else
                 {
@@ -1579,8 +1549,7 @@ namespace Pregiato.API.Services
             messageInfo.contactName = null;
             messageInfo.contactPhone = null;
 
-            _logger.LogInformation("📝 MessageInfo COMPLETO criado: Type={Type}, Body_Length={BodyLength}, FileName={FileName}, MimeType={MimeType}",
-                messageInfo.Type, messageInfo.body?.Length ?? 0, messageInfo.fileName, messageInfo.mimeType);
+            // ✅ REMOVIDO: Log que imprimia informações completas do MessageInfo
 
             return messageInfo;
         }
