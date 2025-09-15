@@ -79,8 +79,12 @@ async function connectDatabase() {
     return connectionPool;
   } catch (error) {
     console.error('❌ Erro ao conectar ao banco:', error.message);
-    console.error('❌ Stack trace:', error.stack);
-    throw error;
+    console.error('⚠️ Continuando sem conexão com banco - Zap Bot funcionará em modo limitado');
+    console.error('⚠️ Funcionalidades que dependem do banco serão desabilitadas');
+    
+    // Não lançar erro - continuar sem banco
+    connectionPool = null;
+    return null;
   }
 }
 
@@ -88,7 +92,10 @@ async function connectDatabase() {
 async function loadOperatorLeadsCache() {
   try {
     if (!connectionPool) {
-      await connectDatabase();
+      console.log('⚠️ Sem conexão com banco - cache de leads não será carregado');
+      operatorLeadsCache = [];
+      lastCacheUpdate = Date.now();
+      return [];
     }
     
     const [rows] = await connectionPool.execute(`
@@ -103,12 +110,20 @@ async function loadOperatorLeadsCache() {
     return rows;
   } catch (error) {
     console.error('❌ Erro ao carregar cache:', error.message);
-    throw error;
+    console.error('⚠️ Continuando sem cache de leads');
+    operatorLeadsCache = [];
+    lastCacheUpdate = Date.now();
+    return [];
   }
 }
 
 // Função para atualizar cache (se expirou)
 async function refreshCacheIfNeeded() {
+  if (!connectionPool) {
+    console.log('⚠️ Sem conexão com banco - cache não será atualizado');
+    return;
+  }
+  
   if (!lastCacheUpdate || (Date.now() - lastCacheUpdate) > CACHE_TTL) {
     console.log('🔄 Cache expirado, atualizando...');
     await loadOperatorLeadsCache();
@@ -117,18 +132,40 @@ async function refreshCacheIfNeeded() {
 
 // Função para validar se um número está na lista de leads
 async function isNumberInLeads(phoneNumber) {
-  await refreshCacheIfNeeded();
-  
-  // Normalizar número (remover +, espaços, etc)
-  const normalizedNumber = phoneNumber.replace(/[^0-9]/g, '');
-  
-  // Verificar se está no cache
-  const found = operatorLeadsCache.find(lead => {
-    const leadPhone = lead.PhoneLead.replace(/[^0-9]/g, '');
-    return leadPhone.includes(normalizedNumber) || normalizedNumber.includes(leadPhone);
-  });
-  
-  return found ? found : null;
+  try {
+    await refreshCacheIfNeeded();
+    
+    // Se não há conexão com banco, permitir todos os números
+    if (!connectionPool) {
+      console.log('⚠️ Sem conexão com banco - permitindo todos os números');
+      return { 
+        OperatorId: 'default', 
+        EmailOperator: 'system@default.com', 
+        NameLead: 'Sistema', 
+        PhoneLead: phoneNumber 
+      };
+    }
+    
+    // Normalizar número (remover +, espaços, etc)
+    const normalizedNumber = phoneNumber.replace(/[^0-9]/g, '');
+    
+    // Verificar se está no cache
+    const found = operatorLeadsCache.find(lead => {
+      const leadPhone = lead.PhoneLead.replace(/[^0-9]/g, '');
+      return leadPhone.includes(normalizedNumber) || normalizedNumber.includes(leadPhone);
+    });
+    
+    return found ? found : null;
+  } catch (error) {
+    console.error('❌ Erro ao validar número nos leads:', error.message);
+    console.log('⚠️ Permitindo número por padrão devido ao erro');
+    return { 
+      OperatorId: 'default', 
+      EmailOperator: 'system@default.com', 
+      NameLead: 'Sistema', 
+      PhoneLead: phoneNumber 
+    };
+  }
 }
 
 // Função para obter conexão
@@ -142,9 +179,16 @@ async function getConnection() {
 // Função para fechar conexão
 async function closeDatabase() {
   if (connectionPool) {
-    await connectionPool.end();
-    connectionPool = null;
-    console.log('🔌 Conexão com banco fechada');
+    try {
+      await connectionPool.end();
+      connectionPool = null;
+      console.log('🔌 Conexão com banco fechada');
+    } catch (error) {
+      console.error('❌ Erro ao fechar conexão com banco:', error.message);
+      connectionPool = null;
+    }
+  } else {
+    console.log('⚠️ Nenhuma conexão com banco para fechar');
   }
 }
 
