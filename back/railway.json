@@ -13,7 +13,7 @@
     "production": {
       "variables": {
         "ASPNETCORE_ENVIRONMENT": "Production",
-        "ASPNETCORE_URLS": "http://+:${PORT}",
+        "ASPNETCORE_URLS": "http://+:${PORT:-5656}",
         "MYSQL_DATABASE": "railway",
         "MYSQL_ROOT_PASSWORD": "nmZKnTmDpQIwmvRBYIoIbFjYyaiZPoEq",
         "MYSQLDATABASE": "railway",
