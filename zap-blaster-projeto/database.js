@@ -3,8 +3,19 @@ require('dotenv').config();
 
 const mysql = require('mysql2/promise');
 
-// Configuração do banco (mesma da API)
-const dbConfig = {
+// Configuração do banco baseada no ambiente
+const isProduction = process.env.NODE_ENV === 'production' || process.env.RAILWAY_ENVIRONMENT;
+
+const dbConfig = isProduction ? {
+  // ✅ PRODUÇÃO: Usar variáveis de ambiente do Railway
+  host: process.env.MYSQLHOST || process.env.RAILWAY_PRIVATE_DOMAIN,
+  port: parseInt(process.env.MYSQLPORT) || 3306,
+  user: process.env.MYSQLUSER || 'root',
+  password: process.env.MYSQLPASSWORD || process.env.MYSQL_ROOT_PASSWORD,
+  database: process.env.MYSQLDATABASE || process.env.MYSQL_DATABASE,
+  charset: 'utf8mb4'
+} : {
+  // ✅ DESENVOLVIMENTO: Usar configuração local
   host: 'localhost',
   port: 3306,
   user: 'root',
@@ -12,6 +23,10 @@ const dbConfig = {
   database: 'pregiato_dev',
   charset: 'utf8mb4'
 };
+
+// Log da configuração de banco (sem senha)
+console.log(`🔧 Configuração de banco: ${isProduction ? 'PRODUÇÃO' : 'DESENVOLVIMENTO'}`);
+console.log(`🔧 Host: ${dbConfig.host}, Database: ${dbConfig.database}, User: ${dbConfig.user}`);
 
 // Pool de conexões
 let connectionPool = null;

@@ -1,13 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Bot, QrCode, Wifi, WifiOff, AlertCircle, RefreshCw, CheckCircle } from 'lucide-react';
 import { useWhatsAppConnection, ConnectionStatus } from '@/hooks/useWhatsAppConnection';
 import { QRCodeModal } from '@/components/whatsapp/qr-code-modal';
+import { useUser } from '@clerk/clerk-react';
+import { UserService } from '@/services/user-service';
+import { CurrentUser } from '@/types/whatsapp';
 
 export const BotStatusCard = () => {
   const [showQRModal, setShowQRModal] = useState(false);
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  const [isLoadingUser, setIsLoadingUser] = useState(true);
+  
+  const { user, isLoaded } = useUser();
   
   const {
     status,
@@ -25,6 +32,39 @@ export const BotStatusCard = () => {
     generateQR,
     checkStatus
   } = useWhatsAppConnection();
+
+  // Buscar dados do usuário para verificar role
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!user || !isLoaded) {
+        setCurrentUser(null);
+        setIsLoadingUser(false);
+        return;
+      }
+
+      try {
+        const userEmail = user.emailAddresses[0]?.emailAddress;
+        if (!userEmail) {
+          setCurrentUser(null);
+          setIsLoadingUser(false);
+          return;
+        }
+
+        const userData = await UserService.getUserByEmail(userEmail);
+        setCurrentUser(userData);
+      } catch (error) {
+        console.error('Erro ao buscar dados do usuário:', error);
+        setCurrentUser(null);
+      } finally {
+        setIsLoadingUser(false);
+      }
+    };
+
+    fetchUserData();
+  }, [user, isLoaded]);
+
+  // Verificar se o usuário é ADMIN
+  const isAdmin = currentUser?.role === 'ADMIN';
 
   const getStatusColor = (status: ConnectionStatus) => {
     switch (status) {
@@ -105,14 +145,21 @@ export const BotStatusCard = () => {
                   {isGeneratingQR ? 'Gerando...' : 'Conectar WhatsApp'}
                 </Button>
               ) : (
-                <Button 
-                  onClick={disconnect}
-                  className="w-full"
-                  variant="destructive"
-                >
-                  <WifiOff className="h-4 w-4 mr-2" />
-                  Desconectar
-                </Button>
+                // ✅ Só mostrar botão Desconectar para usuários ADMIN
+                isAdmin ? (
+                  <Button 
+                    onClick={disconnect}
+                    className="w-full"
+                    variant="destructive"
+                  >
+                    <WifiOff className="h-4 w-4 mr-2" />
+                    Desconectar
+                  </Button>
+                ) : (
+                  <div className="w-full p-2 text-center text-sm text-muted-foreground bg-muted/50 rounded-md">
+                    Apenas administradores podem desconectar o bot
+                  </div>
+                )
               )}
               
               {/* Botão de Teste para Debug */}

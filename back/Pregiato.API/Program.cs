@@ -19,12 +19,11 @@ using Pregiato.Core.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configurar Serilog
+// Configurar Serilog - apenas console
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
     .WriteTo.Console()
-    .WriteTo.File("logs/pregiato-.txt", rollingInterval: RollingInterval.Day)
     .CreateLogger();
 
 builder.Host.UseSerilog();
@@ -50,17 +49,46 @@ builder.Services.AddCors(options =>
     });
 });
 
-// DbContext com MySQL Railway
-var conn = builder.Configuration.GetConnectionString("DefaultConnection");
-if (string.IsNullOrWhiteSpace(conn))
+// ✅ CONFIGURAÇÃO DE BANCO DE DADOS POR AMBIENTE
+string connectionString;
+
+// Verificar se está em produção (Railway)
+if (builder.Environment.IsProduction() || !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RAILWAY_ENVIRONMENT")))
 {
-    throw new InvalidOperationException("Connection string 'DefaultConnection' não encontrada.");
+    // ✅ PRODUÇÃO: Usar variáveis de ambiente do Railway
+    var mysqlHost = Environment.GetEnvironmentVariable("MYSQLHOST") ?? Environment.GetEnvironmentVariable("RAILWAY_PRIVATE_DOMAIN");
+    var mysqlPort = Environment.GetEnvironmentVariable("MYSQLPORT") ?? "3306";
+    var mysqlDatabase = Environment.GetEnvironmentVariable("MYSQLDATABASE") ?? Environment.GetEnvironmentVariable("MYSQL_DATABASE");
+    var mysqlUser = Environment.GetEnvironmentVariable("MYSQLUSER") ?? "root";
+    var mysqlPassword = Environment.GetEnvironmentVariable("MYSQLPASSWORD") ?? Environment.GetEnvironmentVariable("MYSQL_ROOT_PASSWORD");
+    
+    if (string.IsNullOrEmpty(mysqlHost) || string.IsNullOrEmpty(mysqlDatabase) || string.IsNullOrEmpty(mysqlUser) || string.IsNullOrEmpty(mysqlPassword))
+    {
+        throw new InvalidOperationException("Variáveis de ambiente do MySQL não configuradas para produção.");
+    }
+    
+    connectionString = $"Server={mysqlHost};Port={mysqlPort};Database={mysqlDatabase};Uid={mysqlUser};Pwd={mysqlPassword};CharSet=utf8mb4;";
+    
+    Log.Information("🔧 Usando configuração de banco de dados de PRODUÇÃO (Railway)");
+    Log.Information("🔧 Host: {Host}, Database: {Database}, User: {User}", mysqlHost, mysqlDatabase, mysqlUser);
+}
+else
+{
+    // ✅ DESENVOLVIMENTO: Usar configuração local
+    connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    
+    if (string.IsNullOrWhiteSpace(connectionString))
+    {
+        throw new InvalidOperationException("Connection string 'DefaultConnection' não encontrada para desenvolvimento.");
+    }
+    
+    Log.Information("🔧 Usando configuração de banco de dados de DESENVOLVIMENTO (local)");
 }
 
 builder.Services.AddDbContext<PregiatoDbContext>(options =>
     options.UseMySql(
-        conn,
-        ServerVersion.Create(8, 0, 0, Pomelo.EntityFrameworkCore.MySql.Infrastructure.ServerType.MySql), // Especificar versão diretamente
+        connectionString,
+        ServerVersion.Create(8, 0, 0, Pomelo.EntityFrameworkCore.MySql.Infrastructure.ServerType.MySql),
         options => options.EnableRetryOnFailure(
             maxRetryCount: 3,
             maxRetryDelay: TimeSpan.FromSeconds(10),

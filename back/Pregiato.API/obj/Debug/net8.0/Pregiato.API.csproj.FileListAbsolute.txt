@@ -347,3 +347,5 @@
 /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/bin/Debug/net8.0/Minio.dll
 /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/bin/Debug/net8.0/System.Diagnostics.DiagnosticSource.dll
 /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/bin/Debug/net8.0/System.Reactive.dll
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/bin/Debug/net8.0/appsettings.Migration.json
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/bin/Debug/net8.0/appsettings.Production.json
