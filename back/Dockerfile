@@ -2,7 +2,7 @@
 # Etapa 1: Build
 # ---------------------------------------
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /app
+WORKDIR /src
 
 # Copia os arquivos de projeto para restaurar dependências
 COPY Pregiato.API/Pregiato.API.csproj Pregiato.API/
@@ -11,14 +11,14 @@ COPY Pregiato.Application/Pregiato.Application.csproj Pregiato.Application/
 COPY Pregiato.Infrastructure/Pregiato.Infrastructure.csproj Pregiato.Infrastructure/
 
 # Restaura dependências
-WORKDIR /app/Pregiato.API
+WORKDIR /src/Pregiato.API
 RUN dotnet restore "Pregiato.API.csproj"
 
 # Copia todo o código fonte
 COPY . .
 
 # Publica a aplicação (Release, sem self-contained)
-RUN dotnet publish "Pregiato.API.csproj" -c Release --no-self-contained -o /app/out
+RUN dotnet publish "Pregiato.API.csproj" -c Release --no-self-contained -o /app/publish
 
 # ---------------------------------------
 # Etapa 2: Runtime
@@ -37,7 +37,7 @@ RUN ln -s /usr/lib/libgdiplus.so /usr/lib/gdiplus.dll && \
     ln -s /lib/x86_64-linux-gnu/libdl.so.2 /usr/lib/libdl.so
 
 # Copia os arquivos publicados da etapa de build
-COPY --from=build /app/out ./
+COPY --from=build /app/publish ./
 
 # Cria diretórios necessários
 RUN mkdir -p /app/logs /app/wwwroot/media

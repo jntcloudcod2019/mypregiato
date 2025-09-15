@@ -21,7 +21,6 @@ using Pregiato.Infrastructure.Repositories;
 using System.Collections.Concurrent;
 using Pregiato.Application.Services;
 using Pregiato.API.Services;
-using Pregiato.Core.Entities;
 
 namespace Pregiato.API.Services
 {
