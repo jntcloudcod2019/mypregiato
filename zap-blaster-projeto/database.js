@@ -19,12 +19,8 @@ console.log(`🔍 MYSQLPASSWORD: ${process.env.MYSQLPASSWORD ? '***DEFINIDA***' 
 console.log(`🔍 MYSQL_ROOT_PASSWORD: ${process.env.MYSQL_ROOT_PASSWORD ? '***DEFINIDA***' : 'NÃO DEFINIDA'}`);
 
 const dbConfig = isProduction ? {
-  // ✅ PRODUÇÃO: Usar variáveis de ambiente do Railway
-  host: process.env.MYSQLHOST || process.env.RAILWAY_PRIVATE_DOMAIN,
-  port: parseInt(process.env.MYSQLPORT) || 3306,
-  user: process.env.MYSQLUSER || 'root',
-  password: process.env.MYSQLPASSWORD || process.env.MYSQL_ROOT_PASSWORD,
-  database: process.env.MYSQLDATABASE || process.env.MYSQL_DATABASE || 'railway',
+  // ✅ PRODUÇÃO: Usar URL de conexão direta do Railway
+  uri: 'mysql://root:nmZKnTmDpQIwmvRBYIoIbFjYyaiZPoEq@gondola.proxy.rlwy.net:23254/railway',
   charset: 'utf8mb4'
 } : {
   // ✅ DESENVOLVIMENTO: Usar configuração local
@@ -38,8 +34,12 @@ const dbConfig = isProduction ? {
 
 // Log da configuração de banco (sem senha)
 console.log(`🔧 Configuração de banco: ${isProduction ? 'PRODUÇÃO' : 'DESENVOLVIMENTO'}`);
-console.log(`🔧 Host: ${dbConfig.host}, Database: ${dbConfig.database}, User: ${dbConfig.user}`);
-console.log(`🔧 Port: ${dbConfig.port}`);
+if (isProduction) {
+  console.log(`🔧 URL de conexão: mysql://root:***@gondola.proxy.rlwy.net:23254/railway`);
+} else {
+  console.log(`🔧 Host: ${dbConfig.host}, Database: ${dbConfig.database}, User: ${dbConfig.user}`);
+  console.log(`🔧 Port: ${dbConfig.port}`);
+}
 
 // Pool de conexões
 let connectionPool = null;
@@ -53,15 +53,20 @@ const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
 async function connectDatabase() {
   try {
     console.log('🔌 Tentando conectar ao banco MySQL...');
-    console.log('🔌 Configuração final:', {
-      host: dbConfig.host,
-      port: dbConfig.port,
-      user: dbConfig.user,
-      database: dbConfig.database,
-      charset: dbConfig.charset
-    });
     
-    connectionPool = mysql.createPool(dbConfig);
+    if (isProduction) {
+      console.log('🔌 Usando URL de conexão direta para produção');
+      connectionPool = mysql.createPool(dbConfig.uri);
+    } else {
+      console.log('🔌 Configuração local:', {
+        host: dbConfig.host,
+        port: dbConfig.port,
+        user: dbConfig.user,
+        database: dbConfig.database,
+        charset: dbConfig.charset
+      });
+      connectionPool = mysql.createPool(dbConfig);
+    }
     
     // Testar conexão
     const connection = await connectionPool.getConnection();
