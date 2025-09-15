@@ -337,3 +337,13 @@
 /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/obj/Debug/net8.0/Pregiato.API.pdb
 /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/obj/Debug/net8.0/Pregiato.API.genruntimeconfig.cache
 /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/obj/Debug/net8.0/ref/Pregiato.API.dll
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/bin/Debug/net8.0/CommunityToolkit.HighPerformance.dll
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/bin/Debug/net8.0/Microsoft.Extensions.DependencyInjection.dll
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/bin/Debug/net8.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/bin/Debug/net8.0/Microsoft.Extensions.Logging.dll
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/bin/Debug/net8.0/Microsoft.Extensions.Logging.Abstractions.dll
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/bin/Debug/net8.0/Microsoft.Extensions.Options.dll
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/bin/Debug/net8.0/Microsoft.Extensions.Primitives.dll
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/bin/Debug/net8.0/Minio.dll
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/bin/Debug/net8.0/System.Diagnostics.DiagnosticSource.dll
+/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/bin/Debug/net8.0/System.Reactive.dll

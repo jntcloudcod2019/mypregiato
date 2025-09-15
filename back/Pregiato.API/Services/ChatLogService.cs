@@ -291,15 +291,15 @@ namespace Pregiato.API.Services
             return new MessageInfo
             {
                 Id = legacy.id ?? Guid.NewGuid().ToString(),
-                Content = legacy.text,
-                body = legacy.body ?? legacy.text ?? "",
+                Content = null, // ✅ CORREÇÃO: Campo Content deve ser null
+                body = legacy.body ?? legacy.text ?? "", // ✅ CORREÇÃO: Apenas body recebe conteúdo
                 MediaUrl = legacy.mediaUrl,
                 Direction = legacy.fromMe ? "outbound" : "inbound", 
                 Ts = DateTime.TryParse(legacy.ts ?? legacy.timestamp, out var dt) ? dt : DateTime.UtcNow,
                 timestamp = legacy.timestamp ?? legacy.ts ?? DateTime.UtcNow.ToString("O"),
                 IsRead = false,
                 Status = legacy.status ?? "delivered",
-                Type = legacy.type ?? "text",
+                Type = legacy.type,
                 from = "legacy@converted",
                 
                 // Campos de mídia do attachment
@@ -319,22 +319,30 @@ namespace Pregiato.API.Services
             var message = new MessageInfo
             {
                 Id = clientMessageId,
-                Content = text,
-                body = text, // Campo body para compatibilidade com PayloadJson
+                Content = null, // ✅ CORREÇÃO: Campo Content deve ser null conforme padrão
+                body = text, // ✅ Campo body principal conforme padrão
                 Direction = "outbound",
-                Ts = timestamp,
-                timestamp = timestamp.ToString("O"), // Campo timestamp para compatibilidade
-                Status = "pending",
-                Type = attachment != null ? attachment.MediaType : "text", // ✅ Sempre string para compatibilidade
-                MediaUrl = attachment?.DataUrl,
+                Ts = timestamp, // ✅ Manter Ts para compatibilidade
+                timestamp = timestamp.ToString("O"), // ✅ Campo timestamp principal conforme padrão
+                Status = "pending", // ✅ Status inicial como pending para mensagens enviadas
+                Type = attachment != null ? attachment.MediaType : "text",
+                MediaUrl = null, // ✅ CORREÇÃO: Campo MediaUrl deve ser null, apenas body recebe conteúdo
+                IsRead = false, // ✅ Campo IsRead conforme padrão
+                from = "operator@frontend", // ✅ Campo from conforme padrão
                 
-                // Campos de mídia específicos
+                // ✅ CAMPOS DE MÍDIA CONFORME PADRÃO
                 mimeType = attachment?.MimeType,
                 fileName = attachment?.FileName,
-                size = attachment?.DataUrl?.Length, // Tamanho aproximado do base64
+                size = attachment?.DataUrl != null ? (long)(attachment.DataUrl.Length * 0.75) : null, // ✅ Tamanho aproximado do base64
                 
-                // Campo from para compatibilidade
-                from = "operator@frontend"
+                // ✅ CAMPOS ADICIONAIS CONFORME PADRÃO (inicializados como null)
+                duration = null,
+                thumbnail = null,
+                latitude = null,
+                longitude = null,
+                locationAddress = null,
+                contactName = null,
+                contactPhone = null
             };
             
             payload.Messages.Add(message);

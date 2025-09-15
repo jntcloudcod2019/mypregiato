@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Pregiato.Core.Interfaces;
 
 namespace Pregiato.API.Services
 {
@@ -9,11 +10,13 @@ namespace Pregiato.API.Services
     {
         private readonly ILogger<MediaStorageService> _logger;
         private readonly string _mediaPath;
+        private readonly IMediaStoragePort _mediaStoragePort;
 
-        public MediaStorageService(ILogger<MediaStorageService> logger)
+        public MediaStorageService(ILogger<MediaStorageService> logger, IMediaStoragePort mediaStoragePort)
         {
             _logger = logger;
             _mediaPath = Path.Combine("wwwroot", "media");
+            _mediaStoragePort = mediaStoragePort;
             
             // ✅ REATIVADO: Criar diretório se não existir
             if (!Directory.Exists(_mediaPath))
@@ -29,72 +32,89 @@ namespace Pregiato.API.Services
             {
                 _logger.LogInformation("🎬 Iniciando armazenamento de mídia: {MimeType}, {Filename}", mimeType, filename);
 
-                // 🔧 CORREÇÃO CRÍTICA: Parsing robusto do Base64
-                string base64Content;
-                
-                if (string.IsNullOrWhiteSpace(base64Data))
-                {
-                    throw new ArgumentException("Dados Base64 não podem ser vazios", nameof(base64Data));
-                }
-
-                if (base64Data.Contains(","))
-                {
-                    // Formato: data:mime;base64,{conteúdo}
-                    var parts = base64Data.Split(',');
-                    if (parts.Length >= 2)
-                    {
-                        base64Content = parts[1];
-                    }
-                    else
-                    {
-                        throw new ArgumentException("Formato Base64 inválido - separador encontrado mas sem conteúdo", nameof(base64Data));
-                    }
-                }
-                else
-                {
-                    // Base64 puro
-                    base64Content = base64Data;
-                }
-
-                // Validar se é Base64 válido
-                byte[] bytes;
+                // ✅ TENTAR MINIO PRIMEIRO
                 try
                 {
-                    bytes = Convert.FromBase64String(base64Content);
+                    var minioUrl = await _mediaStoragePort.StoreMediaAsync(base64Data, mimeType, filename);
+                    _logger.LogInformation("✅ Mídia armazenada no MinIO: {MinioUrl}", minioUrl);
+                    return minioUrl;
                 }
-                catch (FormatException)
+                catch (Exception minioEx)
                 {
-                    throw new ArgumentException("Dados Base64 inválidos", nameof(base64Data));
-                }
-                
-                if (bytes.Length == 0)
-                {
-                    throw new ArgumentException("Dados Base64 resultaram em array vazio", nameof(base64Data));
+                    _logger.LogWarning(minioEx, "⚠️ Falha no MinIO, usando fallback local");
                 }
 
-                // Gerar nome único
-                var extension = GetFileExtension(mimeType);
-                var uniqueFileName = $"{Guid.NewGuid()}{extension}";
-
-                // Caminho de armazenamento
-                var filePath = Path.Combine(_mediaPath, uniqueFileName);
-
-                // Salvar arquivo
-                await File.WriteAllBytesAsync(filePath, bytes);
-
-                // Retornar URL relativa
-                var mediaUrl = $"/media/{uniqueFileName}";
-
-                _logger.LogInformation("✅ Mídia armazenada com sucesso: {MediaUrl}", mediaUrl);
-
-                return mediaUrl;
-
+                // ✅ FALLBACK: ARMAZENAMENTO LOCAL
+                return await StoreMediaLocallyAsync(base64Data, mimeType, filename);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "❌ Erro ao armazenar mídia: {MimeType}, {Filename}", mimeType, filename);
                 throw;
             }
+        }
+
+        private async Task<string> StoreMediaLocallyAsync(string base64Data, string mimeType, string filename)
+        {
+            // 🔧 CORREÇÃO CRÍTICA: Parsing robusto do Base64
+            string base64Content;
+            
+            if (string.IsNullOrWhiteSpace(base64Data))
+            {
+                throw new ArgumentException("Dados Base64 não podem ser vazios", nameof(base64Data));
+            }
+
+            if (base64Data.Contains(","))
+            {
+                // Formato: data:mime;base64,{conteúdo}
+                var parts = base64Data.Split(',');
+                if (parts.Length >= 2)
+                {
+                    base64Content = parts[1];
+                }
+                else
+                {
+                    throw new ArgumentException("Formato Base64 inválido - separador encontrado mas sem conteúdo", nameof(base64Data));
+                }
+            }
+            else
+            {
+                // Base64 puro
+                base64Content = base64Data;
+            }
+
+            // Validar se é Base64 válido
+            byte[] bytes;
+            try
+            {
+                bytes = Convert.FromBase64String(base64Content);
+            }
+            catch (FormatException)
+            {
+                throw new ArgumentException("Dados Base64 inválidos", nameof(base64Data));
+            }
+            
+            if (bytes.Length == 0)
+            {
+                throw new ArgumentException("Dados Base64 resultaram em array vazio", nameof(base64Data));
+            }
+
+            // Gerar nome único
+            var extension = GetFileExtension(mimeType);
+            var uniqueFileName = $"{Guid.NewGuid()}{extension}";
+
+            // Caminho de armazenamento
+            var filePath = Path.Combine(_mediaPath, uniqueFileName);
+
+            // Salvar arquivo
+            await File.WriteAllBytesAsync(filePath, bytes);
+
+            // Retornar URL relativa
+            var mediaUrl = $"/media/{uniqueFileName}";
+
+            _logger.LogInformation("✅ Mídia armazenada localmente: {MediaUrl}", mediaUrl);
+
+            return mediaUrl;
         }
 
         private string GetFileExtension(string mimeType)

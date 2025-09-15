@@ -60,7 +60,6 @@ namespace Pregiato.API.Services
         private readonly ILogger<RabbitBackgroundService> _logger;
         private readonly IHubContext<WhatsAppHub> _hubContext;
         private readonly IServiceProvider _services;
-        private readonly MediaStorageService _mediaStorageService;
         private readonly ConversationService _conversationService;
         private readonly IMemoryCache _cache;
         private readonly RabbitMQConfig _rabbitConfig;
@@ -93,15 +92,13 @@ namespace Pregiato.API.Services
             IServiceProvider services,
             IMemoryCache cache,
             IOptions<RabbitMQConfig> rabbitConfig,
-            ConversationService conversationService,
-            MediaStorageService mediaStorageService
+            ConversationService conversationService
 )
         {
             _logger = logger;
             _hubContext = hubContext;
             _services = services;
             _cache = cache;
-            _mediaStorageService = mediaStorageService;
             _rabbitConfig = rabbitConfig.Value;
             _conversationService = conversationService;
         }
@@ -317,7 +314,7 @@ namespace Pregiato.API.Services
                             
                             realChatId = chatLog?.ChatId.ToString() ?? $"chat_{whatsappMessage.fromNormalized}";
                         }
-                        
+
                         // Notificar clientes via SignalR com chatId correto
                         await _hubContext.Clients.Group("whatsapp").SendAsync("message.inbound", new {
                             chatId = realChatId,
@@ -327,8 +324,7 @@ namespace Pregiato.API.Services
                                 externalMessageId = whatsappMessage.externalMessageId,
                                 from = whatsappMessage.from, // ✅ ADICIONADO: Campo from original (ex: "5511949908369@c.us")
                                 fromMe = whatsappMessage.fromMe,
-                                text = whatsappMessage.body,
-                                body = whatsappMessage.body,
+                                body = whatsappMessage.body, // ✅ ÚNICO CAMPO: Apenas body recebe o conteúdo da mensagem
                                 ts = whatsappMessage.timestamp,
                                 timestamp = whatsappMessage.timestamp,
                                 type = whatsappMessage.type,
@@ -1237,7 +1233,7 @@ namespace Pregiato.API.Services
                             LastMessagePreview = message.body?.Length > 200 ? message.body.Substring(0, 200) : message.body,
                             Timestamp = DateTime.Parse(message.timestamp),
                             Direction = "inbound",
-                            Content = "",
+                            Content = null, // ✅ CORREÇÃO: Campo Content deve ser null, apenas body recebe conteúdo
                             ContentType = ContentTypeHelper.GetShortContentType(message.type),
                             MessageId = message.externalMessageId
                         };
@@ -1262,11 +1258,15 @@ namespace Pregiato.API.Services
                         {
                             try
                             {
-                                mediaUrl = await _mediaStorageService.StoreMediaAsync(
-                                    message.attachment.dataUrl ?? string.Empty,
-                                    message.attachment.mimeType ?? "application/octet-stream",
-                                    message.attachment.fileName ?? "unknown"
-                                );
+                                using (var mediaScope = _services.CreateScope())
+                                {
+                                    var mediaStorageService = mediaScope.ServiceProvider.GetRequiredService<MediaStorageService>();
+                                    mediaUrl = await mediaStorageService.StoreMediaAsync(
+                                        message.attachment.dataUrl ?? string.Empty,
+                                        message.attachment.mimeType ?? "application/octet-stream",
+                                        message.attachment.fileName ?? "unknown"
+                                    );
+                                }
                                 _logger.LogInformation("🎬 Mídia processada e armazenada: {MediaUrl}", mediaUrl);
                             }
                             catch (Exception ex)
@@ -1359,11 +1359,15 @@ namespace Pregiato.API.Services
                         {
                             try
                             {
-                                mediaUrl = await _mediaStorageService.StoreMediaAsync(
-                                    message.attachment.dataUrl ?? string.Empty,
-                                    message.attachment.mimeType ?? "application/octet-stream",
-                                    message.attachment.fileName ?? "unknown"
-                                );
+                                using (var mediaScope = _services.CreateScope())
+                                {
+                                    var mediaStorageService = mediaScope.ServiceProvider.GetRequiredService<MediaStorageService>();
+                                    mediaUrl = await mediaStorageService.StoreMediaAsync(
+                                        message.attachment.dataUrl ?? string.Empty,
+                                        message.attachment.mimeType ?? "application/octet-stream",
+                                        message.attachment.fileName ?? "unknown"
+                                    );
+                                }
                                 _logger.LogInformation("🎬 Mídia processada e armazenada: {MediaUrl}", mediaUrl);
                             }
                             catch (Exception ex)
@@ -1480,7 +1484,7 @@ namespace Pregiato.API.Services
                 Direction = "inbound",
                 Type = message.type?.ToLower(), // SEMPRE string lowercase para consistência
                 Status = "delivered",
-                MediaUrl = mediaUrl,
+                MediaUrl = null, // ✅ CORREÇÃO: Campo MediaUrl deve ser null, apenas body recebe conteúdo
                 IsRead = false
             };
 
@@ -1548,6 +1552,11 @@ namespace Pregiato.API.Services
             // TODO: Implementar quando recebermos contatos compartilhados
             messageInfo.contactName = null;
             messageInfo.contactPhone = null;
+
+            // === CAMPOS ADICIONAIS CONFORME PADRÃO ===
+            // ✅ ActualContent e ActualTs são propriedades calculadas (readonly)
+            // ActualContent => Content ?? body
+            // ActualTs => !string.IsNullOrEmpty(timestamp) ? DateTime.Parse(timestamp) : Ts
 
             // ✅ REMOVIDO: Log que imprimia informações completas do MessageInfo
 

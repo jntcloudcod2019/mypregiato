@@ -1,0 +1,818 @@
+2025-09-15 00:02:00.402 -03:00 [INF] Aplicação está sendo finalizada...
+2025-09-15 00:02:00.653 -03:00 [INF] Request finished GET /whatsappHub - 101 in 7437664.2870ms
+2025-09-15 00:02:00.653 -03:00 [INF] Request finished GET /whatsappHub - 101 in 7319075.8510ms
+2025-09-15 00:02:00.653 -03:00 [INF] Request finished GET /whatsappHub - 101 in 7437690.9120ms
+2025-09-15 00:02:00.653 -03:00 [INF] Request finished GET /whatsappHub - 101 in 7437646.0680ms
+2025-09-15 00:02:00.874 -03:00 [INF] Desconectando do RabbitMQ...
+2025-09-15 00:02:01.508 -03:00 [INF] RabbitMQ Background Service cancelado graciosamente
+2025-09-15 00:02:01.508 -03:00 [INF] Processamento de batch cancelado graciosamente
+2025-09-15 00:02:01.509 -03:00 [INF] Processamento de batch cancelado graciosamente
+2025-09-15 00:02:01.510 -03:00 [INF] Processamento de batch finalizado
+2025-09-15 00:02:01.510 -03:00 [INF] Processamento de batch finalizado
+2025-09-15 00:02:01.510 -03:00 [INF] RabbitMQ Background Service finalizado
+2025-09-15 00:02:01.526 -03:00 [INF] 🛡️ Serviço de Resiliência finalizado
+2025-09-15 00:02:01.529 -03:00 [INF] Aplicação foi finalizada
+2025-09-15 07:11:12.894 -03:00 [INF] Iniciando Pregiato API...
+2025-09-15 07:11:12.953 -03:00 [INF] 🛡️ Serviço de Resiliência iniciado
+2025-09-15 07:11:13.558 -03:00 [ERR] ❌ Falha na conectividade do RabbitMQ
+System.InvalidOperationException: RabbitMQ não está conectado
+   at Pregiato.API.Services.RabbitBackgroundService.TestConnectionAsync() in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/Services/RabbitBackgroundService.cs:line 526
+   at Pregiato.API.Services.ResilienceService.CheckRabbitMQHealth() in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/Services/ResilienceService.cs:line 133
+2025-09-15 07:11:13.572 -03:00 [INF] 🔄 Iniciando recuperação do RabbitMQ...
+2025-09-15 07:11:13.573 -03:00 [INF] 🔄 Iniciando reconexão ao RabbitMQ...
+2025-09-15 07:11:13.573 -03:00 [INF] RabbitMQ Background Service iniciado
+2025-09-15 07:11:13.573 -03:00 [INF] Tentando conectar ao RabbitMQ...
+2025-09-15 07:11:15.189 -03:00 [INF] ✅ Conexão RabbitMQ estabelecida com amqps://mouse.rmq5.cloudamqp.com:5671
+2025-09-15 07:11:15.189 -03:00 [INF] ✅ Conexão RabbitMQ estabelecida com amqps://mouse.rmq5.cloudamqp.com:5671
+2025-09-15 07:11:17.743 -03:00 [INF] 📋 Filas RabbitMQ configuradas
+2025-09-15 07:11:17.928 -03:00 [INF] 📋 Filas RabbitMQ configuradas
+2025-09-15 07:11:18.130 -03:00 [INF] 🎧 Consumidor de QR codes configurado
+2025-09-15 07:11:18.324 -03:00 [INF] 🎧 Consumidor de QR codes configurado
+2025-09-15 07:11:18.504 -03:00 [INF] 🎧 Consumidor de mensagens WhatsApp configurado
+2025-09-15 07:11:18.693 -03:00 [INF] 🎧 Consumidor de mensagens WhatsApp configurado
+2025-09-15 07:11:18.883 -03:00 [INF] 🎧 Consumidor de status da sessão configurado
+2025-09-15 07:11:19.067 -03:00 [INF] 🎧 Consumidor de status da sessão configurado
+2025-09-15 07:11:19.263 -03:00 [INF] 🎧 Consumidor de status de mensagens configurado
+2025-09-15 07:11:19.275 -03:00 [INF] ✅ Reconexão ao RabbitMQ bem-sucedida
+2025-09-15 07:11:19.276 -03:00 [INF] ✅ RabbitMQ recuperado com sucesso na tentativa 1
+2025-09-15 07:11:19.458 -03:00 [INF] 🎧 Consumidor de status de mensagens configurado
+2025-09-15 07:11:19.459 -03:00 [INF] ✅ RabbitMQ conectado e configurado
+2025-09-15 07:11:19.464 -03:00 [INF] Processamento de batch iniciado
+2025-09-15 07:12:04.485 -03:00 [INF] Request starting GET /api/users/operators
+2025-09-15 07:12:04.863 -03:00 [INF] Request finished GET /api/users/operators - 200 in 378.5280ms
+2025-09-15 07:12:04.901 -03:00 [INF] Request starting GET /api/users/operators
+2025-09-15 07:12:04.929 -03:00 [INF] Request finished GET /api/users/operators - 200 in 28.0660ms
+2025-09-15 07:12:33.414 -03:00 [INF] Request starting GET /api/users/operators
+2025-09-15 07:12:33.424 -03:00 [INF] Request finished GET /api/users/operators - 200 in 10.4520ms
+2025-09-15 07:12:33.434 -03:00 [INF] Request starting POST /api/operator-leads/allocate
+2025-09-15 07:12:33.676 -03:00 [INF] Request finished POST /api/operator-leads/allocate - 200 in 242.1310ms
+2025-09-15 07:12:38.145 -03:00 [INF] Request starting GET /api/health
+2025-09-15 07:12:38.145 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathanfrnnd3@gmail.com
+2025-09-15 07:12:38.148 -03:00 [INF] Request starting GET /api/chats
+2025-09-15 07:12:38.145 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-15 07:12:38.145 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-09-15 07:12:38.145 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-09-15 07:12:38.165 -03:00 [INF] Request finished GET /api/health - 200 in 20.0300ms
+2025-09-15 07:12:38.169 -03:00 [INF] Request starting GET /api/health
+2025-09-15 07:12:38.169 -03:00 [INF] Request finished GET /api/health - 200 in 0.6980ms
+2025-09-15 07:12:38.204 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-15 07:12:38.209 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-15 07:12:38.218 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-15 07:12:38.219 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-15 07:12:38.251 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 41.4540ms
+2025-09-15 07:12:38.253 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 48.2620ms
+2025-09-15 07:12:38.253 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 34.7020ms
+2025-09-15 07:12:38.254 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 35.7410ms
+2025-09-15 07:12:38.262 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-15 07:12:38.293 -03:00 [WRN] ⚠️ Erro ao consultar status do zap bot: Connection refused (localhost:3030)
+2025-09-15 07:12:38.296 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-15 07:12:38.304 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 158.6310ms
+2025-09-15 07:12:38.309 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-15 07:12:38.314 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-15 07:12:38.324 -03:00 [WRN] ⚠️ Erro ao consultar status do zap bot: Connection refused (localhost:3030)
+2025-09-15 07:12:38.325 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 15.7280ms
+2025-09-15 07:12:38.329 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-15 07:12:38.386 -03:00 [INF] Request finished GET /api/chats - 200 in 238.3600ms
+2025-09-15 07:12:38.401 -03:00 [INF] Request starting GET /api/health
+2025-09-15 07:12:38.401 -03:00 [INF] Request finished GET /api/health - 200 in 0.3590ms
+2025-09-15 07:12:38.405 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-15 07:12:38.405 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.2180ms
+2025-09-15 07:12:38.405 -03:00 [INF] Request finished GET /whatsappHub - 101 in 143.7950ms
+2025-09-15 07:12:38.408 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-15 07:12:38.514 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathanfrnnd3@gmail.com - 200 in 369.1110ms
+2025-09-15 07:12:38.515 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathanfrnnd3@gmail.com
+2025-09-15 07:12:38.520 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathanfrnnd3@gmail.com - 200 in 5.1420ms
+2025-09-15 07:12:38.525 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 379.6290ms
+2025-09-15 07:12:38.525 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 379.8580ms
+2025-09-15 07:12:38.526 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-09-15 07:12:38.526 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-09-15 07:12:38.528 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 2.1440ms
+2025-09-15 07:12:38.528 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 2.4840ms
+2025-09-15 07:12:38.529 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-09-15 07:12:38.532 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 2.9430ms
+2025-09-15 07:12:38.538 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-09-15 07:12:38.543 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 5.5470ms
+2025-09-15 07:12:38.545 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-09-15 07:12:38.554 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 8.7660ms
+2025-09-15 07:12:38.556 -03:00 [INF] Request starting GET /api/users/by-email/jonathanfrnnd3@gmail.com
+2025-09-15 07:12:38.563 -03:00 [INF] Request finished GET /api/users/by-email/jonathanfrnnd3@gmail.com - 200 in 6.6650ms
+2025-09-15 07:12:40.167 -03:00 [INF] Request starting GET /api/health
+2025-09-15 07:12:40.169 -03:00 [INF] Request finished GET /api/health - 200 in 1.4500ms
+2025-09-15 07:12:40.170 -03:00 [INF] Request finished GET /whatsappHub - 101 in 1762.2460ms
+2025-09-15 07:12:40.180 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-15 07:12:40.182 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 2.0070ms
+2025-09-15 07:12:40.184 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-15 07:12:41.884 -03:00 [INF] Request finished GET /whatsappHub - 101 in 1700.3310ms
+2025-09-15 07:12:41.889 -03:00 [INF] Request finished GET /whatsappHub - 101 in 3559.1730ms
+2025-09-15 07:12:41.926 -03:00 [INF] Request finished GET /whatsappHub - 101 in 3629.9790ms
+2025-09-15 07:12:41.926 -03:00 [INF] Request finished GET /whatsappHub - 101 in 3611.8490ms
+2025-09-15 07:12:50.051 -03:00 [INF] Request starting GET /api/whatsapp/queue/metrics
+2025-09-15 07:12:50.050 -03:00 [INF] Request starting GET /api/whatsapp/conversations
+2025-09-15 07:12:50.052 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:12:50.054 -03:00 [INF] Request finished GET /api/whatsapp/conversations - 404 in 5.0810ms
+2025-09-15 07:12:50.064 -03:00 [INF] Request finished GET /api/whatsapp/queue/metrics - 404 in 12.6180ms
+2025-09-15 07:12:50.086 -03:00 [INF] Request starting GET /api/whatsapp/queue/metrics
+2025-09-15 07:12:50.087 -03:00 [INF] Request finished GET /api/whatsapp/queue/metrics - 404 in 0.1840ms
+2025-09-15 07:12:50.088 -03:00 [INF] Request starting GET /api/whatsapp/conversations
+2025-09-15 07:12:50.088 -03:00 [INF] Request finished GET /api/whatsapp/conversations - 404 in 0.3620ms
+2025-09-15 07:12:50.260 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 207.7560ms
+2025-09-15 07:12:50.261 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:12:50.263 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 2.4640ms
+2025-09-15 07:12:52.795 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:12:52.796 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:12:52.795 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-15 07:12:52.795 -03:00 [INF] Request starting GET /api/health
+2025-09-15 07:12:52.797 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:12:52.798 -03:00 [INF] Request finished GET /api/health - 200 in 3.1310ms
+2025-09-15 07:12:52.800 -03:00 [INF] Request starting GET /api/health
+2025-09-15 07:12:52.801 -03:00 [INF] Request finished GET /api/health - 200 in 0.3100ms
+2025-09-15 07:12:52.809 -03:00 [INF] Request starting GET /api/chats
+2025-09-15 07:12:52.818 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 23.0560ms
+2025-09-15 07:12:52.818 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 22.0330ms
+2025-09-15 07:12:52.820 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:12:52.820 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:12:52.824 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 4.0010ms
+2025-09-15 07:12:52.826 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:12:52.829 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 3.0200ms
+2025-09-15 07:12:52.831 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 10.9210ms
+2025-09-15 07:12:52.833 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:12:52.841 -03:00 [WRN] ⚠️ Erro ao consultar status do zap bot: Connection refused (localhost:3030)
+2025-09-15 07:12:52.843 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 47.3670ms
+2025-09-15 07:12:52.844 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-15 07:12:52.849 -03:00 [WRN] ⚠️ Erro ao consultar status do zap bot: Connection refused (localhost:3030)
+2025-09-15 07:12:52.851 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 6.1260ms
+2025-09-15 07:12:52.865 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 31.5190ms
+2025-09-15 07:12:52.869 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:12:52.876 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-15 07:12:52.878 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-15 07:12:52.879 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 2.7000ms
+2025-09-15 07:12:52.895 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 16.5380ms
+2025-09-15 07:12:52.896 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 26.8800ms
+2025-09-15 07:12:52.899 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:12:52.909 -03:00 [INF] Request finished GET /api/chats - 200 in 99.8050ms
+2025-09-15 07:12:52.909 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 10.0290ms
+2025-09-15 07:12:53.021 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-15 07:12:53.021 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.5850ms
+2025-09-15 07:12:53.026 -03:00 [INF] Request starting GET /api/health
+2025-09-15 07:12:53.026 -03:00 [INF] Request finished GET /api/health - 200 in 0.2500ms
+2025-09-15 07:12:53.026 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-15 07:12:53.084 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-15 07:12:53.087 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 3.6980ms
+2025-09-15 07:12:53.111 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-15 07:12:53.115 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 317.9240ms
+2025-09-15 07:12:53.144 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:12:53.116 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 89.6040ms
+2025-09-15 07:12:53.202 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-15 07:12:53.220 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-15 07:12:53.222 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 77.4870ms
+2025-09-15 07:12:53.239 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-15 07:12:54.255 -03:00 [INF] Request starting GET /api/chats
+2025-09-15 07:12:54.268 -03:00 [INF] Request finished GET /api/chats - 200 in 12.1670ms
+2025-09-15 07:12:54.284 -03:00 [INF] Request starting GET /api/health
+2025-09-15 07:12:54.285 -03:00 [INF] Request finished GET /api/health - 200 in 0.4150ms
+2025-09-15 07:12:54.291 -03:00 [INF] Request finished GET /whatsappHub - 101 in 1070.8500ms
+2025-09-15 07:12:54.295 -03:00 [INF] Request starting GET /api/chats/chat_1757931174270_xdetqwlhj/messages
+2025-09-15 07:12:54.304 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-15 07:12:54.305 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 1.2350ms
+2025-09-15 07:12:54.313 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-15 07:12:54.326 -03:00 [INF] 🔍 Buscando mensagens para ID: chat_1757931174270_xdetqwlhj
+2025-09-15 07:12:54.339 -03:00 [INF] 📄 Busca por ContactPhoneE164 (chat_1757931174270_xdetqwlhj): Não encontrado
+2025-09-15 07:12:54.357 -03:00 [INF] 📄 Busca por número normalizado (551757931174270): Não encontrado
+2025-09-15 07:12:54.357 -03:00 [WRN] ❌ Chat não encontrado para ID: chat_1757931174270_xdetqwlhj
+2025-09-15 07:12:54.368 -03:00 [INF] Request finished GET /api/chats/chat_1757931174270_xdetqwlhj/messages - 404 in 73.7830ms
+2025-09-15 07:12:54.370 -03:00 [INF] Request starting GET /api/chats/chat_1757931174270_xdetqwlhj/messages
+2025-09-15 07:12:54.371 -03:00 [INF] 🔍 Buscando mensagens para ID: chat_1757931174270_xdetqwlhj
+2025-09-15 07:12:54.373 -03:00 [INF] 📄 Busca por ContactPhoneE164 (chat_1757931174270_xdetqwlhj): Não encontrado
+2025-09-15 07:12:54.374 -03:00 [INF] 📄 Busca por número normalizado (551757931174270): Não encontrado
+2025-09-15 07:12:54.375 -03:00 [WRN] ❌ Chat não encontrado para ID: chat_1757931174270_xdetqwlhj
+2025-09-15 07:12:54.375 -03:00 [INF] Request finished GET /api/chats/chat_1757931174270_xdetqwlhj/messages - 404 in 4.8250ms
+2025-09-15 07:12:54.857 -03:00 [INF] Request starting GET /api/health
+2025-09-15 07:12:54.857 -03:00 [INF] Request finished GET /whatsappHub - 101 in 543.7110ms
+2025-09-15 07:12:54.858 -03:00 [INF] Request finished GET /api/health - 200 in 1.3120ms
+2025-09-15 07:12:54.873 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-15 07:12:54.873 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.8750ms
+2025-09-15 07:12:54.878 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-15 07:13:17.398 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:13:17.457 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 58.9650ms
+2025-09-15 07:13:17.459 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:13:17.467 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 8.5220ms
+2025-09-15 07:13:17.471 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:13:17.475 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 3.5660ms
+2025-09-15 07:13:20.795 -03:00 [INF] Request starting POST /api/whatsapp/generate-qr
+2025-09-15 07:13:21.080 -03:00 [INF] 📥 Requisição de geração de QR recebida
+2025-09-15 07:13:21.091 -03:00 [INF] Iniciado pedido de QR Code. RequestId: 95ae882d-0a17-4b7d-927a-acabe80ede10
+2025-09-15 07:13:21.096 -03:00 [INF] 🔍 Tentando publicar comando no RabbitMQ...
+2025-09-15 07:13:21.129 -03:00 [INF] 📤 Publicando comando: {"command":"generate_qr","requestId":"95ae882d-0a17-4b7d-927a-acabe80ede10","timestamp":"2025-09-15T10:13:21.0915450Z"}
+2025-09-15 07:13:21.129 -03:00 [INF] 📤 Routing Key: whatsapp.outgoing
+2025-09-15 07:13:21.129 -03:00 [INF] 📤 Body length: 119 bytes
+2025-09-15 07:13:21.139 -03:00 [INF] ✅ Comando enviado para RabbitMQ com sucesso: {"command":"generate_qr","requestId":"95ae882d-0a17-4b7d-927a-acabe80ede10","timestamp":"2025-09-15T10:13:21.0915450Z"}
+2025-09-15 07:13:21.139 -03:00 [INF] ✅ Novo QR request criado com sucesso. RequestId: 95ae882d-0a17-4b7d-927a-acabe80ede10
+2025-09-15 07:13:21.142 -03:00 [INF] Request finished POST /api/whatsapp/generate-qr - 200 in 346.7710ms
+2025-09-15 07:13:43.026 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-09-15 07:13:43.243 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 216.4300ms
+2025-09-15 07:14:04.499 -03:00 [INF] Request starting POST /api/whatsapp/webhook/qr-code
+2025-09-15 07:14:04.544 -03:00 [INF] 📤 QR Code emitido via SignalR (webhook) requestId=null
+2025-09-15 07:14:04.551 -03:00 [INF] Request finished POST /api/whatsapp/webhook/qr-code - 200 in 51.8940ms
+2025-09-15 07:14:04.734 -03:00 [INF] 📱 QR Code recebido via RabbitMQ
+2025-09-15 07:14:08.627 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:14:10.211 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 1584.1360ms
+2025-09-15 07:14:10.246 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:14:10.485 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 238.2530ms
+2025-09-15 07:14:10.668 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:14:10.872 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 204.3210ms
+2025-09-15 07:14:24.146 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-09-15 07:14:24.173 -03:00 [INF] 📥 Webhook session/updated: connected=true number=null validated=false (mudança detectada)
+2025-09-15 07:14:24.176 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 29.9530ms
+2025-09-15 07:14:24.180 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-09-15 07:14:24.182 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 1.3600ms
+2025-09-15 07:14:30.514 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-09-15 07:14:30.527 -03:00 [INF] 📥 Webhook session/updated: connected=true number=5511977240565 validated=false (mudança detectada)
+2025-09-15 07:14:30.530 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 16.9120ms
+2025-09-15 07:14:30.535 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-09-15 07:14:30.537 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 1.8470ms
+2025-09-15 07:14:31.790 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-15 07:14:32.016 -03:00 [INF] 📊 Status obtido do zap bot: connected=true, validated=false, number=5511977240565
+2025-09-15 07:14:32.029 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 239.0010ms
+2025-09-15 07:14:52.235 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:14:52.366 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 130.9070ms
+2025-09-15 07:14:52.369 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:14:52.376 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 6.1050ms
+2025-09-15 07:14:52.379 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:14:52.388 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 8.9850ms
+2025-09-15 07:14:54.033 -03:00 [INF] Request starting POST /api/chats/5511949908369/send
+2025-09-15 07:14:54.132 -03:00 [INF] 🔍 Buscando chat para ID: 5511949908369
+2025-09-15 07:14:54.239 -03:00 [INF] 📄 Busca por ContactPhoneE164: Não encontrado
+2025-09-15 07:14:54.241 -03:00 [INF] 🆕 Chat não encontrado para ID: 5511949908369 - Criando nova estrutura
+2025-09-15 07:14:54.437 -03:00 [INF] 📞 ✅ Nova conversa WhatsApp criada para 5511949908369: "f7cb77cb-eefb-4417-b016-a852926ef8d6"
+2025-09-15 07:14:54.482 -03:00 [INF] ✅ ChatLog criado: b72bd6b1-4303-435a-9c88-9643c45bfc91 para 5511949908369
+2025-09-15 07:14:54.482 -03:00 [INF] ✅ Chat encontrado: b72bd6b1-4303-435a-9c88-9643c45bfc91, ChatId: f7cb77cb-eefb-4417-b016-a852926ef8d6
+2025-09-15 07:14:54.482 -03:00 [INF] 🔄 Atualizando PayloadJson do chat existente b72bd6b1-4303-435a-9c88-9643c45bfc91
+2025-09-15 07:14:54.483 -03:00 [INF] PayloadJson no formato NOVO detectado: 0 mensagens
+2025-09-15 07:14:54.492 -03:00 [INF] 💾 Atualizando PayloadJson (antes: 123 chars, depois: 625 chars)
+2025-09-15 07:14:54.504 -03:00 [INF] ✅ ChatLog atualizado com SUCESSO: "b72bd6b1-4303-435a-9c88-9643c45bfc91" - 1 mensagens no PayloadJson
+2025-09-15 07:14:54.510 -03:00 [INF] PayloadJson no formato NOVO detectado: 1 mensagens
+2025-09-15 07:14:54.513 -03:00 [INF] 📤 Mensagem enviada para RabbitMQ: whatsapp.outgoing - {"command":"send_message","phone":"5511949908369","to":"5511949908369","from":"5511977240565","body":"oi","clientMessageId":"3deb4592-3e4d-4545-9851-e005d1f22647","chatId":"f7cb77cb-eefb-4417-b016-a852926ef8d6","attachment":null}
+2025-09-15 07:14:54.513 -03:00 [INF] Request finished POST /api/chats/5511949908369/send - 200 in 480.1190ms
+2025-09-15 07:14:55.147 -03:00 [INF] 📤 Status de mensagem recebido: 5511949908369 - sent - 
+2025-09-15 07:14:59.660 -03:00 [INF] Request starting POST /api/whatsapp/session/updated
+2025-09-15 07:14:59.664 -03:00 [INF] 📥 Webhook session/updated: connected=true number=5511977240565 validated=true (mudança detectada)
+2025-09-15 07:14:59.665 -03:00 [INF] Request finished POST /api/whatsapp/session/updated - 200 in 4.8810ms
+2025-09-15 07:14:59.815 -03:00 [INF] 📨 Mensagem WhatsApp recebida via RabbitMQ: 120363375647077584@g.us -> 5511977240565
+2025-09-15 07:14:59.982 -03:00 [INF] 🔢 NORMALIZAÇÃO DEBUG: from=120363375647077584@g.us, isGroup=false, normalizedPhone=120363375647077584
+2025-09-15 07:15:00.289 -03:00 [INF] 📞 ✅ Nova conversa WhatsApp criada para 120363375647077584: "79ff96c7-0331-4282-8615-0e99c658878d"
+2025-09-15 07:15:00.292 -03:00 [INF] 🔍 Buscando ChatLog existente para 120363375647077584
+2025-09-15 07:15:00.442 -03:00 [INF] 📊 Total de chats existentes para 120363375647077584: 0
+2025-09-15 07:15:00.501 -03:00 [INF] ❌ ChatLog NÃO ENCONTRADO para 120363375647077584. Verificando por ChatId da conversa...
+2025-09-15 07:15:00.551 -03:00 [INF] ❌ Nenhum ChatLog encontrado. Será criado novo ChatLog para 120363375647077584
+2025-09-15 07:15:00.635 -03:00 [INF] 🆕 CRIANDO NOVO ChatLog para 120363375647077584 (não encontrado nenhum existente)
+2025-09-15 07:15:00.874 -03:00 [INF] 📝 ✅ NOVO ChatLog criado para 120363375647077584@g.us: ChatId="79ff96c7-0331-4282-8615-0e99c658878d", ChatLogId="871a6b2d-aeef-4a29-a00e-ed407c02b010"
+2025-09-15 07:15:00.878 -03:00 [INF] 📡 ✅ Evento chat.created emitido para ChatLog: "871a6b2d-aeef-4a29-a00e-ed407c02b010"
+2025-09-15 07:15:00.920 -03:00 [ERR] Erro ao sanitizar mensagem com serviço de resiliência, usando fallback
+System.TypeInitializationException: The type initializer for 'Pregiato.Application.Services.EmojiResilienceService' threw an exception.
+ ---> System.Text.RegularExpressions.RegexParseException: Invalid pattern '[\uD83C\uDF00-\uD83C\uDFFF]|[\uD83D\uDC00-\uD83D\uDDFF]|[\uD83D\uDE00-\uD83D\uDE4F]|[\uD83D\uDE80-\uD83D\uDEFF]|[\uD83C\uDDE0-\uD83C\uDDFF]|[\u2600-\u26FF]|[\u2700-\u27BF]' at offset 20. [x-y] range in reverse order.
+   at System.Text.RegularExpressions.RegexParser.ScanCharClass(Boolean caseInsensitive, Boolean scanOnly)
+   at System.Text.RegularExpressions.RegexParser.ScanRegex()
+   at System.Text.RegularExpressions.RegexParser.Parse(String pattern, RegexOptions options, CultureInfo culture)
+   at System.Text.RegularExpressions.Regex..ctor(String pattern, RegexOptions options, TimeSpan matchTimeout, CultureInfo culture)
+   at Pregiato.Application.Services.EmojiResilienceService..cctor() in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application/Services/EmojiResilienceService.cs:line 30
+   --- End of inner exception stack trace ---
+   at Pregiato.Application.Services.EmojiResilienceService.HasEmojis(String text) in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application/Services/EmojiResilienceService.cs:line 298
+   at Pregiato.Application.Services.EmojiResilienceService.ProcessText(String text, EmojiProcessingStrategy strategy) in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application/Services/EmojiResilienceService.cs:line 55
+   at Pregiato.API.Services.RabbitBackgroundService.SanitizeMessageBody(String body) in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/Services/RabbitBackgroundService.cs:line 901
+2025-09-15 07:15:01.032 -03:00 [INF] Request starting GET /api/health
+2025-09-15 07:15:01.033 -03:00 [INF] Request finished GET /api/health - 200 in 0.6820ms
+2025-09-15 07:15:01.036 -03:00 [INF] Request finished GET /whatsappHub - 101 in 126158.1160ms
+2025-09-15 07:15:01.109 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-15 07:15:01.110 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.4390ms
+2025-09-15 07:15:01.125 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-15 07:15:01.934 -03:00 [INF] ✅ Salvas 1 mensagens em batch
+2025-09-15 07:15:10.799 -03:00 [INF] 📨 Mensagem WhatsApp recebida via RabbitMQ: 5511949908369@c.us -> 5511977240565
+2025-09-15 07:15:11.254 -03:00 [INF] 🔢 NORMALIZAÇÃO DEBUG: from=5511949908369@c.us, isGroup=false, normalizedPhone=5511949908369
+2025-09-15 07:15:11.347 -03:00 [INF] 📞 ✅ Nova conversa WhatsApp criada para 5511949908369: "e4219303-4e30-4023-b9ae-928793ba705e"
+2025-09-15 07:15:11.350 -03:00 [INF] 🔍 Buscando ChatLog existente para 5511949908369
+2025-09-15 07:15:11.381 -03:00 [INF] 📊 Total de chats existentes para 5511949908369: 1
+2025-09-15 07:15:11.403 -03:00 [INF] Request finished GET /whatsappHub - 101 in 10277.5630ms
+2025-09-15 07:15:11.415 -03:00 [INF] Request starting GET /api/health
+2025-09-15 07:15:11.416 -03:00 [INF] ✅ ChatLog ENCONTRADO para 5511949908369: "b72bd6b1-4303-435a-9c88-9643c45bfc91" (criado em "2025-09-15T10:14:54.0000000")
+2025-09-15 07:15:11.424 -03:00 [INF] Request finished GET /api/health - 200 in 9.2400ms
+2025-09-15 07:15:11.436 -03:00 [INF] 🔄 INCREMENTANDO mensagem ao ChatLog existente "b72bd6b1-4303-435a-9c88-9643c45bfc91" para 5511949908369 (encontrado chat existente)
+2025-09-15 07:15:11.437 -03:00 [INF] 📋 Deserializando PayloadJson existente (tamanho: 625 chars)
+2025-09-15 07:15:11.437 -03:00 [INF] PayloadJson no formato NOVO detectado: 1 mensagens
+2025-09-15 07:15:11.437 -03:00 [INF] 📊 PayloadJson carregado: 1 mensagens existentes
+2025-09-15 07:15:11.438 -03:00 [INF] 🔍 Verificando duplicata para MessageId: false_5511949908369@c.us_3AF9F16D8DA8B48E1CD7
+2025-09-15 07:15:11.438 -03:00 [INF] 📝 ✅ Nova mensagem ADICIONADA ao PayloadJson: false_5511949908369@c.us_3AF9F16D8DA8B48E1CD7 (Total: 2 mensagens)
+2025-09-15 07:15:11.439 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-15 07:15:11.439 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.6510ms
+2025-09-15 07:15:11.439 -03:00 [INF] 💾 Atualizando PayloadJson (antes: 625 chars, depois: 1133 chars)
+2025-09-15 07:15:11.452 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-15 07:15:11.500 -03:00 [INF] ✅ ChatLog atualizado com SUCESSO: "b72bd6b1-4303-435a-9c88-9643c45bfc91" - 2 mensagens no PayloadJson
+2025-09-15 07:15:11.500 -03:00 [INF] 📝 ✅ Mensagem adicionada ao ChatLog existente: ChatId="f7cb77cb-eefb-4417-b016-a852926ef8d6", ChatLogId="b72bd6b1-4303-435a-9c88-9643c45bfc91"
+2025-09-15 07:15:11.500 -03:00 [INF] 📡 ✅ Evento chat.updated emitido para ChatLog: "b72bd6b1-4303-435a-9c88-9643c45bfc91"
+2025-09-15 07:15:11.648 -03:00 [INF] Request starting GET /api/health
+2025-09-15 07:15:11.648 -03:00 [INF] Request finished GET /whatsappHub - 101 in 196.2270ms
+2025-09-15 07:15:11.648 -03:00 [INF] Request finished GET /api/health - 200 in 0.3400ms
+2025-09-15 07:15:11.657 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-15 07:15:11.658 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.2260ms
+2025-09-15 07:15:11.660 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-15 07:15:11.721 -03:00 [INF] 🎫 AttendanceTicket criado: "792e2652-77b5-4f53-89df-142b798390be"
+2025-09-15 07:15:11.725 -03:00 [ERR] Erro ao sanitizar mensagem com serviço de resiliência, usando fallback
+System.TypeInitializationException: The type initializer for 'Pregiato.Application.Services.EmojiResilienceService' threw an exception.
+ ---> System.Text.RegularExpressions.RegexParseException: Invalid pattern '[\uD83C\uDF00-\uD83C\uDFFF]|[\uD83D\uDC00-\uD83D\uDDFF]|[\uD83D\uDE00-\uD83D\uDE4F]|[\uD83D\uDE80-\uD83D\uDEFF]|[\uD83C\uDDE0-\uD83C\uDDFF]|[\u2600-\u26FF]|[\u2700-\u27BF]' at offset 20. [x-y] range in reverse order.
+   at System.Text.RegularExpressions.RegexParser.ScanCharClass(Boolean caseInsensitive, Boolean scanOnly)
+   at System.Text.RegularExpressions.RegexParser.ScanRegex()
+   at System.Text.RegularExpressions.RegexParser.Parse(String pattern, RegexOptions options, CultureInfo culture)
+   at System.Text.RegularExpressions.Regex..ctor(String pattern, RegexOptions options, TimeSpan matchTimeout, CultureInfo culture)
+   at Pregiato.Application.Services.EmojiResilienceService..cctor() in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application/Services/EmojiResilienceService.cs:line 30
+   --- End of inner exception stack trace ---
+   at Pregiato.Application.Services.EmojiResilienceService.HasEmojis(String text) in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application/Services/EmojiResilienceService.cs:line 298
+   at Pregiato.Application.Services.EmojiResilienceService.ProcessText(String text, EmojiProcessingStrategy strategy) in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application/Services/EmojiResilienceService.cs:line 55
+   at Pregiato.API.Services.RabbitBackgroundService.SanitizeMessageBody(String body) in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/Services/RabbitBackgroundService.cs:line 901
+2025-09-15 07:15:11.978 -03:00 [INF] ✅ Salvas 1 mensagens em batch
+2025-09-15 07:15:17.118 -03:00 [INF] Request starting GET /api/chats/871a6b2d-aeef-4a29-a00e-ed407c02b010/messages
+2025-09-15 07:15:17.131 -03:00 [INF] 🔍 Buscando mensagens para ID: 871a6b2d-aeef-4a29-a00e-ed407c02b010
+2025-09-15 07:15:17.483 -03:00 [INF] 📄 Busca por GUID ID do ChatLog: Encontrado
+2025-09-15 07:15:17.483 -03:00 [INF] ✅ Chat encontrado: 871a6b2d-aeef-4a29-a00e-ed407c02b010, ContactPhoneE164: 120363375647077584
+2025-09-15 07:15:17.504 -03:00 [INF] PayloadJson no formato NOVO detectado: 1 mensagens
+2025-09-15 07:15:17.505 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 1
+2025-09-15 07:15:17.505 -03:00 [INF] 🔍 DEBUG TIPO: Original=text, Convertido=text
+2025-09-15 07:15:17.505 -03:00 [INF] ✅ Retornando 1 mensagens convertidas
+2025-09-15 07:15:17.522 -03:00 [INF] Request finished GET /api/chats/871a6b2d-aeef-4a29-a00e-ed407c02b010/messages - 200 in 404.2800ms
+2025-09-15 07:15:17.533 -03:00 [INF] Request starting GET /api/chats/871a6b2d-aeef-4a29-a00e-ed407c02b010/messages
+2025-09-15 07:15:17.534 -03:00 [INF] 🔍 Buscando mensagens para ID: 871a6b2d-aeef-4a29-a00e-ed407c02b010
+2025-09-15 07:15:17.587 -03:00 [INF] 📄 Busca por GUID ID do ChatLog: Encontrado
+2025-09-15 07:15:17.587 -03:00 [INF] ✅ Chat encontrado: 871a6b2d-aeef-4a29-a00e-ed407c02b010, ContactPhoneE164: 120363375647077584
+2025-09-15 07:15:17.588 -03:00 [INF] PayloadJson no formato NOVO detectado: 1 mensagens
+2025-09-15 07:15:17.588 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 1
+2025-09-15 07:15:17.588 -03:00 [INF] 🔍 DEBUG TIPO: Original=text, Convertido=text
+2025-09-15 07:15:17.588 -03:00 [INF] ✅ Retornando 1 mensagens convertidas
+2025-09-15 07:15:17.588 -03:00 [INF] Request finished GET /api/chats/871a6b2d-aeef-4a29-a00e-ed407c02b010/messages - 200 in 55.0880ms
+2025-09-15 07:15:44.250 -03:00 [INF] Request finished GET /whatsappHub - 101 in 171011.0800ms
+2025-09-15 07:15:44.250 -03:00 [INF] Request finished GET /whatsappHub - 101 in 171048.3620ms
+2025-09-15 07:15:44.250 -03:00 [INF] Request finished GET /whatsappHub - 101 in 32589.7470ms
+2025-09-15 07:15:44.258 -03:00 [INF] Request finished GET /whatsappHub - 101 in 171146.6450ms
+2025-09-15 07:15:46.249 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:15:46.250 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:15:46.250 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-15 07:15:46.250 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:15:46.250 -03:00 [INF] Request starting GET /api/chats
+2025-09-15 07:15:46.249 -03:00 [INF] Request starting GET /api/health
+2025-09-15 07:15:46.271 -03:00 [INF] Request finished GET /api/health - 200 in 21.7480ms
+2025-09-15 07:15:46.275 -03:00 [INF] Request starting GET /api/health
+2025-09-15 07:15:46.276 -03:00 [INF] Request finished GET /api/health - 200 in 0.5990ms
+2025-09-15 07:15:46.378 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-15 07:15:46.382 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-15 07:15:46.384 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 1.0780ms
+2025-09-15 07:15:46.384 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 5.8280ms
+2025-09-15 07:15:46.388 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-15 07:15:46.388 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.1590ms
+2025-09-15 07:15:46.390 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-15 07:15:46.391 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.7680ms
+2025-09-15 07:15:46.394 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-15 07:15:46.413 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-15 07:15:46.415 -03:00 [INF] 📊 Status obtido do zap bot: connected=true, validated=true, number=5511977240565
+2025-09-15 07:15:46.416 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 166.4120ms
+2025-09-15 07:15:46.417 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-15 07:15:46.427 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-15 07:15:46.428 -03:00 [INF] Request finished GET /api/chats - 200 in 178.8100ms
+2025-09-15 07:15:46.428 -03:00 [INF] 📊 Status obtido do zap bot: connected=true, validated=true, number=5511977240565
+2025-09-15 07:15:46.430 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 12.4050ms
+2025-09-15 07:15:46.441 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-15 07:15:46.456 -03:00 [INF] Request starting GET /api/health
+2025-09-15 07:15:46.457 -03:00 [INF] Request finished GET /api/health - 200 in 0.3680ms
+2025-09-15 07:15:46.457 -03:00 [INF] Request finished GET /whatsappHub - 101 in 62.4820ms
+2025-09-15 07:15:46.470 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-15 07:15:46.474 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 3.7360ms
+2025-09-15 07:15:46.486 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 236.4110ms
+2025-09-15 07:15:46.488 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 238.5900ms
+2025-09-15 07:15:46.494 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:15:46.494 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:15:46.494 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-15 07:15:46.503 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 9.8020ms
+2025-09-15 07:15:46.518 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:15:46.537 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 19.0600ms
+2025-09-15 07:15:46.542 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:15:46.543 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 49.4750ms
+2025-09-15 07:15:46.549 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 7.2660ms
+2025-09-15 07:15:46.561 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:15:46.573 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 12.5680ms
+2025-09-15 07:15:46.578 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:15:46.592 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 14.5140ms
+2025-09-15 07:15:46.636 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 386.6720ms
+2025-09-15 07:15:46.638 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:15:46.653 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 14.2590ms
+2025-09-15 07:15:49.511 -03:00 [INF] Request finished GET /whatsappHub - 101 in 3016.9720ms
+2025-09-15 07:15:49.524 -03:00 [INF] Request starting GET /api/health
+2025-09-15 07:15:49.527 -03:00 [INF] Request starting GET /api/chats/f7cb77cb-eefb-4417-b016-a852926ef8d6/messages
+2025-09-15 07:15:49.563 -03:00 [INF] Request finished GET /api/health - 200 in 39.1630ms
+2025-09-15 07:15:49.622 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-15 07:15:49.632 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 9.1440ms
+2025-09-15 07:15:49.633 -03:00 [INF] 🔍 Buscando mensagens para ID: f7cb77cb-eefb-4417-b016-a852926ef8d6
+2025-09-15 07:15:49.652 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-15 07:15:49.752 -03:00 [INF] 📄 Busca por GUID ID do ChatLog: Não encontrado
+2025-09-15 07:15:49.850 -03:00 [INF] 📄 Busca por ChatId como GUID: Encontrado
+2025-09-15 07:15:49.851 -03:00 [INF] ✅ Chat encontrado: b72bd6b1-4303-435a-9c88-9643c45bfc91, ContactPhoneE164: 5511949908369
+2025-09-15 07:15:49.851 -03:00 [INF] PayloadJson no formato NOVO detectado: 2 mensagens
+2025-09-15 07:15:49.851 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 2
+2025-09-15 07:15:49.852 -03:00 [INF] 🔍 DEBUG TIPO: Original=text, Convertido=text
+2025-09-15 07:15:49.857 -03:00 [INF] 🔍 DEBUG TIPO: Original=text, Convertido=text
+2025-09-15 07:15:49.859 -03:00 [INF] ✅ Retornando 2 mensagens convertidas
+2025-09-15 07:15:49.866 -03:00 [INF] Request finished GET /api/chats/f7cb77cb-eefb-4417-b016-a852926ef8d6/messages - 200 in 339.2770ms
+2025-09-15 07:15:49.874 -03:00 [INF] Request starting GET /api/chats/f7cb77cb-eefb-4417-b016-a852926ef8d6/messages
+2025-09-15 07:15:49.875 -03:00 [INF] 🔍 Buscando mensagens para ID: f7cb77cb-eefb-4417-b016-a852926ef8d6
+2025-09-15 07:15:49.882 -03:00 [INF] 📄 Busca por GUID ID do ChatLog: Não encontrado
+2025-09-15 07:15:49.891 -03:00 [INF] 📄 Busca por ChatId como GUID: Encontrado
+2025-09-15 07:15:49.892 -03:00 [INF] ✅ Chat encontrado: b72bd6b1-4303-435a-9c88-9643c45bfc91, ContactPhoneE164: 5511949908369
+2025-09-15 07:15:49.894 -03:00 [INF] PayloadJson no formato NOVO detectado: 2 mensagens
+2025-09-15 07:15:49.894 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 2
+2025-09-15 07:15:49.894 -03:00 [INF] 🔍 DEBUG TIPO: Original=text, Convertido=text
+2025-09-15 07:15:49.894 -03:00 [INF] 🔍 DEBUG TIPO: Original=text, Convertido=text
+2025-09-15 07:15:49.896 -03:00 [INF] ✅ Retornando 2 mensagens convertidas
+2025-09-15 07:15:49.896 -03:00 [INF] Request finished GET /api/chats/f7cb77cb-eefb-4417-b016-a852926ef8d6/messages - 200 in 22.0840ms
+2025-09-15 07:15:52.534 -03:00 [INF] Request starting POST /api/attendances/f7cb77cb-eefb-4417-b016-a852926ef8d6/assign
+2025-09-15 07:15:52.743 -03:00 [INF] Request finished POST /api/attendances/f7cb77cb-eefb-4417-b016-a852926ef8d6/assign - 200 in 208.6710ms
+2025-09-15 07:16:05.668 -03:00 [INF] Request starting POST /api/chats/5511949908369/send
+2025-09-15 07:16:05.809 -03:00 [INF] 🔍 Buscando chat para ID: 5511949908369
+2025-09-15 07:16:06.013 -03:00 [INF] 📄 Busca por ContactPhoneE164: Encontrado
+2025-09-15 07:16:06.013 -03:00 [INF] ✅ Chat encontrado: b72bd6b1-4303-435a-9c88-9643c45bfc91, ChatId: f7cb77cb-eefb-4417-b016-a852926ef8d6
+2025-09-15 07:16:06.025 -03:00 [INF] 🎵 Attachment criado para mídia: mimeType=audio/webm;codecs=opus, fileName=gravacao.webm
+2025-09-15 07:16:06.025 -03:00 [INF] 🔄 Atualizando PayloadJson do chat existente b72bd6b1-4303-435a-9c88-9643c45bfc91
+2025-09-15 07:16:06.026 -03:00 [INF] PayloadJson no formato NOVO detectado: 2 mensagens
+2025-09-15 07:16:06.163 -03:00 [INF] 💾 Atualizando PayloadJson (antes: 1133 chars, depois: 102632 chars)
+2025-09-15 07:16:06.986 -03:00 [INF] ✅ ChatLog atualizado com SUCESSO: "b72bd6b1-4303-435a-9c88-9643c45bfc91" - 3 mensagens no PayloadJson
+2025-09-15 07:16:07.074 -03:00 [INF] PayloadJson no formato NOVO detectado: 3 mensagens
+2025-09-15 07:16:07.130 -03:00 [INF] 📤 Mensagem enviada para RabbitMQ: whatsapp.outgoing - {"command":"send_message","phone":"5511949908369","to":"5511949908369","from":"5511977240565","body":"","clientMessageId":"2009c320-cd13-440b-bc5e-9f869cbdf2a4","chatId":"f7cb77cb-eefb-4417-b016-a852926ef8d6","attachment":{"dataUrl":"GkXfo59ChoEBQveBAULygQRC84EIQoKEd2VibUKHgQRChYECGFOAZwH/////////FUmpZpkq17GDD0JATYCGQ2hyb21lV0GGQ2hyb21lFlSua7\u002BuvdeBAXPFhyFu\u002BG5WSG6DgQKGhkFfT1BVU2Oik09wdXNIZWFkAQEAAIC7AAAAAADhjbWERzuAAJ\u002BBAWJkgSAfQ7Z1Af/////////ngQCjQ8OBAACA\u002BwN7aOH0zOi8CeEPP/sVhjSli/gUOpBS6sLwZzJzv/k4TjNseViAZgIPN4mLzhZsKFgqVgO726tmVPJO15mP4vUAFLz8S\u002B83rBbXKnYfIWtVvNitM1UJyT5qt1IX/1FVFePbe2SeI5hyU8J2e/n3fXu15IMFtRqt5mRWFtYLLY2ocNdjVsccAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC5lSv\u002BGJGQGzlwNGiah6LpN17eQ0zN2yE8cpYoFGC98dL3Uwba69mtomnirUBczvGHpEAyGBySRflOGKNkH4tO6ET3po6tkQ0hnd4zNv2\u002BoikCDimG5l4oPFLwOKXz8Uvud\u002B7g//ADsznxB02KG/tBDIVWIEsBCtVxzWyV4oDcuVA1c9y97FUr30CMBEhWtm3WXmNkDphvmw/yebBATXjHXvKUF4dbZwf0thaz3c4gClBBz2AM9lA3Ex10et/lwevjUXgY5JCA5q1FTDQfb6ikj4vDOCRv5tmprkfQI5ab7EVJ606b9ra7xo6orIR/AcrujnIwTcqVARQnxZmUfvvPgZD6unSJLVqG\u002BEXlNSMT\u002BhZwM\u002BYKNY8icJmYvRjXfeAcoSDMw2hTa\u002BhlMYztG9m3Z7roeyybr5hu73bBvYvAL2A5au92jQz9nD5dYoXEh5IWcVD/P0VO4I7AkYwudFqtuihsoBCap4jehnOrEIPDg4qRU/iPfrd6OWnmB18uejlHKXkKs4lOo7dr23tH9vTQ8nIDjqNDk3jCVIZ6wCy85FxGtkfGvN\u002BS1tb0Xvh534eb4zl\u002BDiiIvsoSY1qN9gM7cDBtexYAaH\u002BSQr7wtO23pdxqGj7YC5yfJfjftAAlT48FbY3RQe0NvGtf1sSbsXqMy9hZrqgUNomWSPwGEWsACGqqj6y5Sg7eB0GQ05xZ27/bbVFXkxweR16GeSNsTm6RZKsalFgyr5q5F/9PBqC9rKJHDMgGaDbiKPJximQSc4I9jVBQu/bFHioDGvwvXppZxs/JqZeoaQ2Fql6DIbClam9qHPZosAixjRSFRPg\u002BFkHIaLn7VJsYwkdlDUMPEX4jbuxpefT5Nq9cErbbfmBvSjER1ULO1mMn1eWKMiMPxtDVKTg1kOyA0y24HwSKlT7Xgslw5eboiJWcQChv63jMh6LKRIrUQUjOjRNdFTMZ/Xz5FWcA3l1wc6XFTNw5qEezNpCSwK3tisCjQ8OBADyA\u002BwPWzLLIDuVR5Qyo\u002BnRizpKSLAae24\u002BrvM1odLKuwu26ddPGfK80YB/ge6nvX/kdvjFv9DJHn/tmXobIUxIC9GSKGl6n9z4yanNppvFk05U/k0ShXf2RrgOxL83AkT2LOlHbCobx\u002BRoGGoJqjghzKV3\u002B0GIHYQK5/tgdXdOL/VIrvtUbSjQcQrKhR3hChg5gPK5PtNZHnheu1w/8pFAx7B5m5EbDQO8EoJpdMkePhD33/05AlYaG5niOO5Po5ATacN8mRLO8rgwHdWkekQlIGcmvIN7V3C6gHv2UEeN74tUW2MYyBcq1/h/3nA2n3MXtyizFm90sOQ0F\u002BKMAbD3nkY/9Q0zkHuMV8soNBpuNOJcKNJTgTk0QE/Y5fh9PBJs6D8GzcEpajwOpIFkSA\u002BKncBlIEoPBaikIvQZTWjy3OBLA2ty812DFhVJy7VBAaM0CfqtuVtBDC4NReRL4P0jG4qdj0XWZ7KAGshyhH\u002BiHtYAIQvHEq31OtsH\u002BDaLTIZII3wmzjBL386VOHLtLXttcyCWU\u002Bll8jMqr6PqCQitH7M3saVgupjeT135QWahJFLNnyBNDrmSJAILDuXZjvKQx1XYQQ8ISGWSnJpBs\u002BoTbjrXXLiJXaYdPiO9C/r9VnTByoNknrSaKbIarWshc7XsTuyUKkUe5Tr6dBTroz4n68h\u002BZyI/KFBFx6PAD9gLC3qtrPww3dVp5n7Ejff//xr4MHUr2JzR3fpCVGDPSmpmDhy2tlkrcSrFefCVPqgnNnqo31R1P2g\u002BEEMqge\u002BZH5IaavTLTsEXM58pYh/psjrWdO3VDb3TqGaYe5J9Srg5cF0ggk48UerDdpc2g/BOQZKlDvdetRFncWGut6yfWrKbVZlWfFeb9IYYBmi7fcSkvCGzPRac5hvPxci95/MXDSZWZ0tRyQBcRCQPwHI8jI5lLRpO5mHZ6EBL2ZgNDWdpMdJCtFqKbd2CUiUHEwSfbfCRfF0b9MZxu5rD7u7HR8H3Rvj/sicxlbwUoe4PBkD4cvzi/TXED\u002BcaFM5ocUG1d2UlMciYuPQ7o\u002B2yJZi6Cfj2lUATdtSOQIC5ZwzGJB6ErwoZbxO66xKwExX29p2/dHiWE5tEgwBNkghgH9c4gPrI8QPV4GnRmseOMjJqFfLK25askyQqtUR7JskZ0QuTqrPjX6YDfjZB40hjEFiTJD9h\u002BIKMBDtNOsReGZXF6hf749RiX/Ps1QbDv6GVQFGLgk7a8MHyjht16TxgaZPmtbwfjHq16CloxTh9L14xouK7fw7ijQ8OBAHiA\u002BwPaRY5eyMKu7Pk9ZpckkeIgnYhqlBOHlgMdhHE8OaS31kVJKOlXiaWeP0WIReR6UizCgS\u002BcOU2C9jhXvPU63fzlkiWwqSZAcZ12IP/ABIzaonQ4FCnoi/wK6rozPrdnmkDr8cILgWbd\u002B\u002Bh8YsAPiNya2HSpKzklYrEjHPxSd1oQ\u002BlPpojn4PPk56qbUXf81Itbw2s/TgPHWU5MQn6U93Hu2uNMA\u002BLJgx9u7UeFCOdwldiukOi5d8m3c/PhvO\u002BYB3RCHMeIHlJ8TvS9dqLygCUuD0Xcen9nXV/OFHI3\u002By2PO3BDaNHdNNa9Pposd40N/\u002BG//dZlIkLFh8U/VshHw3Ox51Eyd7k2N6xWvYyhClELusdLo0v3/IFq402ZgiQIWZ\u002BDmRCQza3GqI31CL6AtKKwpQFrd0IIa6D0hK3z94uux1svIS6wzrtExhnaBzyOhX9q6ob9ZMoqDKMo1ZZv5k575CZLH/q4ya/tYDqYc\u002BpVhDaWkbUfAOeeFkYb9WA1lQkBOIe73NeGJs2DktZtQEdPIKH9HmAz2KRIcnjWiXLzauwDl63WvSfPpdvNLmGRzLsF8XtBiiYZREIu0\u002BEu/dZckUG9w2/hNoxWMxbiW9SHYRJYwXHhiwPpULozb7zIrNj8j6k4GUqItTiQ2y/PCa/e\u002BGqcYb1HEuyXsGQi5zs54DYRHuLNt8WQdDOezfg2WIbqAuCl0RMPJApDdE3evubMCmpLiwNNxXsNc\u002BgXEKPwEqGc\u002B\u002BaeK99vvoYCFa98JFomXh2n0pzCQtYp2Cb15ox7okD/6TjiZ\u002B4YfF2KBaACLL8gZIBgtCeOUkznHjB36dJ9i0nbdACucoXFd7sTLjgl\u002BtZgCJnExRzyMaNOpDQpKfp8U\u002BQp9LgZKcukwSgzgqVjAvjD70lPNcvHOs1s0z8ZdEhcYB2GtaLlJZO/SqW\u002BSqsx92rrAlDg9vIJpYBgD7aMbvtO4HfAYbZ\u002BQnWS2Za6ec2Ii1\u002BZxQNxOsx0fTPwdHx0j\u002BePPNGxlQD/7sch/gNnf5r7Ib7phRNJ8/oIxHoFhsqfnXxlpSdE1cg0BBcB2C7zgP8tb5zFTNsfDClvgEXisSaF1fOVD38uxjyqkFPYnH7bZIAc6HXQDg43fReL52eSErK20H4yfg8nRBvwD30HXKoqWqSAx97FPIfPqFMQUjXww6IMSmVZbZYzs4D2W83qM/MiuwGnRC4IbYowkSEcwNzGUkvf0O29WUnqSiDaK//kL28qZ7eLeBunNTZOLNf2yHYBb3\u002BwqyhY6a8CjQ8OBALSA\u002BwPhCs52Ye8MKhLgfD3/izVo1xd30WzL7n4hGEDnanyqCOYF4XYR1hz5ikjPmZ7zDhzdU/In97M8z8fgFvk/fQunZJ1RPy8f0iSeY7dAQ43OnSJFIX2A\u002BJe2\u002Bz4I4lTLkjKNp/PZuL0rB/WiCdQ4soitU8SzWY5xX9zf1h11t34Ip3XwyiO9byIwXjp\u002BANG36HLKsrhjCmaSxt8hjAzXzDfD7nRM2LsiijV4Ihs3uR3BknOEvAzWFAhsnM6Jw/omeoSH8\u002BfbNmsOz3B8G5PfrN5boXglmapdlwJVbJDuXrqhVMoCWtqnI7pTpLXrZoi0/R24N/NQpXiW4VGzxJfunxdsMqLh1nBHmPWW3B/piBF2wDJBZpNs9cW3n3sP1OEqYyAIqLfYgIErDPSVDhMiA85Uak3JpAjDNXp6\u002Bd\u002BzTgJoPN/VyKx3PyPULaYzWVI6LYWd2D3s2ibMd3UvEnM1JmlJ5LNfvMD7QZn7FmOmNF9ci01K3FNAcokii6ENozmrle\u002BPSBcLnyxMunFhRWYR46PoG3QVVmYS6OqRPWECEk/Xr1ceghbggrhZq\u002B6Mxt9Q/zqwCtNGOxbO4W25cXIgDtgYA95jH/6Z6bzlxAzuzu\u002BsoRn/Auo8xovCvZ2B8wlgkB/XHWX4JVHEC5HFdz\u002BME8wmrMLqsLlZECXyI/RIRnFyQdykCUUsjvhTshCAD9a/TIWb\u002B2b289AxPJ89UufdTBMw1PSRGpGFN4hLoHtQH3fZiNCWAPJqhp4XtXs054Q4CuNEFhtgPwdG5Mi\u002BcodmXN2uxq3QFj7GsYzQ5ZGJzCB4n\u002B3fmQdWjmHT3Z5FGlesIqZqHK\u002Bi9EwdiUy17MGpRD9dK2FxLnkIzAHOaVKKsd\u002Ba3biDUvP0E4O7ydL\u002BDyiUblFqwbnNa2MArPb3zcavDfmZtufVY1hTVCmwfC/91pco2wMAEtmP9dxsVEx2yG4oqYwCYU9r\u002BDKCIDeVnUh0yH4e2S0RnUHHMu8y24o7QfPssAmnhywKL9UVEYv6OeuTFOcCNAMBDLEYrkzwIPqu9QgZQStDU1CFdDh6C9xR1/Tn35/6kh/vgsvVmaGM3dN8rCIqpgeYde1IGIpwV92zJGFYjp4YT8h0oqseh6HFPB1dmWfTkr6Q62NKvhC411ESRaT5pbGHJLKYrXXZDvQ4\u002B2SEPbMWyurFcs2jKNMgOS8JB3yRG7lTsmixQ\u002BUV\u002BdjWfZ2EPqOYoHn06WaC8FIdL95w/5DoM4\u002BVj31SSKtxcgJ8LqXbUWW3UULhE3K2a8ujQ8OBAPCA\u002BwNxK\u002Bqdo21P0uIgJCO3Rr7ISh6evAAdwBERE6GqjIOu0qh\u002Bz2D5IDP0yCwRIIDcHCYFajvQ1Syftuex0xnX2FYf5GurtGHtNof7BQiqdL3Tb8gfcDB2Nr4BTpURibn0tDo9Wdy0vPAdXiQGIDKwKibJOKpeXd2AUtvjNUGXYlh2nx45MFD0sZkCXRjdo8QtKjUce/ux1GzzzpQQ1xElxc4wDJLJ6lxUabAtBDx0pZQGVcfTuRhO5t0byRZkv6HUNx3E9YRpvUe/rKuQi50ZPfQMLqJ00PIo0HJr0Qf9E2UuA7Az1xfR\u002Bb01erD5ZDU77LxffItZ2VUcaQCbSO9BK3IlBiWYhjsBtTEUoSyDSfYaW\u002B\u002BYUyirJpnejYCRwJTnR1M2fUpAIANuvCMzJ0XgAb5BzTvUea0CK1Gw/15d7PzqUPtX/1UrQutiMz36/IdieowE7R2G1yiaGTajIokR5ODdZGhc4ZfsbbElLZZvUygC5g4/l2qayftPP3wGM4B4Zs0wVVdYB2e22uhp0AxRul8JEb3y81EAt02fJ5YHm0kxqxeQzrIKSPelSSrYpq357g5rLbQl1oNPz2NvP3HvB8r80UwIpta/lrAXULz1PkjgISlrqprNA7Uz7EErfcSOCs\u002ByE/h29Xp4GtnrFBjPdjjPRkSbkVb0P4kXtTAMX5/x6HSU6zk2dwFo\u002BOfjugDWPLguNVASf9VFL\u002BWAflf6b311AF3Ju2WGd/dr2bUsrcYiaG5rCvTgpKxWHP61gzKWGa4xEBGNRUvPMkNGINuegbXw71UG2vLTA9t4m2AQmZ/FUG9HaLhYcj6Sbve5r1Db6gJvqXCgciqWc5pAzEgLXgvpnP0Lea1KD\u002BoQWz\u002Bh2wrn2vGW1sI48EV1qpl5cWF5KR4daBzImpQYZ1SWS2mLdhdA1XMrDvQFfElrW0RNWaK/0JZobb50dXhZXQ\u002BnHbbg5Mp\u002BUPAYVoochzPsKfu\u002BPNx5F7nhjpZcUKt\u002B12Bn1km0gmfx1S\u002BsciUYcgL1y5zc3lWP887wyBVON2L30o4w0E0ApTHibm1N/SAXEJmKWqXrj77Q505/ic7fLUyqQxr9HLCuU50RW1djneg2V8tF\u002BQtNfy8aY8QNb1V\u002BzO0N2Enii\u002Bz0atITT3LWFMYIqs1p0dD0lOU4zG51kloPxYAMgexvbUgKOFifF4oaN4fMLpg4kYMuc1Wb7EGPFDN/o64gBPtBFZGqIUsEERD6PXZAidRQOqkdSM/AjMHahXw6wc5oXnyuFH229pTOTGtFbTmjQ8OBASyA\u002BwPmRG5i3AESoGWMs04LHH7HmCGKQWyjE5t5JmuCt8PQhky8lVKxckldGTCGTS/JV3zYOnrmAxE8VNoF72Dk7/bGa4fXH9QmuFN3ia6/svMdNNbz\u002BPsX95W3lPWqk24sSA\u002Blv0azy2Lz8B\u002BtAzvbBRE1bsm0lxmz9f5mDIY2LY\u002BK/KmnkW5RJw93mHENSuXJ7CFoCP5OcBFZf6SFpL/7nE5uueRu7ZQMYH2I0vTLPJewaTLrNYINhfpp9wOGo3KNX\u002BwpZpvigk4dKdb1xRr3IabA0J50YnMK7km1hVkYzzu6n5VB8sNWzmmKMl\u002BeFl4uw7u78Xtn\u002BfK0ZFpH6XH7ixrYWqP1Y3/PfvIg4dmu890XqunL\u002BZKwbSw87omOLr0c3uz\u002BrZjxZmH9u9QpiOs9yLOY8HsszspBWiKhU4Xqf8mW5XW0IgliRLxAmfH9Qxm4eRN1xB15utj5Dt2wsXq9nBhSrpFFWuYyzHcUkbvpw2J5fJH2YZOOdyABzDHruwW4NWPq80mfmu/PeWfaybOoVpGbzCd6ZZcA0M35vS2rnqNH9Sh102KzY3H80\u002BaDXF9oFQ\u002BnQtifIsn4VxXHqwqCADPLrd/eFr6urtDY5hEnF1gbfm7KKVcUInSgxx1VQShlnzs9KP71HuYKl2JIx2H3eEY\u002BQWTBVBWZshJ2mCxOn8Gxx4d/gSPEcvP0CLvQEhBnuaagT3OdHsmQ8HzjQZ6IuBQDlTESXgunFFZyDAfSYYj8u2\u002BbW5yP8yuwJTXWNHaHis8iHHKRIAkMdHRpbKadlsGhO66AqqgVzNI46oStIrMeTuEV1xUfTOVscicWbvRnFUIVzvDclg3NxmUq\u002BbKBr34tq3xsMVoy2B\u002BSflY\u002BOGWxlnybEGgKRWcTZpITg/FVpluCx2Oh6r4cU4bJrlAnRN1DZwv6/ORgoNlqaPNXXQgBaGhSSAH3YBlwwtlbq\u002BKgJQPbWH\u002BnJaPiOQcsI1Ye\u002BMzIr6V2w9gHw6i6B2wSXA8GVK/uf99vR4J349pkn5Kq1UKkgfivKqN/hNvW5mNc1NeAMrEatgTk1VqCBwt60KxaFHjFy3vJTWa3nZiph2Oc\u002BMkEl/USmdmLd/uhF9h3BLgVNAns7V2qCNsa/EMlHN\u002BTYGqkB/gPNaNunOrEZKyWI7kdU0xZiXyyzpMpO6PHFA0rGEFlIMbugA8idF9SpRHsMYox1WpRh3i1BlvUBpooR5qeJ74qG6hyNJmpN3jNb58DK7CoFojBgY9lahscKS5SPdSvZjBCWjWQNV7EDLujQ8OBAWiA\u002BwNT3pbjXX/f26ZzFRaX7Bs7OsF0QMYXvz6X4\u002BMhL9HdTVRM1\u002BsKGFDMo1jDq5uCxDccAlc0PY9Hp4swIsqCHL9za4RXuc5L2MfykCkiN\u002BhWo26VVx2MpMpLUehtaOjWJ9mwA/WW8vwrdS3uUtMaAnwfXN5ZPXtKmgwAXZIAAAAAAAdgRZ\u002Byi6Ok1gkLhiR8tV2g8bYWAYvFKSeim\u002BwDegdAvey6YM3a8z4rp9AWQr/FcQ/8wNyQ/hL06\u002BWTxw28Md\u002B1evbbG92zyGlbERWg3N82SIwZa1dZYgbz5QQL76dYNXK\u002BCA7G/wJSBNQeOoEKmYzHx6l8fPOtl2shbVjxlxQ\u002BRoNpMXICriXHfr\u002B8iFId2kTdp5yfmb1/f6LZSjdd0z\u002BpF5a8G/2Ww5L8bsCgYffjNoE2Cbg/bj3CFjU837b4PP9ngde3U4Afqtpybolf1H33m/Ie7PdD\u002BPwUYg\u002Bs99n95ajzo7u5d9j3J8hM1U8TpxAse7NlZrLS00CdkDZ/wdmiauDdCd4UXqLFACmgDvs0\u002BBYpqi782DlNtWeN1iH4ARn2pjpzI4DYNcqnCrb/yuJjSzbU8aluqFrIywgt32AAAAAAAbAbO3c/XIbfqnHxFmeJ5sfd13tv2uFyGbKro7QTHHstqcairiBddKF00c06XjnbnW1e4ZTMwrVe\u002BQjHdt3oiga84uMgbI9Pkz4e1MsJyQ/Dlw2mlbFVOj16SW8GJr3\u002BaRraAfdd1Fuyfoj25Ag2CF79QTuz9EaSV0p3\u002BCLNFyP6s7CzhXB1pZBoUygdJ2j/d5dBkEfFSCb34rJREDSNr\u002BSR6oN2VIZuV/up0B2hBerfkRRdVilaAK/Z5z69xNcnlcXmcByLapFepH2yVC9E/bb/gu\u002BMfpZAuTZArckj3sLJmdbitS1muWeju5YB3bGbD0lL5p8Y4pVmm5vKoQceFbKQBsZdqMpexqLvkXiQrUyEfP5vYS6ZccEF4c3mEYhPabCMf29L2IYiLZFvrpcx7m8ogplL9yME47G/Ea/cm9hku6x\u002BaP2uvpDk3aMJFUK/TXTOP3ltUa2fuh2TtNs88pJ0Ph3vfIpZWRsMiK/Vf0Jcm2ZnZu6Hzo9e8KvQs730Mw3JhmzEcxpe5XBY7Ch0/Ie4rgsKG\u002B5gG9SAg2qtkVUjiz718HmN\u002Bs3oQiKQEVYyOd0uwLGFoG1aFN1PkhSum2JXLLFEU2uLphGWmxnEUFYbDU/CF9Hh3e3NlNOe4/U0EMrrJ1wcEb9EnvWw\u002BbzdNDTndVmMDO9iX8mjQ8OBAaSA\u002BwNw4NTdXpDvx49tyJ2duQMyxF5aNt1DbeXb1USCeSTqgW7OK\u002BJJH3N8kAWdxCyDitduP/tuJVQ2tGd2mDoNL1duCIaWNR3hzPgQ2d/BOSd/lN/UBZIqV19d28iwt9t6dO6QNA2rPTeSmfTz3tg0yTz6LcWXJQ86allIrUlw2UCVDPxU3pu5aMe2K4RvVqbuleggdqT5P5N5jNR7wN3pVZEGSejGTGQaEQW0nXI6sSxxwK4WapjZnGdC5YHxINRL0F0yC2EezUIEAAaHleCVkgwYPtit3P3VSkr/zIqkHWQKFn6umVes2XrjmndYDnnrzLhAG\u002B9PLO5CfK8v6CfKYDs2GmnQN4yW45fpkps/kf57qKvMfXQl/\u002BVJHf4tKZt9Ur8X/YpgTT4tWY4lDKWRVCa0V/Oum0QpgxYpCh/xrVRJREJ\u002BZRneae0YKc02qrTeKOVriuMAecLDXLFun1NndBi6vckx\u002BanAZJLmIDTHGAa1dAse1CWtQcJKvBdMW6JvICI1dBoW0weBflcN6DmYscfB9fVdivk2aD2gmV4Ub46U/7H4zWLC622qvXc1RjmafE8TpWibts9A5nT/ZqhMwzv5JwaCohhTYdkmZAY1B2hsn68vgeTevDojwJESpCUSmGydr/D1aV\u002BjAJq2siIUBi2bQXN7IRYPOd2Mnr8A7wUDSTTj/INGjBLQihspaH5F0LNz/ctKiVwrnyKbm1RtU0QIAdbIbltk8hSxaGX7dqRPBQEkBqvC9AcK1qh\u002Bp3dLRvEw/uroi6ikNgzAufvqW4WKjl5iYFT\u002BR\u002BJsSdfoQtPe8EsdXS7xhi\u002BiHdRFdc99\u002Biu4dtYELp/tN2AHVo1sG1tx3fKdi\u002B/\u002BgwX9usN1Lt378oaBIW\u002BebqLuLN1x74CLUTRseWLKJCtL5kVaue2\u002BdSNIZC7pkj3ZXa6wEgx2pYT/ndpEvotezh0\u002Bkb2mW0hX/2Q5LEHxRORMjfqDKGBixvuKnJngNR9i0WkZ1kdOKhtSftlWw2qlnvCDpFNHRH1RbSuPl4mOLQzjYbQIDlSckuyLo2t15Ntg8NCU/IOVdLlOcAGS8zdEjDStYjHDF3HMdLk7DKVOgDPelPXjfBbn9Na8eZHzCd7VbA2rW52U2t88hLM8xv5fIq/p7eoA2uyfvMa8hdk9lnsW3a1ASScl0TWBO5N\u002BYG3FRG8svkdtCqpgRYpplU01F1Q\u002B7bTuFaVwwBVXt5QNsQ6sWN1S/5bw89DX0UEHjfMwakvKSQEmCeDL1DvEK\u002BAgfKDuKl4\u002BUdejQ8OBAeCA\u002BwNSLYQauFKQjIDuuQdhcCfzQmXzlejuZlYXWmFjxryrMwgYTPc60GlW6/r8Dk\u002BivDfIM\u002BWEXprzcBy\u002B64huScXUUJVbsfoHzbWxkfXwvIp\u002B1IGIVdoF0p86yw93cBDp7tTfLO\u002BCJcwD9d74FE8wdiug\u002BkpZdmnGcLRAj1Lbh3P7aziIiYscTg2M2f8sAwepxk3oTOUge\u002B2a0pQ\u002BlWy0l78nNavGFnpn6IjCGmf5GARQaFSoVHU6jWE8xGCu4zWGp4UBsn7PeAZ6hl86ji2AeXgKw23igp0NikzY7LJxoCMgocxoW1LXZauX1vep4JNbHgAxGpC5PdJoDlECM7fMMUbB5Kj5vr8R60tKGhDciOR4/3jY6wMovK9p5Imr47FYBLQZoIpK3bp09/Ac4L8oGSLTZiLNrJQEDSeTLr8i63B0Pm\u002BXAqNTVRYzN99JCc2m7e5sf6mjKRTN/sVCspVEc2bMd8fkICE/BRTHIV5/TLkHm6rjeZoVVkWL\u002B9nVdUu5A2U9obJrAMsVaJuMe4mU3GgCXibEui7F1dfJXxw\u002BcwnzysnFGNLSvQUzf0sV6E9dPuEzoqownZunuKZgiA75J6P7FE6Z8dCr8JTAD\u002BloGK6lkikQO\u002BXQvq0YkuQRJR0hMnxMfse81tdag6S7yNeVN4HJffVe2gVHbQSPbgXUe87NwLi/eQfXrRprpt9DK7aA6mMk4Z5CSHD2mL0xKoQ5MmBJukU2Erg4K\u002BOEMOFvxeCwboskua4x7nUI7kl/k/AXqOpSwbX8c\u002B7CEkp7ycuQU/ETBelbkvKcV7Jw5O99o/IUuFkAJ9deIQhhpj\u002BY703R7jOIeWspfTjshAJdR5Jzhbrcjdyl41qIx9lBDcKnyd3Kz4OIUVLQYwft60VYMRzyBRmnLVMm9VNpIK0/kMZsOFK4naS4d3T6bkxM261nrZ9MSH/xEOR3qbcX3OCPl45ccoKLXGCTVMbzp1DPf4w2A/FHqV1LCzUJF7YnGwa7sKhwIMViDrMWUuIGOwjvQ05km6FaOFYov1zhWUctsAdGqPl4MAjJJfjcTQ5CB/DPNZ3oyvizftPp5bg4SweyZ7EHN5Mwo5GcPsJQCE9R4VoojQlAOlhV2Lbj9JDbhK5Mmf3Vgu/itwpMtZd/LLlIAxIwt\u002Bmt0kclq85WnH2tuYEzWaBgtDGH8gjG5o\u002BoQva\u002B2DEJn3GlfrGSA6xSjP/JTztaPmyOa9mVJfpa7jDCV2qlzCHeJTEhn9ORbJ2/x1D848YgMxTXplDfFuHkUEC4CuWjQ8OBAhyA\u002BwO82p65jmz/O59ZHNOll\u002ByPTabS\u002BdWafdRgopxbQKTc0H0usLhjZuuVD59/L2llHz7U9JNNKYqT5IBBERFYr2C4hmhGd7HtAaU0xppYA2MdUHJfP3t7e\u002BIy\u002B7GYee8Jk4EOFb1hH7yK5oR49oaSDtV0SIJODZ4uZOU8E0dvJrje4YbH3g9kWINpAnXOwZ//u9D8rSP2Qeu3zHOfY16/2TmvvB\u002BNF27x1epVdTHgpQHE2Yy\u002Brj8\u002BIvB/6rOQb5TLM8IkqZKf7\u002BHpJ/9vCvZGmcLm0HLGVnybOdnZdxsOgY5gPxcxFOB/8FZPmMJGuCOlDMve/BRXv9cl4pz2AfoN8Rm0VlzFAcc1\u002Bi3HUpYAJfoIXSNZZUtsh\u002Be\u002BM4FzO9cgmfFZnwFd8uH0OrzLAYPeiVq/pbCQWRrYAVOWtz2akpTp5WjA2jZlCOsRKhZPCQmsSuFDI4QZFcDzrCFGcWyTFE4G8J9j/wS8o6qZDW5znWnQhszVxbKxjVLRPMulMZtvutGZAoctDn8vUtLSSo6pA0YW\u002BXAVN0mYQehIouU/QF\u002BNlnCN2rOfFv/mCqRHMqvpWBSlkUI9wSGWgl8kcmnd6w/24HJ5e3ih0Gydp6l4DfQsS/PJvfj7cMhIHqPjzu8\u002BjWkGRDo0TEM669XkHclsLcpvFwg37oBV7zasI3KzGhD7/48xQJhebPeO1zOBrl5egZLX2EXs49Q/ZSuqChLcClcMIYIJoI88kNndWONKkxH5kfnkXj92pX4j7s23nA6WKrasL7cmTCe65PYoBQCTbspks\u002BuSHUdJVsl8gvrUj0\u002Bz/47V09KDe4c/kd6gSqLrHbFx/fsvWilfRn04vRNb6Ps8x8LIXAnwHr02htfXX6lWGuIpImw5r/7ugCZPdm4E9A\u002BH38GPJH3NWatvrAjKv4dp3ncsYRRpbvJvWJRRXuh0Q/VJ87seogtSBdS9PFibtmRUMuYqf3fW4ljr535e6V9Pp1U9zDOEzsibIuv\u002BKOuKe/SQ1KZYlCMRjQ7\u002BUc2JZN8NYOC3InxG/qg9BK34nt4xyE\u002BqEnO\u002BcHNiz57CBdP6VtXWmbooPPgP2mX6f1VE5WYFiAxlrMqs/x7nds8doafdR7TgaBEt8E3M2RuUqoCEzD78PDkCTuy3a/B7EChD0srj4gf3lRYycRocX2q4GqIo\u002BINBA9mcz4elPlqZvOTkcJX/yT51YxeJIPaREtYqLukQFkr8OKsv11wTRyqsFTg3IueejU0zjfDNx9X7fu5m7kWWUnWleXpZYT6GJ9\u002BjQ8OBAliA\u002BwPlVO3umU8ckniGiJODFAnNXoEi/cVRYMSleFKwNm8fCmLBbgS4HQ0d4MjxLdmQgFtLM1mFg/iD7MUh3890e\u002BjJvpLSnQMyZXLdOpDfPY81wFjhjP\u002Bwxo3\u002BWHH2JQ9gGcvgRj7nfVUVrwFCClHmKmVWDP9yAktBSIjrSb5vEL9GbdQDd4FU7eKKgdpvpCiGksc\u002BvWvEzd8D\u002BQCPO4hgCi17NoLsgXv10MMGEJGpee0\u002BQ6\u002Bu35O\u002B6h0nDCW37Mt/\u002Bq\u002Bq3JDLnE65YXpNACiwvxKqBONxaOpp0AnuH0h348jbfirrmt7ocbXYkEkB8TrnOD6WXUu8/oTKyKAAe0MW9q0S0NTXwx4aUf3L1ji0vOxRasFV5mNUMYw1HvriU0YeYfozgT0t/FzFWcpD8Go0CousbXF0Co7n45PfRnWtDEPt5az7FNIf0GvwHMmQ79JoR86HMAIcP8RIbhKiwP9GpR/XTUIyAU6ux/RVpy91Jz8JnOKFXHZHqr/lzq0TDjN/q570KVkEnQovRr589ICwcoymggE/QgeSDgVAGXEA2r6rI9gJFxdOmb6MSybIMskaQGyIHosFnOHawpg4SlOovE4iLz4AB9ANxBaVCjIZ2KiATuD8J0vRzEPu/dJTir50hEu0UKWhJOLIwGwGqas3Kzomj8BfSErDA2b4Di50mAKJ\u002Bu/Zblu2SbnO7SOrZJ9NxTgS3ZhRUXVdIVCzKzgFEVidvdMtuwA99D247F5JQNrpi\u002BMDysHCkmOxYFIqghODNTxZuDQsNA2O9UMZgMq16YDdT7LlsphDV5v52R0kQah7JUylaWuK7xkrJxisPrNr297sSCimLnLbj08XlHSD5\u002BZCCsN3qhq6ckRdlUNnA3JD5Rvx8hyq2PbDevSvHB1FmQFmKhRQH49JDcgbHHvQVRWjxMx7OtkADvlNQUnJyu2Zm37bwq8E84f94Vj90OKcsxGZz5EE3ZMth/ItCjaYLtvn0Socvlc5clA/Ja/L2OUDUyBZXrwFnl2tN/5GI4u/FeqGAMpxFdTJGHY\u002BSaGvKoQ3mZpcRnhlvSpoiO1X1p81FrT8d3pA\u002B7QDhQiNAQZBHcNsa57gD3lAkRJ/QnV3Pu3M5dQjlVYJxGAvm4CckzN3KpPVV6b3H58n01tA5a0D8ZG7Ha9vkfD8ybbEBCwFSQP3dq6\u002B5\u002BeZkyaGHTOmdIA3bVSDLMMLl8j5wOqR\u002Bf7m\u002B6p/6AhnTJkYckcnFXKKf1p2N1elEBReD\u002BLxI1or2tzXcKASaq/OfeZmX7WCVN\u002BjQ8OBApSA\u002BwPlb3HdRdYb4kxjdA5ssWWscQXesebMrF3\u002BwqoiXaoQ62BGwUYBxjX4HG0CoSOpy/Zuonk54FvUkZIfA1RtM2NO8xujQ/RnDVYLyNs9WMVcFp0WPzBkWgTm8KhhALlyzg5fQYLrj4e\u002BHexorYQiko/K53o0ytSx0ZwiJBlXQJyNrm2aXTvGWuYE8AHbiYMWaLwKfeB\u002Bbrsa3gxC4LHNqaWS47MwjECjbeMgyxInzD3Gpr7vj\u002BeDREyaDxC\u002BcGmjIQEvg9Y/iVyx99lrmjmH3Lc8aqNxLEX4KIZqdbPcDSxHpiBs3U5MNfKZfxiNKM1HBRM1PlZPmIv2cQ/r5jaA6juzQLW2JcdodRKOISypCevcELVxKNIEsLFV9xVb7D/iXTbXT6xvzsyCA6VBZWofsW6Q\u002Bv/hizrHfkvBnh5cURvd5ZfqXryt1xc\u002Buho8SiNRRqQOe0Bb1R422M8lsAP19kqIKX7tcO3XK9VI\u002BDI4ctZPmpcQBQjaO7l4u1bnoCA6OuD7XtGO3oDMuRoc1\u002Bp0LTdCaN4ugJvnKn4OAubbVNnt0bYVO9YbsO5RZ1Q1ZcihEJsawigm3fLexbRJudj1XFDbDstVtAYcioYnM\u002BKOACQhB7kCXyO/fN9xRvPY9LG/v1/zNrfv84lUzO6ML\u002Blp4QwJM\u002BuKRWGt1Yw/6CX/0dhFrumEobFA2hwzzc1Xo1uhGrlaPmVM3V9KKOs9SCxj6fwNKFCAkPGo\u002Bkfi8KDFCRoQSO3xbVrh4Rhz2/jRqBdIAli8b6iz24bjfveCuZ3fGXqzwhR/8r4H9DwLXUM5TxxnkZ7CGnYGVDmIwXWgvxotC5DqrxO89fk0iRFU0KcdzOmDXu4N\u002B1G1UrQrYtoYddJuhJgwj2a2unbKm2HIcVG6HL0bWNrNTdGwYFSPZkARKIRozEwfiJUwyqvxPMisEdYMjdubC82VLRT0LVXyq\u002BCaSYKhoORHvjOWOr1JwkwN2C6Vi/nKOTRX4tiYJgxSptxUBIqQgEeubFi3IHt0VzGRwoq1n0tClemhvfXbbeHxaCnPu\u002BfFQSLt71kpq5WH6ZYpiulo1dbJEMTAC\u002ByaaZx2H4AsShMrTTj7jM2/nj48OW3DI2mP0opUGlPFD3dxt4YHlTGGa5CY2IhXVwIWXs8ExA8nK3dIVDHHTipLKjYpgwdJ/X7c8AIeO9v4K9MWcECgm1yZS4Dx0wZQjy\u002B1LAqK9S249wLU5tFz5cRJzjqPxXfLQwXQsxVIHT85aZAjPExKZelP63NIZKmOUCHQtcijQ8OBAtCA\u002BwPmD4GRY49XgIOWMLL6\u002B2dYADo2n4P3jVNV3xD/paZ/wawHoDYsJz/Xn7qqda5IatPtiUSSgLzV1Q6WinV8eZT1Wk\u002BV3a8mfdsrCxnh40IrbwuiLWEf3WUSGK1FhZPzehmOr25X1zGRqfFlVCB1IR3LSAWMD/B5kEgoNPsPxZoPpacsk7HroF\u002BrIhrtrs2Kns9Eg4hDY0Fjwae7uf38jRbIYwHYQTbK1UMjk/aZ5u86bUf4N89H5oPI/PJdapcetibI4F3Ya8O7XCwtahixhrk2hhqNx4uk7RzZj16x9nPfjp30S4cXydPmaH0\u002BroSXpDZOlX8y5hej5dpwm/od9Msvh0EXq3xBoUfQUKuhS5hlgFUp9PZW8FnDqIYkSOX4BBLb6T\u002BH9LKc6bkBbfvAURQlAh7WPk\u002BLgv2UnRQsGyTPIhBglQq2he2XOcoFrtWwa4\u002BKNfl42WEcm4XlNXfdBw2UI6Nqv9HD7ep0Z9BZxOPrEss0L1DTjm05eyoOxIwKBen7Bc9ztV9dJovkjrnRC7rZ2R2c518MNySvpASxHohT\u002BiboJ8YWO8D7jRR/RvAQBzxdmoQdzBPljEezlZsRfrlc\u002BPy2EEV7V5GGtuWz986tII7CBjrvJwBdxCV4y\u002Bnm\u002BIOG7U9Gl7htWuUVfoUGeG9zaSFiLbYHvHAs0yLjjOvZCfsaBgx873ZIUq0JipxIVDArDAs329u4JwFLA8VT7lUUZYibxEG7sbKDIQ82OM4h7bTy5GkEcNiQp4csFitZvZi/m8LSY5MW\u002Ba6xXvI3JCJZZ0LQ8hWKH7d/5vmyRK72MQxlksl\u002BYv4XNWwYKdbEr67WAdFGvVVvBMKGYnGg5\u002BXSbfIUY0aEcGdxSj56QtX8IhzN8JPxea1tEF5\u002BZmwJ5hcUumUB3QCGEQQUf\u002BySI/9yIq5TYGRkwhiCG/N13wiaGhaNKrwdDYcC55cDDiMalcYFZtxVYKSXkcZt4T5fIluEvLJ4eVTvy3TiPab1Btbo\u002BbpIV\u002BJk3yW8X0bRXor81aUScAVt3skFzDC\u002BeuZameyuT9W7NVa8iNq34Tu3/nj6SxICjJRstmyOoudrmbaqidbx6iz4VBjOi\u002BE/kXvFxTMyH4geZ\u002BOMIuHbqWcsubPw4zdeR6xGSYqjVTTX03BRSOqYIYVFzYp9ZIOqfbEWmH2JoSeYWnStlBCTEQYp\u002BjXTjYjW9R3SqNWpex4hoLvnGi3\u002BuD2KT6BVQrFc1dvMYtbD4b5bUkzpLYxNxKq4tXOe4j\u002ByupOlwAHMeiYpfHujQ8OBAwyA\u002BwORS3tANBwaJg8LEEitNC4b8MsYTI8ZM2G4DXpVSbW8f3nZdcLxYk5SjFVct4tZajVGjsx0s06EpqD1sbLwAgxt4ERhlkPpXFzj5BJ/gJLImHD77dXEh4lkZFluVCybRL52ZOMoy1Fqk7dNpa91DbuUThXTDIOoDg0vtauoALfELsrmVlRC2RTt9EXRW1Qv4gNHhPJ3T/EmUC5A/CsjvYYBFEGguoa0Fg0fqSZyeN0TfTrDz3V1Gdh1C\u002BQiTZH2csnXU93KIzVzi5YUBzPS887vK2zDGUuz6JyrmLfGySJpq0yFbPc8B0wkUBUTeVx2rBOT7TZxvbMzWQiXSD8BA/JP7BM2lDYiDbzCQhBDJozQP\u002BWKRVsCDcqKhdPl8cmgIylid3Ku4h8ne31uletafuJ1UPqunVt3GabKdg/Id2uwBYWmRM9zefhNqQbYZbOK8yTMNjPJrieQEY2gNt2r7/9D\u002BzKht7JAz3MIThCh/gQp\u002BpXaiX5whGCtJu577gIl7Po5GaPYRbQasRCstMEGd4I3sdXpk/Oy\u002BUi8LZ4Hnxy0XtFhpKAp7aDQpGpYQNkqiMqUKgqC75giS5TdQyaDrMk6fkobubaGLSMTbAHeRw/zsF/Z5ESlNv1/HAf0BeIXtUqkvWzlObfzFALiaIL2OvRgGVAw1fVEnJiYHvqj05y1KTHY97l7MRcuyQBMpPXZGXxPBW5QOFK6mhoeuev59IwhjgUvyaMT6geigy/FoOJ\u002B/rqI7VvhmrD5AFQuRON/z2iO0qi9bnfPBdFma/\u002BtOxJYAFvHquVu7Qo\u002BLze/0gnliIBP9LQ4OOMA6jEUJ85rcFDFVrfK35BjzNJZcnet9D6dejUqaIG10Vcqd7VbaXcJ\u002B4zlDKWqm8c4dqBKZTsW/wgOnJJbD0rXyS1jQy5BtN\u002Bk4ZwbMcf1jbA2vLRjCpgQumcV5cTy7Z8eyU7yZgegkVz93XXK/sUJ6ZHY4DW71iA/wOt4w\u002BDWb7/\u002BPMxpI7TSeFHSMxAiDRBk0KJEwHOsyv5cH5X7cnXqJsCtDN672a\u002BjFVqrPkpyNHs39E/eqOhpVckPo/bv/XK/llXyD7p/lNJsL84LtAx8nYUtptpWQDTnZjFdCoBMoCN\u002BPW\u002BTKCRmzt0a3MkLBunxZX\u002Byf/Uc/9lo8jpWTKDRyQpyoFhZ2lTnDCDGjCaAZxXsABnm37qHw5ayMH2s6nTbiu9NWdBVJktev4bl8RqF9OcfJK2kdwHkJ9TOcn5BUebrjAM5Qv6pOGfGF0UCeGMH93\u002B286\u002BjQ8OBA0iA\u002BwNTcV8Whhz7KDcZGlhRNWFOWohvz1rs5NpjDziDe3T/\u002Bl4hsmOJTe/p\u002B1t3ObrJTwBjiQ9iCwVY4hD5r/E7uhPTkUTJ\u002Bf5Tp5xD\u002BxKst3mbonlcskiW4EP0\u002BaNxtBgMHRz3D4u0iipsaV\u002BvDI1bDdB47Fq2FvoLDKbJwkg9pX3vGK7QrDEbtmIxmNWV\u002Bq4Ibo58M35GsaoQvdUGSVqi3PWokph0F9e8xu8jdujK0hJl4vTqDLNuWvhOSmDDHK46aIv3wbgTGqmrUJsdpt1g4Ne9NBeqpvCLG8fcMjMiLQVfQeRaBWtWGKWnjO0oTnzMlQTBJzQ07aVjWzvepCuW1xTr40ZRAE0R26RObiI48PPr6PbyfKtRMRTF5WRjk2UwmcLU9hssUtvQvx6xTdbLrF3zY\u002BqlYo8T1hkIShSdiYHucSOPYmtmtUQZpJMkeQO9hAbTJAaGPGNuFs1U3NMoaqqvTT6cqPfTZfr7mOF/rHce8kmPZGoO\u002BUbyD5CPixpxjHSo2r9lziTtSxWFea2pQnFeDfDwZ0tCWVtOWbNZcFAAP9dCaqqP/aVBntF91gHZOjSIDpKSGNRK\u002BdGg4\u002BXmRZFxuMA5MaCCR4whJqsSStGkJfeYfKhlSaGFG7plHUURslEmtjSJVvmjdMlD11jBbHlAbbb13rvAJHq/218CLXwO3OrnjJapSWeSGpD1KWdIDC\u002BnQcw43C6uOhiHk2BE/u5YNVHzdaMsYAxtJETxUBlvZSnL2W5wpbsjwr6j1YF77ZDJSdhXknjfMAw2\u002BkS8MCl2OR2lxtbJgc0mIMLd4Kq6bS/0n1m/ZgMtog4RI2fONsqpNXp5AtW2arjKc6NxA0/XSD2y0rqdlHLbgTIOkUz6VmgN5sG6LGEJqLkGUrbItcOxHWEGEKtExvLiFletA1\u002BN3uI6kmHxAnzrPZvqKVCLojtc8bmeKC05k2gR9NtCTdYFha9l9LBz8l1kgHR0xydrAKh6nW59Bf/sZ1eSH3ZEZoZ\u002BGMr7P\u002BbMiXlFPgcz/kEVkdTQvSxqH/kJPZm0tic47XDsDR9ujO6gUlm/3JKHYsgzusgYse0g9ZG8T199dVA1YgSdLYFSLv7FjcbW2npQ1iI7WvAkA9dkn6I0g\u002BFcTnAhpLyCIE6D3s\u002BF\u002BGwkpDkZ\u002Bque/V7eUleyN0feN/I4znadKjhfDUFruZwHglf9rTMGlSYWI48BvsTIienzsJu42nfcs6JkSPgjX5Fuewyvij8UAeahtoHD\u002BCKJDzHCiQKN/prEiDVca804UVujQ8OBA4SA\u002BwM/OJ6WnZQd0EAt8w7HFLY9WIHjTB//eR8n7MMx2uiQmDL9q8DG8iPtMEh\u002BYAit7VEn8L0gs7zB0NL5cMNEJsGpf5WOpp6NM/WOpnv92EdIDIPMen0ILIEPeNCFr\u002B75xZAVDRfhy\u002BHDrQbwrx6/3y6hvu8kHT20ZuVwf8PAo2rpx4OcNfBxm9aWzbqLplkenGUozpvPuNVeD1sc5/97owxa535pkPTQJJHMKeZa6OosZXxzj9I0S4CEejXmmxpNrmipZH1U2RgZLTVzUTGU3fq8CuoqoQVQicExfN5252F/QtLFreejYNS5lFJ5t4JdYPAqUFGkcBZf8h/MkP5MyS/y0TOgjUuqmP0kPbtDTgKiUK6nB8Ec\u002Bs/Y24frSvNRZZ1IEtAM5x3bqkV6jOuhOcblCjSC9YmxXWDKKcnOO0VgQCOcSaF46kyDIQl/5MzcTO4miC7q3UjctIcuFzz1EkbYh\u002BPuJzeekrvuoj6e3lJJ8DQMlgc94lCnpj/HRDbuyk/GsxkehlLuYaeWxO1L68\u002B6JJ\u002B0Oq5CFiJjuOS7g4lz1D\u002Btw5bMVfVaISSTEWfSdrM\u002BhJPyftANQzKvUKab5yFBTRJyFX25IkzEhMwdtMxmanTwrvLv2bazdDaoqnEbExLIzUdmpDm23kmRXciIXa0V1lVin3RvcbBdM6yyNjfimj6symL7N3EcB/mFJNZT5n/LnEONaOc4BlbTizybf\u002BaS7nU\u002BNwBAVEKvESnTcOFstFzAlNRW8HbBGVl23uAbl28G1U6Nt4EKhyY61WGjlC75gSMP4unS1bmmcNWm\u002BoK/o9TMTwyP1JYU\u002BtrdN/gY87wAS3Lh7Ikp\u002BI0fNvnf0RpfmWgZ4oSYGE5WZA79hsS4ENaBOuvhXkYqao6RNwB7/gBd/2dRMSqWNgjb6jBS5p7Le2K9KMYXxJ7YBLTA7xJuZ4jePruriwEcePulnf6nZ\u002BnA\u002BN55zg8eT74lR9PssIE8xHoW5aWN8J7TieE4Da5u\u002BiZrawdbYsL2I3vtGDTZgJpM4Gtsa8MlpTBOSOvuC/6TC65TzBQ7h6uErM/oGA1qRCFfFgD5qVVZLx0sT\u002BIpJEpjCTliJwJl\u002B6Ab7\u002Bu5hGuNrGw\u002B8OnDN5YlSxAhj2aMH/0eXYU\u002Bo8K4WBlGjZGgYRC7ngEIm7KOtxAzUOBaQ\u002BifttbLYf8dOzEvzgzoFOeKUfp/s\u002BTIYveFggYGyHPs3IlsTyBAX23Jbu9UOE\u002BRzCVHh0MhKZwkoYV8DrHbggOD85JBifOyMOR2elReywCjQ8OBA8CA\u002BwN5bfFbwdEIxD\u002BiGXhPM75MM/v39td9nBMY6d2etQTMKeJPvKLr4KQiYIPkXXUdekbJlv1E1qQqPrDQqFslXNRL14yPO7kAOsTS3vOKfavJdB06qn6ZaGFO\u002BXQgp3fGPo3qCAPZzmboif4TwJrTFIAGyH7OPyV7VFpiKel7ZJmKXD4aWLm6RLApz4aNuqv8AsGOHGzQ0fEignjJ2qvGb/5FTKum/yM4LGM4iUI3Clcf1SyxwMQgwEXb664R/mxEopuaHnDp21Lm9MgUqT62cZ5tL4ulvVN1JFhFIaTpcZamVCvzQRD2HhN0y5CHCM\u002BRMc/nw2nv/\u002BUhUmyym1vKYHU\u002BoVtxwj6y9d0moyaG0cOlXufKfnk2GjsaWNmcnoO45fB695x//W4KL8YfvSpvMO6gJzQ6zo5N2FSgdmu2DAQ/UZTs4zOX\u002B/R6WVhwrYk/NV8OUNHPq92Otm215USnIKjjXk9tVRxHHFVx76O9KyLqyZl\u002BZtsDMyIQbTxIH4d98GOsc3T2z3MYk5nbBHKwuytVl5uEo/JWimsOaRKhYZExPxEyepo9fRBRRTxbO8hujOVUm5B0MK5lOzdHSmQMaZFG66wPHJ54jDYMT\u002BuUKFZdyVHRSSG6OGhWoFOVFBLkVGWEx/iF/8Yv5TII4DzY78p/\u002BgoxRriPzaLrfi/2U4RPlNRwY9yL6GOn4EUjYnElQh\u002BB0\u002BG24Hc/xKCQNpzb4E4JMa3LTj/3Nzgp2SyRLGX7MyvBttgHkGydNy36SiB/lvcINxvzJxeAX37n\u002BWLx2iC1PR5DudSFteTUmagvgtPuZ/f/Lduns\u002BTWdhfKiX2MfeMc0NpCz92mGGWJUnD0XD0hEW5dGlY4eeSGHWgbL2S1ZpsIfy6mDD2qrTiGDMkjaw8JlcwLdWoZ6\u002BTrEMDpyC3EkCnYRpO9yrOsSXhrcIgZmOkq0eQOUgA4UmkX3lr7CAJrkNjlqM1qe2l4S20hBm\u002Ba04bh8ogjSHQl\u002BJRrc20EG8zT7CysnnfP6qJDVtj5b\u002BzemFKWUR\u002BdPOecDwBpiVGycbOVgt1VJXs2DIg7Y1iRfZenGR6O3FaK7xm796tMQoDfQHD30tN\u002BQWEj6SqxT/iocYDcONUWqxvzErYkCPpLuYOpFwNCLdFD85UlrEzTMXi08Aws52AYZp0ir2dwhujw3US2JaLgIng3htB6ZDCwkJvGtCuPlN9o72iDfS9/8D4DXYxq/XhfrmdgaDktglT2iV\u002BVVN24YFK1N2CEZRkHIfxV\u002BpHFBtMnEJZjZrejQ8OBA/yA\u002BwPUfKEpJn63k7z5RQEg\u002BsyMC\u002BSe1ZwMdWiHq4uuoTC5z\u002B9nSZCLxCbSkn6lxJO7L72MAi6iC5uUYf0JaIIhJ4EHw\u002BCnXEOhiCfrK6ksOPQJLHP9kN/dmgtLPVO7ciwmqVdeV6C8dKoZEDXd4YBpxkaJiCqdNShEKc9LZKGR5LUfILsXH0kuTSNaEPgHT5cIMFORr/LtdGRN9HHJfz4DqDbVSBsMz/X0J/a65FhhcKPI20ikZuiDsY93cgaDQ7HyOOmSDrEX0xHEq5q3MixKoku65cyN/QcOtDCZYTzbI0v6UGUXivhOXeR6YXfHkFZrPDNjnD3K\u002Bb0tmK3QBhOofTqI28dASGIL\u002BY04W1GYPwKMuK8Nv/E8bIvbYXiNiVzEvpuhn697DCObYRJWtoDKgJ2tpQ9\u002BBv3z3ZzRZKYy7OXTCUNB67MGHMtQp3K//gM5WMLu8Vl3HeZ2QH4giLb8UCiKtwTak8fvD8RtCSc7Uxxt\u002BfHKQx4WsMUT7rIxuKeUBo4C5PcJoioHrY9Dkioen3rO0af1vG5b3ATipYPR/XvYJiKiFeMfUb/KhvgxX9bGz/Lx6Ogi3e6m8lcxAgbQsDKFk/nmQMma3dWejFxr56uzCLMn0ltDbMK8Lw51za\u002BT3JklRM33uIz4ANRsSkde0\u002B1LT1X1fbsgq8G1\u002BuiM8Bj7jgLJWA1w065AR\u002BajSCcWVmzV\u002BDUOwBUOQO932HdEitTCmHZMQ7ONUF\u002BOuw\u002B3nqaEQCNemKyf9VBA\u002BwJSsBQpRxdRK6hMyZQozq5ucnFBcEphTY0oP2MGATtpoaiG9vo\u002BtSXPvdTjy9S0hYyrtypdBvFR23zH8xIccM6NpJDQky1P7tDvtEDaU8GUzcFHx4uQJjMmohd/8kfE46dmhI4\u002BQ67njP5b8oSJGCq6meoa8vvpT8JPXSj6Xn5NN4peml8tQ/vcDGch0Pc6XtJ\u002BApIyuqr2Hk2YYxmvV6g1Cr8ho1ThmGaWtR8bPbFRCUqucttbQIGuazlqF5o4jt\u002BmHS5ge\u002BgcJHswBjBFGZR4ko19BAjSbG8lM/q\u002BTIdX/EpNQsgx0dJR4UVUao5b3MWWqAVhksMJ6n9XrjZZW4LpsJLCd1wy7n/p\u002BjL2dYqIegSw7p6hyrYnfu4Mv\u002BXZYwqJ4fvhHhuTVrB5X/FekrIEH4X1hayOMf9cjtpRYJW1RzZwNOqx2/Hus8pAss7PA9xY9zR4smbGpCcJ0LH0bBNa2i74iQSW\u002B2IzHbGyQKJeGEnS/KGh4w4tdhI1s66RvHKC0uijQ8OBBDiA\u002BwPlbZUl7yvdA2ThVxAMUodqMK6nlmsQlY0ku5vvYiiGan\u002BLQrPNkoQGTMTewThBcL\u002BNWtNRF1OwQSkiw7ziGvqwXyYJiaFIJrKq9BpC/uGE4RPDwqoNw\u002BXnZArUIHtdzBy9Z83zyLxzBcUlKRYadnuDZIJKyxiJ21OtmRyK1I\u002BBNsBhw7SbbZlyeBOivpVWMnh1ZvGNXtbdGNW3ry6Vl7Sd6YgUo/vG7SrESuPmR5Cv27stCI73b0umVCq26R2ptUeyEnq\u002BGW5BioMdBTZ/DgxknfE9QzsORp8\u002BrRARoUsGgWOaVxl4RTCvgwTUaVpmr0OJ8FKERh\u002BLjqHBC9HKTlWG791AuKO77QmNAQ02T9kVF5GXIiv0uUHV1QjY\u002BPw/T6fkxH8IbjgFFIMi63WY28sGR3o67zvswH9KitcYUMyB5ulYo091cLXH2ZjiQI2vbemA078Reh2RX5xuPKfvytjdI2WnboNp1D5CK9NLcrm6IArI5aMTG5cKHpXj\u002B7ysAj4nbJ9l\u002BeQcLi42MFVJHGn2YDJ9CB4n84MTLuhOV2N\u002BerZMy7ZVg3pxIE6r6BlWyjC5fDUhkzvIBZqKvBpgFQlEYSRxUWHhv3DDa09X5P\u002B0QkXBcn/uVsLdEkt3r29BQap5kAbd3rXjk1YDw8TGVerdMt43MsB2U5U/3VQ6aD/xFA7OsnwtU0T3\u002BCqyLgfp0rnbHOkSxahxVY8P\u002BUNQFChtUWcP7V3Xv403kJeBFF2MOrIAULsTt7zSmdZAX\u002BujCRlnbPacanAOWiOfy7nDHmKSOaU86/93PEQEEe655xUoVEr82tcZzE46O1e7sUNdfOHuEYq1VrOlQKmVucsai\u002BXNWtW3ErnUhTC0j50JvtJkR2Pj0eO\u002Bp2367KRVnBo3Nm7XJLGJN3hovg1/6SfgC/nAOyqz67B4mOZTrpUFLO\u002B7iYzaVkI3VR1CQlvvWfjjEpUPftO4JsJhzcvbose5BlnkbxC\u002Bv3FaJvxSX1fpu3RMRBlUklDRuMUWcZHQSDTuyFkSjRgY4oFen8AXfsGfemdO1czxE9TcqYOfnj7VnTNyiJ\u002BrgGjZ94cHbKGqWa0qnS8usjlSNhYnttCw94CgSa94s/V7SPY0C4V1CtIcyGt\u002BzyshlaRhzYrUd1zE80XOGPQe6dEiEZILaeBST7ch4w1/gtfSkiaBPcomKBvCjtDFPinzkWy89meDuX7/NGg2kJl4nOTAd2YO82trNyhJLvcuxE7ki2k7WHikD2X7cyXry8f51NuuSfGz7ZxC8p2jQ8OBBHSA\u002BwPlYAvHQzsmjwU3/7Wyyk7NKB3M5mxhmzV1X7hSCc3HQVZ3l9TwVpG4A25peC4jfXyf0dGm2iciLdR5BrTKL1iJmRTFdunWtY4zt8neapLm4MyU\u002BQDWbKRztdH3eBUfJsxLrR1fqB0\u002Bf3y4MUuj6aT9ir3omH0Q6MJasJWdXBNRZXTabPbj3jcv/GMuu8GNwGzqjvGQ\u002BoTIz6LqA1cJ3YtlQJwg\u002BLbqcZ8rVJwuZA\u002Bqi81GOVPEcPAR\u002B/FH\u002B7AQgVm/fHmdd0OXA0/Nz4Oltk6mbDjP\u002BTMW2lX4VCQw1d/FAQzyHMAKxgGQJbmUnUGZ4stXB6i6tAVbYSGPPSXz/hKV9y2Ycsd\u002BuF/wXU0\u002BkWteM8TsyPXn/72NTIZtNGsSrgveY9GKjRyfuTd5NUM72aV\u002BiQyRuPPUqteHnXX9OqSs5quszzokUX9WGfVzZjBMPXJaZgST6zsQtwdqvivVaf6ktpHncoaz7\u002BGxsbckaFyELqUngCqT/sgd\u002BtyCXDpsVseJwR0BOtdQgC/zYYMByy6qJuLf\u002Bx7h1CMh97IHq5\u002B2\u002BR7ib1I/tpq99784zBpODV/1sCDwy0jIO3zx\u002B1YYPOJB0kSQcmMwgfKk69gnfrmCJgOAEmnYdzhR1MWJpJPkrVQXdO4URWMflZxspKXU24xUfxxW62ufJB4w1EJStROqCPY3gIdMTnKop9NVmYL8eOwim51tICu9Hj2dlArVBjegg3Wg/q8ITrWur80lg8EOq9vQFrgCqy2XJol3BTU6QXSE3418VvBCceaR5u0whivEjJN1t90BasJxY2AoZOKqEc/\u002B9s/DrHrFc0Z\u002BmWYInlUaBmobm1Q\u002BsYKvs7j0rCxFk2EmB/J1U22yWZ2PNnK4yJIz9U9jbpYTOKGwh3xKe9Z3etX9RLrlArD0rVooHMCMZGpZ/X5VBy7ZRjAWfSQTONb0vgAz7KU5jJOPd2WLckzcKz2ZDgJJW2IaiPCtEn/ecyImO/sHHjVcp8BnyT/7bAJhqN46STi7\u002Bg4w5xWuZ/bUE\u002BWc9I7XhVDMTTW3jlRXgdgQPF12FXSWtQVs1BusAFBQLQRsRkff24LNV56GIob3\u002BrQRgwgCEfqpkNxxdSyMwEulr1uExDppNNlvGHhODIs6HOeO58I3RAuOvb\u002Bou6leO76Bi32H\u002BEsywM5tGFUlvchon01jUXeu968bSf41HMzs4DkWDcyj4UW2wj6J7LpkL5RG/umgt6Y47NzmBtBqJlu68hL3AK3eZxwXZb6QFOGnQLFLKEulYlIQs1ajQ8OBBLCA\u002BwMugAnY2S6yyDdd0JB/cHGQZvIKIQWGBPk1B52sETKAsEaW3YlG1B1O13Yp64hfz2\u002Bhx08CJZjz9ZlEKA8A7WZRGOBdPKhmCNNyK2VH4dkohOg5v8WOV6yRZoSicMLYitMTTsDbhmtzKccLUsLbNrpaWBivR8PPlVgBxNchpIY3\u002B\u002BVfVMWfHEWnnsrDrwWcBXPs052Vwdq9tpYgfyKe9dQX9iJDfWl0/SFJL7z/hi7Ekjf5KVozWpM3oXeCyywtSWHmc5Rgsp\u002Bs31P0WXpDrLmddhkhTiA3p0N0qUnzRwViMykrAWLFQPwEWMvu4kJRElKkpOqao7yckwyY6XRHS7yimTNKTPv0qaxgeCOcNEYcC2cxP3SbTcotQyEtjMqT1hwWFoLaHPVasX2aSOwZ7CCucVZoDU1BBFMJ4ZVAIiwl5bL0T\u002Bk14UIReQNhecqAmblphK3ZMATELCR1Oz6DKhv6d\u002Bt1tTC4qnr6xkfpOTJxefjokSMmVOyL87LV5e4ozQ/\u002BTP5T06PiILTZdg8MUby5JEhW/NaUhbfOd4Es6wSSk1UekM8r39/SsPNoEuaMRCNLBjleccIx3Fl2muPHuhOe\u002BZvXCacRw/a1GwbykSr9GhhrI9Cd7HS2LGpg1z2\u002BVM4Pdy/9gNRWHhmqLl1eCZucU3T9hktM0esf3kabQgap8ogsZdEKGqDlm/nv8Pa8BvdNefRhpJ\u002BO7JTeEr7CdG/6S6cOTSfyGD37Tq0RjqsoV9MU9sZ6V9US1TYQHlOf8RmWFura9XuHtJLKk4HRHFG2G8CfYMMDjkgni02JDEVew8pLmRh37ItSOTYaHRFR2YQs\u002BDT5aMVBfbcBvAfEpeWZ8jPZytAty7kUgPYvLtDJlNSpmEIlx9UGesxPPUCf0fADWuOT6gSRXH\u002BtbF9Qo8duU17APRas7aeazeBtcG/DYX//4bt\u002BadtjH6CzxB90hO3XmtNtu2mg1t4Fz9f03SdeZZOrxRe4/yJS1WvwzSUxSlvWN5OKhemxnbyejHJH9JTIv8Q3b/5lfdqpmWShKxbOynrlaH3pGgGyrE8a9N4Cd\u002BLvK9X9YvjaBxJ0u0dWJxNSHh9McT\u002B/2zxbEbTVWsYrFtN/iDgJb6QP3AdzKjD8CsJL0i7S0/X0BAAGjg34Fj/cfLko1gYR\u002Bxyi/Tx\u002BFeNX\u002B0qCuj6JEDck1SPtwiksVOW/OW3WIqrPxYe5j/ubIwv8ohLXTDHO8P0SardOof1qfMbq5zCSupsC1TWIlgi8gcC9BdwMW6h9iuX9XKajQ8OBBOyA\u002BwPlsxRmiz6oWlyX2GPsAL8cVRCZdhRKjo8Op1eHxB8gJ8N612FdITLTU6uZCh9Q9C0QA8z2NJNMklVTFI/laDZwKQ5SK4sbcvXxa0ue\u002BWlgDo131lMvFWJaFH8BcJuuaoOsQ9WZFu3IVj1iGgzhHo1N0K0ZWtbV4/uYuixpLxsRxotwNVBt3av1nbvlE7t\u002Bh23SuH/ZEGCQ72WlmF3fy2ZFbo6ZbIas/U7Npny\u002BKMqXg/xOrhooc/dFkV8CxkBMsCKAGpEv70LlK/PqUWz88J0aLbm\u002BoeSJZ/DF23rh8yXLCH/B4iDahNsUWdgSCOYQpzj33JtshzTV32\u002BXDaXi1LrLSTzTBKWgrDJywgk5YhpbP1vaYa/csEWp2QmgWs\u002B0q91A9K3MFCjCGcUz5UoqlQfuosrLEyQwEDT/cpOb3eye6k7MiHa9sbKpeE39DtK/oncxNy6/AImFVGLii8KFm9wtHkqc58/fwqKUrPriBtPTZTv64RIxw/z4pRadb7gveLcRcQXKjzix6YqrWvwY7myKB15hnSNM0JjhMPKiLOZqtX5uifa6J9SGofRlUdoFD5lFpXJ6BeIKTmMdSHEz5eAiVqXdzj1UaKiE241bQx2FKrduAK76Bo4KUmkvLbcO5b4NomgZDK8\u002BWiISkK2Aa\u002BcQ/vf99nELKxVof2IYQz\u002BBZKzTLCwjYwv5QHLXJ66jf0OwTKX2V1PITr58y0cDo8UC3fjHqvu\u002B5\u002BsplFV\u002B/vFO2pMZQ6mkeLyjjHpXdFwC\u002BVW3DJqhYnF3J62dCRFYtGCN5VLUBwOCLDcZzJ3XMkuxd9mV6E63j2HotQCJvOcqlHnsyE//\u002BvvT/tZjRftEjnbiMgbftOHZe2rE5LstlM789W8yK0GHzL9a1ya8tZnsOy3W7PjLkOkmUss8vsNlwofN09Fumen3QvId/R2nXQAgOHsCVkeOxqIwbuwySpRmzxl2sC9MENRV0BIfqyaEvnPhbn\u002BJ72D9YGo\u002BM9MRj7pUTb48EO4BmTtC4DHTIYu1FmB\u002BSI8Irite4X1dERm8Q9P5jrChGXuFiaVc0MimmYHfL2Jyvghj9P6km4NcU0RM\u002Bl2B//oV1XpMlL\u002Bmp1fHJdEwcJ4V3ieXzLVH3Bbm4MR0TLsGBvYd9SX9A9/qtP09yFcCRc90K0RT4Q/dhxwueE9Y3whwTN/Wa/e2QLEe\u002BBFFITFFVtycxin67llBLwpiMdyTtRAwOm1HOywAeZfQBwHq9QhmrsbeFQKSiRF1gmBA5nUIK8APZ3/JsR4vsOOjQ8OBBSiA\u002BwMkzOuuJTVuDwtmU\u002B0lTBTYzAkf7GfvTbrBX8H7uX0YeqhHrvRqvk\u002B0p8KHK6KWN/Z69oUK9X1iQ7uQCIt44SCzmsDJye4VjSAV1r5nx8tXDQ4NJePrFEznxXEIF5nn3KFUZi6xemlBBr/ho9Gr7M85KWS3ZbEMqbQFg0smEPc45AAAAAAt5cwgiZpKTGLF3EoNaayuNJPL1Aw\u002BIwHLcrTG8\u002BFgrfJrJMBuC6D88Mn850YOC7WZvuPcsC/aPrUqjYQPMLoMZV5uKjhXxNdKG8q8exDNkWsNaZfGqI0md5y\u002B8XOpFKp84b\u002Briarvl\u002BCoBVFZHH9kB3nLgIcSkAdu\u002BZ5RpDMT2xt8zpbjt7KJ9/X\u002BNTXCw\u002BuZND/ItTf800gS\u002Bv0e3BFoBQ57B4\u002BN7KMTBpRWo8\u002BtDo6o9yEBXrg5rE9AUELUqc3QksmcNGQB28dTuTvaFJgJ8lQ\u002ByHjrPoQ1KGUKMVt/h340zM3k6AG7kv6tk4/8UFid1AvwraZDpUrgvmPHX4Zcz1vlOz7YLtJIk1gw1fv\u002BgqkUkf\u002BlOmfUeqR4/63P9toDNIDgeoetLHbfvBRmfdvKbPwiVso283egAAAAAADVI5Zj1hHLAuOEOYxK6nz9GkwLEqU7I1h143OD2a/iCNJ2r6jjvt2zfSg4daTKDcVvHHtseX\u002BX5SK\u002BgQXGIcVyvqxt9DfwCZ7Cws\u002B0dqp12br\u002Bn2d/E4XwPMNkwEq7JXamOo1EUu8sN0mmpk/6udC/6fBr1al/m64IMqKtcD2Gcy3xTzMqPux8k8LskaOTTdtkinisIVeeaszHevNzDWPh31I1g9M5x\u002BbQyFoWe7LASkKkgn/WJg5nFPVgKD\u002BxCbh22SNBbT\u002BKbUkPHsVRIZLmbtSVp9sSPmRNGa6Y1zOL0q5\u002BolKoz2TnsbpSNNUwLECKBSfcyHcK4TI1rTtt7Pb0GgcSQPlTIfH\u002Be1dcQ0MOz/sgRPHqPuWinUzCOlj3TQ8y5oWK29B0EG7q44M3qgPq/843GDxEmCQAAAAAAAxYgPTxkAfsaEey4YmXgdhyaCg/LgeTOspPnWW81tfoUtijZg7opunuUTQlH\u002Bxr2doPjc62wo2\u002BR2ZjZp3gJpq2KxJM65eWbbngsMRV3Mi\u002BnQUt5O6s33GWLWUp1c5QSZrLRWy6rhoyUWHRUSYvLXgvjWsBEUk81OlqPe0Elw0FMOlQrdS0st1C/uCLZo6/Gc/l/aT5H\u002Bo7xIi2m1WmjkhkGDtdRMUN9in6NXlLx35HST41g5DrixU/9UoHGq6jQ8OBBWSA\u002BwM/OLO4AvIZ5mao\u002B67XSGq47VAP5TDmvRH9RZQsEvMUtEPIBb5O0jbdDvvA8R\u002BxzdG3YAvvDaOlltHZwl6t\u002BkTGVmdmKTrJf9k/uFIUayL4Y9KqRzgGvk\u002BMnZivQB7t4Dpo3l033GCd14y8RixiwghSJg4LP7QkANJfyYAm0H\u002B\u002B\u002B3e4AAAAAAKky5iG7JuAepmOl43AehjRKvGVXDFzdM0OJ0CJCmTdixsPEHpuUsnysnDlp4KoUtnVYXONSpf3BXdA9LK63xurjGxYFPm96GMetodYIt0xCpxaVouKYcuRfTW0zLhMVrL33xEIMfpnBolq7iKBkRrVkEmEtaq1v4lbh493Zt5H0o9NjZ3tCZ6etVqYLkkWN4hUnLtcPm7EX\u002B7lQMqkttENgfxnCkVkn\u002BrY6tDy8U7nuaIuv8LK2f3lT78sgD0ATO1LzUcQkjoiUNG0mq4zbTC3Z8gOtT24JrdMOf0pU\u002BHg7CsuWV7ESmbfpIpcugTclhC1g/vBrI58lEgeFVXkCf0V\u002BrjNiPClpzqelVp47mRhmk1J12j2s9vndq3FAj\u002B5qw0m0Psc/AUha8jX7276s\u002Bdl2CqZJalydAAAAAAARCumFyuUpP95DWb65p/Ar9nwlZjZmsahS9evDQ5su4twCh54DlgeIxUc6dGN9qAzSDQaLWuY2\u002B9IiKwZ0XxsEkcj8jP3NJw0xFGYhTev0C5rNdvBSu8hEWPNkq00YXKV46M6c/pvONlLxDrAZc9vqTZMetpzFwb0M7qktbm\u002BJ/0FXG2Rf/gLbJ0HOJ\u002BUfXe3McCRxbtSLBm\u002B1nViJuV30VfZokuE8oKiSHtVui572IXMVnjaoiqSEcBHLj9yV7XHngFN05PthKXY32JH7Y3\u002BpcYfz\u002BnIUnlogEsutH72iBRqsB7tHhBb5057KckjEHYQHh5DmZhrbTorxYgbRzMYAiDKD2W65rGNv63\u002BxFk7752XGuBpNWot2328U9z\u002Be2mBa9GRM/jlVjpJJUrkteSnv8PLOzNkiqF4gAAAAAADALFhyM2sv02WmFYWW/\u002B1Q0tJGQ9\u002Blb8A028PT0oiuhH/esGQYFKIkK8wybd36Qn/zypoixew4aQaOSMcj3TBlTausMu7kcHqbD1Ge8Vpqp8CR3pYeMCW2SqhrR9J\u002BV6FPQt49x43yfIr9qelb/CmQ8e721gwcbSMuRCNwqB9\u002B42BzVSA6mjFMb6/klHYgzZV41S/vN3X9yg7HU5ZzI1ipjklIGNHKus0HgGV0ggLB6rkIWsH\u002BnE9TnYun8\u002BjQ8OBBaCA\u002BwM73VZwLFh4eZVboqxoHisXLOEKQYLiBpA79N9XvbRdd3CesC74qAG1YrLEMELuJ779\u002BSKfX8Yh7tSbYnfrjx6WIAgAhmTYmYiVCsJGReO3zge1mkMthX56txt7uFdbAg7NWGGrhOPvAPEbRdfGP8yfdqzo24thRGsl\u002B8gAAAAAAPfgRE2Uersozb/oJxovRYFCOUx\u002BaYgcMTkIPiEa7unqcyRpIhRCDfbqPoyTS1cuxKO\u002BzJDY02PRRfwYyHz6TI0GLqFAGEMI/RqtymeDTUau0CKv9BBgdKBX7KzYKNHf3R9AUeA/gaSqPuA0\u002BlD9yM2ImcTfEOCPyV3sTb65wz9d/kuCQ5bSiiAV78l18\u002BzoE5x/vfQk79FwF7VmNMHVvAVG1q2MfFXGHmoU1Je2iBJp1TzjURJ28fIQx7HtRAh1QVeU6YL8wDo2ATnQciETT2guknq07kgVuacjO1PYK4Bohx2Ilx2SPuUIHlT3XyHGplv094WFQAKiWJNUYn6ZvseGuBoTKXylrBzeI9jo0frg8i8wJPVFPOew/jaK/c5UDCrK1cqA/6XeEN0/hMmaqg3LFZ/xEepnOZU4LER8Jsr2BAkg9LfIS3vQol9WjYbAth50YH6KoKSyx7n4Bkd8giyjkpXcgPOExyPz4yPXO8cZaEPOolh1HNedS7LXad\u002BwWpvJ\u002Bkf\u002BdWuMii4v3Xlp9wio0e74o\u002BUuCPIF3HdRUwqINQKFyfIh2Cc9FyAUVrwMnWWC54\u002BuFB1IvXTO0auOOgJuiQxxemdUNcHkL4yaQu\u002BiYnyvfRW9sxiG30uxxIvq/5zINSxX\u002BjQYGXKqnvCKjU2mKga0TwdyPLXyKf\u002BWcAXimFGqFw/5ZKhJNs5eeGAcZUCwKvMYyiG5r5RQ90IoBmtbTuJrkWY\u002BiZMFIU2LiaoS6XzZjp\u002BU0rcuunJXVLYrt/t7Y7oKDHYagQwPX8Znkg1Swrb3QpFUWJvsTOahVj5NGxo1w0S6uADjzb8yrtvDhNLrGojRBooxhy6mpZA7RSM99EtEBJUZRYrzpsMwHF1MYjKplNoKW/SATCpiRf5DXrzUbvXHOJFWSGrPeUquVzTOBhGTeNdLREn/kRGsyFjO1dN/vGgwzp7RvUaA21dh0\u002BwgjS1VRLe426Q3LXllN3G8HGfXE1uW7febJaRim7KkNoxyL\u002Bgq9HKFNrp/ul53oWHTEGIxwk29YyEscLoROAQJUxuHIvTtLv1yBuSBrUr93S8mpvBjm8XVSc5bDwtaFh/bp/3KkG2wwKJrJjujQ8OBBdyA\u002BwNHyicF7NkgeHI8uNi0a7rW0IvZO5V\u002BHTOmh2VTnSwbln/6ZdKbIQ6axyTp1UYgS/Skap0cVHcVcEYWzXyVHGSUqtGxqmRIJWB8o2AU6Z\u002BoKrhqHIPlt3MrnQd7QN6BKXQB8ivTklZJgGsyO3xabrNXg//9\u002Bb9QvXCXP1gUyElXk5qX2DaZWQCQwLFxSLCuiW381JdJz4CbpsyqV5\u002BB873qPpw\u002BGQivR0jYVI1Qe4gRoJlNh/scTn8Fdh6534pAI0kC5Zm9SE51OtjiohkOpTDGucDuF34I49fm0ghAmaPxiLUcbGiODDHrClyyvZ2P8JSH3Y0Zrj57y04UohhMp\u002BCxKpSpReoX\u002BVHN099kxszSmGR3FNqLo8DIhHVUQlf7mmi\u002BoXh9pUjLnncyTuTf6tQ1nxVqr1UQ8iEDf2Y4fW8SLTNzGyVnB3XdqRc0Wfbws/2JwADF\u002BZpWXP7hm1MsCDlgw2Xlsf6xnQSG3awTnq5Lgx6H\u002BqFwY3VLZYynJwQ7XECTic3anzJqkeSrXTuCk6pWtbWZEt5yjDyyUNZN1/AKb41Mc47wXtC7C/Ge40fbHIyNB9QhYFWMglXDFYUKLoikdMdjW5a95RLr4eXioN0GZaPiCn2QNz\u002BLJyLm5S\u002BCFw\u002Bpn7QI5C10\u002BWhiUHAUE22GL9xZpJqXX0ywt7mVp3zZZmP5smok1AM/nh\u002BnA\u002BThr2bIYBJfvKPLV9weWiqZ4IA1YB6QG0fPOFWhed8GS66k1jtR1omummeLBXTALYgKPt/58018YI0SPiCKwKT13akSZfkHWOysSyIgJXuCTevDhu2aVpFXFYt41L6YP30VkApYBwM5fqW95\u002BpBzrgjUOah6isN1vRHGu7h4wbmeSeO4e\u002BVuLygup0cd88hgzjZx3O1bjubQZWaehNeaZsqgQbWyA1Fai1wl7XfGWABZhe\u002B8\u002BjUdkD8vFvkYZujVaYfIkp/zBsntylvqFIy9sZnKCTabuYQK03/epXu7ctrR3xkAEIcZSoFZWMkME41ckmOTCUQOxOLcSW22uIl9mTcwa4FOmMfA6EPIeP7Jh3PzbOgiFpS2J5ufTU5vA1LXx1wApy9FzlD6e0ukq/blkmK8xxVeeB5HTUXW5EkGEln3AZTp71kvgulV5t3lpHnwsv5AZ/Zb8bZyNhBnnSkmu2jNDVmXHG\u002BvDlmA1vQ0Uho\u002BLOp0qPxjDwHFg/Jm5zQ9EkLw9pmXYTIsUufea7hI9ON\u002BWZJada6afTyctpybTPNRPiaQ/4FsnW3iJ2Ghblk88yjQ8OBBhiA\u002BwPloeg3wk7HgGKAVs6ug2ondEomxGyibvBFVvUWSG4h\u002Biin/NR6mHO3XA9TcsadR0ybaQz0Z0asp4SKvDTLT2XESiG2S/RmgK9zM1uwcxvzjbSzk9mtNouzTBnyBKxnD/LzUOVi/tfrDSmzrhhblf4tB/9kI6pre3HUBgLWH4hK5wHPYJjMQSnanaikpFqdu1Uzvqlt2QB84oyL/QmMUYXGZdTgafaZP8ByQaZ7xc78rUER4sdpUhAgYUK3LhhYvWfk03IsgOHRdLOsTJFKCQeuBA6gHBWVUSXsgIlSwarDg7rMU2C24dB7JkUpRuN12leRwmTpJNb0aW3gK1jAWf2Y/UmebfJwCRb\u002BXtpiO\u002BDdhf89/sVBs1WDXKxsIZgICkROzGk01hs97smMeZ5mHSJVpoqa/iYbfuQKMGfd21PK5VqC780WR4DVixQTBkvdkpJ7c\u002BU2juc1v0LNp0iHBsdEUg7RrY5pthtMoO5SsE0PwraWrbjefN57X8ubp1vle7/OJGh\u002Bk36AovRXk\u002B/v9LDecz9\u002BVEkVFJ82PXiz0ghJHTaMV54Sc3xm\u002BxZzMY1GryG3b0ovrfr4gGdF7EKEtVZBNme/Jql0mwOV5PuQ3oRZQUH18ci/n8vUFeFLhFnvoZsPl0Ql8jvA3Ly/nQzvvcFCc2O4wNcNdKkPH\u002BHtf\u002BjN\u002BtCu4BVAzcXaxYkVrijDh02/3lsiWv7AiU0/o1FpTSLrrnZrNzSUXao8FkoAQGKsO4HrB3CpzIiigx1KNDMo/BblBQGPWtboOZ1xTjxe5o4etcA8Pdz\u002BYqQztn/RRuvLUYs/63tSCUUMQxj3bbv2qKyOI9GNreasg3ZkMZyTtC/8XqS5Bb6\u002BeSmy2XmZMfGa/fnes0Vag1fyzF4mgrz/ggikchH4i\u002B7astlCL9XczTSFZlxC\u002BPcLpmFghZdlQUWmzXSPVfnaThg9kqk1\u002BK6rb2AIJ9c4KuI/zbf0A5yRVPzxwsTfzWka9KleBtSBM204b\u002BCf79K8KtYsuOh3ewLMTt3OExIEiK0DgPn2RO7UJKuIptwo627vjCdYhsjFAyriSrFJELw0CaNU0bWn0vrPoP76I0oIjfa43zaVGWO00gCv8J6CbQIrY\u002B7GH293\u002Bd\u002BKdmU7ioGQHz4bro2OcQekEVchhSS5EJaigdURfCzWJF2UdSa21ze0OuSicTHirXhxhmNeWVpNT2eNjgE1C0XFbarWoN3tWr1N8piLvIgOrWbbqded1rnOFjt0ZhgBn8SG8XibI95IA7dGaZT2DVGjQ8OBBlSA\u002BwMq25mjmK9iPdSQldrl82Pcbpd9PS8nQ7jZqzQX3UHq8wodPjshxmjvQsa4sDvBZC2fEATVaPBhFEdbCxmA5\u002BtjDwBZ9tg6JxGr9gi678/8z/KCMA8NayoBGhlP5Cyp0qS7kkRiaeTU3jPA\u002BE6QByMVC5U0Zh7sOJF5VbghGPCU3N\u002BmraWVlwUoLMT7\u002BpxfiMqvXIpi\u002BmBKYlIY8Lco0GPOH6LBq1p4bPuabrZmsu9xRHtPjYMLhU3GMi16LuA1MH7r\u002BAMa6eonJOxJVdcXk8ex/Ne1QsxQebESU8hWTYxddp797Osexm1LDioOk7I3gSeUwHBGsvWVqjmkchcuYjonF\u002BwJrff2GxzWzliKPYvmo8QUJ0Pu9gCke6sHA6K5Jf04wbKGwUObCkhwPVAfgr2DkX19R361XUZH6ll5uYmKAzG0FoBsj2QdHqeKI/G4atdXFwd\u002BABrleFg8XDMX/frZoHv3pY6WnXQTMLic91yw/UKRZL/JlfiNySJXfo85acvO\u002BE720Y92BeYhw3PwJASQH5k6jr70cHE9yy/2DqvwabNDC1H92i9PQYn0QNMI3zc19THjHvfFhpHfc5mlW25dtekCb2fMRQOIEb6tibOyIZGevk\u002BiPPRlcHUrC3/3W9mI\u002Bas1EkJYKi20QZO\u002BaqAZBaYAJSMqtVYRfXOp5C0CKRpGGbX2\u002B3OOTUjFQBg5b97VOeEutNHOeOEDly29hAyF60E2hwHdtS8WkrP9ASdzPgn3o4z/iy3iiCFXgVmCY\u002B5XHFT17fzbY/528EqoropkOONp0HWumq6JWHNwn2mBkdH23G3Ic7TPsq5M2F6NFJRTiAGAjRFLbXlSVSSZekB1i9CFz7INh4PPhrq0OxERnwjD2FNDDUrR74Ubj\u002B5JFSdNGGzrTe/RKtoDwJMaEQOHQUSCgMZ\u002BAE4woq/qDdh6ucb0vo/zmbjcHPrBkG\u002BvNivPFtu5KPEzJbrB05Tg\u002BQKwZCvUwwfmYuiOpm400Ds/eK2qznwiTbECbIYAsH1LrVRSu5yh7\u002BYSqzCYJpOrXuA48vCc7VtwPpHtzBIS\u002BSUoCTh4On3R3RUqKWzGSKb9LhTd5ZXgG4zlMcyH9KwK5zFIQ3tg7jHqTaf2HWA88fDd8doiqf6t8uykqnHdIAUmdQsQAuxAVIc1ngDOO\u002Bx73mXS4XW8jzU8z8W5w5PGEG80YWfEtKnsGNpPNe7NnguBnVlJZ2j3sOafw/JLhEbLnENpnEy5pKjJqE42Lw\u002BGFuV14xAQ4ERoXKw7FRQ5DS6jQ8OBBpCA\u002BwM\u002Byd0\u002Bn/R33JilWvsaylDZJiLQDzk6Ka0cQXBM\u002BM6F/MbF7GziwkEHnPUh0ptTx6f7dHF7DSETRc7dNid0shzUTVTac9JxkkW8x8sWLG1KsQAnmaHxMJbKJMoXVD58La9896bWstxpUbGTeCWv47ODy48WM3DGuEkte0SwLVpk8DOOSr9zMHwCVK9HfjrxT0xWEp5ti2u0bMTi7594nza9/EIa5O3TPqhFPGbURNfSWYDLaVXFUxj\u002BzGSxe2SPlunEjFZdRadzj1\u002BIQuE5L6b\u002BjV0nkGBDcgT6OY3rLR9E7aQrHaOdNf8nOn/WHwkU4JRD740wwAqUNU6b0I6RTxN3uyO275xcL0eSojOS0fT/VNNvB8Fe\u002BnZP5DTIGBO9hp9HO4zLxJafvOS7QRfDFDs8/LqSDPjatlIP9DOtmzZHQN6LL\u002BRyI7ulTWv719X/mYL/xr3keAZ7l\u002BSjnKxYH\u002BjQDKMX6YSdbWxxrXTI2FqSE3hFH/JEgi5FIQFFRYwTlswQpkhS36PGVhcZuF9ITo92Mrt9hRAazKPozEDV5TPT3TgBrnPewjo\u002BOk8r2Xd0xae/qcHBPjyOg48PrtlmjbyHiIGKoj3V9VOn0sbVMVHvY5C0smxOdGvbfPzIwIvyidQzN0mwIQJinoFvD7N00XfQoGhXDxY3tmLq1aq\u002BlZTKtM2hYKHyNrAwbPaq57uqouZckeBNj7LZQor\u002B4zvSPeKhyPlkJr8joHceqkH4dm4OwLgtoKdkateB/kXDaE80syNohcPuzPtRzBHI6zfHZHZ11W\u002BWujBCWNU0pb31flbSrjTQitgbl6doG\u002B\u002BnzPmpZilCJWeVOq4ONuwViiUQNH7B8wunk3MaITzAes61u8mdCNpv/1CgJ9N\u002BvaRdhu46TYv/TgF5XpAwCrtlUGyx05Nh/VDM5z0L85xljCnWGSvuEW5Rkxeug/\u002BSUQ9C8QKQSNUeZKIdw1Ds3537MrDkvu5iO2C5mBryCC9mzXtIKQ6XUJq/582aeLlB1F\u002BMZVaNH\u002BGiGYUB40bl7oyIK/L8Hv5BQzxS38Tas8On\u002B/X7zn/l7Fdj3w4iGKAg69PrYrSVTdZtGH/Hc4hRhhvYWGYoxCp8qvsL/b1qaaS6Imy4FrNEMj\u002BoOrOO5yyiZsvCsJ0RqZdFrLLi\u002BpAXKSqELWEtYYMRa3zYtR4t8Ugng\u002Bc\u002BKmpqxE/G3HzEEKRza1QIBg21nDqBwgMWuxVolx/kBbZBH14ukAUmwxipsGXPSoyUI/YGMQnEZmu38VNuuzpKZOmjQ8OBBsyA\u002BwO9TEGzXvhAiGr5eXK3vfV6HwcEchlkTs6RPIZyl61NuqlC6P7BY\u002BZi9YuPbY8LCeFxrmQeQ5aolK1oPNoAamid5dRqhgVxCDekOd45cJs\u002BBVID\u002BuujpvhOtD3tT/9Owp8LhcZHIr8P6EwxI5OB\u002B6YnkDoR5paTWVPCx/DKn2Y1ZDDAMDwMcGlPmrPcFmO5zYi6afYkZUxiz5\u002BcNdlXuHTaM\u002BjpomSX4HGMsVu7AwkoUVuzOJUtDkOsiM7gh/um9UPo5jBqRDJ0h2iuZMyDqamDg57Ny6PiCEEbd6CjbjCmMGVvZeRt9y4bu/3H95V/LLeBPbLFGvppQL1lKAQYardyynE\u002BJAUQ7S2sa7kn\u002BkAzGkSZMYOBRqmApHz44VfsThpBeUY4DpxBrJltCb/BtwMB0AERs9vq6f3Tvh/2yZRfWBieKwSsq1oK9OyYQmMSQs2T\u002Bg1J\u002Bj7Dl5lCt7s/p0VnK\u002BgzISJiVHL\u002BPTK8ifil4Ny7TkavlbWJyr0Zs0LMII\u002BR7f0FhuZzmF\u002BpLsI79XrQBB/PoMBf6aZMa9bWBw9d/8BRxMWCC7VGl5NtEGGXU28LnJNXMbA\u002B6pZPiLY2emuWNwicXriWvL9HOZEi6uSMVT8IYWo2SxqXL7fhFJde7xZPRZnXLkJ7gAk8Vo9paz7GT2DSPcpWb1IW9veZyCe6nP2o26FNjMvaOAkN1KKAti6WkQCv9tspLOpZ6oDDeo/8E5oZOlXx9xRkyjmAxR9mewnZNKeF33vzn5VZrLfPIAm\u002BWPbDYM5vZhA490\u002BICT95ezOMtI46n5udKL5Uufxcmow5XRYCGN4r6Y7z2OtgBzmUZUol9v5Xsz3hhoElIXpmj4bTw4SEzQ90014xUF3/Zf7qOA23WFCYfH/9EG/AIQhrMplrd1/744wrfojjKK/Li9O\u002Bs53A4ObDu1clN7vR6jiXD3UPCxo8\u002BF4ldPRC7Yw9JK1laPGI6ITRdFDmzJ5k7Y3agVUUse8PxjmlAallslRr8AqK53qu1Tqdm4q84RiiCXUrbRtVTqlXr6V0QfdfP0fAo0P8UsqLymnKse/mjSSivGBPg1DH2ByEqVU3ryHJMMPc/dReuGlYOxDu7nM3EtYQ/up\u002BZbF7StHuMEL8iQvMVDFcpQKGfZ6ihhCv6t4w2Ro9VP36Pui5vSZ2lO3CeKkClg3\u002BBEFbDlAP58h\u002BVnrOwWDIQU9gF7ADH4nshZ5lXObTYGDCmdxnv42KCYG5XKBTN4l6Nnea4u9Jfmg/ziM8wtqT9qDWQkZ0ohajQ8OBBwiA\u002BwM8CX3VrXM3unpFL18/f7XhD90w2I9rGG52NsJLMQV1mnVVJ/HJxRguRDXQaKx20ApUuWIfTkT6vCGzGO4coOraEPWf6K41hiaMp9wzTHXBtf/ck9euvEcezU0URD7IwUxGQXTlubhvhRO8Loj8xuJAlrpKmnBqELlla33koN19NSvvZL\u002By2YLiqGTSZc1Hl9ry1QecoJxVRFrC4SbsB3gvW3Upph3YDwjeIOajFcRyVnIePAm0dgTjmkca7gXc6VVSlw9QuypAlO7bMfvnNTT3N/KwN4hoxcf3jjOrU6sDn7BsLgzhFgclUTCJBdvo5yR0cej\u002B1z0kDmtIL5AXhJ09vVg1Jspsr2q80UyVwL97X4g1KnEfgz/Zb2UQXGn1oXrMQ/\u002BMc7xkKn8QJBvoBEFlrrqFqGMjXwXnGNtiYsyXPBMwr0V95jcEqLZEtUvzq2eHOM5zHcebX48YjDSD\u002BE4iRS\u002BkIPReKMXIG/wMEHdIGFVHBk0ts4DL60gWGj5hzeEAgBEl1vQdZqE/3KD5iqOMbII6ZpQJZYx7jCLaofJKAWic38qNjm6at8zrMuOhhp\u002B4ObOU1Pfjiw3kJPLe0gAAAAAHL\u002BzLnzhLsKUR/4VXZsYMePBZiOgWTKDieaRCxRCW0DmgZDiWw7kwsg1lPkbNep\u002BqlcJsGqNX1\u002BqPjt8WmxwXiMA16bb/0\u002B27VTMEg\u002B3zTW0LLC4cP86BbC0d//CYOeIyTKukSoOGLPQSZHxW6zPKpHk1MrHGlmtKmge1Arg\u002BE3DIilHug6y8nZbz7utD/I28ypjFybxPlGCzt7kXUPmC46Js5N/fO4VxkF1NOjV03/Byrli2udgvOx2pNVENQh7PoLpnOuC8rF\u002BsA/6jRm3cLm0ja4xnL3SVFeJ41Bou3xTz8JsSkcyczLkoiHwikCqy/t8WJJDI1cU4ilr/N2W8gD1zAVY4GOwvxg4PswHPF34cvweud7bbF3mVOmt5GyzlP63EeqmIyH3TJDNZpVlAMBzd//kUbrgEXAAAAAAAodhEznzfWSQNDH\u002BnDMw0BSCdO3tVOPhNLTbb0N\u002B46ovBX4U/upR\u002BCp1ZvWUBSfKwA/T04ChxgR2P0P1TYiJjCEsaivmCJxcr89Te8PsA3TJRUaxkylb0W50SlQBcAK6f4Vq4tautPJPiFExPM2uZiU3DX\u002BF4p7UYMoGsuJo4A9vRTUOklVFmcEDPKNLo6B1xk6wtc5gKe\u002Bvi24gfdG4leBSTX65gBJBlRA\u002BT3j6o5\u002BUny3oiUOGCl6AoLSejQ8OBB0SA\u002BwNw/yKyt/y9OLA4v6\u002BUBf1vRlGCJYqcbytrYFjfUnI8WHGtACy7FFtUPzbCOrvERA4wWMuIewda2wQppfx/Kdr88/wDPu0G2o56i1N/shcnTbMw72Xa1kwfVpPiVuMZOi6vOaai5O2g/6YDdhpk3SN1bInx2CXyz74wtz1vEOWbUFSvrFxpdar0M\u002BQBuyR22pONzvQb2lSs5o6WH3rjp\u002B2fo1jFoPBXRa6KsKfGae91oRQzPQXQX3G2FlP1HW3GEzkMvK34DQhS7E/3aXd/WqUSKxggI\u002BHk3Q0UZz6v5lFlwgNMbFZqF19x5xtEQc8EA7CtmmAzb\u002B4FFuB5Zh8fvmFwerPwFnRNTnQS2tir4TavTtxUgN4\u002BCbVcQPQTcCaF/3HCYL7kG1C4FqBynFR0B/k6lqLDETtCczsthH38jD7xULeh/PAnzhpWuf5vyaeNf4T27By2XhEpsbhtzVRF1uj1AUTqxqly/Fw5h09bQxoh/HtayE6DQMPNUxKMPHpLmohlEC0AzyFgD\u002BaPbKaJxP0YVJVn9EZ4VvZvrAc0dC0fDSJDFNxdo0bvLTHlJmv9cVrVazoi3O6Yx2oc\u002BuQRrQhZI5NlW4MJDjD9Q6bQQjKcZ4Fo\u002Bk1guqwjhd/Y8TgEy0JCJ/7dw6/C0gpt57v5oqpNtua55dA52hQtZF\u002BesVbG/UeJKpoLmWvjuc3X77r2Gfx8jW3kZPvAUwtv4F\u002B/A3XlS1oAE1ojIO50/KTLcxDvFxxglIaiu3SY2E7LxytscQrCWsr3zvKJ4Mqs61zXGPr3V4BMayd2aahhJr459CKQrxq\u002BL3WaHlaer9HPiGgyhb942D3gvnWBjLSNNOnAx0Pgp\u002BqaGmpOCw6xjY8/OFVBKqKv7qc7r1Xb8Ds8guM3p6e4h3Cf2/arnxqLsHdXCZbZiSo2UySVkLmXJTOJVbT7vwcr\u002BHqen1v0OrxJJY6IYFdyB2nXLuCIAo40VmhaXQAAwXZaXBtvvcy\u002BV9zubr9Ww\u002BCjQktOxiyZoZtl1eYa10Bdpm7fuWbBewgvJQjnCfaOagJ9fNeVWdq\u002Bew7P9SnYYDKcBWCIEWgJRmJPQmJ4s5hmlCUKnUO7CEpM2bUinTKvxZpIEWvNUF4M0sPrMtx4vjPv/E/kvbm0\u002By\u002B7Y3SWc21mlSfQIWcnm7EDbJRM8gD9skZn8AnredgXbEizOmyMwkhXTkn2bjK86ClXyS\u002BKumtHJXXnh5Zh3kOu0PaMWwOi3eJtGAYAh3qgPlHJKTuf6KbSI7AqeFWnZ\u002Ben5WejQ8OBB4CA\u002BwMjF5ZWrlQCpPakU4GMGTo\u002B1S14tMzBYbzbsy7tAWjuHY5O4nMwc7X1NJS/00i6yy98KerX\u002B8oKVCq/AjffXNJAfT\u002BITattaHi\u002BJ8L8jQsqDuxxLdMIvVPB5iNv8giGdoEGcq6NAje9uCOdZC1/GpHNpQ9UpUU3Xy7LDmWoXk4WHo3z7sZDVxFVdGKtSbzalVk2X2qOMqks7Pbq2hAD\u002ByCNmoIsGx5/OLBVx8iitkJZh8EvOkiVVaezt0p6Asqe06rdbYgxV1t7Kz\u002Bc7nkBnmuAclz\u002BUP9zyjvyYrR8o0vq9z2HwEDxPxmRdppg32oJr/QQIyxFXLidCDWv63jB1c88AlQLb0cj58YkKUqjGTvWq9O3ITYoZ58AxGHpjxuzKzjHlNXpYYJHsLjNk/rA3\u002Brhk0tJ0kHVno7j4psGRvCidTJfcoHvD9h8gxZAnh6Aw1Vw28kXAInWAK/X1T9B52v9xvOnruAt\u002BSy9wctJhVODGaSNty5COS1dFuMz06deyYhW26A7AiXIC60NVcQuA8DeinXV\u002BAk90bH9TVfjaXkslke2RsiF0VlVbh8wO7O4e0bloCPluoBtFa7GTIJBxvXUDqzlA2g5bnWhW2UtSCQB\u002BqtDvoiJ901dNPvcBFXFZ\u002BldmrlT\u002BMoEiR1UJ\u002Bo5TbQsd\u002BnZ7AhCz8AowdLc6RGULqVusIBMM34mmauZWhYwLB9NaGZ8W5nnVrTaMdbZzVxbTfCzZBmJt2lb3SM7xA4S67NBu5QYaMZ6J7NHmqR9UlO6ibNxkLSY7MoY4xK4TVDmQUqbSjAmY5NxA6mw1sbHB8gUpIf5lhlRR13DX7vytEuFYawNw2LGqEigQvurN3NkasK9f2rHeKVCsZZV2\u002BLOcfPYGR\u002BLjcJyzLeBkbvwFdnHb2XLkXvwBG4ykwI9bKM6lV96N3dZtGGU5OJgHNQTgHZJ5hThDBwzeUJpf\u002B9Kk5q9KUX\u002BmBS4ED0gFhbwaj\u002BF506pSq1AIJz/bnzQSE7bariT9cZXj\u002Bu6Z2zbXCAbIywjbJ1XyXpuUPisSAYR4aOWEkevyU3CDLRFNEjAeROXdAvhNNmd4nBdIB\u002B3P9rxOpN5aUm/9I\u002BH\u002BOwSwOTGrXeG0tUBkDqmCpxOoxKVvrrFRdNGHj3Ep1e7dljc82MIDWyNYPYbvZdOlqfbsPeNUsnF99KJK1B\u002B4\u002Bq0WqSsfUcKnDcoCCkyHSlz\u002Bbp1ScNupYuOuzQpE\u002BQUxGTifPnaxOum\u002B4/5URpfw2pMA7IyN7jWuy2/OMyts2exNSTglsejQ8OBB7yA\u002BwMosp/\u002B7y8LqQA5BYPO0HaubFFJm/l2H4hBYKfyncgidbyl1mFBwuLEpMs7Le8OwLyCubTnzdZQZQkZnIcgGhsX/Ly384Ok5VNuhiaJfO9F4VRDv3uBRkDJsGZ/mz7btGDH5n1KXEKx26c/2boT5gXLyU7w97dTRS\u002B32ZoXoQBNUUG\u002Bnqu70JYcBG3xeMCNYUPom7RECUiPtYqsdnriZDEsQTokm5kbFtmN4SQa27aJg/FKDXxjXCUFtyxKUgNtRiDtZ3EhOERNUWkekDef4C/Gb6n5wzYbPrxu2TOtti2kYzn\u002BwTI51HNQK8K1YUfA8D8V1DJpVnjVd45tfd9oumeuMH0J57J9QsDLnWH1dpoV2stMF6hAuNkYhgyvBvbihl8LUnKbefttzmnEafiAJ7GcNRAYj07wq7SRIqhb7yplJhxo9aPrbGCqVhq3iNl1\u002BHgoyoHCjJoX2IA29orHyFDPDKeKcNnD2kC0u1X99f\u002B/ZePRbUVqoONi6Yu8RmoXgNzUquFlkOrzOulvr8U2RTfNr2eTRRmj4pqZp9GYqdzf0n3YGhtpwlP9C1PaPpBYh66o/1QXuB64hxAw72m6vTUk23liKBLREvDmWqa\u002Bx5qHdUKZmlEUrc\u002BRyU\u002BXisPTYbWf6IJ8cs8aoOpJfPU3c1aqjXb2C0ye7y/uN89SoCpSNB5En4ysxpHT9rtYULj9loGRFmqL3Ek24I36uxbqXiQN2Vyqkk520zUxkYpQxGSrYG/1pkBBX6WhTJRcgAv5WLV1KgFWVe4MUSk2PfXVED5MKVL4VtRY4T1RbDBCYqXGdmkBXr89xYx2WaQeEAiw3hYxR\u002BWI\u002BgoYhduXzrUxsOVk6rY4yJzRy8B0e/HPO/e15lxj3ZeM4PfuMJLSd8oVX7JoAwW3URb8y8gVY4lLnuwk1L0VXpDeQ/bfav2Xfq3Xxm8lZdyOccJnLDziEwOm2Vj5YzycypTv5k5oAFdXNxKAWD8kZGoAq7Ft2qrT6tTqMFWrmoqzN1foCD1RHKDXOzkD5ufRUmriFajjaEmFxIMSPO\u002BubpAkZUvulYF8ep6N53bdlTDmvHLJbBcGiQh2tvFN6JS8/\u002BRrQOeB/70AXNe5DN5aJN/rX3ML0nE0PXJGrtmziOyoAeA2VwIziQDoINHBiVY6PEblqXqpyRZcC38raU\u002B2YTerE1/4Ss3ZKTXDog\u002BXQ\u002BJuDT\u002BUDUBq\u002BT8b/JMZ840AjQ9eRGtA5EuMumML6yeSj1sbxLMte2NjT1dzqUyud7hQ17CXUwun4\u002BOjQ8OBB/iA\u002BwMuKbSpSAagnDeuUhW3eAGhk4Ap/rhVrpc4NFQ7rTxpXEp1JLA1fYJkmDHd/BnpKOHFTQRVuQv/u3xit5sG3N38nH1cG8RoRbNa3uSEV31QV6qHOlYNPS5RO608dRWyEBWOpdJuxmMG1vTdUjiiF4hrf6CKCZmM1\u002BXRHHUE1\u002BH1vx14vWYT/PAGV\u002Bzkmhc3wYyHbZB0UVmoY6m6xloFxZEkHncVU\u002BL9EnbW\u002BIGONGO7DMOL\u002BnRFNq45YF81UyJEY5u4AJvep5coto8jFR/ONNtgopTRTTu/yBkG9SrzrknIorE/GqoRh68YrD6EwR3TNn80YkKCuuBhVVQ8gqATTnAwg6k9JvZf8Km\u002BuOTnEopDTPSeBzapF5/HG9xEGpIgOTAMaWkydTvFx/TYS6INVEqfA33AZf9y6jEv5BUSY0XkC9zkQXimmyK4cKfD38HxG3q1I\u002BGXxeXs6gc3lfNXmcvHGAJMNIhGyBkLwxSKnZKBPRbOELC\u002B4DBfO9E9zsko8kTZq/qe0THZlT29wGkM\u002B0ZbWKiDtrOEpvxlevIyd3\u002BoU\u002B0GHe\u002BLika\u002Br16AeRux1ELq3rT8xziVY8nj\u002BVI4nQqRgo3IIdcDGjDpeclWvQO/SAEL2I9Ef6NwDg7BJBGi2GBi6xKIrwAq8amFvZ5\u002BAk3uf4LcH8MjWJU2UazpgF9Nl7bg3cH/FRAb6olkNXEHsEev8ZYVQiojmzTbwyNlbs/ahrpxdkSUgPCUH6jHA83srS6/JQcJWR92sHPIbg2vP0hSgsOI3St/fOLDjLp9zDM0otl46WBT5l6Hj1Y6smnO3LTteBdw4s\u002BTndrQ\u002B1TdViNRpqUyglqNK113WWrjLwC733UmqVBMFcKw0Jk3xKOCOabGcHbuuD4Xti3eZL0tsD\u002B0gcGlr8H/0F97t68taWJsiALIsD9mhQafFK8oiGSfgcu1\u002B5x6YjVniwdAE7kY95XzoLDxiCKilnlp\u002BYnAxgf\u002Bd/5oGRZK\u002B9ZOXFQBUWfqFzGp7cuSlD6UCOgN5jJhV3RqTI2V6\u002BO8tD9E/mSqFfut5uRmhscDNZzaMddJP/rJjdIZv1R4LpLNP0tnGn92SX/IuzqSy1N2hTd8yhXk0Ice0gVv2KlWOceCWNBkqHvBSYpF4KPQZ1TOeMKp8\u002B7yLnxK89C0oEZBedPcIuFjh366Ly70WHpaSbMY6yciZfYDwhqSPrfavBGOVmpduZqbO2oOC91YJ4Y2suRam5iXrDd6GufgFkxkMLHjusYl4j\u002Bkq1EP\u002BxuJIvzDi3x9Np2jQ8OBCDSA\u002BwPlZB8SkB04vHGIRhuRyU3rbiMC/w3F9J4pVG0pTsONBY/9DPBwWnFCTeGeGHWACY92bGE94UqLatF3kG2Kbq1QijvTLSSlFT5wpgzAQW0pyf6vQTVrgpq5E1oe8TgEFJgRaTGHJIbBjJuw9UJfuyuEM2icY7c2eFBkoZ0sgnbYjR9Qa\u002B5ufpKTKN9ogLPhMVtdZTSyc24mG6V5A6fx4ClVk5NZriURWQQPJfCF0/Jd1g2\u002BE3aYY31Hutqn9qW2e/OB1BjRN4GteWUpdZZ8HSeCh5HmyStxDsk2drIZBpppxu\u002BWgcLNgrNXg55S1GoWommpUfGaQcVW7cG7P\u002BHD5Ceb8fyNcRHXfPU8oqKPQsnWwuZtWbFQXBZu8bzLy93FZ\u002B0QZpJ4fiLGTHzP2AzgchMlXzOz3A6gKcU9yvO2FGze5zUGGbn1S6B40dFBXgS9MMlfsVsJD2eZMF5AwKk0\u002B3oPlZpDSOFVJnOVfkzPa\u002B7Bl9IIA620kyYLgG4EmT4gjXE9rBWjlrALM9t63BGEGOHkt/5xvBANC7q3V4ZQnAr1y/EPxfrKzwsxPZj6eDuTtUkVJTuElKJMfzU\u002BL5US4i5W3yk0f8lIePVNAVgeWgccxmOR7oStXSvVjuszB2qNvgrOtFxlMe4Y2GLGVV6KkKXmlELf29tNajbPY\u002BKU2Szf77bY3wMozLMm3hwHufFdm5R9hqrS0U7zq5kTlXedX0f7YdPrF8Ko2XwsyATui8MO1\u002B862o98kO8UcNB3rc2OyPed/5T6H/MAy2/rxwhOlXq8rxiuqH8i9VkEZAIOBhKtpY/fROBS\u002BpDcCbYbjAI/5h275CvsfZzm5fODYtgEz\u002BXV97xMDKFLwsJALtNwGxSuzXIQyMr63pNVzTfbNZTjvVhr7Ixss8cbpKWkGTg1Z2puRRbajlXVV7hljH7VjFvBS2SPiSFb2cFPf4LTjnELaBSoFTcnNaX\u002BlkquqhCfK55uwrdhEum6gT\u002BwR4jvySN0mgAjBH2XU7VwGH8Kh81JCAZ88ZBXYbkSP8DVc0ql71j6AEam7fxk59HObCbktonv0vrgp4uuMmDqVEUE5wK65\u002BkDecgMmGnlEeTJgxpTbgAzJT0Z\u002BDBhe0Z2rkRjxOpmRSEOmXxAe46jhaafrG2FW\u002BaR8UlHITUVkVaQleH/VIa0wN3Ugx8E3tBShUCK0qqgn5HDKBsamZzS3\u002BrFGXErdNpCRXiHXLLXqtRORtQzl3ydVcMUetkQMUm6NaUmX0L7nVLhHtlJARXU2LYppc6jQ8OBCHCA\u002BwPmo/m6Yfh/RfFrdSJ9li3sLzPS7kD2cjzLHtFnzeFaQ9AH7ze/NyHdg8u06vfwkPTwee6Da39lL1dv\u002Bbkgiub/HtywReFvV5BB3rzVeQVv\u002BEbcJIKU6ShzXZVh\u002Bh6ymCYvyGYHVGUmpvQXQiWCqdzyDjPIC62FxSXJfLFVzTvUn7tOhv71hb5IlIclOK2/FOgHEDUExLP2s5hnni4Sr94vx34LjgVBAo6WKiM\u002BWp0FtGYWmNcN\u002BEOT0DJ25laqI424xEEXVTFmhKcbTtHerCYA3SD4/lGX/VG1L3gCUTt21nLSEJpQnWcLUxOJGwF6/enC\u002Bz/hNlaN6Z4rEHxQ1tGB8jgZHPJeAxgi5kNzTEYz0efiw6qcXqE52WGr85BcYl2Vzdqh9y\u002Bc1w3lcj0833GPor5xP/2vYgTcMbuEcnXH5WMEFgqjGawExdEVV\u002BZ9v8oHruehrcXJCMQPvXvaeVlH8zTv8TvQC8\u002B5pfpZ3tBBQBQvZUFfNSj76PBlEQbqpr5JQWBXsqPlSWpSrkTuLwj\u002Bi7563zh\u002B6LXNjLAUZzan41cxfnheLTWQtOmhp\u002Bl3OyNgMm9K7xPKU3oA7GFALkPgaZte9JjB4mxeOtJHlYTfYl71dYUAeVtwbXELmU1mhmK5jP149Kf\u002BTUEf9G\u002B7ENjdauuhuqBKOiMa1GipTqPzOdTw7x05XPclUFy5gFKEQru0ZWXtu\u002BvC\u002BbLmfLiPCNqMbXoSl/jjEjn2dhXJ/7JmI6FxG5hD3f4v/guxIMjw4QAVF73yOxucUBBv6lIeYcc2RmXa\u002Bi1jot2AeJfDYuXu1qKJ3IZB3PYthc4nga2tLwH8fB4cufiJUiTNlhppsecxxM4\u002B1K19uiWjF5aoYTM\u002BtZdPEiLkwkuL1y3VJopX/khs5WJDq/WeJ2tQr/vhixor8K3NuXznX3p0d/fk3NWw/9qhbb0\u002BwRdI4GygbtKf6UEog2vjxrpmiJbSe8KCaPatIntqEDtZicsDg2jtORKRyVyrYKNMfhQtATU9XJRUCDyYUcwa7S0jGUmxqJdHFvZiVS8qSwCuU6Va1tm7N\u002BDN1GrHLwiTLw6K4aLn2c3zlHc1hogk9VoLLzjgi9euRAudii\u002BCewJmoSEB474\u002BRpz\u002B15PLlf3WskFj7y39Lls2tu9HLwQmbQ94kj7aFstL8LYZDo6gc9ViECiWcrTwID6fpTJ725Q3kgxPjSYqoPvA1HdZlujcuUY3T2t73qSt1zw/9/Z5ve1wQE\u002B3M72VU81Lpwt03SCpMHFpP0VHpXmjQ8OBCKyA\u002BwPl0qu5u\u002BuE/Cq3EtZh723uaHYwsGVAU22pu9WV4CwGUwNc1JKhupG2o6ElMnXwgfBy/9ZAZ\u002BH87Xmo\u002Bvl2ew2yBdADA\u002BRLIaKb\u002B8PcgIPwcHnQot3yy2vHejuFd860oO0OBtqJ/CrwOKLP/bHeCL4nlKLBIbzX0Oei\u002Bj471SUEZBjGYqYkK/cVfos\u002BDBXYyb1ii5u8U67dkF/PBAlRMcdxpTzV45MvwWhPFcTpVB63qLLeJG06MulVUoA8BPr/ATb\u002BOuODPbhLrnAKDzbRugQY3qKIUfJS01UAuAkd8u4AATFKOPv1mcg0KcIT\u002BEkou3OTQxZWtO1DQryXdAuoKqTOquhXA9FUl2pYNuFqMZQn3to4iuBzqNyB03x9N3jgRnj/F\u002B85GVYv85r0dfV4/fzt9h/\u002BaVV\u002BxnqxaLWFeY15NCJFXrHMEOQOO2PBoZJCcAJtAbe7OrAJCP6Crd0YPwkLIXvjih4wlIaDIKtzu\u002BkMjkIzCuMyjTirTz7hkEvmw2uOhf0K10NNjFZPM5DNKh3V31ylOo3hN1dRl/QVrM3ntEApnC0iaswq6aUv3khU5snC9LItlbzAKxn39QW3FP3x7ervxz7tqdNQDIY6ZNyuQvwjrLVIN6wodZGgGp\u002BONnunPNwhCanZpqVGu4Tp1AjoO\u002BE\u002BpKpBr8TU7ODDwyIuERHZQyNqHBmNeMpwdJsD6e/qROgONclBjaCqdTbn6Rfbf5J\u002B\u002B2x5hn1o6BB8cXws/BVEFd5iwj3sGRIANVpfXM7yV4pVwYRHay61d3IkmJ6IdSgrH3pVelYQJWyOLh4ZCLfkavYSMbmCAWK\u002BER9fnXocV7XhsZ2dnQuQHyylBy/WkUZYVQFyDVeUXCY3x/qjYtPHjW4w\u002Bo\u002B9IsZz96khJcTBNAcaU7C\u002B0dWp9lBPWQrYS8AEJF7FmL/jKwB5Z3n8XOJ0qhWNZjD789Bc9ipCp9bTdcoT2NCcnZQqrPW0ytIysGUBRn7qnD/ivI33A7ecMCpbis6q6FUSKlapBxWZKe/yCw61uzcsvOyeqPUV1pL6vnfB4j1XgihZab25rJ4XAAn6v0iIpNReLa5MeKe3HSs/GIPB3pT2MSfypO4ddPZ5KgLz\u002BjaAlvStzyfJ82t2J2T1TO9VsUJazgMbjtqRhC7VUnM87OlaVv8VIFYNZS6HwKplSiz3/82Hfhr0MtDi8l9dFagKZnjWzxVvCR6ALilJHyLNVArVhLevzF54jzfjxrb65sOmYYa\u002Bf1RMiWyi2KOTu\u002B0YFq40RnhPN\u002BKjQ8OBCOiA\u002BwOQ\u002BdJuUEzNiRqZJC9onXrq\u002B82k2K9\u002BteCZQBKtEcWFBUVuK2qhUJ7tw/O7sS86zdqmfIzj3\u002Bkx5qel0dSgDH0\u002BHeja40WWLVU6ppIalRlYONfyv7XRKqzt6w4oWpdhjWKn3UKsB1QXPSxpngy5o9rCTKvFh9GRllrxxc0w0/SuxnRBdPDaRTqiEk4GtwCPSway8eMzSFOGmgIAMrHLhSF4g7g91xrkEEFhdYeyUBepzK4a0nXvVJOHmnhXWT6w8RNEwy5mW/0e60QFk46sf6LPRMACiCDYmsnocncN6r7KGeLdKguw88AyMYW4KLlXQLqiqBJgFbHnNvnYF6Lp7AJtGOei6kfFlJmKK8iefTjKTkT03zE4oFpkflcCjnVAtJHjxennZR/T6tA2B\u002B\u002BmZSdTiU/k1uuo3z4eQnAGY9\u002B0kI7wpDqouZDcGFQ1kRnlifRcabOJw7eNRVZNCzAeCBsKUKdG3H3nfovwFJGkBF5ZfA\u002BQ1DqOBud6MehRF10Tg8lRNkxzn8k3azYVFUxrhNcy1Kbt9isTwGEieXmojYlNzHc5eBVTiqipB3d3sEoiZJkjNA1uRIciEo4B\u002Bb3BJ8auqEvzCXPy7eDhj5PLFQIHEl9EhJIGcUG4kjpr2vjt8N2tKtZr94lRXpSv9as4UI2bqOU5TiVVrnN0QFoos5wTMvDujOmwYHUIQmTJ1Di4cta3b4G6YTPBSBr\u002BOuhgvIrnW7rg\u002BsnD095d0mCSsJGI1c1IOx9i8hU1MeXj18YrJGdV1Ob0SIfOoO9B5uxaDBv52GqQEvJTeCgzk2MlV2tV8aFy\u002BXLUCptW5T2EPAOPKIu5XE73tMwLXQE4pa9zNg2uQ01qfKRKxzRlDyJeKPMsDP\u002BjCDwhWGfNv5TyaV4fuiU7Aj\u002BPqiY0CwX/54SmqBuzJfnYh/2Qe3A3rmx/71t4larriX9OcobEeSmgRhu\u002Bb6GhiRnYcU\u002Bw9P76WblH07ngs0Nz2nW5Kpd\u002BtYYoboA9VmlSG9VewZOSXBhtg1SuIXCr3R2x8sylrgl9CyRAuVXb\u002BZDnewe6ZEwLeJXbtaLupykEwP4/uWXFs4/H0EFtIPYutHCTdDIe2Omp7/62i3eT/U67VsAvgl8cv/RfxBg7VuZLc6ttItsCH\u002BiYnIWSSKpjAkZ0NoT46RE76VZqrbMzU8Oc7ZnY2vHXQVLoiaRxAUKFbZGwe6\u002BypZqYh7Xd0DaKRgTS9p8AR9tDB4uJGZz8RFY6KWP\u002BDgOtVDLoPG6AvkIufsWXY3zZobeMs1I=","mimeType":"audio/webm;codecs=opus","fileName":"gravacao.webm","mediaType":"audio"}}
+2025-09-15 07:16:07.362 -03:00 [INF] Request finished POST /api/chats/5511949908369/send - 200 in 1696.9690ms
+2025-09-15 07:16:38.016 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:16:38.357 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 340.9770ms
+2025-09-15 07:16:38.363 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:16:38.381 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 17.8430ms
+2025-09-15 07:16:38.384 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:16:38.402 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 17.8140ms
+2025-09-15 07:16:42.891 -03:00 [INF] Request starting POST /api/chats/5511949908369/send
+2025-09-15 07:16:42.899 -03:00 [INF] 🔍 Buscando chat para ID: 5511949908369
+2025-09-15 07:16:42.954 -03:00 [INF] 📄 Busca por ContactPhoneE164: Encontrado
+2025-09-15 07:16:42.954 -03:00 [INF] ✅ Chat encontrado: b72bd6b1-4303-435a-9c88-9643c45bfc91, ChatId: f7cb77cb-eefb-4417-b016-a852926ef8d6
+2025-09-15 07:16:42.955 -03:00 [INF] 🔄 Atualizando PayloadJson do chat existente b72bd6b1-4303-435a-9c88-9643c45bfc91
+2025-09-15 07:16:42.957 -03:00 [INF] PayloadJson no formato NOVO detectado: 3 mensagens
+2025-09-15 07:16:42.966 -03:00 [INF] 💾 Atualizando PayloadJson (antes: 102632 chars, depois: 103134 chars)
+2025-09-15 07:16:43.068 -03:00 [INF] ✅ ChatLog atualizado com SUCESSO: "b72bd6b1-4303-435a-9c88-9643c45bfc91" - 4 mensagens no PayloadJson
+2025-09-15 07:16:43.069 -03:00 [INF] PayloadJson no formato NOVO detectado: 4 mensagens
+2025-09-15 07:16:43.071 -03:00 [INF] 📤 Mensagem enviada para RabbitMQ: whatsapp.outgoing - {"command":"send_message","phone":"5511949908369","to":"5511949908369","from":"5511977240565","body":"oi","clientMessageId":"0e0114b2-62f5-4a19-8fb6-43d622a4ee17","chatId":"f7cb77cb-eefb-4417-b016-a852926ef8d6","attachment":null}
+2025-09-15 07:16:43.072 -03:00 [INF] Request finished POST /api/chats/5511949908369/send - 200 in 180.9510ms
+2025-09-15 07:16:45.056 -03:00 [INF] 📤 Status de mensagem recebido: 5511949908369 - sent - 
+2025-09-15 07:16:58.217 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:16:58.583 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 365.8020ms
+2025-09-15 07:16:58.590 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:16:58.594 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 3.5150ms
+2025-09-15 07:16:58.607 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:16:58.613 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 6.2300ms
+2025-09-15 07:17:04.465 -03:00 [INF] 📨 Mensagem WhatsApp recebida via RabbitMQ: 120363337552588598@g.us -> 5511977240565
+2025-09-15 07:17:04.485 -03:00 [INF] 🔢 NORMALIZAÇÃO DEBUG: from=120363337552588598@g.us, isGroup=false, normalizedPhone=120363337552588598
+2025-09-15 07:17:05.033 -03:00 [INF] 📞 ✅ Nova conversa WhatsApp criada para 120363337552588598: "34941e7e-62fb-40cc-b291-ddcec4e415c6"
+2025-09-15 07:17:05.036 -03:00 [INF] 🔍 Buscando ChatLog existente para 120363337552588598
+2025-09-15 07:17:05.113 -03:00 [INF] 📊 Total de chats existentes para 120363337552588598: 0
+2025-09-15 07:17:05.148 -03:00 [INF] ❌ ChatLog NÃO ENCONTRADO para 120363337552588598. Verificando por ChatId da conversa...
+2025-09-15 07:17:05.181 -03:00 [INF] ❌ Nenhum ChatLog encontrado. Será criado novo ChatLog para 120363337552588598
+2025-09-15 07:17:05.197 -03:00 [INF] 🆕 CRIANDO NOVO ChatLog para 120363337552588598 (não encontrado nenhum existente)
+2025-09-15 07:17:05.384 -03:00 [INF] 📝 ✅ NOVO ChatLog criado para 120363337552588598@g.us: ChatId="34941e7e-62fb-40cc-b291-ddcec4e415c6", ChatLogId="560888d5-446d-4be0-ad68-c5e7b9298515"
+2025-09-15 07:17:05.387 -03:00 [INF] 📡 ✅ Evento chat.created emitido para ChatLog: "560888d5-446d-4be0-ad68-c5e7b9298515"
+2025-09-15 07:17:05.412 -03:00 [ERR] Erro ao sanitizar mensagem com serviço de resiliência, usando fallback
+System.TypeInitializationException: The type initializer for 'Pregiato.Application.Services.EmojiResilienceService' threw an exception.
+ ---> System.Text.RegularExpressions.RegexParseException: Invalid pattern '[\uD83C\uDF00-\uD83C\uDFFF]|[\uD83D\uDC00-\uD83D\uDDFF]|[\uD83D\uDE00-\uD83D\uDE4F]|[\uD83D\uDE80-\uD83D\uDEFF]|[\uD83C\uDDE0-\uD83C\uDDFF]|[\u2600-\u26FF]|[\u2700-\u27BF]' at offset 20. [x-y] range in reverse order.
+   at System.Text.RegularExpressions.RegexParser.ScanCharClass(Boolean caseInsensitive, Boolean scanOnly)
+   at System.Text.RegularExpressions.RegexParser.ScanRegex()
+   at System.Text.RegularExpressions.RegexParser.Parse(String pattern, RegexOptions options, CultureInfo culture)
+   at System.Text.RegularExpressions.Regex..ctor(String pattern, RegexOptions options, TimeSpan matchTimeout, CultureInfo culture)
+   at Pregiato.Application.Services.EmojiResilienceService..cctor() in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application/Services/EmojiResilienceService.cs:line 30
+   --- End of inner exception stack trace ---
+   at Pregiato.Application.Services.EmojiResilienceService.HasEmojis(String text) in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application/Services/EmojiResilienceService.cs:line 298
+   at Pregiato.Application.Services.EmojiResilienceService.ProcessText(String text, EmojiProcessingStrategy strategy) in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application/Services/EmojiResilienceService.cs:line 55
+   at Pregiato.API.Services.RabbitBackgroundService.SanitizeMessageBody(String body) in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/Services/RabbitBackgroundService.cs:line 901
+2025-09-15 07:17:05.556 -03:00 [INF] Request starting GET /api/health
+2025-09-15 07:17:05.559 -03:00 [INF] Request finished GET /whatsappHub - 101 in 75907.5720ms
+2025-09-15 07:17:05.571 -03:00 [INF] Request finished GET /api/health - 200 in 15.0760ms
+2025-09-15 07:17:05.597 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-15 07:17:05.605 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 8.5300ms
+2025-09-15 07:17:05.618 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-15 07:17:07.961 -03:00 [INF] ✅ Salvas 1 mensagens em batch
+2025-09-15 07:17:12.113 -03:00 [INF] 📨 Mensagem WhatsApp recebida via RabbitMQ: 5511949908369@c.us -> 5511977240565
+2025-09-15 07:17:12.136 -03:00 [INF] 🔢 NORMALIZAÇÃO DEBUG: from=5511949908369@c.us, isGroup=false, normalizedPhone=5511949908369
+2025-09-15 07:17:12.168 -03:00 [INF] 🔍 Buscando ChatLog existente para 5511949908369
+2025-09-15 07:17:12.171 -03:00 [INF] 📊 Total de chats existentes para 5511949908369: 1
+2025-09-15 07:17:12.173 -03:00 [INF] ✅ ChatLog ENCONTRADO para 5511949908369: "b72bd6b1-4303-435a-9c88-9643c45bfc91" (criado em "2025-09-15T10:16:43.0000000")
+2025-09-15 07:17:12.182 -03:00 [INF] 🔄 INCREMENTANDO mensagem ao ChatLog existente "b72bd6b1-4303-435a-9c88-9643c45bfc91" para 5511949908369 (encontrado chat existente)
+2025-09-15 07:17:12.184 -03:00 [INF] 📋 Deserializando PayloadJson existente (tamanho: 103134 chars)
+2025-09-15 07:17:12.189 -03:00 [INF] PayloadJson no formato NOVO detectado: 4 mensagens
+2025-09-15 07:17:12.193 -03:00 [INF] 📊 PayloadJson carregado: 4 mensagens existentes
+2025-09-15 07:17:12.369 -03:00 [INF] Request starting GET /api/health
+2025-09-15 07:17:12.370 -03:00 [INF] Request finished GET /api/health - 200 in 0.9490ms
+2025-09-15 07:17:12.379 -03:00 [INF] Request finished GET /whatsappHub - 101 in 6760.7340ms
+2025-09-15 07:17:12.398 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-15 07:17:12.405 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 6.3670ms
+2025-09-15 07:17:12.407 -03:00 [INF] 🎬 Iniciando armazenamento de mídia: audio/ogg; codecs=opus, media_1757931431727.bin
+2025-09-15 07:17:12.410 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-15 07:17:12.410 -03:00 [INF] 🎬 Iniciando upload para MinIO: audio/ogg; codecs=opus, media_1757931431727.bin
+2025-09-15 07:17:12.410 -03:00 [INF] ✅ Upload simulado concluído: ${MINIO_PRIVATE_ENDPOINT}/midias/media/eb10070f-6bd4-4e89-bedc-f24e721dc971.bin
+2025-09-15 07:17:12.520 -03:00 [INF] ✅ Mídia armazenada no MinIO: ${MINIO_PRIVATE_ENDPOINT}/midias/media/eb10070f-6bd4-4e89-bedc-f24e721dc971.bin
+2025-09-15 07:17:12.520 -03:00 [INF] 🎬 Mídia processada e armazenada: ${MINIO_PRIVATE_ENDPOINT}/midias/media/eb10070f-6bd4-4e89-bedc-f24e721dc971.bin
+2025-09-15 07:17:12.522 -03:00 [INF] 🔍 Verificando duplicata para MessageId: false_5511949908369@c.us_3A571501F4EACB384C92
+2025-09-15 07:17:12.522 -03:00 [INF] 📝 ✅ Nova mensagem ADICIONADA ao PayloadJson: false_5511949908369@c.us_3A571501F4EACB384C92 (Total: 5 mensagens)
+2025-09-15 07:17:12.522 -03:00 [INF] 💾 Atualizando PayloadJson (antes: 103134 chars, depois: 112195 chars)
+2025-09-15 07:17:12.921 -03:00 [INF] ✅ ChatLog atualizado com SUCESSO: "b72bd6b1-4303-435a-9c88-9643c45bfc91" - 5 mensagens no PayloadJson
+2025-09-15 07:17:12.922 -03:00 [INF] 📝 ✅ Mensagem adicionada ao ChatLog existente: ChatId="f7cb77cb-eefb-4417-b016-a852926ef8d6", ChatLogId="b72bd6b1-4303-435a-9c88-9643c45bfc91"
+2025-09-15 07:17:12.922 -03:00 [INF] 📡 ✅ Evento chat.updated emitido para ChatLog: "b72bd6b1-4303-435a-9c88-9643c45bfc91"
+2025-09-15 07:17:13.082 -03:00 [INF] Request starting GET /api/health
+2025-09-15 07:17:13.082 -03:00 [INF] Request finished GET /whatsappHub - 101 in 672.5370ms
+2025-09-15 07:17:13.082 -03:00 [INF] Request finished GET /api/health - 200 in 0.2070ms
+2025-09-15 07:17:13.097 -03:00 [INF] 🎫 AttendanceTicket criado: "792e2652-77b5-4f53-89df-142b798390be"
+2025-09-15 07:17:13.098 -03:00 [ERR] Erro ao sanitizar mensagem com serviço de resiliência, usando fallback
+System.TypeInitializationException: The type initializer for 'Pregiato.Application.Services.EmojiResilienceService' threw an exception.
+ ---> System.Text.RegularExpressions.RegexParseException: Invalid pattern '[\uD83C\uDF00-\uD83C\uDFFF]|[\uD83D\uDC00-\uD83D\uDDFF]|[\uD83D\uDE00-\uD83D\uDE4F]|[\uD83D\uDE80-\uD83D\uDEFF]|[\uD83C\uDDE0-\uD83C\uDDFF]|[\u2600-\u26FF]|[\u2700-\u27BF]' at offset 20. [x-y] range in reverse order.
+   at System.Text.RegularExpressions.RegexParser.ScanCharClass(Boolean caseInsensitive, Boolean scanOnly)
+   at System.Text.RegularExpressions.RegexParser.ScanRegex()
+   at System.Text.RegularExpressions.RegexParser.Parse(String pattern, RegexOptions options, CultureInfo culture)
+   at System.Text.RegularExpressions.Regex..ctor(String pattern, RegexOptions options, TimeSpan matchTimeout, CultureInfo culture)
+   at Pregiato.Application.Services.EmojiResilienceService..cctor() in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application/Services/EmojiResilienceService.cs:line 30
+   --- End of inner exception stack trace ---
+   at Pregiato.Application.Services.EmojiResilienceService.HasEmojis(String text) in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application/Services/EmojiResilienceService.cs:line 298
+   at Pregiato.Application.Services.EmojiResilienceService.ProcessText(String text, EmojiProcessingStrategy strategy) in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.Application/Services/EmojiResilienceService.cs:line 55
+   at Pregiato.API.Services.RabbitBackgroundService.SanitizeMessageBody(String body) in /Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/Services/RabbitBackgroundService.cs:line 901
+2025-09-15 07:17:13.101 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-15 07:17:13.106 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 5.2860ms
+2025-09-15 07:17:13.112 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-15 07:17:15.320 -03:00 [INF] Request starting GET /api/chats/560888d5-446d-4be0-ad68-c5e7b9298515/messages
+2025-09-15 07:17:15.378 -03:00 [INF] 🔍 Buscando mensagens para ID: 560888d5-446d-4be0-ad68-c5e7b9298515
+2025-09-15 07:17:15.520 -03:00 [INF] 📄 Busca por GUID ID do ChatLog: Encontrado
+2025-09-15 07:17:15.520 -03:00 [INF] ✅ Chat encontrado: 560888d5-446d-4be0-ad68-c5e7b9298515, ContactPhoneE164: 120363337552588598
+2025-09-15 07:17:15.522 -03:00 [INF] PayloadJson no formato NOVO detectado: 1 mensagens
+2025-09-15 07:17:15.522 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 1
+2025-09-15 07:17:15.522 -03:00 [INF] 🔍 DEBUG TIPO: Original=text, Convertido=text
+2025-09-15 07:17:15.522 -03:00 [INF] ✅ Retornando 1 mensagens convertidas
+2025-09-15 07:17:15.527 -03:00 [INF] Request finished GET /api/chats/560888d5-446d-4be0-ad68-c5e7b9298515/messages - 200 in 206.6040ms
+2025-09-15 07:17:15.536 -03:00 [INF] Request starting GET /api/chats/560888d5-446d-4be0-ad68-c5e7b9298515/messages
+2025-09-15 07:17:15.536 -03:00 [INF] 🔍 Buscando mensagens para ID: 560888d5-446d-4be0-ad68-c5e7b9298515
+2025-09-15 07:17:15.542 -03:00 [INF] 📄 Busca por GUID ID do ChatLog: Encontrado
+2025-09-15 07:17:15.542 -03:00 [INF] ✅ Chat encontrado: 560888d5-446d-4be0-ad68-c5e7b9298515, ContactPhoneE164: 120363337552588598
+2025-09-15 07:17:15.545 -03:00 [INF] PayloadJson no formato NOVO detectado: 1 mensagens
+2025-09-15 07:17:15.546 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 1
+2025-09-15 07:17:15.546 -03:00 [INF] 🔍 DEBUG TIPO: Original=text, Convertido=text
+2025-09-15 07:17:15.547 -03:00 [INF] ✅ Retornando 1 mensagens convertidas
+2025-09-15 07:17:15.547 -03:00 [INF] Request finished GET /api/chats/560888d5-446d-4be0-ad68-c5e7b9298515/messages - 200 in 11.0490ms
+2025-09-15 07:17:15.622 -03:00 [INF] ✅ Salvas 1 mensagens em batch
+2025-09-15 07:17:28.757 -03:00 [INF] Request finished GET /whatsappHub - 101 in 15644.6240ms
+2025-09-15 07:17:28.759 -03:00 [INF] Request finished GET /whatsappHub - 101 in 102318.0020ms
+2025-09-15 07:17:28.765 -03:00 [INF] Request finished GET /whatsappHub - 101 in 102338.2130ms
+2025-09-15 07:17:28.890 -03:00 [INF] Request finished GET /whatsappHub - 101 in 102477.2300ms
+2025-09-15 07:17:30.528 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:17:30.528 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:17:30.528 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-15 07:17:30.528 -03:00 [INF] Request starting GET /api/health
+2025-09-15 07:17:30.528 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:17:30.529 -03:00 [INF] Request starting GET /api/chats
+2025-09-15 07:17:30.556 -03:00 [INF] Request finished GET /api/health - 200 in 27.7140ms
+2025-09-15 07:17:30.561 -03:00 [INF] Request starting GET /api/health
+2025-09-15 07:17:30.562 -03:00 [INF] Request finished GET /api/health - 200 in 0.2600ms
+2025-09-15 07:17:30.625 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 97.5120ms
+2025-09-15 07:17:30.625 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 97.4390ms
+2025-09-15 07:17:30.629 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:17:30.635 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:17:30.636 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-15 07:17:30.637 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-15 07:17:30.654 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 25.6420ms
+2025-09-15 07:17:30.660 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-15 07:17:30.661 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.8760ms
+2025-09-15 07:17:30.662 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 25.5190ms
+2025-09-15 07:17:30.662 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 24.6780ms
+2025-09-15 07:17:30.662 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 27.3630ms
+2025-09-15 07:17:30.662 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-15 07:17:30.662 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:17:30.666 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 4.1360ms
+2025-09-15 07:17:30.662 -03:00 [INF] 📊 Status obtido do zap bot: connected=true, validated=true, number=5511977240565
+2025-09-15 07:17:30.671 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 143.3430ms
+2025-09-15 07:17:30.671 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 143.5140ms
+2025-09-15 07:17:30.674 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-15 07:17:30.674 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 11.5230ms
+2025-09-15 07:17:30.674 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:17:30.677 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:17:30.682 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 8.2250ms
+2025-09-15 07:17:30.683 -03:00 [INF] 📊 Status obtido do zap bot: connected=true, validated=true, number=5511977240565
+2025-09-15 07:17:30.685 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 8.5640ms
+2025-09-15 07:17:30.687 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 12.7830ms
+2025-09-15 07:17:30.689 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:17:30.692 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 2.5940ms
+2025-09-15 07:17:30.695 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:17:30.709 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 14.2240ms
+2025-09-15 07:17:30.759 -03:00 [INF] Request finished GET /api/chats - 200 in 230.6630ms
+2025-09-15 07:17:30.763 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-15 07:17:30.805 -03:00 [INF] Request starting GET /api/health
+2025-09-15 07:17:30.822 -03:00 [INF] Request finished GET /api/health - 200 in 17.3250ms
+2025-09-15 07:17:30.846 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-15 07:17:30.931 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-15 07:17:30.931 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.2230ms
+2025-09-15 07:17:30.931 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-15 07:17:30.966 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-15 07:17:32.535 -03:00 [INF] Request starting GET /api/health
+2025-09-15 07:17:32.536 -03:00 [INF] Request finished GET /api/health - 200 in 0.8450ms
+2025-09-15 07:17:32.536 -03:00 [INF] Request finished GET /whatsappHub - 101 in 1569.9590ms
+2025-09-15 07:17:32.542 -03:00 [INF] Request starting POST /whatsappHub/negotiate
+2025-09-15 07:17:32.542 -03:00 [INF] Request finished POST /whatsappHub/negotiate - 200 in 0.7240ms
+2025-09-15 07:17:32.547 -03:00 [INF] Request starting GET /whatsappHub
+2025-09-15 07:17:32.711 -03:00 [INF] Request starting GET /api/chats/f7cb77cb-eefb-4417-b016-a852926ef8d6/messages
+2025-09-15 07:17:32.715 -03:00 [INF] 🔍 Buscando mensagens para ID: f7cb77cb-eefb-4417-b016-a852926ef8d6
+2025-09-15 07:17:32.725 -03:00 [INF] 📄 Busca por GUID ID do ChatLog: Não encontrado
+2025-09-15 07:17:32.728 -03:00 [INF] 📄 Busca por ChatId como GUID: Encontrado
+2025-09-15 07:17:32.728 -03:00 [INF] ✅ Chat encontrado: b72bd6b1-4303-435a-9c88-9643c45bfc91, ContactPhoneE164: 5511949908369
+2025-09-15 07:17:32.729 -03:00 [INF] PayloadJson no formato NOVO detectado: 5 mensagens
+2025-09-15 07:17:32.729 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 5
+2025-09-15 07:17:32.729 -03:00 [INF] 🔍 DEBUG TIPO: Original=text, Convertido=text
+2025-09-15 07:17:32.730 -03:00 [INF] 🔍 DEBUG TIPO: Original=text, Convertido=text
+2025-09-15 07:17:32.730 -03:00 [INF] 🔍 DEBUG TIPO: Original=audio, Convertido=audio
+2025-09-15 07:17:32.732 -03:00 [INF] 🔍 DEBUG TIPO: Original=text, Convertido=text
+2025-09-15 07:17:32.732 -03:00 [INF] 🔍 DEBUG TIPO: Original=audio, Convertido=audio
+2025-09-15 07:17:32.732 -03:00 [INF] ✅ Retornando 5 mensagens convertidas
+2025-09-15 07:17:32.742 -03:00 [INF] Request starting GET /api/chats/f7cb77cb-eefb-4417-b016-a852926ef8d6/messages
+2025-09-15 07:17:32.744 -03:00 [INF] 🔍 Buscando mensagens para ID: f7cb77cb-eefb-4417-b016-a852926ef8d6
+2025-09-15 07:17:32.773 -03:00 [INF] 📄 Busca por GUID ID do ChatLog: Não encontrado
+2025-09-15 07:17:32.780 -03:00 [INF] 📄 Busca por ChatId como GUID: Encontrado
+2025-09-15 07:17:32.780 -03:00 [INF] ✅ Chat encontrado: b72bd6b1-4303-435a-9c88-9643c45bfc91, ContactPhoneE164: 5511949908369
+2025-09-15 07:17:32.780 -03:00 [INF] PayloadJson no formato NOVO detectado: 5 mensagens
+2025-09-15 07:17:32.780 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 5
+2025-09-15 07:17:32.781 -03:00 [INF] 🔍 DEBUG TIPO: Original=text, Convertido=text
+2025-09-15 07:17:32.781 -03:00 [INF] 🔍 DEBUG TIPO: Original=text, Convertido=text
+2025-09-15 07:17:32.781 -03:00 [INF] 🔍 DEBUG TIPO: Original=audio, Convertido=audio
+2025-09-15 07:17:32.781 -03:00 [INF] 🔍 DEBUG TIPO: Original=text, Convertido=text
+2025-09-15 07:17:32.781 -03:00 [INF] 🔍 DEBUG TIPO: Original=audio, Convertido=audio
+2025-09-15 07:17:32.781 -03:00 [INF] ✅ Retornando 5 mensagens convertidas
+2025-09-15 07:17:32.781 -03:00 [INF] Request finished GET /api/chats/f7cb77cb-eefb-4417-b016-a852926ef8d6/messages - 200 in 70.5060ms
+2025-09-15 07:17:32.792 -03:00 [INF] Request finished GET /api/chats/f7cb77cb-eefb-4417-b016-a852926ef8d6/messages - 200 in 49.8970ms
+2025-09-15 07:17:47.287 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:17:47.441 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 154.1360ms
+2025-09-15 07:17:47.492 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:17:47.632 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 139.4490ms
+2025-09-15 07:17:47.642 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:17:47.740 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 96.6530ms
+2025-09-15 07:18:02.172 -03:00 [INF] Request starting GET /api/chats/34941e7e-62fb-40cc-b291-ddcec4e415c6/messages
+2025-09-15 07:18:02.258 -03:00 [INF] 🔍 Buscando mensagens para ID: 34941e7e-62fb-40cc-b291-ddcec4e415c6
+2025-09-15 07:18:02.487 -03:00 [INF] 📄 Busca por GUID ID do ChatLog: Não encontrado
+2025-09-15 07:18:02.510 -03:00 [INF] 📄 Busca por ChatId como GUID: Encontrado
+2025-09-15 07:18:02.511 -03:00 [INF] ✅ Chat encontrado: 560888d5-446d-4be0-ad68-c5e7b9298515, ContactPhoneE164: 120363337552588598
+2025-09-15 07:18:02.528 -03:00 [INF] PayloadJson no formato NOVO detectado: 1 mensagens
+2025-09-15 07:18:02.528 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 1
+2025-09-15 07:18:02.529 -03:00 [INF] 🔍 DEBUG TIPO: Original=text, Convertido=text
+2025-09-15 07:18:02.537 -03:00 [INF] ✅ Retornando 1 mensagens convertidas
+2025-09-15 07:18:02.567 -03:00 [INF] Request finished GET /api/chats/34941e7e-62fb-40cc-b291-ddcec4e415c6/messages - 200 in 394.3750ms
+2025-09-15 07:18:02.575 -03:00 [INF] Request starting GET /api/chats/34941e7e-62fb-40cc-b291-ddcec4e415c6/messages
+2025-09-15 07:18:02.604 -03:00 [INF] 🔍 Buscando mensagens para ID: 34941e7e-62fb-40cc-b291-ddcec4e415c6
+2025-09-15 07:18:02.675 -03:00 [INF] 📄 Busca por GUID ID do ChatLog: Não encontrado
+2025-09-15 07:18:02.757 -03:00 [INF] 📄 Busca por ChatId como GUID: Encontrado
+2025-09-15 07:18:02.760 -03:00 [INF] ✅ Chat encontrado: 560888d5-446d-4be0-ad68-c5e7b9298515, ContactPhoneE164: 120363337552588598
+2025-09-15 07:18:02.767 -03:00 [INF] PayloadJson no formato NOVO detectado: 1 mensagens
+2025-09-15 07:18:02.767 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 1
+2025-09-15 07:18:02.768 -03:00 [INF] 🔍 DEBUG TIPO: Original=text, Convertido=text
+2025-09-15 07:18:02.768 -03:00 [INF] ✅ Retornando 1 mensagens convertidas
+2025-09-15 07:18:02.768 -03:00 [INF] Request finished GET /api/chats/34941e7e-62fb-40cc-b291-ddcec4e415c6/messages - 200 in 193.3960ms
+2025-09-15 07:18:02.820 -03:00 [INF] Request starting GET /api/chats/79ff96c7-0331-4282-8615-0e99c658878d/messages
+2025-09-15 07:18:02.864 -03:00 [INF] 🔍 Buscando mensagens para ID: 79ff96c7-0331-4282-8615-0e99c658878d
+2025-09-15 07:18:03.180 -03:00 [INF] 📄 Busca por GUID ID do ChatLog: Não encontrado
+2025-09-15 07:18:03.496 -03:00 [INF] 📄 Busca por ChatId como GUID: Encontrado
+2025-09-15 07:18:03.511 -03:00 [INF] ✅ Chat encontrado: 871a6b2d-aeef-4a29-a00e-ed407c02b010, ContactPhoneE164: 120363375647077584
+2025-09-15 07:18:03.606 -03:00 [INF] PayloadJson no formato NOVO detectado: 1 mensagens
+2025-09-15 07:18:03.642 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 1
+2025-09-15 07:18:03.717 -03:00 [INF] 🔍 DEBUG TIPO: Original=text, Convertido=text
+2025-09-15 07:18:03.718 -03:00 [INF] ✅ Retornando 1 mensagens convertidas
+2025-09-15 07:18:03.764 -03:00 [INF] Request finished GET /api/chats/79ff96c7-0331-4282-8615-0e99c658878d/messages - 200 in 943.6990ms
+2025-09-15 07:18:03.784 -03:00 [INF] Request starting GET /api/chats/79ff96c7-0331-4282-8615-0e99c658878d/messages
+2025-09-15 07:18:03.811 -03:00 [INF] 🔍 Buscando mensagens para ID: 79ff96c7-0331-4282-8615-0e99c658878d
+2025-09-15 07:18:03.903 -03:00 [INF] 📄 Busca por GUID ID do ChatLog: Não encontrado
+2025-09-15 07:18:03.923 -03:00 [INF] 📄 Busca por ChatId como GUID: Encontrado
+2025-09-15 07:18:03.924 -03:00 [INF] ✅ Chat encontrado: 871a6b2d-aeef-4a29-a00e-ed407c02b010, ContactPhoneE164: 120363375647077584
+2025-09-15 07:18:03.924 -03:00 [INF] PayloadJson no formato NOVO detectado: 1 mensagens
+2025-09-15 07:18:03.924 -03:00 [INF] 📊 Mensagens encontradas no PayloadJson: 1
+2025-09-15 07:18:03.924 -03:00 [INF] 🔍 DEBUG TIPO: Original=text, Convertido=text
+2025-09-15 07:18:03.925 -03:00 [INF] ✅ Retornando 1 mensagens convertidas
+2025-09-15 07:18:03.925 -03:00 [INF] Request finished GET /api/chats/79ff96c7-0331-4282-8615-0e99c658878d/messages - 200 in 140.7020ms
+2025-09-15 07:19:05.000 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:19:05.130 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 130.1640ms
+2025-09-15 07:19:05.135 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:19:05.145 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 10.3010ms
+2025-09-15 07:19:05.156 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:19:05.171 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 14.4240ms
+2025-09-15 07:19:08.841 -03:00 [INF] Request starting POST /api/chats/5511949908369/send
+2025-09-15 07:19:08.857 -03:00 [INF] 🔍 Buscando chat para ID: 5511949908369
+2025-09-15 07:19:08.993 -03:00 [INF] 📄 Busca por ContactPhoneE164: Encontrado
+2025-09-15 07:19:08.994 -03:00 [INF] ✅ Chat encontrado: b72bd6b1-4303-435a-9c88-9643c45bfc91, ChatId: f7cb77cb-eefb-4417-b016-a852926ef8d6
+2025-09-15 07:19:08.994 -03:00 [INF] 🔄 Atualizando PayloadJson do chat existente b72bd6b1-4303-435a-9c88-9643c45bfc91
+2025-09-15 07:19:08.995 -03:00 [INF] PayloadJson no formato NOVO detectado: 5 mensagens
+2025-09-15 07:19:08.998 -03:00 [INF] 💾 Atualizando PayloadJson (antes: 112195 chars, depois: 112699 chars)
+2025-09-15 07:19:09.208 -03:00 [INF] ✅ ChatLog atualizado com SUCESSO: "b72bd6b1-4303-435a-9c88-9643c45bfc91" - 6 mensagens no PayloadJson
+2025-09-15 07:19:09.208 -03:00 [INF] PayloadJson no formato NOVO detectado: 6 mensagens
+2025-09-15 07:19:09.209 -03:00 [INF] 📤 Mensagem enviada para RabbitMQ: whatsapp.outgoing - {"command":"send_message","phone":"5511949908369","to":"5511949908369","from":"5511977240565","body":"oi","clientMessageId":"63df5a29-5d36-4849-b6a0-d6e5df119b7f","chatId":"f7cb77cb-eefb-4417-b016-a852926ef8d6","attachment":null}
+2025-09-15 07:19:09.209 -03:00 [INF] Request finished POST /api/chats/5511949908369/send - 200 in 368.0470ms
+2025-09-15 07:19:10.805 -03:00 [INF] 📤 Status de mensagem recebido: 5511949908369 - sent - 
+2025-09-15 07:21:54.896 -03:00 [INF] Request starting GET /api/whatsapp/conversations
+2025-09-15 07:21:54.896 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:21:54.896 -03:00 [INF] Request starting GET /api/whatsapp/queue/metrics
+2025-09-15 07:21:54.908 -03:00 [INF] Request finished GET /api/whatsapp/queue/metrics - 404 in 12.0080ms
+2025-09-15 07:21:54.908 -03:00 [INF] Request finished GET /api/whatsapp/conversations - 404 in 12.1050ms
+2025-09-15 07:21:54.955 -03:00 [INF] Request starting GET /api/whatsapp/queue/metrics
+2025-09-15 07:21:54.955 -03:00 [INF] Request finished GET /api/whatsapp/queue/metrics - 404 in 0.1550ms
+2025-09-15 07:21:54.955 -03:00 [INF] Request starting GET /api/whatsapp/conversations
+2025-09-15 07:21:54.956 -03:00 [INF] Request finished GET /api/whatsapp/conversations - 404 in 0.2370ms
+2025-09-15 07:21:55.172 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 276.5520ms
+2025-09-15 07:21:55.175 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:21:55.197 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 21.8380ms
+2025-09-15 07:21:56.667 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:21:56.668 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:21:56.667 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:21:56.667 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-15 07:21:56.707 -03:00 [INF] Request starting GET /api/health
+2025-09-15 07:21:56.746 -03:00 [INF] Request starting GET /api/chats
+2025-09-15 07:21:56.778 -03:00 [INF] Request finished GET /api/health - 200 in 69.7620ms
+2025-09-15 07:21:56.821 -03:00 [INF] Request starting GET /api/health
+2025-09-15 07:21:56.822 -03:00 [INF] Request finished GET /api/health - 200 in 0.6760ms
+2025-09-15 07:21:56.873 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 206.3400ms
+2025-09-15 07:21:56.878 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:21:56.911 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 33.0410ms
+2025-09-15 07:21:57.048 -03:00 [INF] 📊 Status obtido do zap bot: connected=true, validated=true, number=5511977240565
+2025-09-15 07:21:57.055 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 388.0040ms
+2025-09-15 07:21:57.068 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-15 07:21:57.094 -03:00 [INF] 📊 Status obtido do zap bot: connected=true, validated=true, number=5511977240565
+2025-09-15 07:21:57.095 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 27.0400ms
+2025-09-15 07:21:57.802 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 1135.5740ms
+2025-09-15 07:21:57.804 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:21:57.836 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 31.2050ms
+2025-09-15 07:21:57.839 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:21:57.845 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 6.4060ms
+2025-09-15 07:21:57.850 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:21:57.866 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 1197.9280ms
+2025-09-15 07:21:57.869 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 18.6990ms
+2025-09-15 07:21:57.894 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:21:57.894 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:21:57.918 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 23.7500ms
+2025-09-15 07:21:57.923 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:21:57.936 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 42.3160ms
+2025-09-15 07:21:57.941 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 18.4120ms
+2025-09-15 07:21:57.964 -03:00 [INF] Request finished GET /api/chats - 200 in 1217.5890ms
+2025-09-15 07:21:58.602 -03:00 [INF] Request starting GET /api/chats
+2025-09-15 07:21:58.615 -03:00 [INF] Request finished GET /api/chats - 200 in 13.5810ms
+2025-09-15 07:22:00.921 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:22:01.090 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 168.5180ms
+2025-09-15 07:22:01.107 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:22:01.116 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 8.8640ms
+2025-09-15 07:22:01.123 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:22:01.173 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 49.6710ms
+2025-09-15 07:22:05.142 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:22:05.568 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 434.1120ms
+2025-09-15 07:22:05.607 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:22:05.692 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 84.8990ms
+2025-09-15 07:22:05.709 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:22:05.788 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 79.1160ms
+2025-09-15 07:22:09.921 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:22:09.934 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 12.9760ms
+2025-09-15 07:22:09.936 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:22:09.939 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 2.9010ms
+2025-09-15 07:22:09.941 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:22:09.947 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 6.1010ms
+2025-09-15 07:22:12.803 -03:00 [INF] Request starting GET /api/whatsapp/status
+2025-09-15 07:22:12.923 -03:00 [INF] 📊 Status obtido do zap bot: connected=true, validated=true, number=5511977240565
+2025-09-15 07:22:12.924 -03:00 [INF] Request finished GET /api/whatsapp/status - 200 in 120.5910ms
+2025-09-15 07:22:39.685 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:22:39.685 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:22:39.685 -03:00 [INF] Request starting GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:22:40.015 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 338.5120ms
+2025-09-15 07:22:40.015 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 338.1220ms
+2025-09-15 07:22:40.026 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:22:40.040 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 14.4340ms
+2025-09-15 07:22:40.043 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:22:40.054 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 11.0480ms
+2025-09-15 07:22:40.058 -03:00 [INF] Request finished GET /api/operator-leads/by-email/jonathan_fernando2013@outlook.com - 200 in 381.0990ms
+2025-09-15 07:22:48.417 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:22:48.440 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 23.3440ms
+2025-09-15 07:22:48.443 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:22:48.455 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 11.5670ms
+2025-09-15 07:22:48.456 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:22:48.458 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 1.7230ms
+2025-09-15 07:22:55.026 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:22:55.045 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 18.9970ms
+2025-09-15 07:22:55.046 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:22:55.053 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 7.3790ms
+2025-09-15 07:22:55.057 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:22:55.088 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 31.0220ms
+2025-09-15 07:23:00.456 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:23:00.475 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 19.7130ms
+2025-09-15 07:23:00.477 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:23:00.479 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 1.8260ms
+2025-09-15 07:23:00.480 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:23:00.483 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 3.1240ms
+2025-09-15 07:24:08.287 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:24:08.360 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 72.8400ms
+2025-09-15 07:24:08.362 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:24:08.375 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 12.7680ms
+2025-09-15 07:24:08.378 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:24:08.387 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 8.9670ms
+2025-09-15 07:24:48.851 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:24:48.907 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 55.3060ms
+2025-09-15 07:24:48.908 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:24:48.926 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 17.0790ms
+2025-09-15 07:24:48.929 -03:00 [INF] Request starting GET /api/users/by-email/jonathan_fernando2013@outlook.com
+2025-09-15 07:24:48.970 -03:00 [INF] Request finished GET /api/users/by-email/jonathan_fernando2013@outlook.com - 200 in 41.2090ms

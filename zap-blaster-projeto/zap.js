@@ -13,12 +13,16 @@ const axios = require('axios');
 const cors = require('cors');
 const crypto = require('crypto');
 const { connectDatabase, isNumberInLeads } = require('./database');
+const { connected } = require('process');
+const AudioProcessor = require('./audio-utils');
+
 
 const instanceId = process.env.INSTANCE_ID || 'zap-prod';
 const isDocker = process.env.NODE_ENV === 'production' || fs.existsSync('/.dockerenv');
 
 const API_BASE = process.env.API_BASE || 'http://localhost:5656';
 const DEBUG = process.env.DEBUG === 'true';
+
 
 // ========================= Logging =========================
 class Log {
@@ -460,8 +464,8 @@ app.get('/status', (req,res)=> {
     status: isConnected ? (isFullyValidated ? 'connected' : 'connecting') : 'disconnected',
     lastActivity: new Date().toISOString(),
     queueMessageCount: 0,
-    canGenerateQR: !isConnected,
-    hasQRCode: false // TODO: implementar se necessário
+    canGenerateQR: connectedNumber ? false : true,
+    hasQRCode: true
   };
   
   Log.info('[STATUS] Endpoint /status chamado', status);
@@ -676,18 +680,8 @@ async function handleGenerateQR(_requestId) {
     
     Log.info('[QR_GEN] Chamando client.initialize()...');
     await client.initialize();
-    Log.info('[QR_GEN] Cliente inicializado com sucesso');
+    Log.info('[QR_GEN] Cliente inicializado com sucesso'); 
     
-    // Verificar se o cliente tem os métodos necessários
-    if (client && typeof client.getChats === 'function') {
-      Log.info('[QR_GEN] Cliente tem método getChats');
-    } else {
-      Log.warn('[QR_GEN] Cliente não tem método getChats:', { 
-        clientExists: !!client, 
-        hasGetChats: !!(client && client.getChats),
-        clientType: typeof client 
-      });
-    }
   } catch (e) {
     Log.error('[QR_GEN] Erro na inicialização', { error: e?.message, stack: e?.stack });
     throw e;
@@ -1056,31 +1050,58 @@ async function sendOne(number, msg) {
 
     // fallback
     let sent;
-    if (attachment) {
-      // ✅ CORREÇÃO: Para áudio, usar base64 do body se não houver dataUrl
-      let base64;
-      if (attachment.dataUrl) {
-        // Para outros tipos de mídia (imagem, documento)
-        base64 = String(attachment.dataUrl).split(',')[1] || attachment.dataUrl;
-      } else if (body && (attachment.mediaType === 'audio' || attachment.mediaType === 'voice')) {
-        // Para áudio, usar base64 do body
-        base64 = String(body).split(',')[1] || body;
-        Log.info('🎵 Usando base64 do body para áudio', { 
-          mediaType: attachment.mediaType,
-          mimeType: attachment.mimeType,
-          bodyLength: body?.length || 0
+    let tempFilePath = null;
+    
+    try {
+      if (attachment) {
+        // ✅ CORREÇÃO: Para áudio, usar base64 do body se não houver dataUrl
+        let base64;
+        if (attachment.dataUrl) {
+          // Para outros tipos de mídia (imagem, documento)
+          base64 = String(attachment.dataUrl).split(',')[1] || attachment.dataUrl;
+        } else if (body && (attachment.mediaType === 'audio' || attachment.mediaType === 'voice')) {
+          // Para áudio, usar base64 do body
+          base64 = String(body).split(',')[1] || body;
+          Log.info('🎵 Usando base64 do body para áudio', { 
+            mediaType: attachment.mediaType,
+            mimeType: attachment.mimeType,
+            bodyLength: body?.length || 0
+          });
+        } else {
+          throw new Error('Sem dados de mídia disponíveis');
+        }
+        
+        const mime = attachment.mimeType || 'application/octet-stream';
+        const media = new MessageMedia(mime, base64 || '', attachment.fileName || 'file');
+        // ✅ CORREÇÃO: Usar nome mais claro
+        sent = await client.sendMessage(whatsappRecipientId, media, { caption: body || undefined });
+      } else if (body && body.startsWith('data:audio/')) {
+        // ✅ NOVA FUNCIONALIDADE: Detectar e processar base64 de áudio no body
+        Log.info('🎵 Detectado base64 de áudio no body', { 
+          bodyLength: body?.length || 0,
+          recipient: whatsappRecipientId
+        });
+        
+        // 1. PROCESSAR base64 e criar mídia
+        const { media, tempFilePath: tempFile } = await createAudioMediaFromBase64(body);
+        tempFilePath = tempFile;
+        
+        // 2. ENVIAR mídia processada
+        sent = await client.sendMessage(whatsappRecipientId, media);
+        
+        Log.info('✅ Áudio enviado com sucesso', { 
+          messageId: sent.id?._serialized,
+          recipient: whatsappRecipientId
         });
       } else {
-        throw new Error('Sem dados de mídia disponíveis');
+        // ✅ CORREÇÃO: Usar nome mais claro
+        sent = await client.sendMessage(whatsappRecipientId, body);
       }
-      
-      const mime = attachment.mimeType || 'application/octet-stream';
-      const media = new MessageMedia(mime, base64 || '', attachment.fileName || 'file');
-      // ✅ CORREÇÃO: Usar nome mais claro
-      sent = await client.sendMessage(whatsappRecipientId, media, { caption: body || undefined });
-    } else {
-      // ✅ CORREÇÃO: Usar nome mais claro
-      sent = await client.sendMessage(whatsappRecipientId, body);
+    } finally {
+      // 3. LIMPAR arquivo temporário (se existir)
+      if (tempFilePath) {
+        cleanupTempFile(tempFilePath);
+      }
     }
     
     if (sent?.id) { 
@@ -1091,6 +1112,132 @@ async function sendOne(number, msg) {
   } catch (e) {
     Log.error('Erro sendOne', { error: e?.message, to: number });
     return { success: false, reason: e.message };
+  }
+}
+
+// ✅ FUNÇÃO: Processar base64 de áudio e criar MessageMedia
+async function createAudioMediaFromBase64(body) {
+  let tempFilePath = null;
+  
+  try {
+    Log.info('🎵 Processando base64 de áudio', { 
+      bodyLength: body?.length || 0
+    });
+
+    // Extrair informações do data URL
+    const [header, base64Data] = body.split(',');
+    const mimeType = header.split(';')[0].split(':')[1];
+    
+    // Converter base64 para buffer
+    const audioBuffer = Buffer.from(base64Data, 'base64');
+    
+    // ✅ VALIDAÇÃO: Usar AudioProcessor para validar o áudio
+    const validation = AudioProcessor.validateAudio(audioBuffer, mimeType);
+    if (!validation.isValid) {
+      throw new Error(`Áudio inválido: ${validation.error}`);
+    }
+    
+    Log.info('✅ Áudio validado com sucesso', {
+      mimeType: validation.mimeType,
+      size: validation.size,
+      sizeFormatted: AudioProcessor.formatFileSize(validation.size)
+    });
+    
+    // Obter extensão correta
+    const extension = AudioProcessor.getExtensionFromMimeType(validation.mimeType);
+    
+    // Criar pasta temporária se não existir
+    const tempDir = path.join(__dirname, 'temp');
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
+    }
+    
+    // Gerar nome único para o arquivo
+    const timestamp = Date.now();
+    const randomId = Math.random().toString(36).substring(2, 8);
+    const fileName = `audio_${timestamp}_${randomId}.${extension}`;
+    tempFilePath = path.join(tempDir, fileName);
+    
+    // Salvar arquivo validado
+    fs.writeFileSync(tempFilePath, audioBuffer);
+    
+    Log.info('📁 Arquivo de áudio criado', { 
+      filePath: tempFilePath,
+      fileName: fileName,
+      fileSize: audioBuffer.length,
+      mimeType: validation.mimeType
+    });
+    
+    // Criar MessageMedia a partir do arquivo
+    const media = MessageMedia.fromFilePath(tempFilePath);
+    media.mimetype = validation.mimeType;
+    
+    return { media, tempFilePath };
+    
+  } catch (error) {
+    Log.error('❌ Erro ao processar base64 de áudio', { 
+      error: error.message
+    });
+    throw error;
+  }
+}
+
+// ✅ FUNÇÃO: Limpar arquivo temporário
+function cleanupTempFile(tempFilePath) {
+  if (tempFilePath && fs.existsSync(tempFilePath)) {
+    try {
+      fs.unlinkSync(tempFilePath);
+      Log.info('🗑️ Arquivo temporário excluído', { filePath: tempFilePath });
+    } catch (deleteError) {
+      Log.error('⚠️ Erro ao excluir arquivo temporário', { 
+        filePath: tempFilePath,
+        error: deleteError.message
+      });
+    }
+  }
+}
+
+// ✅ FUNÇÃO: Limpeza automática de arquivos temporários antigos
+function cleanupOldTempFiles() {
+  try {
+    const tempDir = path.join(__dirname, 'temp');
+    if (!fs.existsSync(tempDir)) {
+      return;
+    }
+    
+    const files = fs.readdirSync(tempDir);
+    const now = Date.now();
+    const maxAge = 30 * 60 * 1000; // 30 minutos
+    
+    let cleanedCount = 0;
+    
+    files.forEach(file => {
+      const filePath = path.join(tempDir, file);
+      const stats = fs.statSync(filePath);
+      const age = now - stats.mtime.getTime();
+      
+      if (age > maxAge) {
+        try {
+          fs.unlinkSync(filePath);
+          cleanedCount++;
+          Log.info('🧹 Arquivo temporário antigo removido', { filePath });
+        } catch (error) {
+          Log.error('⚠️ Erro ao remover arquivo antigo', { 
+            filePath, 
+            error: error.message 
+          });
+        }
+      }
+    });
+    
+    if (cleanedCount > 0) {
+      Log.info('🧹 Limpeza automática concluída', { 
+        filesRemoved: cleanedCount,
+        tempDir: tempDir
+      });
+    }
+  } catch (error) {
+    Log.error('❌ Erro na limpeza automática', { error: error.message });
   }
 }
 
@@ -1158,6 +1305,12 @@ async function ensureDirectories() {
       Log.error('Erro ao atualizar cache periodicamente:', { error: error.message });
     }
   }, 5 * 60 * 1000); // 5 minutos
+
+  // ✅ Limpeza automática de arquivos temporários antigos
+  cleanupOldTempFiles();
+  
+  // ✅ Agendar limpeza automática a cada 10 minutos
+  setInterval(cleanupOldTempFiles, 10 * 60 * 1000);
 
   // RabbitMQ inicial
   await ensureAmqp();

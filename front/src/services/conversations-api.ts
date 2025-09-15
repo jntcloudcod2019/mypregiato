@@ -151,7 +151,7 @@ export interface MessageAttachment {
   dataUrl: string;
   mimeType: string;
   fileName?: string;
-  mediaType?: 'image' | 'file' | 'audio';
+  mediaType?: 'text' | 'image' | 'video' | 'audio' | 'document' | 'voice' | 'sticker' | 'location' | 'contact' | 'system';
 }
 
 // Usar DTOs especializados já importados
@@ -579,7 +579,7 @@ export const unifiedChatApi = {
       
       // Fallback para API de chats legada
       try {
-        const response = await chatsApi.send(id, text, clientMessageId, attachment);
+        const response = await chatsApi.send(id, text, clientMessageId, undefined, attachment);
         return {
           success: response.success,
           messageId: response.message?.id || clientMessageId,

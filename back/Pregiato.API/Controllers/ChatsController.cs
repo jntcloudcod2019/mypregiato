@@ -119,9 +119,9 @@ namespace Pregiato.API.Controllers
                             
                             // DEBUG adicional para tipos
                             _debug_originalType = message.Type,
-                            body = message.body ?? message.Content ?? message.ActualContent ?? "",
+                            body = message.body ?? "", // ✅ CORREÇÃO: Apenas body recebe conteúdo, sem fallback para outros campos
                             mediaUrl = message.MediaUrl ?? "",
-                            fileName = "",
+                            fileName = message.fileName ?? "",
                             clientMessageId = message.Id,
                             whatsAppMessageId = "",
                             status = "Delivered", // Default
@@ -131,7 +131,7 @@ namespace Pregiato.API.Controllers
                             
                             // Campos de compatibilidade para o frontend
                             externalMessageId = message.Id,
-                            text = message.body ?? message.Content ?? message.ActualContent ?? "",
+                            text = message.body ?? "", // ✅ CORREÇÃO: Campo text deve usar apenas body, sem fallback
                             ts = message.timestamp ?? message.Ts.ToString("O"),
                             fromMe = message.Direction == "outbound", // ✅ CORREÇÃO: outbound = true, inbound = false
                             
@@ -243,6 +243,15 @@ namespace Pregiato.API.Controllers
                 _logger.LogInformation($"📄 Busca por ContactPhoneE164: {(chat != null ? "Encontrado" : "Não encontrado")}");
             }
             
+            // ✅ CORREÇÃO 1: Verificar tipo da mensagem ANTES de criar PayloadJson
+            var messageType = message.Type;
+            var isMediaMessage = IsMediaType(messageType) || 
+                                (!string.IsNullOrEmpty(message.body) && message.body.StartsWith("data:"));
+            
+            // ✅ Capturar  Para mídia, o body deve conter APENAS o base64
+            var messageBody = isMediaMessage ? message.body : message.body; // ✅ Base64 para mídia, texto para texto
+            
+       
             // ✅ OPÇÃO 1.1: Se chat não existe, criar TODA a estrutura (PRIMEIRA MENSAGEM)
             if (chat == null)
             {
@@ -272,7 +281,7 @@ namespace Pregiato.API.Controllers
                     {
                         Contact = new ChatLogService.ContactInfo
                         {
-                            Name = $"Chat com {normalizedPhone}",
+                            Name = $"Chat com {req.Contact.Name}",
                             PhoneE164 = normalizedPhone,
                             ProfilePic = null
                         },
@@ -290,25 +299,141 @@ namespace Pregiato.API.Controllers
             }
             _logger.LogInformation($"✅ Chat encontrado: {chat.Id}, ChatId: {chat.ChatId}");
 
-            // Usar dados do PayloadJson para processar a mensagem
-            var messageBody = message.body; // Campo body do PayloadJson (base64 para mídia, texto para texto)
-            var messageType = message.Type;
-            var attachment = !string.IsNullOrEmpty(message.mimeType) ? new ChatLogService.ChatAttachment
+            // ✅ CORREÇÃO 3: Criar attachment apenas se for mídia
+            var attachment = null as ChatLogService.ChatAttachment;
+            if (isMediaMessage)
             {
-                DataUrl = message.body, // Base64 da mídia
-                MimeType = message.mimeType,
-                FileName = message.fileName,
-                MediaType = messageType
-            } : null;
+                // Extrair mimeType do dataUrl se não estiver definido
+                var mimeType = message.mimeType;
+                if (string.IsNullOrEmpty(mimeType) && message.body.StartsWith("data:"))
+                {
+                    var dataUrlParts = message.body.Split(',');
+                    if (dataUrlParts.Length > 0)
+                    {
+                        var mimePart = dataUrlParts[0].Replace("data:", "");
+                        mimeType = mimePart;
+                    }
+                }
+                
+                // Definir mimeType padrão para áudio se ainda não estiver definido
+                if (string.IsNullOrEmpty(mimeType))
+                {
+                    mimeType = messageType == "audio" || messageType == "voice" ? "audio/webm" : "application/octet-stream";
+                }
+                
+                attachment = new ChatLogService.ChatAttachment
+                {
+                    DataUrl = message.body.StartsWith("data:") ? message.body.Split(',')[1] : message.body, // ✅ Base64 puro (sem prefixo data:)
+                    MimeType = mimeType,
+                    FileName = message.fileName,
+                    MediaType = messageType
+                };
+                
+                _logger.LogInformation($"🎵 Attachment criado para mídia: mimeType={mimeType}, fileName={attachment.FileName}");
+            }
 
-            var (updatedChat, msg) = await _chatService.AddOutboundPendingAsync(chat.Id, messageBody, message.Id, DateTime.UtcNow, attachment);
+            // ✅ CORREÇÃO: Para chats existentes, atualizar PayloadJson seguindo o mesmo padrão do RabbitBackgroundService
+            if (chat != null)
+            {
+                _logger.LogInformation($"🔄 Atualizando PayloadJson do chat existente {chat.Id}");
+                
+                // Deserializar o PayloadJson existente
+                var chatLogService = HttpContext.RequestServices.GetRequiredService<ChatLogService>();
+                var existingPayload = chatLogService.Deserialize(chat.PayloadJson);
+                
+                // Garantir que o ContactInfo esteja preenchido
+                if (existingPayload.Contact == null)
+                {
+                    existingPayload.Contact = new ChatLogService.ContactInfo
+                    {
+                        Name = req.Contact.Name,
+                        PhoneE164 = req.Contact.PhoneE164,
+                        ProfilePic = req.Contact.ProfilePic
+                    };
+                }
+                
+                // Criar nova MessageInfo para mensagem outbound
+                var messageInfo = new ChatLogService.MessageInfo
+                {
+                    Id = message.Id,
+                    Content = null, // Campo Content deve ser null conforme padrão
+                    body = messageBody, // Campo body principal conforme padrão
+                    Direction = "outbound",
+                    Ts = DateTime.UtcNow,
+                    timestamp = DateTime.UtcNow.ToString("O"), // Campo timestamp principal conforme padrão
+                    Status = "pending", // Status inicial como pending para mensagens enviadas
+                    Type = message.Type,
+                    MediaUrl = null, // ✅ CORREÇÃO: Campo MediaUrl deve ser null, apenas body recebe conteúdo
+                    IsRead = false, // Campo IsRead conforme padrão
+                    from = "operator@frontend", // Campo from conforme padrão
+                    
+                    // Campos de mídia conforme padrão
+                    mimeType = attachment?.MimeType,
+                    fileName = attachment?.FileName,
+                    size = attachment?.DataUrl != null ? (long)(attachment.DataUrl.Length * 0.75) : null, // Tamanho aproximado do base64
+                    
+                    // Campos adicionais conforme padrão (inicializados como null)
+                    duration = null,
+                    thumbnail = null,
+                    latitude = null,
+                    longitude = null,
+                    locationAddress = null,
+                    contactName = null,
+                    contactPhone = null
+                };
+                
+                // Verificar se a mensagem já existe (evitar duplicatas)
+                var existingMessage = existingPayload.Messages?.FirstOrDefault(m => m.Id == messageInfo.Id);
+                if (existingMessage == null)
+                {
+                    // Adicionar mensagem ao payload existente
+                    existingPayload.Messages.Add(messageInfo);
+                    
+                    // Ordenar mensagens por timestamp para manter cronologia
+                    existingPayload.Messages = existingPayload.Messages
+                        .OrderBy(m => DateTime.TryParse(m.timestamp, out var dt) ? dt : DateTime.MinValue)
+                        .ToList();
+                    
+                    // Atualizar o PayloadJson com configuração adequada para base64
+                    var jsonOptions = new JsonSerializerOptions
+                    {
+                        PropertyNamingPolicy = null, // Manter nomes originais das propriedades
+                        WriteIndented = false, // JSON compacto
+                        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping // Evitar escape excessivo
+                    };
+                    
+                    var newPayloadJson = JsonSerializer.Serialize(existingPayload, jsonOptions);
+                    
+                    _logger.LogInformation("💾 Atualizando PayloadJson (antes: {OldSize} chars, depois: {NewSize} chars)", 
+                        chat.PayloadJson?.Length ?? 0, newPayloadJson.Length);
+                    
+                    chat.PayloadJson = newPayloadJson;
+                    chat.LastMessageAt = DateTime.UtcNow;
+                    chat.LastMessagePreview = messageBody?.Length > 200 ? messageBody.Substring(0, 200) : messageBody;
+                    
+                    await _db.SaveChangesAsync();
+                    
+                    _logger.LogInformation("✅ ChatLog atualizado com SUCESSO: {ChatLogId} - {MessageCount} mensagens no PayloadJson", 
+                        chat.Id, existingPayload.Messages.Count);
+                }
+                else
+                {
+                    _logger.LogWarning("⚠️ Mensagem DUPLICADA detectada, ignorando: {MessageId}", messageInfo.Id);
+                }
+            }
+            else
+            {
+                // Para chats novos, usar o método original
+                var (updatedChat, msg) = await _chatService.AddOutboundPendingAsync(chat.Id, messageBody, message.Id, DateTime.UtcNow, attachment);
+                chat = updatedChat;
+            }
 
-            await _hub.Clients.Group("whatsapp").SendAsync("message.outbound", new { chatId = updatedChat.Id, message = msg });
+            await _hub.Clients.Group("whatsapp").SendAsync("message.outbound", new { chatId = chat.Id, message = new { id = message.Id, body = messageBody, type = message.Type } });
 
             // Publicar para envio via Rabbit
-            var payload = _chatService.Deserialize(updatedChat.PayloadJson);
+            var payload = _chatService.Deserialize(chat.PayloadJson);
             var to = payload.Contact?.PhoneE164;
-            if (string.IsNullOrWhiteSpace(to)) to = updatedChat.ContactPhoneE164;
+            if (string.IsNullOrWhiteSpace(to)) to = chat.ContactPhoneE164;
             if (string.IsNullOrWhiteSpace(to))
             {
                 return BadRequest(new { error = "Telefone do contato não encontrado para este chat." });
@@ -330,19 +455,19 @@ namespace Pregiato.API.Controllers
             // Log para debug de normalização
             _logger.LogDebug($"🔧 Normalização em Send: original={to}, limpo={toClean}, normalizado={toNormalized}, isGroup={isGroup}");
             
-            // Publicar comando para RabbitMQ
+            // ✅ CORREÇÃO 4: Para mídia, body deve ser vazio e base64 deve ir no attachment.dataUrl
             var cmd = new
             {
                 command = "send_message",
                 phone = toNormalized, // ✅ DESTINATÁRIO: Número para onde enviar a mensagem
                 to = toNormalized, // Manter para compatibilidade
-                from = "5511977240565", // ✅ REMETENTE: Número conectado no ZapBot (fixo)
-                body = messageBody, // Campo body do PayloadJson (base64 para mídia, texto para texto)
+                from = "5511977240565",
+                body = isMediaMessage ? "" : messageBody, // ✅ Vazio para mídia, texto para texto
                 clientMessageId = message.Id,
-                chatId = updatedChat.ChatId,
+                chatId = chat.ChatId,
                 attachment = attachment != null ? new
                 {
-                    dataUrl = attachment.DataUrl,
+                    dataUrl = attachment.DataUrl, // ✅ Base64 puro aqui (sem prefixo data:)
                     mimeType = attachment.MimeType,
                     fileName = attachment.FileName,
                     mediaType = attachment.MediaType
@@ -354,8 +479,7 @@ namespace Pregiato.API.Controllers
             return Ok(new { success = true, messageId = message.Id });
         }
         
-        // ✅ REMOVIDO: Função ExtractPhoneFromFrontendId - não é mais necessária
-        
+
         /// <summary>
         /// Normaliza um número de telefone ou ID de grupo para um formato padrão
         /// CORRIGIDA para evitar duplicação de chats - conforme análise de engenharia reversa
@@ -387,6 +511,53 @@ namespace Pregiato.API.Controllers
             
             // Se já tiver código do país (12+ dígitos) ou outro formato, retornar como está
             return digits;
+        }
+        
+        /// <summary>
+        /// Verifica se o tipo da mensagem é um tipo de mídia
+        /// Usa a mesma lógica do RabbitBackgroundService.GetMessageType
+        /// </summary>
+        private static bool IsMediaType(string? messageType)
+        {
+            if (string.IsNullOrEmpty(messageType))
+                return false;
+                
+            return messageType.ToLower() switch
+            {
+                // Tipos de mídia (conforme RabbitBackgroundService)
+                "image" => true,
+                "video" => true,
+                "audio" => true,
+                "voice" => true,
+                "document" => true,
+                "sticker" => true,
+                // Tipos não-mídia
+                "text" => false,
+                "location" => false,
+                "contact" => false,
+                "system" => false,
+                _ => false
+            };
+        }
+        
+        private static string GetExtensionFromMimeType(string mimeType)
+        {
+            return mimeType switch
+            {
+                "audio/webm" => "webm",
+                "audio/mpeg" => "mp3",
+                "audio/ogg" => "ogg",
+                "audio/aac" => "aac",
+                "audio/mp4" => "m4a",
+                "audio/amr" => "amr",
+                "audio/wav" => "wav",
+                "image/jpeg" => "jpg",
+                "image/png" => "png",
+                "image/gif" => "gif",
+                "video/mp4" => "mp4",
+                "video/webm" => "webm",
+                _ => "bin"
+            };
         }
 
         public class ReadRequest { public long readUpToTs { get; set; } }

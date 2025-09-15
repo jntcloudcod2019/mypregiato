@@ -80,6 +80,13 @@ builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 builder.Services.AddScoped<IValidator<CreateTalentDto>, CreateTalentDtoValidator>();
 builder.Services.AddScoped<IValidator<UpdateTalentDto>, UpdateTalentDtoValidator>();
 
+// ✅ MINIO CONFIGURATION
+builder.Services.Configure<Pregiato.Infrastructure.Adapters.MinIOOptions>(
+    builder.Configuration.GetSection("MinIO"));
+
+// ✅ MINIO STORAGE ADAPTER
+builder.Services.AddScoped<Pregiato.Core.Interfaces.IMediaStoragePort, Pregiato.Infrastructure.Adapters.MinIOStorageAdapter>();
+
 // Services
 builder.Services.AddScoped<ITalentService, TalentService>();
 builder.Services.AddScoped<IFileService, FileService>();
@@ -110,7 +117,7 @@ builder.Services.AddScoped<IConversationService, ConversationService>();
 builder.Services.AddSingleton<ConversationService>();
 
 // Media storage service
-builder.Services.AddSingleton<MediaStorageService>();
+builder.Services.AddScoped<MediaStorageService>();
 
 // Serviços de importação
 builder.Services.AddScoped<IImportService, Pregiato.Application.Services.ImportServiceWithRepo>();

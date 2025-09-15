@@ -13,6 +13,12 @@
             <param name="isGroup">Se é um ID de grupo</param>
             <returns>Número normalizado</returns>
         </member>
+        <member name="M:Pregiato.API.Controllers.ChatsController.IsMediaType(System.String)">
+            <summary>
+            Verifica se o tipo da mensagem é um tipo de mídia
+            Usa a mesma lógica do RabbitBackgroundService.GetMessageType
+            </summary>
+        </member>
         <member name="T:Pregiato.API.Controllers.HealthController">
             <summary>
             Controller para monitoramento de saúde dos serviços
