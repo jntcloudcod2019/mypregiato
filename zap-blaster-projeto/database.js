@@ -6,13 +6,23 @@ const mysql = require('mysql2/promise');
 // Configuração do banco baseada no ambiente
 const isProduction = process.env.NODE_ENV === 'production' || process.env.RAILWAY_ENVIRONMENT;
 
+// Debug das variáveis de ambiente
+console.log('🔍 Debug das variáveis de ambiente:');
+console.log(`🔍 NODE_ENV: ${process.env.NODE_ENV}`);
+console.log(`🔍 RAILWAY_ENVIRONMENT: ${process.env.RAILWAY_ENVIRONMENT}`);
+console.log(`🔍 MYSQLHOST: ${process.env.MYSQLHOST}`);
+console.log(`🔍 MYSQLPORT: ${process.env.MYSQLPORT}`);
+console.log(`🔍 MYSQLDATABASE: ${process.env.MYSQLDATABASE}`);
+console.log(`🔍 MYSQLUSER: ${process.env.MYSQLUSER}`);
+console.log(`🔍 MYSQLPASSWORD: ${process.env.MYSQLPASSWORD ? '***DEFINIDA***' : 'NÃO DEFINIDA'}`);
+
 const dbConfig = isProduction ? {
   // ✅ PRODUÇÃO: Usar variáveis de ambiente do Railway
   host: process.env.MYSQLHOST || process.env.RAILWAY_PRIVATE_DOMAIN,
   port: parseInt(process.env.MYSQLPORT) || 3306,
   user: process.env.MYSQLUSER || 'root',
   password: process.env.MYSQLPASSWORD || process.env.MYSQL_ROOT_PASSWORD,
-  database: process.env.MYSQLDATABASE || process.env.MYSQL_DATABASE,
+  database: process.env.MYSQLDATABASE || process.env.MYSQL_DATABASE || 'railway',
   charset: 'utf8mb4'
 } : {
   // ✅ DESENVOLVIMENTO: Usar configuração local
@@ -27,6 +37,7 @@ const dbConfig = isProduction ? {
 // Log da configuração de banco (sem senha)
 console.log(`🔧 Configuração de banco: ${isProduction ? 'PRODUÇÃO' : 'DESENVOLVIMENTO'}`);
 console.log(`🔧 Host: ${dbConfig.host}, Database: ${dbConfig.database}, User: ${dbConfig.user}`);
+console.log(`🔧 Port: ${dbConfig.port}`);
 
 // Pool de conexões
 let connectionPool = null;
@@ -39,8 +50,21 @@ const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
 // Função para conectar ao banco
 async function connectDatabase() {
   try {
+    console.log('🔌 Tentando conectar ao banco MySQL...');
+    console.log('🔌 Configuração final:', {
+      host: dbConfig.host,
+      port: dbConfig.port,
+      user: dbConfig.user,
+      database: dbConfig.database,
+      charset: dbConfig.charset
+    });
+    
     connectionPool = mysql.createPool(dbConfig);
-    console.log('✅ Conectado ao banco MySQL');
+    
+    // Testar conexão
+    const connection = await connectionPool.getConnection();
+    console.log('✅ Conectado ao banco MySQL com sucesso!');
+    connection.release();
     
     // Carregar cache inicial
     await loadOperatorLeadsCache();
@@ -48,6 +72,7 @@ async function connectDatabase() {
     return connectionPool;
   } catch (error) {
     console.error('❌ Erro ao conectar ao banco:', error.message);
+    console.error('❌ Stack trace:', error.stack);
     throw error;
   }
 }

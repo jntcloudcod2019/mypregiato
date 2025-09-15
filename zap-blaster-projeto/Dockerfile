@@ -37,6 +37,9 @@ COPY . .
 RUN mkdir -p /app/session /app/logs /app/temp /app/downloads /app/whatsapp_data && \
     chown -R appuser:appuser /app
 
+# Criar volumes para persistência de dados
+VOLUME ["/app/session", "/app/logs", "/app/temp", "/app/downloads", "/app/whatsapp_data"]
+
 # Mudar para usuário não-root
 USER appuser
 

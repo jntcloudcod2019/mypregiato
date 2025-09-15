@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  zap-bot:
+    build: .
+    container_name: zap-bot
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - INSTANCE_ID=zap-prod
+      - API_BASE=http://localhost:5656
+      - DEBUG=false
+      # Configurações do MySQL (ajuste conforme necessário)
+      - MYSQLHOST=localhost
+      - MYSQLPORT=3306
+      - MYSQLDATABASE=pregiato_dev
+      - MYSQLUSER=root
+      - MYSQLPASSWORD=
+      # Configurações do RabbitMQ (ajuste conforme necessário)
+      - RABBITMQ_URL=amqp://localhost:5672
+    volumes:
+      # Volumes para persistência de dados
+      - zap-session:/app/session
+      - zap-logs:/app/logs
+      - zap-temp:/app/temp
+      - zap-downloads:/app/downloads
+      - zap-whatsapp-data:/app/whatsapp_data
+    networks:
+      - zap-network
+
+volumes:
+  zap-session:
+    driver: local
+  zap-logs:
+    driver: local
+  zap-temp:
+    driver: local
+  zap-downloads:
+    driver: local
+  zap-whatsapp-data:
+    driver: local
+
+networks:
+  zap-network:
+    driver: bridge
