@@ -42,7 +42,16 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins("http://localhost:8080", "http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:5173")
+        policy.WithOrigins(
+                // Desenvolvimento
+                "http://localhost:8080", 
+                "http://localhost:3000", 
+                "http://localhost:5173", 
+                "http://127.0.0.1:5173",
+                // Produção Railway
+                "https://*.up.railway.app",
+                "https://pregiato-frontend-production.up.railway.app"
+              )
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();

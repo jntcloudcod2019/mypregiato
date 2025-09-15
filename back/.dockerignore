@@ -1,0 +1,43 @@
+# Build outputs
+**/bin/
+**/obj/
+**/out/
+
+# Logs
+**/logs/
+*.log
+
+# IDE files
+.vs/
+.vscode/
+*.user
+*.suo
+*.cache
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Test files
+**/TestResults/
+**/*.Tests/
+**/*.Test/
+
+# Documentation
+README.md
+*.md
+
+# Temporary files
+*.tmp
+*.temp
+
+# Node modules (if any)
+node_modules/
+
+# Package files
+*.nupkg
+*.snupkg

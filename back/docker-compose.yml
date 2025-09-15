@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  pregiato-api:
+    build: .
+    container_name: pregiato-api
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      # Configurações do MySQL (ajuste conforme necessário)
+      - MYSQLHOST=localhost
+      - MYSQLPORT=3306
+      - MYSQLDATABASE=pregiato_dev
+      - MYSQLUSER=root
+      - MYSQLPASSWORD=
+      # Configurações do RabbitMQ (ajuste conforme necessário)
+      - RABBITMQ_URL=amqp://localhost:5672
+    volumes:
+      - api-logs:/app/logs
+      - api-media:/app/wwwroot/media
+    networks:
+      - pregiato-network
+
+volumes:
+  api-logs:
+    driver: local
+  api-media:
+    driver: local
+
+networks:
+  pregiato-network:
+    driver: bridge

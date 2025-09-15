@@ -1,0 +1,31 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "Dockerfile"
+  },
+  "deploy": {
+    "startCommand": "dotnet Pregiato.API.dll",
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 3
+  },
+  "environments": {
+    "production": {
+      "variables": {
+        "ASPNETCORE_ENVIRONMENT": "Production",
+        "ASPNETCORE_URLS": "http://+:${PORT}",
+        "MYSQL_DATABASE": "railway",
+        "MYSQL_ROOT_PASSWORD": "nmZKnTmDpQIwmvRBYIoIbFjYyaiZPoEq",
+        "MYSQLDATABASE": "railway",
+        "MYSQLHOST": "${{RAILWAY_PRIVATE_DOMAIN}}",
+        "MYSQLPASSWORD": "nmZKnTmDpQIwmvRBYIoIbFjYyaiZPoEq",
+        "MYSQLPORT": "3306",
+        "MYSQLUSER": "root",
+        "RABBITMQ_URL": "amqps://ewxcrhtv:DNcdH0NEeP4Fsgo2_w-vd47CqjelFk_S@mouse.rmq5.cloudamqp.com:5671/ewxcrhtv?heartbeat=30",
+        "MINIO_PRIVATE_ENDPOINT": "${{RAILWAY_PRIVATE_DOMAIN}}",
+        "MINIO_ROOT_USER": "${{MINIO_ROOT_USER}}",
+        "MINIO_ROOT_PASSWORD": "${{MINIO_ROOT_PASSWORD}}"
+      }
+    }
+  }
+}
