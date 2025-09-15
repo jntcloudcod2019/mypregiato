@@ -10,11 +10,13 @@ const isProduction = process.env.NODE_ENV === 'production' || process.env.RAILWA
 console.log('🔍 Debug das variáveis de ambiente:');
 console.log(`🔍 NODE_ENV: ${process.env.NODE_ENV}`);
 console.log(`🔍 RAILWAY_ENVIRONMENT: ${process.env.RAILWAY_ENVIRONMENT}`);
+console.log(`🔍 RAILWAY_PRIVATE_DOMAIN: ${process.env.RAILWAY_PRIVATE_DOMAIN}`);
 console.log(`🔍 MYSQLHOST: ${process.env.MYSQLHOST}`);
 console.log(`🔍 MYSQLPORT: ${process.env.MYSQLPORT}`);
 console.log(`🔍 MYSQLDATABASE: ${process.env.MYSQLDATABASE}`);
 console.log(`🔍 MYSQLUSER: ${process.env.MYSQLUSER}`);
 console.log(`🔍 MYSQLPASSWORD: ${process.env.MYSQLPASSWORD ? '***DEFINIDA***' : 'NÃO DEFINIDA'}`);
+console.log(`🔍 MYSQL_ROOT_PASSWORD: ${process.env.MYSQL_ROOT_PASSWORD ? '***DEFINIDA***' : 'NÃO DEFINIDA'}`);
 
 const dbConfig = isProduction ? {
   // ✅ PRODUÇÃO: Usar variáveis de ambiente do Railway
