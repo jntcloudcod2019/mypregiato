@@ -144,8 +144,12 @@ namespace Pregiato.API.Controllers
                 using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(3) };
                 try
                 {
-                    // ✅ PRODUÇÃO: Usar URL do Zap Bot via variável de ambiente
-                    var zapBotUrl = Environment.GetEnvironmentVariable("ZAP_BOT_URL") ?? "http://localhost:3030";
+                    // ✅ PRODUÇÃO: Usar URL do Zap Bot baseada no ambiente
+                    var isProduction = Environment.GetEnvironmentVariable("RAILWAY_ENVIRONMENT") != null || 
+                                     Environment.GetEnvironmentVariable("NODE_ENV") == "production";
+                    var zapBotUrl = isProduction ? 
+                        "https://zap-bot-production-b642.up.railway.app" : 
+                        "http://localhost:3030";
                     var resp = await client.GetAsync($"{zapBotUrl}/status");
                     botUp = resp.IsSuccessStatusCode;
                     

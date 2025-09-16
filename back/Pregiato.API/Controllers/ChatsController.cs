@@ -467,7 +467,10 @@ namespace Pregiato.API.Controllers
                 chatId = chat.ChatId,
                 attachment = attachment != null ? new
                 {
-                    dataUrl = attachment.DataUrl, // ✅ Base64 puro aqui (sem prefixo data:)
+                    // ✅ CORREÇÃO: Garantir que dataUrl não tenha prefixo data: para compatibilidade
+                    dataUrl = attachment.DataUrl?.StartsWith("data:") == true 
+                        ? attachment.DataUrl.Split(',').LastOrDefault() ?? attachment.DataUrl
+                        : attachment.DataUrl,
                     mimeType = attachment.MimeType,
                     fileName = attachment.FileName,
                     mediaType = attachment.MediaType

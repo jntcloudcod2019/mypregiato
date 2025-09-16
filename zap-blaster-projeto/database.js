@@ -192,11 +192,102 @@ async function closeDatabase() {
   }
 }
 
+// ✅ NOVA FUNÇÃO: Buscar áudio do PayloadJson via clientMessageId
+async function getAudioFromPayloadJson(clientMessageId) {
+  try {
+    if (!connectionPool) {
+      console.error('❌ [AUDIO_RECOVERY] Sem conexão com banco - não é possível recuperar áudio');
+      return null;
+    }
+
+    console.log(`🔍 [AUDIO_RECOVERY] Buscando áudio para clientMessageId: ${clientMessageId}`);
+
+    // Buscar ChatLog que contenha a mensagem com clientMessageId
+    const [rows] = await connectionPool.execute(`
+      SELECT Id, PayloadJson, ContactPhoneE164 
+      FROM ChatLogs 
+      WHERE PayloadJson LIKE ? 
+      ORDER BY LastMessageAt DESC 
+      LIMIT 5
+    `, [`%"${clientMessageId}"%`]);
+
+    if (rows.length === 0) {
+      console.warn(`⚠️ [AUDIO_RECOVERY] Nenhum ChatLog encontrado para clientMessageId: ${clientMessageId}`);
+      return null;
+    }
+
+    console.log(`📋 [AUDIO_RECOVERY] ${rows.length} ChatLog(s) encontrado(s), analisando PayloadJson...`);
+
+    // Analisar cada PayloadJson para encontrar a mensagem
+    for (const row of rows) {
+      try {
+        const payload = JSON.parse(row.PayloadJson);
+        
+        if (!payload.Messages || !Array.isArray(payload.Messages)) {
+          continue;
+        }
+
+        // Buscar mensagem com clientMessageId específico
+        const message = payload.Messages.find(msg => 
+          msg.Id === clientMessageId || 
+          msg.clientMessageId === clientMessageId ||
+          msg.externalMessageId === clientMessageId
+        );
+
+        if (message) {
+          console.log(`✅ [AUDIO_RECOVERY] Mensagem encontrada no ChatLog ${row.Id}`);
+          
+          // Verificar se é áudio com dados de mídia
+          if ((message.Type === 'audio' || message.type === 'audio') && 
+              (message.dataUrl || message.MediaUrl || message.body)) {
+            
+            const audioData = {
+              clientMessageId: clientMessageId,
+              chatLogId: row.Id,
+              contactPhone: row.ContactPhoneE164,
+              messageType: message.Type || message.type,
+              // Priorizar dataUrl, depois MediaUrl, depois body
+              base64Data: message.dataUrl || message.MediaUrl || message.body,
+              mimeType: message.mimeType || message.MimeType || 'audio/mpeg',
+              fileName: message.fileName || message.FileName || `audio_${clientMessageId}.mp3`
+            };
+
+            console.log(`🎵 [AUDIO_RECOVERY] Áudio recuperado:`, {
+              clientMessageId: audioData.clientMessageId,
+              chatLogId: audioData.chatLogId,
+              messageType: audioData.messageType,
+              mimeType: audioData.mimeType,
+              fileName: audioData.fileName,
+              hasBase64: !!audioData.base64Data,
+              base64Length: audioData.base64Data?.length || 0
+            });
+
+            return audioData;
+          } else {
+            console.log(`ℹ️ [AUDIO_RECOVERY] Mensagem encontrada mas não é áudio válido: ${message.Type || message.type}`);
+          }
+        }
+      } catch (parseError) {
+        console.error(`❌ [AUDIO_RECOVERY] Erro ao parsear PayloadJson do ChatLog ${row.Id}:`, parseError.message);
+        continue;
+      }
+    }
+
+    console.warn(`⚠️ [AUDIO_RECOVERY] Nenhuma mensagem de áudio válida encontrada para clientMessageId: ${clientMessageId}`);
+    return null;
+
+  } catch (error) {
+    console.error(`❌ [AUDIO_RECOVERY] Erro ao buscar áudio no banco:`, error.message);
+    return null;
+  }
+}
+
 module.exports = {
   connectDatabase,
   getConnection,
   closeDatabase,
   loadOperatorLeadsCache,
   refreshCacheIfNeeded,
-  isNumberInLeads
+  isNumberInLeads,
+  getAudioFromPayloadJson
 };

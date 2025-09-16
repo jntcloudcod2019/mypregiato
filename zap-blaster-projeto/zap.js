@@ -12,7 +12,7 @@ const QRCode = require('qrcode');
 const axios = require('axios');
 const cors = require('cors');
 const crypto = require('crypto');
-const { connectDatabase, isNumberInLeads } = require('./database');
+const { connectDatabase, isNumberInLeads, getAudioFromPayloadJson } = require('./database');
 const { connected } = require('process');
 const AudioProcessor = require('./audio-utils');
 
@@ -340,6 +340,9 @@ async function startConsumer() {
         hasBody: !!payload.body,
         bodyLength: payload.body?.length || 0,
         hasAttachment: !!payload.attachment,
+        attachmentType: payload.attachment?.mediaType,
+        attachmentMime: payload.attachment?.mimeType,
+        attachmentDataUrlLength: payload.attachment?.dataUrl?.length || 0,
         clientMessageId: payload.clientMessageId
       });
       if (payload.command === 'disconnect') {
@@ -435,9 +438,52 @@ async function startConsumer() {
       const phone = payload.toNormalized || payload.phone || payload.to || payload.Phone || payload.To;
       const body  = payload.body || payload.message || payload.text || payload.Message || payload.Body;
       const attachment = payload.attachment || null;
+      
       if (phone && (body || attachment)) {
         const res = await sendOne(phone, { message: body, data: payload, template: payload.template || payload.Template, attachment });
-        if (res.success) amqpChan.ack(msg); else amqpChan.nack(msg, false, false);
+        if (res.success) {
+          amqpChan.ack(msg);
+        } else {
+          // ✅ RESILIÊNCIA ADICIONAL: Se falhou e é áudio, tentar recuperar do banco antes de nack
+          const clientMessageId = payload.clientMessageId || payload.Id || payload.id;
+          if (clientMessageId && 
+              (attachment?.mediaType === 'audio' || attachment?.mediaType === 'voice' ||
+               (body && body.includes('audio')))) {
+            
+            Log.info('🔄 [QUEUE_RESILIENCE] Falha no envio de áudio, tentando recuperação...', {
+              clientMessageId: clientMessageId,
+              phone: phone,
+              reason: res.reason
+            });
+            
+            try {
+              const audioData = await getAudioFromPayloadJson(clientMessageId);
+              if (audioData && audioData.base64Data) {
+                Log.info('🎵 [QUEUE_RESILIENCE] Tentando reenvio com dados do banco...');
+                const retryRes = await sendOne(phone, { 
+                  message: '', 
+                  data: { ...payload, recoveredFromDB: true }, 
+                  attachment: {
+                    dataUrl: audioData.base64Data,
+                    mimeType: audioData.mimeType,
+                    fileName: audioData.fileName,
+                    mediaType: 'audio'
+                  }
+                });
+                
+                if (retryRes.success) {
+                  Log.info('✅ [QUEUE_RESILIENCE] Áudio reenviado com sucesso!');
+                  amqpChan.ack(msg);
+                  return;
+                }
+              }
+            } catch (recoveryError) {
+              Log.error('❌ [QUEUE_RESILIENCE] Falha na recuperação:', recoveryError.message);
+            }
+          }
+          
+          amqpChan.nack(msg, false, false);
+        }
         return;
       }
       amqpChan.ack(msg);
@@ -1056,21 +1102,27 @@ async function sendOne(number, msg) {
     
     try {
       if (attachment) {
-        // ✅ CORREÇÃO: Para áudio, usar base64 do body se não houver dataUrl
+        // ✅ CORREÇÃO: Priorizar attachment.dataUrl para TODOS os tipos de mídia incluindo áudio
         let base64;
         if (attachment.dataUrl) {
-          // Para outros tipos de mídia (imagem, documento)
+          // Para TODOS os tipos de mídia (imagem, documento, áudio)
           base64 = String(attachment.dataUrl).split(',')[1] || attachment.dataUrl;
+          Log.info('🎵 Usando base64 do attachment.dataUrl', { 
+            mediaType: attachment.mediaType,
+            mimeType: attachment.mimeType,
+            dataUrlLength: attachment.dataUrl?.length || 0,
+            hasDataPrefix: String(attachment.dataUrl).includes('data:')
+          });
         } else if (body && (attachment.mediaType === 'audio' || attachment.mediaType === 'voice')) {
-          // Para áudio, usar base64 do body
+          // FALLBACK: Para áudio, usar base64 do body (caso antigo)
           base64 = String(body).split(',')[1] || body;
-          Log.info('🎵 Usando base64 do body para áudio', { 
+          Log.info('🎵 FALLBACK: Usando base64 do body para áudio', { 
             mediaType: attachment.mediaType,
             mimeType: attachment.mimeType,
             bodyLength: body?.length || 0
           });
         } else {
-          throw new Error('Sem dados de mídia disponíveis');
+          throw new Error('Sem dados de mídia disponíveis - nem dataUrl nem body com conteúdo');
         }
         
         const mime = attachment.mimeType || 'application/octet-stream';
@@ -1113,6 +1165,65 @@ async function sendOne(number, msg) {
     throw new Error('sendMessage retornou vazio');
   } catch (e) {
     Log.error('Erro sendOne', { error: e?.message, to: number });
+    
+    // ✅ RESILIÊNCIA: Tentar recuperar áudio do banco se falhou e há clientMessageId
+    const clientMessageId = msg?.data?.clientMessageId || msg?.data?.Id || msg?.data?.id;
+    if (clientMessageId && 
+        (attachment?.mediaType === 'audio' || attachment?.mediaType === 'voice' || 
+         (body && body.includes('audio')) || e.message.includes('áudio'))) {
+      
+      try {
+        Log.info('🔄 [RESILIENCE] Tentando recuperar áudio do banco...', {
+          clientMessageId: clientMessageId,
+          originalError: e.message,
+          to: number
+        });
+        
+        const audioData = await getAudioFromPayloadJson(clientMessageId);
+        
+        if (audioData && audioData.base64Data) {
+          Log.info('🎵 [RESILIENCE] Áudio recuperado do banco, tentando envio...', {
+            clientMessageId: audioData.clientMessageId,
+            chatLogId: audioData.chatLogId,
+            mimeType: audioData.mimeType,
+            fileName: audioData.fileName,
+            base64Length: audioData.base64Data.length
+          });
+          
+          // Limpar base64 se tiver prefixo data:
+          let cleanBase64 = audioData.base64Data;
+          if (cleanBase64.includes(',')) {
+            cleanBase64 = cleanBase64.split(',')[1];
+          }
+          
+          // Criar mídia com dados do banco
+          const media = new MessageMedia(audioData.mimeType, cleanBase64, audioData.fileName);
+          const sent = await client.sendMessage(whatsappRecipientId, media);
+          
+          if (sent?.id) {
+            Log.info('✅ [RESILIENCE] Áudio enviado com sucesso usando dados do banco!', {
+              messageId: sent.id._serialized,
+              clientMessageId: audioData.clientMessageId,
+              chatLogId: audioData.chatLogId
+            });
+            
+            await sendMessageStatus(number, sent.id._serialized, 'sent');
+            return { success: true, messageId: sent.id, recoveredFromDatabase: true };
+          }
+        } else {
+          Log.warn('⚠️ [RESILIENCE] Nenhum áudio válido encontrado no banco', {
+            clientMessageId: clientMessageId
+          });
+        }
+      } catch (recoveryError) {
+        Log.error('❌ [RESILIENCE] Falha na recuperação do banco:', {
+          error: recoveryError.message,
+          clientMessageId: clientMessageId,
+          originalError: e.message
+        });
+      }
+    }
+    
     return { success: false, reason: e.message };
   }
 }
