@@ -64,8 +64,19 @@ string connectionString;
 // Verificar se está em produção (Railway)
 if (builder.Environment.IsProduction() || !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RAILWAY_ENVIRONMENT")))
 {
-    // ✅ PRODUÇÃO: Usar URL direta do Railway
-    connectionString = "Server=gondola.proxy.rlwy.net;Port=23254;Database=railway;Uid=root;Pwd=nmZKnTmDpQIwmvRBYIoIbFjYyaiZPoEq;CharSet=utf8mb4;";
+    // ✅ PRODUÇÃO: Usar variáveis de ambiente do Railway
+    var mysqlHost = Environment.GetEnvironmentVariable("MYSQLHOST") ?? Environment.GetEnvironmentVariable("RAILWAY_PRIVATE_DOMAIN");
+    var mysqlPort = Environment.GetEnvironmentVariable("MYSQLPORT") ?? "3306";
+    var mysqlDatabase = Environment.GetEnvironmentVariable("MYSQLDATABASE") ?? Environment.GetEnvironmentVariable("MYSQL_DATABASE");
+    var mysqlUser = Environment.GetEnvironmentVariable("MYSQLUSER") ?? "root";
+    var mysqlPassword = Environment.GetEnvironmentVariable("MYSQLPASSWORD") ?? Environment.GetEnvironmentVariable("MYSQL_ROOT_PASSWORD");
+    
+    if (string.IsNullOrEmpty(mysqlHost) || string.IsNullOrEmpty(mysqlDatabase) || string.IsNullOrEmpty(mysqlUser) || string.IsNullOrEmpty(mysqlPassword))
+    {
+        throw new InvalidOperationException("Variáveis de ambiente do MySQL não configuradas para produção.");
+    }
+    
+    connectionString = $"Server={mysqlHost};Port={mysqlPort};Database={mysqlDatabase};Uid={mysqlUser};Pwd={mysqlPassword};CharSet=utf8mb4;";
     
     Log.Information("🔧 Usando configuração de banco de dados de PRODUÇÃO (Railway)");
     Log.Information("🔧 Conexão configurada para Railway MySQL");
