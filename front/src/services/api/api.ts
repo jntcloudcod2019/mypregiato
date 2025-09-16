@@ -1,13 +1,11 @@
 import axios, { AxiosResponse, AxiosError } from 'axios';
+import { API_URL, API_TIMEOUT, DEFAULT_HEADERS } from '../../config/api';
 
 // Configuração da instância principal do axios
 const api = axios.create({
-  baseURL: 'http://localhost:5656/api', // API .NET
-  timeout: 10000, // 10 segundos
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  },
+  baseURL: API_URL, // API .NET
+  timeout: API_TIMEOUT,
+  headers: DEFAULT_HEADERS,
 });
 
 // Cache de token para evitar requisições constantes ao Clerk

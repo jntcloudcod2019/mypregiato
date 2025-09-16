@@ -173,6 +173,7 @@ import { ChatListLayout } from '@/components/chat/ChatListLayout';
 import { cleanTitle } from '@/utils/chat-utils';
 import { LeadsContainer } from '@/components/attendance/LeadsContainer';
 import { LeadTrackingForm } from '@/components/attendance/LeadTrackingForm';
+import { API_BASE_URL, SIGNALR_URL } from '@/config/api';
 
 import { ChatProvider } from '@/contexts/ChatContext';
 
@@ -726,7 +727,7 @@ export default function AtendimentoPage() {
     if (connRef.current) return;
 
     try {
-      fetch('http://localhost:5656/api/health', { method: 'GET' })
+      fetch(`${API_BASE_URL}/api/health`, { method: 'GET' })
         .then(response => { if (response.ok) initSignalR(); else console.error('Servidor não está respondendo'); })
         .catch((error) => { console.error('Erro ao conectar com o servidor:', error); });
     } catch (error) {
@@ -736,7 +737,7 @@ export default function AtendimentoPage() {
     function initSignalR() {
       try {
         const connection = new HubConnectionBuilder()
-          .withUrl('http://localhost:5656/whatsappHub')
+          .withUrl(SIGNALR_URL)
           .withAutomaticReconnect([0, 2000, 10000, 30000])
           .configureLogging(LogLevel.Information)
           .build();
@@ -1089,7 +1090,7 @@ export default function AtendimentoPage() {
     }));
 
     try {
-      axios.post(`http://localhost:5656/api/attendances/${chatId}/assign`, {
+      axios.post(`${API_BASE_URL}/api/attendances/${chatId}/assign`, {
         OperatorId: operatorId,
         OperatorName: name
       }).catch((error) => console.error(`Erro ao atribuir chat ${chatId} ao operador ${name}:`, error));
@@ -1113,7 +1114,7 @@ export default function AtendimentoPage() {
       }
     }));
     try {
-      await axios.post(`http://localhost:5656/api/attendances/${chatId}/step`, { Step: step, OperatorId: operatorId });
+      await axios.post(`${API_BASE_URL}/api/attendances/${chatId}/step`, { Step: step, OperatorId: operatorId });
     } catch (error) {
       console.error(`Erro ao atualizar passo ${step} do chat ${chatId}:`, error);
     }
@@ -1136,7 +1137,7 @@ export default function AtendimentoPage() {
     }));
 
     try {
-      await axios.post(`http://localhost:5656/api/attendances/${chatId}/finalize`, {
+      await axios.post(`${API_BASE_URL}/api/attendances/${chatId}/finalize`, {
         Description: description,
         Verified: true,
         OperatorId: operatorId

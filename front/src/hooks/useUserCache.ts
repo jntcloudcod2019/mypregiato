@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { OperatorLead } from '@/types/operator-lead';
+import { API_BASE_URL } from '../config/api';
 
 interface UserInfo {
   id: string;
@@ -35,7 +36,7 @@ export const useUserCache = () => {
 
   const getUserInfo = useCallback(async (email: string): Promise<UserInfo | null> => {
     try {
-      const response = await fetch(`http://localhost:5656/api/users/by-email/${encodeURIComponent(email)}`);
+      const response = await fetch(`${API_BASE_URL}/api/users/by-email/${encodeURIComponent(email)}`);
       if (response.ok) {
         const data = await response.json();
         return data;
@@ -49,7 +50,7 @@ export const useUserCache = () => {
 
   const getLeads = useCallback(async (email: string): Promise<OperatorLead[]> => {
     try {
-      const response = await fetch(`http://localhost:5656/api/operator-leads/by-email/${encodeURIComponent(email)}`);
+      const response = await fetch(`${API_BASE_URL}/api/operator-leads/by-email/${encodeURIComponent(email)}`);
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.data) {

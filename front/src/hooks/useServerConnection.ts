@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { API_BASE_URL } from '../config/api';
 import { useClerk } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
@@ -28,7 +29,7 @@ export const useServerConnection = () => {
     setServerStatus(prev => ({ ...prev, isChecking: true }));
 
     try {
-      const response = await fetch('http://localhost:5656/api/health', {
+      const response = await fetch(`${API_BASE_URL}/api/health`, {
         method: 'GET',
         signal: AbortSignal.timeout(5000) // 5 segundos de timeout
       });

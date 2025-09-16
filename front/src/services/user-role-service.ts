@@ -1,5 +1,6 @@
 import { useUser } from '@clerk/clerk-react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config/api';
 import { useState, useEffect } from 'react';
 
 export interface UserRole {
@@ -26,7 +27,7 @@ const DEFAULT_ROLE: UserRole = {
 export class UserRoleService {
   static async getUserRoleByEmail(email: string): Promise<UserRole | null> {
     try {
-      const response = await axios.get(`http://localhost:5656/api/users/by-email/${email}`);
+      const response = await axios.get(`${API_BASE_URL}/api/users/by-email/${email}`);
       return response.data;
     } catch (error) {
       console.error('Erro ao buscar role do usuário:', error);
@@ -36,7 +37,7 @@ export class UserRoleService {
 
   static async getUserRoleByClerkId(clerkId: string): Promise<UserRole | null> {
     try {
-      const response = await axios.get(`http://localhost:5656/api/users/by-clerk-id/${clerkId}`);
+      const response = await axios.get(`${API_BASE_URL}/api/users/by-clerk-id/${clerkId}`);
       return response.data;
     } catch (error) {
       console.error('Erro ao buscar role do usuário:', error);

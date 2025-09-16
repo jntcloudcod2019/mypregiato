@@ -144,7 +144,9 @@ namespace Pregiato.API.Controllers
                 using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(3) };
                 try
                 {
-                    var resp = await client.GetAsync("http://localhost:3030/status");
+                    // ✅ PRODUÇÃO: Usar URL do Zap Bot via variável de ambiente
+                    var zapBotUrl = Environment.GetEnvironmentVariable("ZAP_BOT_URL") ?? "http://localhost:3030";
+                    var resp = await client.GetAsync($"{zapBotUrl}/status");
                     botUp = resp.IsSuccessStatusCode;
                     
                     if (botUp && resp.IsSuccessStatusCode)

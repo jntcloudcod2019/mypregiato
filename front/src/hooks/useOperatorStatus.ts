@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useUser } from '@clerk/clerk-react'
 import axios from 'axios'
+import { API_BASE_URL } from '../config/api'
 
 export interface OperatorInfo {
   id: string
@@ -53,7 +54,7 @@ export const useOperatorStatus = () => {
   // Buscar dados do usuário na API
   const fetchUserFromApi = async (email: string): Promise<ApiUser | null> => {
     try {
-      const response = await axios.get(`http://localhost:5656/api/users/by-email/${email}`);
+      const response = await axios.get(`${API_BASE_URL}/api/users/by-email/${email}`);
       return response.data;
     } catch (error) {
       console.error('Erro ao buscar usuário na API:', error);

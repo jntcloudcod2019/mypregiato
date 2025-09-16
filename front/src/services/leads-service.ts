@@ -1,8 +1,9 @@
 import axios from 'axios';
+import { API_URL } from '../config/api';
 
 // API com interceptors para melhor tratamento de erros
 const api = axios.create({
-  baseURL: 'http://localhost:5656/api',
+  baseURL: API_URL,
   timeout: 30000,
   headers: { 'Content-Type': 'application/json' }
 });

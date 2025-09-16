@@ -14,6 +14,7 @@
       "variables": {
         "ASPNETCORE_ENVIRONMENT": "Production",
         "ASPNETCORE_URLS": "http://+:${PORT:-5656}",
+        "ZAP_BOT_URL": "https://zap-bot-production-b642.up.railway.app",
         "MYSQL_DATABASE": "railway",
         "MYSQL_ROOT_PASSWORD": "nmZKnTmDpQIwmvRBYIoIbFjYyaiZPoEq",
         "MYSQLDATABASE": "railway",

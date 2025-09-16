@@ -9,6 +9,8 @@ export interface ServerStatus {
 
 type ServerStatusListener = (status: ServerStatus) => void;
 
+import { API_BASE_URL } from '../config/api';
+
 class ServerConnectionService {
   private status: ServerStatus = {
     isOnline: true,
@@ -66,7 +68,7 @@ class ServerConnectionService {
     this.notifyListeners();
 
     try {
-      const response = await fetch('http://localhost:5656/api/health', {
+      const response = await fetch(`${API_BASE_URL}/api/health`, {
         method: 'GET',
         signal: AbortSignal.timeout(5000) // 5 segundos de timeout
       });

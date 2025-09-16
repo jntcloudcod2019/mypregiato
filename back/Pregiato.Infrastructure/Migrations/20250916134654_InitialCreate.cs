@@ -254,6 +254,38 @@ namespace Pregiato.Infrastructure.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "OperatorLeads",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    OperatorId = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    EmailOperator = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    NameLead = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    PhoneLead = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Responsible = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Age = table.Column<int>(type: "int", nullable: true),
+                    PublicADS = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP(6)"),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true, defaultValueSql: "CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)"),
+                    StatusContact = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false),
+                    DateContact = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    StatusSeletiva = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false),
+                    SeletivaInfo = table.Column<string>(type: "json", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OperatorLeads", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "Operators",
                 columns: table => new
                 {
@@ -820,7 +852,7 @@ namespace Pregiato.Infrastructure.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     FromMe = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     IsGroup = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    Text = table.Column<string>(type: "TEXT", maxLength: 5000, nullable: true)
+                    Text = table.Column<string>(type: "LONGTEXT", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     MediaUrl = table.Column<string>(type: "varchar(1000)", maxLength: 1000, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -1075,6 +1107,9 @@ namespace Pregiato.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "ModuleRecords");
+
+            migrationBuilder.DropTable(
+                name: "OperatorLeads");
 
             migrationBuilder.DropTable(
                 name: "Operators");

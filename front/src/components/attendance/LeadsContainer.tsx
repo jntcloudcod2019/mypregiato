@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { API_BASE_URL } from '@/config/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -92,7 +93,7 @@ export const LeadsContainer: React.FC<LeadsContainerProps> = ({ existingChats = 
       }
 
       // ✅ 2. SEGUNDO: Verificar no backend via API
-      const response = await fetch('http://localhost:5656/api/chats', {
+      const response = await fetch(`${API_BASE_URL}/api/chats`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

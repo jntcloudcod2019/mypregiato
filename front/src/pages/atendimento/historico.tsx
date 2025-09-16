@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { API_BASE_URL } from '@/config/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -48,7 +49,7 @@ export default function HistoricoPage() {
     
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:5656/api/chats?search=${searchTerm}`);
+      const response = await fetch(`${API_BASE_URL}/api/chats?search=${searchTerm}`);
       const data = await response.json() as ChatHistoryResponse;
       
       if (data.messages) {
@@ -82,7 +83,7 @@ export default function HistoricoPage() {
   const fetchMessages = useCallback(async (chatId: string) => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:5656/api/chats/${chatId}/messages`);
+      const response = await fetch(`${API_BASE_URL}/api/chats/${chatId}/messages`);
       const data = await response.json() as ChatHistoryResponse;
       
       if (data.messages) {

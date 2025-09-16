@@ -13,6 +13,7 @@
     "production": {
       "variables": {
         "NODE_ENV": "production",
+        "PORT": "3030",
         "INSTANCE_ID": "zap-prod",
         "API_BASE": "https://pregiato-api-production.up.railway.app",
         "DEBUG": "false",

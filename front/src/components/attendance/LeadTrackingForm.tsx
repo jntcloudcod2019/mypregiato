@@ -11,6 +11,7 @@ import { ptBR } from 'date-fns/locale';
 import { toast } from '@/hooks/use-toast';
 import { useUser } from '@clerk/clerk-react';
 import axios from 'axios';
+import { API_BASE_URL } from '@/config/api';
 
 interface SeletivaInfo {
   dateSeletiva?: string;
@@ -143,7 +144,7 @@ export const LeadTrackingForm: React.FC<LeadTrackingFormProps> = ({
       const payload = montarPayload();
       
       const response = await axios.put(
-        'http://localhost:5656/api/operator-leads/update-tracking',
+        `${API_BASE_URL}/api/operator-leads/update-tracking`,
         payload,
         {
           headers: {

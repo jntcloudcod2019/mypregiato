@@ -11,8 +11,8 @@ using Pregiato.Infrastructure.Data;
 namespace Pregiato.Infrastructure.Migrations
 {
     [DbContext(typeof(PregiatoDbContext))]
-    [Migration("20250910021520_AddOperatorLeadsNewFields")]
-    partial class AddOperatorLeadsNewFields
+    [Migration("20250916134654_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1340,10 +1340,9 @@ namespace Pregiato.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
 
-                    b.Property<bool>("PublicADS")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("tinyint(1)")
-                        .HasDefaultValue(false);
+                    b.Property<string>("PublicADS")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("Responsible")
                         .HasMaxLength(255)

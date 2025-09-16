@@ -1,5 +1,6 @@
 import axios from 'axios';
 import type { HubConnection } from '@microsoft/signalr';
+import { SIGNALR_URL } from '../config/api';
 
 interface QRCodeMessage {
   qrCode: string;
@@ -58,7 +59,7 @@ class QRCodeQueueService {
       const { HubConnectionBuilder, LogLevel } = await import('@microsoft/signalr');
       
       this.connection = new HubConnectionBuilder()
-        .withUrl('http://localhost:5656/whatsappHub')
+        .withUrl(SIGNALR_URL)
         .withAutomaticReconnect([0, 2000, 10000, 30000]) // Reconexão automática
         .configureLogging(LogLevel.Information)
         .build();

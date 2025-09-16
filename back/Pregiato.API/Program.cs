@@ -50,7 +50,8 @@ builder.Services.AddCors(options =>
                 "http://127.0.0.1:5173",
                 // Produção Railway
                 "https://*.up.railway.app",
-                "https://pregiato-frontend-production.up.railway.app"
+                "my-pregiato-production.up.railway.app",
+                "https://mypregiato.com"
               )
               .AllowAnyMethod()
               .AllowAnyHeader()
@@ -58,9 +59,14 @@ builder.Services.AddCors(options =>
     });
 });
 
-// ✅ CONFIGURAÇÃO DE BANCO DE DADOS POR AMBIENTE
+// ✅ CONFIGURAÇÃO DE BANCO DE DADOS - FORÇANDO PRODUÇÃO PARA MIGRAÇÃO
 string connectionString;
 
+// ✅ FORÇAR USO DO BANCO DE PRODUÇÃO PARA GERAR MIGRAÇÃO
+connectionString = "Server=gondola.proxy.rlwy.net;Port=23254;Database=railway;Uid=root;Pwd=nmZKnTmDpQIwmvRBYIoIbFjYyaiZPoEq;CharSet=utf8mb4;";
+Log.Information("🔧 FORÇANDO uso do banco de dados de PRODUÇÃO (Railway) para migração");
+
+/* COMENTADO TEMPORARIAMENTE PARA GERAR MIGRAÇÃO
 // Verificar se está em produção (Railway)
 if (builder.Environment.IsProduction() || !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RAILWAY_ENVIRONMENT")))
 {
@@ -82,6 +88,7 @@ else
     
     Log.Information("🔧 Usando configuração de banco de dados de DESENVOLVIMENTO (local)");
 }
+*/
 
 builder.Services.AddDbContext<PregiatoDbContext>(options =>
     options.UseMySql(

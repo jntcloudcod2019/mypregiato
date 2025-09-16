@@ -472,7 +472,9 @@ app.get('/status', (req,res)=> {
   res.json(status);
 });
 app.get('/health', (req,res)=> res.json({ status: 'OK', ts: new Date().toISOString() }));
-app.listen(3030, ()=> Log.info('Status server em http://localhost:3030'));
+// ✅ CORREÇÃO: Configurar servidor para escutar em todas as interfaces (necessário para Railway)
+const PORT = process.env.PORT || 3030;
+app.listen(PORT, '0.0.0.0', ()=> Log.info(`Status server em http://0.0.0.0:${PORT}`));
 
 // ========================= WhatsApp Client =========================
 

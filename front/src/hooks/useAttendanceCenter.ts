@@ -6,6 +6,7 @@ import {
   AttendanceMetrics, 
   WhatsAppMessage 
 } from '@/types/attendance';
+import { API_BASE_URL } from '../config/api';
 
 export const useAttendanceCenter = () => {
   const [queue, setQueue] = useState<ChatRequest[]>([]);
@@ -187,7 +188,7 @@ export const useAttendanceCenter = () => {
       if (!isSubscribed) return;
 
       try {
-        const response = await fetch('http://localhost:5656/api/whatsapp/queue/messages');
+        const response = await fetch(`${API_BASE_URL}/api/whatsapp/queue/messages`);
         const data = await response.json();
         
         if (isSubscribed && data.messages && data.messages.length > 0) {
