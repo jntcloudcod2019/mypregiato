@@ -1,14 +1,19 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const { PrismaClient } = require('@prisma/client');
 
 const app = express();
 const prisma = new PrismaClient();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 8080;
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// ✅ CORREÇÃO: Serve os arquivos estáticos da pasta 'dist' (React SPA)
+const frontEndPath = path.join(__dirname, '../dist');
+app.use(express.static(frontEndPath));
 
 // Routes
 app.get('/api/talents', async (req, res) => {
@@ -182,9 +187,21 @@ app.get('/api/producers', async (req, res) => {
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK' });
+  res.json({ status: 'OK', service: 'frontend', timestamp: new Date().toISOString() });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+// ✅ CORREÇÃO: Rota "catch-all" para servir o index.html em qualquer rota não-API
+// Esta rota DEVE vir por último, após todas as rotas de API
+// Permite que o React Router gerencie todas as rotas da SPA (/login, /dashboard, /crm/*, etc.)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(frontEndPath, 'index.html'));
+});
+
+// ✅ CORREÇÃO: Configurar servidor para escutar em todas as interfaces (necessário para Railway)
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Frontend server running on port ${PORT}`);
+  console.log(`📁 Serving static files from: ${frontEndPath}`);
+  console.log(`🌐 Accessible at: http://0.0.0.0:${PORT}`);
+  console.log(`✅ SPA routing configured - all non-API routes will serve index.html`);
+  console.log(`📋 Available routes: /login, /dashboard, /crm/*, /talentos/*, /atendimento/*, etc.`);
 }); 
