@@ -498,7 +498,20 @@ async function startConsumer() {
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// ✅ MIDDLEWARE: Log de todas as requisições HTTP
+app.use((req, res, next) => {
+  Log.info('[HTTP] 📥 Requisição recebida', {
+    method: req.method,
+    path: req.path,
+    ip: req.ip,
+    userAgent: req.get('User-Agent'),
+    timestamp: new Date().toISOString()
+  });
+  next();
+});
 app.get('/status', (req,res)=> {
+  try {
   const status = {
     instanceId,
     isConnected,
@@ -511,11 +524,29 @@ app.get('/status', (req,res)=> {
     lastActivity: new Date().toISOString(),
     queueMessageCount: 0,
     canGenerateQR: connectedNumber ? false : true,
-    hasQRCode: true
-  };
-  
-  Log.info('[STATUS] Endpoint /status chamado', status);
+      hasQRCode: true,
+      // ✅ DEBUG: Adicionar informações do ambiente
+      environment: process.env.NODE_ENV || 'development',
+      port: process.env.PORT || 3030,
+      railway: !!process.env.RAILWAY_ENVIRONMENT
+    };
+    
+    Log.info('[STATUS] ✅ Endpoint /status respondendo', {
+      status: status.status,
+      isConnected,
+      connectedNumber,
+      port: process.env.PORT
+    });
+    
   res.json(status);
+  } catch (error) {
+    Log.error('[STATUS] ❌ Erro no endpoint /status:', error.message);
+    res.status(500).json({ 
+      error: 'Erro interno', 
+      message: error.message,
+      ts: new Date().toISOString()
+    });
+  }
 });
 app.get('/health', (req,res)=> res.json({ status: 'OK', ts: new Date().toISOString() }));
 // ✅ CORREÇÃO: Configurar servidor para escutar em todas as interfaces (necessário para Railway)
