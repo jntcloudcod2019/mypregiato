@@ -2,7 +2,7 @@
 FROM node:18-alpine
 
 # Instalar dependências do sistema necessárias para WhatsApp Web.js
-RUN apk add --no-cache \
+RUN apk update && apk add --no-cache \
     chromium \
     nss \
     freetype \

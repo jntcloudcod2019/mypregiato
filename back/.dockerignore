@@ -1,43 +1,38 @@
-# Build outputs
+# Arquivos de build
 **/bin/
 **/obj/
 **/out/
+**/publish/
 
-# Logs
+# Arquivos de log
 **/logs/
 *.log
 
-# IDE files
+# Arquivos temporários
+**/temp/
+**/tmp/
+
+# Arquivos de IDE
 .vs/
 .vscode/
 *.user
 *.suo
-*.cache
 
-# OS files
+# Arquivos de sistema
 .DS_Store
 Thumbs.db
 
-# Git
-.git/
-.gitignore
-
-# Test files
+# Arquivos de teste
 **/TestResults/
 **/*.Tests/
-**/*.Test/
 
-# Documentation
-README.md
+# Arquivos de documentação
 *.md
+README*
 
-# Temporary files
-*.tmp
-*.temp
+# Arquivos de configuração local
+appsettings.Development.json
+appsettings.Local.json
 
-# Node modules (if any)
-node_modules/
-
-# Package files
-*.nupkg
-*.snupkg
+# Arquivos de migração (se não precisar no container)
+# **/Migrations/
