@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "eRsoISw9JbM=",
+  "dgSpecHash": "FyC2uTSvTlw=",
   "success": true,
   "projectFilePath": "/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/Pregiato.API.csproj",
   "expectedPackageFiles": [
@@ -85,7 +85,7 @@
     "/Users/worldgames/.nuget/packages/microsoft.identitymodel.protocols/7.0.3/microsoft.identitymodel.protocols.7.0.3.nupkg.sha512",
     "/Users/worldgames/.nuget/packages/microsoft.identitymodel.protocols.openidconnect/7.0.3/microsoft.identitymodel.protocols.openidconnect.7.0.3.nupkg.sha512",
     "/Users/worldgames/.nuget/packages/microsoft.identitymodel.tokens/7.0.3/microsoft.identitymodel.tokens.7.0.3.nupkg.sha512",
-    "/Users/worldgames/.nuget/packages/microsoft.io.recyclablememorystream/2.3.2/microsoft.io.recyclablememorystream.2.3.2.nupkg.sha512",
+    "/Users/worldgames/.nuget/packages/microsoft.io.recyclablememorystream/3.0.1/microsoft.io.recyclablememorystream.3.0.1.nupkg.sha512",
     "/Users/worldgames/.nuget/packages/microsoft.net.http.headers/2.2.0/microsoft.net.http.headers.2.2.0.nupkg.sha512",
     "/Users/worldgames/.nuget/packages/microsoft.netcore.platforms/2.0.0/microsoft.netcore.platforms.2.0.0.nupkg.sha512",
     "/Users/worldgames/.nuget/packages/microsoft.netcore.targets/1.1.0/microsoft.netcore.targets.1.1.0.nupkg.sha512",
@@ -106,8 +106,8 @@
     "/Users/worldgames/.nuget/packages/serilog.sinks.console/5.0.1/serilog.sinks.console.5.0.1.nupkg.sha512",
     "/Users/worldgames/.nuget/packages/serilog.sinks.debug/2.0.0/serilog.sinks.debug.2.0.0.nupkg.sha512",
     "/Users/worldgames/.nuget/packages/serilog.sinks.file/5.0.0/serilog.sinks.file.5.0.0.nupkg.sha512",
-    "/Users/worldgames/.nuget/packages/sixlabors.imagesharp/3.1.5/sixlabors.imagesharp.3.1.5.nupkg.sha512",
-    "/Users/worldgames/.nuget/packages/sixlabors.imagesharp.web/3.1.2/sixlabors.imagesharp.web.3.1.2.nupkg.sha512",
+    "/Users/worldgames/.nuget/packages/sixlabors.imagesharp/3.1.6/sixlabors.imagesharp.3.1.6.nupkg.sha512",
+    "/Users/worldgames/.nuget/packages/sixlabors.imagesharp.web/3.1.3/sixlabors.imagesharp.web.3.1.3.nupkg.sha512",
     "/Users/worldgames/.nuget/packages/sqlitepclraw.bundle_e_sqlite3/2.1.6/sqlitepclraw.bundle_e_sqlite3.2.1.6.nupkg.sha512",
     "/Users/worldgames/.nuget/packages/sqlitepclraw.core/2.1.6/sqlitepclraw.core.2.1.6.nupkg.sha512",
     "/Users/worldgames/.nuget/packages/sqlitepclraw.lib.e_sqlite3/2.1.6/sqlitepclraw.lib.e_sqlite3.2.1.6.nupkg.sha512",
@@ -168,7 +168,7 @@
     {
       "code": "NU1903",
       "level": "Warning",
-      "message": "O pacote 'SixLabors.ImageSharp' 3.1.5 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-2cmq-823j-5qj8",
+      "message": "O pacote 'SixLabors.ImageSharp' 3.1.6 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-2cmq-823j-5qj8",
       "projectPath": "/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/Pregiato.API.csproj",
       "warningLevel": 1,
       "filePath": "/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/Pregiato.API.csproj",
@@ -180,7 +180,7 @@
     {
       "code": "NU1902",
       "level": "Warning",
-      "message": "O pacote 'SixLabors.ImageSharp' 3.1.5 tem uma moderado vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-rxmq-m78w-7wmc",
+      "message": "O pacote 'SixLabors.ImageSharp' 3.1.6 tem uma moderado vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-rxmq-m78w-7wmc",
       "projectPath": "/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/Pregiato.API.csproj",
       "warningLevel": 1,
       "filePath": "/Users/worldgames/Documents/PREGIATO/My_pregiato /mypregiato/back/Pregiato.API/Pregiato.API.csproj",
