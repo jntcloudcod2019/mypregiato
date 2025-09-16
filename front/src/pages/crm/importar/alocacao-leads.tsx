@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from '../../../components/ui/alert';
 import { ErrorBoundary } from '../../../components/common/error-boundary';
 import { LoadingFallback } from '../../../components/ui/loading-fallback';
 import { OperatorsList } from '../../../components/crm/operators-list';
+import { API_URL } from '../../../config/api';
 
 // Tipos de valores possíveis na planilha
 type CellValue = string | number | boolean | null | undefined;
@@ -203,7 +204,7 @@ const AlocacaoLeadsPage: React.FC = () => {
   const allocateAllLeads = async () => {
     try {
       // Buscar operadores disponíveis
-      const operatorsResponse = await fetch('/api/users/operators');
+      const operatorsResponse = await fetch(`${API_URL}/users/operators`);
       if (!operatorsResponse.ok) {
         throw new Error('Erro ao buscar operadores');
       }
@@ -284,7 +285,7 @@ const AlocacaoLeadsPage: React.FC = () => {
       }
 
       // Buscar operadores para obter informações completas
-      const operatorsResponse = await fetch('/api/users/operators');
+      const operatorsResponse = await fetch(`${API_URL}/users/operators`);
       if (!operatorsResponse.ok) {
         throw new Error('Erro ao buscar operadores');
       }
@@ -396,7 +397,7 @@ const AlocacaoLeadsPage: React.FC = () => {
       }
       
       // Log da URL e headers
-      const apiUrl = '/api/operator-leads/allocate';
+      const apiUrl = `${API_URL}/operator-leads/allocate`;
       console.log('URL da API:', apiUrl);
       console.log('Headers:', { 'Content-Type': 'application/json' });
       console.log('Método: POST');

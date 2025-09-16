@@ -56,20 +56,50 @@ class QRCodeQueueService {
       console.log('🔌 Conectando ao SignalR...');
       
       // Importar SignalR dinamicamente
-      const { HubConnectionBuilder, LogLevel } = await import('@microsoft/signalr');
+      const { HubConnectionBuilder, LogLevel, HttpTransportType } = await import('@microsoft/signalr');
+      
+      console.log('🌐 URL SignalR:', SIGNALR_URL);
+      console.log('🏭 Ambiente:', import.meta.env.PROD ? 'PRODUÇÃO' : 'DESENVOLVIMENTO');
       
       this.connection = new HubConnectionBuilder()
-        .withUrl(SIGNALR_URL)
+        .withUrl(SIGNALR_URL, {
+          // ✅ ADICIONADO: Configurações para produção no Railway
+          transport: import.meta.env.PROD ? 
+            HttpTransportType.WebSockets | HttpTransportType.ServerSentEvents :
+            HttpTransportType.WebSockets,
+          skipNegotiation: false,
+          withCredentials: false
+        })
         .withAutomaticReconnect([0, 2000, 10000, 30000]) // Reconexão automática
-        .configureLogging(LogLevel.Information)
+        .configureLogging(import.meta.env.PROD ? LogLevel.Warning : LogLevel.Information)
         .build();
 
       // Configurar handlers de eventos
       console.log('🎧 Registrando handler para evento qr.update...');
       this.qrUpdateHandler = (qrCodeMessage: QRCodeMessage) => {
-        console.log('📱 QR Code recebido via SignalR (qr.update):', qrCodeMessage.qrCode.substring(0, 50) + '...');
+        console.log('📱 QR Code recebido via SignalR (qr.update):', {
+          qrCodeLength: qrCodeMessage.qrCode?.length,
+          qrPreview: qrCodeMessage.qrCode?.substring(0, 50) + '...',
+          timestamp: qrCodeMessage.timestamp,
+          instanceId: qrCodeMessage.instanceId,
+          type: qrCodeMessage.type
+        });
         console.log('📊 Total de handlers registrados:', this.handlers.length);
-        console.log('📦 Mensagem completa:', qrCodeMessage);
+        
+        // ✅ VALIDAÇÃO: Verificar se o QR Code é válido
+        if (!qrCodeMessage.qrCode || qrCodeMessage.qrCode.trim() === '') {
+          console.warn('⚠️ QR Code vazio ou inválido recebido via SignalR');
+          return;
+        }
+        
+        // ✅ VALIDAÇÃO: Verificar se é um QR Code válido (deve começar com data: ou ser base64)
+        const isValidQR = qrCodeMessage.qrCode.startsWith('data:') || 
+                         (qrCodeMessage.qrCode.length > 100 && /^[A-Za-z0-9+/=]+$/.test(qrCodeMessage.qrCode));
+        
+        if (!isValidQR) {
+          console.warn('⚠️ QR Code com formato inválido:', qrCodeMessage.qrCode.substring(0, 100));
+          return;
+        }
         
         // Notificar todos os handlers
         this.handlers.forEach((handler, index) => {

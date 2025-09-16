@@ -1,5 +1,6 @@
 
-import { CurrentUser } from '@/types/whatsapp'
+import { CurrentUser } from '@/types/whatsapp';
+import { API_URL } from '@/config/api';
 
 // Interface para resultado paginado
 export interface PagedResult<T> {
@@ -28,7 +29,7 @@ export class UserService {
   static async getUserByEmail(email: string): Promise<CurrentUser | null> {
     try {
       // Fazer chamada real à API
-      const response = await fetch(`/api/users/by-email/${encodeURIComponent(email)}`);
+      const response = await fetch(`${API_URL}/users/by-email/${encodeURIComponent(email)}`);
       
       if (!response.ok) {
         return null;
@@ -52,7 +53,7 @@ export class UserService {
   static async getUserByClerkId(clerkId: string): Promise<CurrentUser | null> {
     try {
       // Fazer chamada real à API
-      const response = await fetch(`/api/users/by-clerk-id/${clerkId}`);
+      const response = await fetch(`${API_URL}/users/by-clerk-id/${clerkId}`);
       
       if (!response.ok) {
         return null;
@@ -76,7 +77,7 @@ export class UserService {
   static async getOperators(page: number = 1, pageSize: number = 20, searchTerm?: string): Promise<PagedResult<OperatorUser>> {
     try {
       // Fazer chamada real à API
-      const response = await fetch(`/api/users/operators`);
+      const response = await fetch(`${API_URL}/users/operators`);
       
       if (!response.ok) {
         throw new Error(`Erro na API: ${response.status}`);

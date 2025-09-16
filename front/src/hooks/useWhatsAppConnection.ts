@@ -180,17 +180,53 @@ export const useWhatsAppConnection = () => {
 
   useEffect(() => {
     const handleQRCode = (qrCode: string | null) => {
+      console.log('🎯 [QR] handleQRCode chamado:', { qrCode: qrCode?.substring(0, 50) + '...', hasQR: !!qrCode });
+      
       if (!qrCode) {
-        setConnectionState(prev => ({ ...prev, error: 'Bot já está conectado. Não é possível gerar novo QR code.', status: ConnectionStatus.disconnected, hasQRCode: false, qrCode: undefined }));
+        console.log('❌ [QR] QR Code é null, bot provavelmente já conectado');
+        setConnectionState(prev => ({ 
+          ...prev, 
+          error: 'Bot já está conectado. Não é possível gerar novo QR code.', 
+          status: ConnectionStatus.connected, // ✅ CORREÇÃO: mudar para connected se QR é null
+          hasQRCode: false, 
+          qrCode: undefined 
+        }));
         return;
       }
-      setConnectionState(prev => ({ ...prev, qrCode, hasQRCode: true, status: ConnectionStatus.generating, error: undefined }));
+      
+      console.log('✅ [QR] QR Code recebido, atualizando estado');
+      setConnectionState(prev => ({ 
+        ...prev, 
+        qrCode, 
+        hasQRCode: true, 
+        status: ConnectionStatus.generating, 
+        error: undefined 
+      }));
     };
 
+    // ✅ CORREÇÃO: Adicionar handler para qr.update via SignalR
+    const handleQRUpdate = (data: { qrCode: string; timestamp: string; instanceId: string; requestId?: string }) => {
+      console.log('📱 [QR] qr.update recebido via SignalR:', { 
+        hasQR: !!data.qrCode, 
+        qrLength: data.qrCode?.length,
+        timestamp: data.timestamp,
+        instanceId: data.instanceId 
+      });
+      
+      handleQRCode(data.qrCode);
+    };
+
+    // Registrar handlers
     qrCodeQueueService.onQRCode(handleQRCode);
+    qrCodeQueueService.addListener('qr.update', handleQRUpdate);
     qrCodeQueueService.startQRCodeConsumer();
+    
+    console.log('🎧 [QR] Handlers registrados e conexão SignalR iniciada');
+    
     return () => {
+      console.log('🧹 [QR] Limpando handlers e parando conexão');
       qrCodeQueueService.removeHandler(handleQRCode);
+      qrCodeQueueService.removeListener('qr.update', handleQRUpdate);
       qrCodeQueueService.stopQRCodeConsumer();
     };
   }, []);

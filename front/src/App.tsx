@@ -41,6 +41,7 @@ import PontoEletronicoPage from "./pages/ponto";
 import NotFound from "./pages/NotFound";
 import ModulePage from "./pages/modules/slug";
 import FichaDigitalPage from "./pages/events/ficha/token";
+import { WhatsAppProvider } from "./providers/whatsapp-provider";
 
 // Componente para redirecionamento da raiz - sempre para login
 const RootRedirect = () => {
@@ -52,6 +53,7 @@ const App = () => (
     <AuthInitializer>
       <AutoLogout>
         <AuthGuard>
+          <WhatsAppProvider>
           <Routes>
         {/* Rotas públicas (não requerem autenticação) */}
         <Route path="/login" element={<LoginPage />} />
@@ -343,8 +345,9 @@ const App = () => (
         {/* Rota 404 - redireciona para login */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
-    </AuthGuard>
-    </AutoLogout>
+          </WhatsAppProvider>
+        </AuthGuard>
+      </AutoLogout>
     </AuthInitializer>
   </BrowserRouter>
 );

@@ -196,7 +196,7 @@ namespace Pregiato.API.Controllers
                 connectedNumber,
                 status,
                 lastActivity,
-                queueMessageCount = 0,
+                    queueMessageCount = 0,
                 canGenerateQR = !sessionConnected,
                 hasQRCode = hasQr
             });

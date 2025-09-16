@@ -751,6 +751,7 @@ export default function AtendimentoPage() {
         connection.off('message.status');
         connection.off('presence.typing');
         connection.off('chat.read');
+        connection.off('qr.update'); // ✅ ADICIONADO: Limpar listener de QR update
 
         const throttledRefresh = async (ms = 5000) => {
           const isDebugEnabled = localStorage.getItem('debug.chat') === 'true';
@@ -1008,6 +1009,19 @@ export default function AtendimentoPage() {
           if (evt.chatId === selectedChatIdRef.current) {
             setMessages(prev => prev.map(m => (new Date(m.ts).getTime() <= new Date(evt.readUpTo).getTime() && m.direction === MessageDirection.In) ? { ...m, status: 'read' } : m));
           }
+        });
+
+        // ✅ ADICIONADO: Listener para QR Code updates
+        connection.on('qr.update', (qrData: { qrCode: string; timestamp: string; instanceId: string; requestId?: string }) => {
+          console.log('📱 [ATENDIMENTO] QR Code recebido via SignalR:', {
+            hasQR: !!qrData.qrCode,
+            qrLength: qrData.qrCode?.length,
+            timestamp: qrData.timestamp,
+            instanceId: qrData.instanceId
+          });
+          
+          // O QR Code será tratado pelo qrCodeQueueService através do useWhatsAppConnection hook
+          // Este log serve apenas para debug e confirmar que o evento está chegando na página
         });
 
         connRef.current = connection;
