@@ -4,7 +4,7 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copia os arquivos de projeto
+# Copia os arquivos de projeto para restaurar dependências
 COPY Pregiato.API/Pregiato.API.csproj Pregiato.API/
 COPY Pregiato.Core/Pregiato.Core.csproj Pregiato.Core/
 COPY Pregiato.Application/Pregiato.Application.csproj Pregiato.Application/
@@ -12,14 +12,17 @@ COPY Pregiato.Infrastructure/Pregiato.Infrastructure.csproj Pregiato.Infrastruct
 COPY Directory.Build.props .
 
 # Restaura dependências
-WORKDIR /src/Pregiato.API
-RUN dotnet restore "Pregiato.API.csproj"
+RUN dotnet restore "Pregiato.API/Pregiato.API.csproj"
 
 # Copia todo o código fonte
-COPY . .
+COPY . /src/
+
+# Build da aplicação
+WORKDIR /src/Pregiato.API
+RUN dotnet build "Pregiato.API.csproj" -c Release --no-restore
 
 # Publica a aplicação
-RUN dotnet publish "Pregiato.API.csproj" -c Release --no-self-contained -o /app/publish
+RUN dotnet publish "Pregiato.API.csproj" -c Release --no-build --no-restore -o /app/publish
 
 # ---------------------------------------
 # Etapa 2: Runtime
