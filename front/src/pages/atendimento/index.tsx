@@ -306,6 +306,51 @@ export default function AtendimentoPage() {
   const typingByChat = useChatStore(s => s.byChat);
   const lastReadAtByChat = useChatStore(s => s.lastReadAtByChat);
 
+  // 🔐 CACHE: Armazenar leads alocados para evitar múltiplas requisições
+  const operatorPhonesCache = useRef<{
+    email: string;
+    phones: string[];
+    timestamp: number;
+  } | null>(null);
+
+  const isPhoneAuthorized = useCallback(async (phoneNumber: string, operatorEmail: string): Promise<boolean> => {
+    if (!operatorEmail || !phoneNumber) return false;
+    
+    const normalizedPhone = phoneNumber.replace(/\D/g, '');
+    if (!normalizedPhone) return false;
+
+    // Verificar cache (válido por 5 minutos)
+    const now = Date.now();
+    const cache = operatorPhonesCache.current;
+    let authorizedPhones: string[] = [];
+
+    if (cache && 
+        cache.email === operatorEmail && 
+        (now - cache.timestamp) < 5 * 60 * 1000) {
+      authorizedPhones = cache.phones;
+    } else {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/operator-leads/by-email/${encodeURIComponent(operatorEmail)}`);
+        if (!response.ok) throw new Error(`Erro ${response.status}`);
+        
+        const data = await response.json();
+        authorizedPhones = data.data?.map((lead: any) => lead.phoneLead?.replace(/\D/g, '')) || [];
+        
+        // Atualizar cache
+        operatorPhonesCache.current = {
+          email: operatorEmail,
+          phones: authorizedPhones,
+          timestamp: now
+        };
+      } catch (error) {
+        console.error('🔐 [CACHE] Erro ao buscar leads do operador:', error);
+        return false;
+      }
+    }
+    
+    return authorizedPhones.includes(normalizedPhone);
+  }, []);
+
   const pickFile = () => fileInputRef.current?.click();
   const readFileAsDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
@@ -779,12 +824,30 @@ export default function AtendimentoPage() {
           await refreshChats();
         };
 
-        connection.on('chat.created', (evt: ChatEvent) => {
+        connection.on('chat.created', async (evt: ChatEvent) => {
           console.log('📨 chat.created recebido:', evt);
           const chat: Partial<ChatListItem> | undefined = evt?.chat;
           const id: string | undefined = chat?.id || evt?.chatId;
           
           if (id && chat) {
+            // 🔐 FILTRO DE SEGURANÇA: Verificar se o chat pertence ao operador atual
+            const operatorEmail = currentOperator?.email;
+            if (!operatorEmail || !chat.contactPhoneE164) {
+              console.log('🔐 [SECURITY] Chat.created ignorado - sem operador ou telefone:', { operatorEmail, phone: chat.contactPhoneE164 });
+              return;
+            }
+
+            const isAuthorized = await isPhoneAuthorized(chat.contactPhoneE164 || '', operatorEmail);
+            if (!isAuthorized) {
+              console.log('🔐 [SECURITY] Chat.created BLOQUEADO - telefone não alocado para operador:', {
+                chatPhone: chat.contactPhoneE164,
+                operatorEmail
+              });
+              return;
+            }
+
+            console.log('🔐 [SECURITY] Chat.created AUTORIZADO para operador:', { chatPhone: chat.contactPhoneE164, operatorEmail });
+
             // ✅ VERIFICAÇÃO MAIS ROBUSTA COM NORMALIZAÇÃO CONSISTENTE
             const existingChat = chats.find(c => {
               // Verificar por ID exato
@@ -817,12 +880,30 @@ export default function AtendimentoPage() {
           }
         });
 
-        connection.on('chat.updated', (evt: ChatEvent) => {
+        connection.on('chat.updated', async (evt: ChatEvent) => {
           console.log('📝 chat.updated recebido:', evt);
           const chat: Partial<ChatListItem> | undefined = evt?.chat;
           const id: string | undefined = chat?.id || evt?.chatId;
           
           if (id && chat) {
+            // 🔐 FILTRO DE SEGURANÇA: Verificar se o chat pertence ao operador atual
+            const operatorEmail = currentOperator?.email;
+            if (!operatorEmail || !chat.contactPhoneE164) {
+              console.log('🔐 [SECURITY] Chat.updated ignorado - sem operador ou telefone:', { operatorEmail, phone: chat.contactPhoneE164 });
+              return;
+            }
+
+            const isAuthorized = await isPhoneAuthorized(chat.contactPhoneE164 || '', operatorEmail);
+            if (!isAuthorized) {
+              console.log('🔐 [SECURITY] Chat.updated BLOQUEADO - telefone não alocado para operador:', {
+                chatPhone: chat.contactPhoneE164,
+                operatorEmail
+              });
+              return;
+            }
+
+            console.log('🔐 [SECURITY] Chat.updated AUTORIZADO para operador:', { chatPhone: chat.contactPhoneE164, operatorEmail });
+
             console.log('✅ Chat atualizado:', id);
             queueChatPatch(id, chat as Partial<ChatListItem>);
           } else {
@@ -840,6 +921,23 @@ export default function AtendimentoPage() {
           const chatId: string = evt?.chatId;
           const from: string | undefined = evt?.message?.from; // ✅ ADICIONADO: Campo from
           if (!id || !chatId) return;
+
+          // 🔐 FILTRO DE SEGURANÇA: Verificar se a mensagem é de lead alocado ao operador
+          const operatorEmail = currentOperator?.email;
+          if (operatorEmail && from) {
+            const phoneNumber = from.replace('@c.us', '').replace('@g.us', '');
+            const isAuthorized = await isPhoneAuthorized(phoneNumber, operatorEmail);
+            
+            if (!isAuthorized) {
+              console.log('🔐 [SECURITY] Mensagem inbound BLOQUEADA - telefone não alocado:', {
+                phone: phoneNumber,
+                operatorEmail
+              });
+              return;
+            }
+            
+            console.log('🔐 [SECURITY] Mensagem inbound AUTORIZADA:', { phone: phoneNumber, operatorEmail });
+          }
 
           // ✅ NOVA LÓGICA: Verificar se chat já existe pelo número de telefone
           let finalChatId = chatId; // Usar chatId original como fallback
