@@ -312,6 +312,44 @@ namespace Pregiato.Infrastructure.Repositories
             }
         }
 
+        /// <inheritdoc/>
+        public async Task<(IEnumerable<ChatLog> Items, int Total)> GetByOperatorAsync(string operatorEmail, string? search = null, int page = 1, int pageSize = 20)
+        {
+            using var context = _contextFactory.CreateDbContext();
+            
+            // Query que faz JOIN entre ChatLogs e OperatorLeads
+            var query = from chatLog in context.Set<ChatLog>()
+                       join operatorLead in context.Set<OperatorLeads>()
+                       on chatLog.ContactPhoneE164 equals operatorLead.PhoneLead
+                       where operatorLead.EmailOperator == operatorEmail
+                       select chatLog;
+
+            // Aplicar filtro de busca se fornecido
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var searchTerm = search.Trim();
+                query = query.Where(c => 
+                    c.Title.Contains(searchTerm) ||
+                    c.ContactPhoneE164.Contains(searchTerm) ||
+                    (c.LastMessagePreview != null && c.LastMessagePreview.Contains(searchTerm)));
+            }
+            
+            // Contar total de registros (antes da paginação)
+            var total = await query.CountAsync();
+            
+            // Aplicar paginação e ordenação
+            var items = await query
+                .OrderByDescending(c => c.LastMessageAt ?? c.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+            
+            _logger.LogInformation("📊 GetByOperatorAsync: Operador={Email}, Total={Total}, Página={Page}, Itens={Items}", 
+                operatorEmail, total, page, items.Count);
+            
+            return (items, total);
+        }
+
         #endregion
     }
 }

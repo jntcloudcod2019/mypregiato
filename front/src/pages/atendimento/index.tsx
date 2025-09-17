@@ -423,8 +423,14 @@ export default function AtendimentoPage() {
     lastRefreshTimeRef.current = now;
 
     try {
-      const response = await chatsApi.list(search, 1, 50) as { items: ChatListItem[]; total: number };
+      // 🔐 FILTRAR CHATS POR OPERADOR AUTENTICADO
+      const operatorEmail = currentOperator?.email;
+      const response = await chatsApi.list(search, 1, 50, operatorEmail) as { items: ChatListItem[]; total: number };
       const items = response.items || [];
+      
+      if (isDebugEnabled && operatorEmail) {
+        console.debug(`🔐 [SECURITY] Chats filtrados por operador: ${operatorEmail}, Total: ${items.length}`);
+      }
       
       // NOVA LÓGICA: Deduplicação resiliente por número de telefone
       const byPhone = new Map<string, ChatListItem>();

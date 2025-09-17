@@ -92,5 +92,15 @@ namespace Pregiato.Core.Interfaces
         /// <param name="limit">Limite de chats</param>
         /// <returns>Lista de chats recentes</returns>
         Task<IEnumerable<ChatLog>> GetRecentChatsAsync(int limit = 10);
+        
+        /// <summary>
+        /// Obtém chats filtrados por operador baseado nos leads alocados
+        /// </summary>
+        /// <param name="operatorEmail">Email do operador</param>
+        /// <param name="search">Texto para busca (opcional)</param>
+        /// <param name="page">Número da página</param>
+        /// <param name="pageSize">Tamanho da página</param>
+        /// <returns>Lista paginada de chats do operador e total de registros</returns>
+        Task<(IEnumerable<ChatLog> Items, int Total)> GetByOperatorAsync(string operatorEmail, string? search = null, int page = 1, int pageSize = 20);
     }
 }

@@ -32,18 +32,31 @@ namespace Pregiato.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> List([FromQuery] string? search, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+        public async Task<IActionResult> List([FromQuery] string? search, [FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] string? operatorEmail = null)
         {
-            var (items, total) = await _chatService.ListAsync(search, Math.Max(page, 1), Math.Clamp(pageSize, 1, 100));
+            (IEnumerable<ChatLog> items, int total) result;
+            
+            // Se operatorEmail for fornecido, filtrar por operador
+            if (!string.IsNullOrWhiteSpace(operatorEmail))
+            {
+                result = await _chatService.ListByOperatorAsync(operatorEmail, search, Math.Max(page, 1), Math.Clamp(pageSize, 1, 100));
+                _logger.LogInformation("📋 Lista filtrada por operador: {Email}, Total: {Total}", operatorEmail, result.total);
+            }
+            else
+            {
+                result = await _chatService.ListAsync(search, Math.Max(page, 1), Math.Clamp(pageSize, 1, 100));
+                _logger.LogInformation("📋 Lista completa de chats: Total: {Total}", result.total);
+            }
+            
             // Deduplicar por contato/título no retorno para evitar itens duplicados no front
             var seen = new HashSet<string>();
             var unique = new List<ChatLog>();
-            foreach (var c in items)
+            foreach (var c in result.items)
             {
                 var key = $"{c.ContactPhoneE164}|{c.Title}";
                 if (seen.Add(key)) unique.Add(c);
             }
-            return Ok(new { items = unique, total });
+            return Ok(new { items = unique, total = result.total });
         }
 
         [HttpGet("{id}/messages")]

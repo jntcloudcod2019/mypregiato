@@ -494,14 +494,19 @@ const saveToCache = (key: string, data: unknown) => {
 };
 
 export const chatsApi = {
-  list: async (search = '', page = 1, pageSize = 20) => {
-    const cacheKey = getCacheKey('GET', '/chats', { search, page, pageSize });
+  list: async (search = '', page = 1, pageSize = 20, operatorEmail?: string) => {
+    const params: any = { search, page, pageSize };
+    if (operatorEmail) {
+      params.operatorEmail = operatorEmail;
+    }
+    
+    const cacheKey = getCacheKey('GET', '/chats', params);
     const cached = getFromCache(cacheKey);
     if (cached) {
       return cached;
     }
     
-    const { data } = await api.get('/chats', { params: { search, page, pageSize } });
+    const { data } = await api.get('/chats', { params });
     // Converter ChatLog do backend para ChatListItem do frontend
     const convertedItems = data.items?.map(convertBackendChatLog) || [];
     const result = { items: convertedItems, total: data.total } as { items: ChatListItem[]; total: number };

@@ -28,6 +28,14 @@ namespace Pregiato.API.Services
             return await _chatLogRepository.GetAllAsync(search, page, pageSize);
         }
 
+        /// <summary>
+        /// Lista chats filtrados por operador com base nos leads alocados
+        /// </summary>
+        public async Task<(IEnumerable<ChatLog> items, int total)> ListByOperatorAsync(string operatorEmail, string? search, int page, int pageSize)
+        {
+            return await _chatLogRepository.GetByOperatorAsync(operatorEmail, search, page, pageSize);
+        }
+
         public class MessageDTO
         {
             public Guid Id { get; set; }
