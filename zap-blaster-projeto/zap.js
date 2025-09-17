@@ -398,6 +398,34 @@ async function startConsumer() {
         const data        = payload.data ?? payload.vars ?? payload.payload ?? null;
         const attachment  = payload.attachment || null;
 
+        // 🔐 VERIFICAÇÃO CRÍTICA: WhatsApp deve estar conectado
+        if (!isConnected) {
+          Log.error('[QUEUE] ❌ WhatsApp não está conectado - rejeitando mensagem', {
+            isConnected,
+            connectedNumber,
+            targetNumber,
+            messageId,
+            deliveryTag,
+            clientMessageId: payload.clientMessageId
+          });
+          
+          // Rejeitar mensagem e não reprocessar
+          amqpChan.nack(msg, false, false);
+          return;
+        }
+
+        // 🔧 CORREÇÃO: Se connectedNumber for null, usar payloadFrom
+        if (!connectedNumber && payload.from) {
+          connectedNumber = payload.from;
+          Log.info('[QUEUE] 🔧 connectedNumber era null, usando payloadFrom', {
+            payloadFrom: payload.from,
+            newConnectedNumber: connectedNumber,
+            targetNumber,
+            messageId,
+            deliveryTag
+          });
+        }
+
         // Avisos de integridade (opcional)
         if (payload.from && payload.from !== connectedNumber) {
           Log.warn('[QUEUE] ⚠️ Inconsistência detectada (from != connectedNumber)', {
@@ -405,15 +433,19 @@ async function startConsumer() {
           });
         }
 
+        // ✅ CORREÇÃO: Proteção contra null/undefined no slice
+        const previewContent = message || (template && (template.text || template));
+        const preview = (typeof previewContent === 'string') ? previewContent.slice(0, 80) : 'N/A';
+
         Log.debug('[QUEUE] payload normalizado', {
           targetNumber,
           hasMessage: typeof message === 'string',
           hasTemplate: !!template,
           hasData: !!data,
-          preview: (message || (template && (template.text || template))).slice?.(0, 80)
+          preview
         });
 
-        const res = await sendOne(targetNumber, { message, template, data, attachment });
+        const res = await sendOne(targetNumber, { message, template, data, attachment, from: payload.from });
 
         if (res.success) {
           Log.info('[QUEUE] ✅ Mensagem enviada com sucesso', {
@@ -524,12 +556,17 @@ app.get('/status', (req,res)=> {
     lastActivity: new Date().toISOString(),
     queueMessageCount: 0,
     canGenerateQR: connectedNumber ? false : true,
-      hasQRCode: true,
-      // ✅ DEBUG: Adicionar informações do ambiente
-      environment: process.env.NODE_ENV || 'development',
-      port: process.env.PORT || 3030,
-      railway: !!process.env.RAILWAY_ENVIRONMENT
-    };
+    hasQRCode: true,
+    // ✅ DEBUG: Adicionar informações do ambiente e cliente
+    environment: process.env.NODE_ENV || 'development',
+    port: process.env.PORT || 3030,
+    railway: !!process.env.RAILWAY_ENVIRONMENT,
+    clientReady: !!client,
+    clientInfo: client ? {
+      pupPage: !!client.pupPage,
+      session: !!client.session
+    } : null
+  };
     
     Log.info('[STATUS] ✅ Endpoint /status respondendo', {
       status: status.status,
@@ -548,6 +585,51 @@ app.get('/status', (req,res)=> {
     });
   }
 });
+
+// 🔄 ENDPOINT: Forçar reconexão do WhatsApp
+app.post('/reconnect', async (req, res) => {
+  try {
+    Log.info('[RECONNECT] 🔄 Forçando reconexão do WhatsApp');
+    
+    // Limpar estado atual
+    clearTimers();
+    isConnected = false;
+    isFullyValidated = false;
+    connectedNumber = null;
+    
+    // Desconectar cliente atual
+    if (client) {
+      try {
+        await client.logout();
+        Log.info('[RECONNECT] Cliente anterior desconectado');
+      } catch (e) {
+        Log.warn('[RECONNECT] Erro ao desconectar cliente:', e.message);
+      }
+      client = null;
+    }
+    
+    // Inicializar novo cliente
+    Log.info('[RECONNECT] Iniciando novo cliente...');
+    client = buildClient();
+    await client.initialize();
+    
+    res.json({ 
+      success: true, 
+      message: 'Reconexão iniciada', 
+      timestamp: new Date().toISOString() 
+    });
+    
+  } catch (error) {
+    Log.error('[RECONNECT] ❌ Erro na reconexão forçada:', error.message);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Erro na reconexão', 
+      message: error.message,
+      timestamp: new Date().toISOString() 
+    });
+  }
+});
+
 app.get('/health', (req,res)=> res.json({ status: 'OK', ts: new Date().toISOString() }));
 // ✅ CORREÇÃO: Configurar servidor para escutar em todas as interfaces (necessário para Railway)
 const PORT = process.env.PORT || 3030;
@@ -1083,9 +1165,40 @@ function renderTemplate(tpl, data) {
 }
 
 async function sendOne(number, msg) {
-  if (!client) return { success: false, reason: 'client_not_ready' };
+  // 🔐 VERIFICAÇÕES CRÍTICAS DE CONEXÃO
+  if (!client) {
+    Log.error('[SEND] ❌ Cliente não inicializado');
+    return { success: false, reason: 'client_not_ready' };
+  }
+  
+  if (!isConnected) {
+    Log.error('[SEND] ❌ WhatsApp não conectado', { isConnected, connectedNumber });
+    return { success: false, reason: 'whatsapp_not_connected' };
+  }
+
+  // 🔧 CORREÇÃO: Se connectedNumber for null, usar o 'from' do payload
+  if (!connectedNumber && msg?.from) {
+    connectedNumber = msg.from;
+    Log.info('[SEND] 🔧 connectedNumber era null, usando from do payload', { 
+      from: msg.from,
+      newConnectedNumber: connectedNumber,
+      targetNumber: number 
+    });
+  } else if (!connectedNumber) {
+    Log.warn('[SEND] ⚠️ connectedNumber é null e não há from no payload', { 
+      isConnected, 
+      connectedNumber,
+      targetNumber: number,
+      hasFrom: !!msg?.from
+    });
+    // Não bloqueia o envio, mas registra o problema
+  }
+  
   const to = normalizeNumber(number);
-  if (!to || to.length < 10) return { success: false, reason: 'invalid_number' };
+  if (!to || to.length < 10) {
+    Log.error('[SEND] ❌ Número inválido', { number, normalized: to });
+    return { success: false, reason: 'invalid_number' };
+  }
 
   // ✅ CORREÇÃO: Nome mais claro - é o ID do destinatário no WhatsApp
   const whatsappRecipientId = `${to}@c.us`;  // Formato: "5511999999999@c.us"
@@ -1108,7 +1221,25 @@ async function sendOne(number, msg) {
   const attachment = msg?.attachment || null;
   const body = resolveBody(msg);
 
+  // 🎵 LOG DETALHADO PARA ÁUDIO
+  if (attachment && (attachment.mediaType === 'audio' || attachment.mediaType === 'voice')) {
+    Log.info('[SEND] 🎵 Processando mensagem de áudio', {
+      to: number,
+      mediaType: attachment.mediaType,
+      mimeType: attachment.mimeType,
+      fileName: attachment.fileName,
+      hasDataUrl: !!attachment.dataUrl,
+      dataUrlLength: attachment.dataUrl?.length || 0,
+      hasBody: !!body,
+      bodyLength: body?.length || 0,
+      clientMessageId: msg?.data?.clientMessageId || msg?.clientMessageId,
+      isConnected,
+      connectedNumber
+    });
+  }
+
   if (!body && !attachment) {
+    Log.error('[SEND] ❌ Mensagem sem conteúdo', { to: number, hasBody: !!body, hasAttachment: !!attachment });
     return { success: false, reason: 'empty_body' };
   }
 

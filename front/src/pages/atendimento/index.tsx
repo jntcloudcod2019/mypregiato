@@ -334,7 +334,7 @@ export default function AtendimentoPage() {
         if (!response.ok) throw new Error(`Erro ${response.status}`);
         
         const data = await response.json();
-        authorizedPhones = data.data?.map((lead: any) => lead.phoneLead?.replace(/\D/g, '')) || [];
+        authorizedPhones = data.data?.map((lead: { phoneLead?: string }) => lead.phoneLead?.replace(/\D/g, '')) || [];
         
         // Atualizar cache
         operatorPhonesCache.current = {
@@ -350,6 +350,7 @@ export default function AtendimentoPage() {
     
     return authorizedPhones.includes(normalizedPhone);
   }, []);
+
 
   const pickFile = () => fileInputRef.current?.click();
   const readFileAsDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
@@ -470,18 +471,56 @@ export default function AtendimentoPage() {
     try {
       // 🔐 FILTRAR CHATS POR OPERADOR AUTENTICADO
       const operatorEmail = currentOperator?.email;
+      
+      if (!operatorEmail) {
+        console.warn('🔐 [SECURITY] Sem operador autenticado, limpando lista de chats');
+        setChats([]);
+        return;
+      }
+
       const response = await chatsApi.list(search, 1, 50, operatorEmail) as { items: ChatListItem[]; total: number };
       const items = response.items || [];
       
-      if (isDebugEnabled && operatorEmail) {
-        console.debug(`🔐 [SECURITY] Chats filtrados por operador: ${operatorEmail}, Total: ${items.length}`);
+      console.log(`🔐 [SECURITY] Chats filtrados por operador: ${operatorEmail}, Total: ${items.length}`);
+      
+      // 🧹 LIMPEZA: Se não há chats autorizados, limpar completamente
+      if (items.length === 0) {
+        console.log('🧹 [CLEANUP] Nenhum chat autorizado encontrado, limpando estado local');
+        setChats([]);
+        setSelectedChatId(null);
+        setMessages([]);
+        // Limpar cache do operador também
+        operatorPhonesCache.current = null;
+        return;
       }
+
+      // 🧹 VALIDAÇÃO ADICIONAL: Filtrar chats legados que não estão mais autorizados
+      const validatedItems: ChatListItem[] = [];
+      for (const item of items) {
+        if (item.contactPhoneE164) {
+          const isAuthorized = await isPhoneAuthorized(item.contactPhoneE164, operatorEmail);
+          if (isAuthorized) {
+            validatedItems.push(item);
+          } else {
+            console.log('🧹 [CLEANUP] Chat legado removido - não autorizado:', {
+              chatId: item.id,
+              phone: item.contactPhoneE164,
+              title: item.title
+            });
+          }
+        } else {
+          // Se não tem telefone, manter (pode ser chat do sistema)
+          validatedItems.push(item);
+        }
+      }
+
+      console.log(`🧹 [CLEANUP] Validação completa: ${items.length} → ${validatedItems.length} chats autorizados`);
       
       // NOVA LÓGICA: Deduplicação resiliente por número de telefone
       const byPhone = new Map<string, ChatListItem>();
       const byId = new Map<string, ChatListItem>();
       
-      for (const c of items) {
+      for (const c of validatedItems) {
         const phone = c.contactPhoneE164;
         
         if (phone) {
@@ -535,7 +574,50 @@ export default function AtendimentoPage() {
     } catch (error) {
       console.error('[chat] Erro ao atualizar lista de chats:', error);
     }
-  }, [search, setChats, setTickets]);
+  }, [search, setChats, setTickets, currentOperator?.email, isPhoneAuthorized]);
+
+  // 🧹 FUNÇÃO: Limpar chats legados manualmente
+  const clearLegacyChats = useCallback(async () => {
+    const operatorEmail = currentOperator?.email;
+    if (!operatorEmail) {
+      toast({
+        title: "Erro",
+        description: "Operador não autenticado",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      console.log('🧹 [CLEANUP] Iniciando limpeza manual de chats legados...');
+      
+      // Limpar estado local
+      setChats([]);
+      setSelectedChatId(null);
+      setMessages([]);
+      
+      // Limpar cache
+      operatorPhonesCache.current = null;
+      
+      // Recarregar chats com filtro
+      await refreshChats();
+      
+      toast({
+        title: "Limpeza realizada",
+        description: "Chats legados foram removidos da visualização",
+        variant: "default"
+      });
+      
+      console.log('🧹 [CLEANUP] Limpeza manual concluída');
+    } catch (error) {
+      console.error('🧹 [CLEANUP] Erro na limpeza manual:', error);
+      toast({
+        title: "Erro na limpeza",
+        description: "Não foi possível limpar os chats legados",
+        variant: "destructive"
+      });
+    }
+  }, [currentOperator?.email, refreshChats]);
 
   const scheduleCommitChats = () => {
     if (commitTimerRef.current) return;
@@ -646,6 +728,42 @@ export default function AtendimentoPage() {
 
   const sendMessage = async (file?: File) => {
     if (!selectedChatId || (!composer.trim() && !file)) return;
+
+    // 🔐 VERIFICAÇÃO CRÍTICA: Se for áudio, verificar se WhatsApp está conectado
+    if (file && file.type.startsWith('audio/')) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/whatsapp/status`);
+        const status = await response.json();
+        
+        if (!status.isConnected || !status.connectedNumber) {
+          toast({
+            title: "WhatsApp Desconectado",
+            description: "O WhatsApp não está conectado. Conecte primeiro para enviar áudio.",
+            variant: "destructive"
+          });
+          console.error('🔐 [AUDIO] WhatsApp não conectado:', {
+            isConnected: status.isConnected,
+            connectedNumber: status.connectedNumber,
+            status: status.status
+          });
+          return;
+        }
+        
+        console.log('🔐 [AUDIO] WhatsApp conectado, prosseguindo com envio:', {
+          isConnected: status.isConnected,
+          connectedNumber: status.connectedNumber
+        });
+      } catch (error) {
+        toast({
+          title: "Erro de Conexão",
+          description: "Não foi possível verificar status do WhatsApp. Tente novamente.",
+          variant: "destructive"
+        });
+        console.error('🔐 [AUDIO] Erro ao verificar status:', error);
+        return;
+      }
+    }
+
     const clientMessageId = crypto.randomUUID();
     const text = composer;
     setComposer('');
@@ -683,6 +801,39 @@ export default function AtendimentoPage() {
 
   const sendAudio = async (dataUrl: string, mimeType: string, fileName = 'gravacao.webm') => {
     if (!selectedChatId) return;
+    
+    // 🔐 VERIFICAÇÃO CRÍTICA: Verificar se WhatsApp está conectado antes de enviar áudio
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/whatsapp/status`);
+      const status = await response.json();
+      
+      if (!status.isConnected || !status.connectedNumber) {
+        toast({
+          title: "WhatsApp Desconectado",
+          description: "O WhatsApp não está conectado. Conecte primeiro para enviar áudio.",
+          variant: "destructive"
+        });
+        console.error('🔐 [AUDIO] WhatsApp não conectado para gravação:', {
+          isConnected: status.isConnected,
+          connectedNumber: status.connectedNumber,
+          status: status.status
+        });
+        return;
+      }
+      
+      console.log('🔐 [AUDIO] WhatsApp conectado, prosseguindo com envio de gravação:', {
+        isConnected: status.isConnected,
+        connectedNumber: status.connectedNumber
+      });
+    } catch (error) {
+      toast({
+        title: "Erro de Conexão",
+        description: "Não foi possível verificar status do WhatsApp. Tente novamente.",
+        variant: "destructive"
+      });
+      console.error('🔐 [AUDIO] Erro ao verificar status para gravação:', error);
+      return;
+    }
     
     console.log('🎵 [DEBUG] sendAudio chamado:', {
       dataUrlLength: dataUrl.length,
@@ -771,6 +922,18 @@ export default function AtendimentoPage() {
   const stopRecording = () => { try { mediaRecorderRef.current?.stop(); } catch (error) { console.error('Erro ao parar gravação de áudio:', error); } };
 
   useEffect(() => { refreshChats(); }, [search, refreshChats]);
+
+  // 🔐 EFEITO: Limpar chats quando operador muda
+  useEffect(() => {
+    if (currentOperator?.email) {
+      console.log('🔐 [SECURITY] Operador mudou, limpando chats e recarregando:', currentOperator.email);
+      setChats([]);
+      setSelectedChatId(null);
+      setMessages([]);
+      operatorPhonesCache.current = null;
+      refreshChats();
+    }
+  }, [currentOperator?.email, refreshChats]);
 
   const throttledRefreshRef = useRef<{lastTime: number, timer: NodeJS.Timeout | null}>({ lastTime: 0, timer: null });
 
@@ -1144,7 +1307,7 @@ export default function AtendimentoPage() {
       connRef.current?.stop().catch(() => {});
       connRef.current = null;
     };
-  }, [queueChatPatch, refreshChats, setLastReadAt, setTyping, chats]);
+  }, [queueChatPatch, refreshChats, setLastReadAt, setTyping, chats, currentOperator?.email, isPhoneAuthorized]);
 
   const handleTick = useCallback((timestamp: number) => { setNowTick(timestamp); }, []);
 
