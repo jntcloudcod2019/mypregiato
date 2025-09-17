@@ -729,41 +729,6 @@ export default function AtendimentoPage() {
   const sendMessage = async (file?: File) => {
     if (!selectedChatId || (!composer.trim() && !file)) return;
 
-    // 🔐 VERIFICAÇÃO CRÍTICA: Se for áudio, verificar se WhatsApp está conectado
-    if (file && file.type.startsWith('audio/')) {
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/whatsapp/status`);
-        const status = await response.json();
-        
-        if (!status.isConnected || !status.connectedNumber) {
-          toast({
-            title: "WhatsApp Desconectado",
-            description: "O WhatsApp não está conectado. Conecte primeiro para enviar áudio.",
-            variant: "destructive"
-          });
-          console.error('🔐 [AUDIO] WhatsApp não conectado:', {
-            isConnected: status.isConnected,
-            connectedNumber: status.connectedNumber,
-            status: status.status
-          });
-          return;
-        }
-        
-        console.log('🔐 [AUDIO] WhatsApp conectado, prosseguindo com envio:', {
-          isConnected: status.isConnected,
-          connectedNumber: status.connectedNumber
-        });
-      } catch (error) {
-        toast({
-          title: "Erro de Conexão",
-          description: "Não foi possível verificar status do WhatsApp. Tente novamente.",
-          variant: "destructive"
-        });
-        console.error('🔐 [AUDIO] Erro ao verificar status:', error);
-        return;
-      }
-    }
-
     const clientMessageId = crypto.randomUUID();
     const text = composer;
     setComposer('');
@@ -801,39 +766,6 @@ export default function AtendimentoPage() {
 
   const sendAudio = async (dataUrl: string, mimeType: string, fileName = 'gravacao.webm') => {
     if (!selectedChatId) return;
-    
-    // 🔐 VERIFICAÇÃO CRÍTICA: Verificar se WhatsApp está conectado antes de enviar áudio
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/whatsapp/status`);
-      const status = await response.json();
-      
-      if (!status.isConnected || !status.connectedNumber) {
-        toast({
-          title: "WhatsApp Desconectado",
-          description: "O WhatsApp não está conectado. Conecte primeiro para enviar áudio.",
-          variant: "destructive"
-        });
-        console.error('🔐 [AUDIO] WhatsApp não conectado para gravação:', {
-          isConnected: status.isConnected,
-          connectedNumber: status.connectedNumber,
-          status: status.status
-        });
-        return;
-      }
-      
-      console.log('🔐 [AUDIO] WhatsApp conectado, prosseguindo com envio de gravação:', {
-        isConnected: status.isConnected,
-        connectedNumber: status.connectedNumber
-      });
-    } catch (error) {
-      toast({
-        title: "Erro de Conexão",
-        description: "Não foi possível verificar status do WhatsApp. Tente novamente.",
-        variant: "destructive"
-      });
-      console.error('🔐 [AUDIO] Erro ao verificar status para gravação:', error);
-      return;
-    }
     
     console.log('🎵 [DEBUG] sendAudio chamado:', {
       dataUrlLength: dataUrl.length,
