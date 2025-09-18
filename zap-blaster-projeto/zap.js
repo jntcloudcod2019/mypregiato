@@ -392,7 +392,7 @@ async function startConsumer() {
         });
 
         // 🔧 Normalização de campos
-        const targetNumber = payload.phone || payload.to;
+        const targetNumber = payload.to;
         const message     = payload.body ?? payload.message ?? payload.text ?? payload.Message ?? payload.Body ?? null;
         const template    = payload.template ?? payload.Template ?? null;
         const data        = payload.data ?? payload.vars ?? payload.payload ?? null;
@@ -409,11 +409,11 @@ async function startConsumer() {
           targetNumber,
           hasMessage: typeof message === 'string',
           hasTemplate: !!template,
-          hasData: !!data,
-          preview: (message || (template && (template.text || template))).slice?.(0, 80)
+          hasData: !!data
+         
         });
 
-        const res = await sendOne(targetNumber, { message, template, data, attachment });
+        const res = await sendOne(targetNumber, data,{ message, template, data, attachment });
 
         if (res.success) {
           Log.info('[QUEUE] ✅ Mensagem enviada com sucesso', {
@@ -1082,7 +1082,7 @@ function renderTemplate(tpl, data) {
     .replace(/{{senderNumber}}/gi, connectedNumber || 'N/A');
 }
 
-async function sendOne(number, msg) {
+async function sendOne(number, body ,msg) {
   if (!client) return { success: false, reason: 'client_not_ready' };
   const to = normalizeNumber(number);
   if (!to || to.length < 10) return { success: false, reason: 'invalid_number' };
