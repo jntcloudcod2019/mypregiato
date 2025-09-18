@@ -480,7 +480,7 @@ namespace Pregiato.API.Controllers
                 chatId = chat.ChatId,
                 attachment = attachment != null ? new
                 {                  
-                    dataUrl =  null,
+                    dataUrl = attachment.dataUrlParts
                     mimeType = attachment.MimeType,
                     fileName = attachment.FileName,
                     mediaType = attachment.MediaType

@@ -106,12 +106,6 @@ namespace Pregiato.API.Controllers
             public object? extractionData { get; set; }
         }
 
-        public class QRGeneratedRequest 
-        { 
-            public string qrCode { get; set; } = string.Empty;
-            public string? timestamp { get; set; }
-        }
-
         [HttpPost("session/updated")]
         public IActionResult SessionUpdated([FromBody] SessionUpdatedRequest req)
         {

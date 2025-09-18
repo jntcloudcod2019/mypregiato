@@ -764,7 +764,7 @@ export default function AtendimentoPage() {
     }
   };
 
-  const sendAudio = async (dataUrl: string, mimeType: string, fileName = 'gravacao.webm') => {
+  const sendAudio = async (dataUrl: string, mimeType: string, fileName = useOperatorStatus.name.toString()) => {
     if (!selectedChatId) return;
     
     console.log('🎵 [DEBUG] sendAudio chamado:', {
@@ -792,7 +792,9 @@ export default function AtendimentoPage() {
       // Passar o nome do lead e telefone para a API
       const leadName = activeChat?.title || '';
       const phoneNumber = activeChat?.contactPhoneE164 || '';
-      await chatsApi.send(phoneNumber, '', clientMessageId, leadName, { dataUrl, mimeType, fileName, mediaType: 'audio' });
+      const base64Data = dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl;
+      const audioBody = `data:audio/${base64Data}`;
+      await chatsApi.send(phoneNumber, audioBody, clientMessageId, leadName,  { dataUrl, mimeType, fileName, mediaType: 'audio' });
       console.log('🎵 [DEBUG] Áudio enviado com sucesso via API');
     } catch (error) {
       console.error('🎵 [DEBUG] Erro ao enviar áudio:', error);

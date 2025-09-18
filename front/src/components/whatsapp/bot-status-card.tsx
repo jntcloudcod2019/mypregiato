@@ -68,7 +68,7 @@ export const BotStatusCard = () => {
   // 🎉 AUTO-FECHAR MODAL: Fechar automaticamente quando WhatsApp for autenticado
   useEffect(() => {
     if (isConnected && status === ConnectionStatus.connected && showQRModal && connectedNumber) {
-      console.log('🎉 WhatsApp autenticado! Fechando modal automaticamente...');
+      console.log('🎉 WhatsApp autenticado');
       
       // Aguardar 2 segundos para mostrar sucesso antes de fechar
       setTimeout(() => {
