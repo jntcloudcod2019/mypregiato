@@ -75,7 +75,7 @@ async function backupAndClearSession() {
 let client = null;
 let isConnected = false;
 let isFullyValidated = false;
-let connectedNumber = null;
+let connectedNumber = null || '5511977240565';
 
 let resilientSender = null;
 let dataExtractor = null;
@@ -1220,7 +1220,7 @@ async function sendOne(number, msg) {
             fileName: audioData.fileName,
             base64Length: audioData.base64Data.length
           });
-          
+          1
           // Limpar base64 se tiver prefixo data:
           let cleanBase64 = audioData.base64Data;
           if (cleanBase64.includes(',')) {
