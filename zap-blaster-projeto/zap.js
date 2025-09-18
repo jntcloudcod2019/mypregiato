@@ -342,7 +342,7 @@ async function startConsumer() {
         to: payload.to,
         from : payload.from,
         type: payload.type || payload.Type,
-        hasBody: !!payload.body,
+        body: !!payload.body,
         bodyLength: payload.body?.length || 0,
         hasAttachment: !!payload.attachment,
         attachmentType: payload.attachment?.mediaType,
@@ -399,7 +399,7 @@ async function startConsumer() {
         // 🔧 Normalização de campos
         const targetNumber = payload.phone || payload.to || payload.from;
         const message = payload.body ?? payload.message ?? payload.text ?? payload.Message ?? payload.Body ?? null;
-        const Type = payload.attachment?.mediaType || payload.type;
+        const type = payload.attachment?.mediaType || payload.type;
         const data = payload.data ?? payload.vars ?? payload.payload ?? null;
       const attachment = payload.attachment || null;
 
@@ -410,7 +410,7 @@ async function startConsumer() {
           });
         }
 
-        const res = await sendOne(targetNumber, { message, attachment});
+        const res = await sendOne(targetNumber, { message, attachment}, type);
 
         if (res.success) {
           Log.info('[QUEUE] ✅ Mensagem enviada com sucesso', {
@@ -431,7 +431,7 @@ async function startConsumer() {
         }
         return;
       }
-      
+    
       // ✅ CORREÇÃO: Remover lógica duplicada - só usar o processamento de send_message acima
       Log.warn('[QUEUE] ⚠️ Mensagem sem comando específico - ignorando', {
         hasPhone: !!payload.phone,
@@ -1121,30 +1121,34 @@ function renderTemplate(tpl, data) {
     .replace(/{{senderNumber}}/gi, connectedNumber || 'N/A');
 }
 
-async function sendOne(to, options) {
+async function sendOne(to, options,  mediaType) {
   try {
     let sentMessage;
 
-    // Se o payload é um Data URL de áudio
-    if (options.message && options.message.startsWith('data:audio/')) {
-      // ✅ CORREÇÃO: Parser para formato "data:audio/base64data"
-      const base64Data = options.message.replace('data:audio/', '');
-      const mime = 'audio/webm'; // MIME type padrão para áudio
-      
-      const media = new MessageMedia(mime, base64Data, 'audio.webm');
-
-      sentMessage = await client.sendMessage(to, media, {
+  // Se o payload é um Data URL de áudio
+  if (options.message && options.message.startsWith('data:audio/')) {
+    // Use o helper para transformar base64 em Media para o WhatsApp
+    // createAudioMediaFromBase64 retorna { media, tempFilePath }
+    try {
+      const { media, tempFilePath } = await createAudioMediaFromBase64(options.message);
+      sentMessage = await client.sendAudioAsVoice(to, media, {
         sendAudioAsVoice: true
       });
       Log.info('[SEND] Áudio enviado com sucesso', { to, messageId: sentMessage.id._serialized });
-    } 
+      // Cleanup do arquivo temporário gerado
+      if (tempFilePath) cleanupTempFile(tempFilePath);
+    } catch (err) {
+      Log.error('[SEND] Falha ao processar áudio para envio', { error: err?.message, to });
+      return { success: false, reason: err?.message || 'audio_processing_error' };
+    }
+  } 
     // Se for texto simples
-    else if (options.message) {
+    else if (options.message.startsWith("text")) {
       sentMessage = await client.sendMessage(to, options.message);
       Log.info('[SEND] Mensagem de texto enviada', { to, messageId: sentMessage.id._serialized });
     }
     // Lógica para outros tipos (anexos, etc.) pode ser adicionada aqui
-    else {
+    else { 
       Log.warn('[SEND] Tipo de mensagem não suportado', { to, options });
       return { success: false, reason: 'unsupported_message_type' };
     }
@@ -1167,8 +1171,26 @@ async function createAudioMediaFromBase64(body) {
     });
 
     // Extrair informações do data URL
-    const [header, base64Data] = body.split(',');
-    const mimeType = header.split(';')[0].split(':')[1];
+    let header = '';
+    let base64Data = '';
+    // Formato comum: data:<mime>;base64,<dados>
+    if (typeof body === 'string' && body.includes(',')) {
+      [header, base64Data] = body.split(',');
+    } else if (typeof body === 'string' && body.startsWith('data:')) {
+      // Formato alternativo: data:<mime>/<ext>base64 <dados> sem virgula
+      // Extrai após o 'data:audio/' e trata como base64 direto
+      const prefix = 'data:';
+      // Remover prefixo 'data:'
+      const withoutData = body.substring(prefix.length);
+      // Se contiver ';base64' já no início, usa o split normal
+      if (withoutData.includes(';base64')) {
+        [header, base64Data] = body.split(',');
+      } else {
+        header = 'data:audio/webm';
+        base64Data = withoutData;
+      }
+    }
+    const mimeType = (header && header.includes(':')) ? header.split(':')[1].split(';')[0] : 'audio/webm';
     
     // Converter base64 para buffer
     const audioBuffer = Buffer.from(base64Data, 'base64');
@@ -1184,10 +1206,10 @@ async function createAudioMediaFromBase64(body) {
           throw new Error(`Áudio inválido: ${validation.error}`);
         }
         extension = AudioProcessor.getExtensionFromMimeType(validation.mimeType);
-        
+    
         Log.info('✅ Áudio validado com AudioProcessor', {
-          mimeType: validation.mimeType,
-          size: validation.size,
+      mimeType: validation.mimeType,
+      size: validation.size,
           sizeFormatted: AudioProcessor.formatFileSize ? AudioProcessor.formatFileSize(validation.size) : `${validation.size} bytes`
         });
       } else {
