@@ -4,6 +4,7 @@
   "description": "WhatsApp Bot com integração MySQL",
   "main": "zap.js",
   "scripts": {
+    "build": "zap.js", 
     "start": "node zap.js",
     "dev": "nodemon zap.js"
   },

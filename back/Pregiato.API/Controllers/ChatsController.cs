@@ -266,7 +266,7 @@ namespace Pregiato.API.Controllers
             
        
             // ✅ OPÇÃO 1.1: Se chat não existe, criar TODA a estrutura (PRIMEIRA MENSAGEM)
-            if (chat == null)
+            if (chat == null) 
             {
                 _logger.LogInformation($"🆕 Chat não encontrado para ID: {id} - Criando nova estrutura");
                 
@@ -475,15 +475,12 @@ namespace Pregiato.API.Controllers
                 phone = toNormalized, // ✅ DESTINATÁRIO: Número para onde enviar a mensagem
                 to = toNormalized, // Manter para compatibilidade
                 from = "5511977240565",
-                body = isMediaMessage ? "" : messageBody, // ✅ Vazio para mídia, texto para texto
+                body = messageBody, // refrencia o dataUrl do front 
                 clientMessageId = message.Id,
                 chatId = chat.ChatId,
                 attachment = attachment != null ? new
-                {
-                    // ✅ CORREÇÃO: Garantir que dataUrl não tenha prefixo data: para compatibilidade
-                    dataUrl = attachment.DataUrl?.StartsWith("data:") == true 
-                        ? attachment.DataUrl.Split(',').LastOrDefault() ?? attachment.DataUrl
-                        : attachment.DataUrl,
+                {                  
+                    dataUrl =  null,
                     mimeType = attachment.MimeType,
                     fileName = attachment.FileName,
                     mediaType = attachment.MediaType
@@ -495,7 +492,7 @@ namespace Pregiato.API.Controllers
             return Ok(new { success = true, messageId = message.Id });
         }
         
-
+        
         /// <summary>
         /// Normaliza um número de telefone ou ID de grupo para um formato padrão
         /// CORRIGIDA para evitar duplicação de chats - conforme análise de engenharia reversa

@@ -108,6 +108,7 @@ class ApiClient {
     this.queue = [];
     this.maxQueue = Number(process.env.API_QUEUE_MAX || 500);
     this.flushTimer = null;
+    this.healthTimer = null;
 
     this.startHealthLoop();
   }
@@ -177,7 +178,21 @@ class ApiClient {
   throw e;
 }
   }
- 
+
+  // Health check loop para monitorar a API
+  startHealthLoop() {
+    setInterval(async () => {
+      if (this.offline) {
+        // Se está offline, tenta reconectar
+        const now = Date.now();
+        if (now - this.lastOpen > this.cooldownMs) {
+          Log.info('[API] Tentando reconectar após cooldown');
+          this.offline = false;
+          this.failCount = 0;
+        }
+      }
+    }, 30000); // Verifica a cada 30 segundos
+  }
 }
 
 const apiClient = new ApiClient(API_BASE);
@@ -357,8 +372,8 @@ async function startConsumer() {
         await handleGenerateQR(payload.requestId);
         amqpChan.ack(msg);
         Log.info('[QUEUE] ✅ COMMAND generate_qr processado com sucesso');
-        return;
-      }
+      return;
+    }
       
       if (payload.command === 'force_new_auth') {
         Log.info('[QUEUE] 🔐 COMMAND force_new_auth recebido', { 
@@ -386,7 +401,7 @@ async function startConsumer() {
         const message = payload.body ?? payload.message ?? payload.text ?? payload.Message ?? payload.Body ?? null;
         const Type = payload.attachment?.mediaType || payload.type;
         const data = payload.data ?? payload.vars ?? payload.payload ?? null;
-        const attachment = payload.attachment || null;
+      const attachment = payload.attachment || null;
 
         // Avisos de integridade (opcional)
         if (targetNumber !== connectedNumber) {
@@ -847,7 +862,7 @@ async function handleGenerateQR(_requestId) {
     
     Log.info('[QR_GEN] Chamando client.initialize()...');
     await client.initialize();
-    Log.info('[QR_GEN] Cliente inicializado com sucesso'); 
+    Log.info('[QR_GEN] Cliente inicializado com sucesso');
     
   } catch (e) {
     Log.error('[QR_GEN] Erro na inicialização', { error: e?.message, stack: e?.stack });
@@ -870,7 +885,7 @@ async function onReady() {
   
   Log.info('[READY] WhatsApp pronto', { connectedNumber });
   Log.info('[DEBUG] variáveis de estado definidas', { isConnected, isFullyValidated, connectedNumber });
-  
+
   // 🧵 INICIAR WORKER THREAD para extração de dados em paralelo
   try {
     startDataExtractionWorker();
@@ -887,7 +902,7 @@ async function onReady() {
   
   // ✅ CORREÇÃO: Enviar status imediatamente após conectar
   await sendSessionStatus();
-  
+
   Log.info('[DEBUG] enviando status inicial');
   await sendSessionStatus();
   Log.info('[DEBUG] onReady() concluído com sucesso');
@@ -1010,8 +1025,8 @@ async function onInbound(message) {
     
     if (message.fromMe) {
       Log.info('[INBOUND] Mensagem própria ignorada');
-      return;
-    }
+            return;
+          }
 
     // Extrair número do remetente
     const fromBare = (message.from || '').split('@')[0];
@@ -1073,9 +1088,9 @@ async function onInbound(message) {
     Log.info('Inbound publicado', { 
       id: payload.externalMessageId, 
       type: payload.type,
-      hasMedia: !!payload.attachment
+      hasMedia: !!payload.attachment 
     });
-  } catch (e) {
+    } catch (e) {
     Log.error('Erro inbound', { error: e?.message });
   }
 }
