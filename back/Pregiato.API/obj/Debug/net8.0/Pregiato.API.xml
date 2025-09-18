@@ -102,6 +102,11 @@
             Consolida chats duplicados em um chat principal
             </summary>
         </member>
+        <member name="M:Pregiato.API.Services.ChatLogService.ListByOperatorAsync(System.String,System.String,System.Int32,System.Int32)">
+            <summary>
+            Lista chats filtrados por operador com base nos leads alocados
+            </summary>
+        </member>
         <member name="M:Pregiato.API.Services.ChatLogService.GetShortContentType(System.String)">
             <summary>
             Converte tipos de conteúdo longos para versões curtas que cabem no banco
