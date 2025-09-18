@@ -15,9 +15,7 @@ const crypto = require('crypto');
 const { connectDatabase, isNumberInLeads, getAudioFromPayloadJson } = require('./database');
 const { connected } = require('process');
 const AudioProcessor = require('./audio-utils');
-const { ResilientMessageSender } = require('./resilience/resilient-sender');
 const { Worker } = require('worker_threads');
-const WhatsAppDataExtractor = require('./WhatsAppDataExtractor');
 
 const instanceId = process.env.INSTANCE_ID || 'zap-prod';
 const isDocker = process.env.NODE_ENV === 'production' || fs.existsSync('/.dockerenv');

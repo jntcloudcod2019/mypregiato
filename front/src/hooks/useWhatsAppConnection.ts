@@ -30,6 +30,8 @@ export interface WhatsAppConnectionState {
   hasQRCode?: boolean;
   qrCode?: string;
   connectedNumber?: string;
+  connectedUserName?: string;
+  isFullyValidated?: boolean;
 }
 
 export const useWhatsAppConnection = () => {
@@ -94,11 +96,37 @@ export const useWhatsAppConnection = () => {
       }));
     };
 
-    // Registrar listener para bot.status.update
+    // 🎉 NOVO: Listener para evento específico de autenticação concluída
+    const handleSessionAuthenticated = (data: any) => {
+      console.log('🎉 WhatsApp autenticado!', data);
+      
+      setConnectionState(prev => ({
+        ...prev,
+        status: ConnectionStatus.connected,
+        isConnected: true,
+        connectedNumber: data.connectedNumber,
+        connectedUserName: data.connectedUserName,
+        isFullyValidated: data.isFullyValidated,
+        lastActivity: data.timestamp,
+        error: undefined,
+        canGenerateQR: false,
+        hasQRCode: false, // Limpar QR após autenticação
+        qrCode: undefined
+      }));
+
+      // 🔔 Notificação para o usuário
+      if (typeof window !== 'undefined' && window.toast) {
+        window.toast(`✅ WhatsApp conectado com sucesso! Número: ${data.connectedNumber}`);
+      }
+    };
+
+    // Registrar listeners
     qrCodeQueueService.addListener('bot.status.update', handleStatusUpdate);
+    qrCodeQueueService.addListener('session.authenticated', handleSessionAuthenticated);
     
     return () => {
       qrCodeQueueService.removeListener('bot.status.update', handleStatusUpdate);
+      qrCodeQueueService.removeListener('session.authenticated', handleSessionAuthenticated);
     };
   }, []);
 
@@ -231,5 +259,17 @@ export const useWhatsAppConnection = () => {
     };
   }, []);
 
-  return { ...connectionState, isConnecting, isGeneratingQR, connect, disconnect, generateQR, getQRCode, checkStatus };
+  return { 
+    ...connectionState, 
+    isConnecting, 
+    isGeneratingQR, 
+    connect, 
+    disconnect, 
+    generateQR, 
+    getQRCode, 
+    checkStatus,
+    // Exportar novas propriedades para uso nos componentes
+    connectedUserName: connectionState.connectedUserName,
+    isFullyValidated: connectionState.isFullyValidated
+  };
 };

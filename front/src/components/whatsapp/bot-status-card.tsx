@@ -27,6 +27,8 @@ export const BotStatusCard = () => {
     qrCode,
     hasQRCode,
     connectedNumber,
+    connectedUserName,
+    isFullyValidated,
     connect,
     disconnect,
     generateQR,
@@ -62,6 +64,18 @@ export const BotStatusCard = () => {
 
     fetchUserData();
   }, [user, isLoaded]);
+
+  // 🎉 AUTO-FECHAR MODAL: Fechar automaticamente quando WhatsApp for autenticado
+  useEffect(() => {
+    if (isConnected && status === ConnectionStatus.connected && showQRModal && connectedNumber) {
+      console.log('🎉 WhatsApp autenticado! Fechando modal automaticamente...');
+      
+      // Aguardar 2 segundos para mostrar sucesso antes de fechar
+      setTimeout(() => {
+        setShowQRModal(false);
+      }, 2000);
+    }
+  }, [isConnected, status, showQRModal, connectedNumber]);
 
   // Verificar se o usuário é ADMIN
   const isAdmin = currentUser?.role === 'ADMIN';
@@ -175,11 +189,21 @@ export const BotStatusCard = () => {
               </Button>
             </div>
 
-            {/* Connected Number Status */}
+            {/* Connected WhatsApp Status */}
             {isConnected && connectedNumber && (
-              <div className="text-center p-2 bg-green-50 rounded-md">
+              <div className="text-center p-3 bg-green-50 border border-green-200 rounded-md">
                 <CheckCircle className="h-4 w-4 mx-auto mb-1 text-green-600" />
-                <p className="text-xs text-green-600">Conectado: {connectedNumber}</p>
+                <p className="text-sm font-medium text-green-700">WhatsApp Conectado</p>
+                <p className="text-xs text-green-600">📱 {connectedNumber}</p>
+                {connectedUserName && (
+                  <p className="text-xs text-green-600 mt-1">👤 {connectedUserName}</p>
+                )}
+                {isFullyValidated && (
+                  <div className="flex items-center justify-center gap-1 mt-2">
+                    <CheckCircle className="h-3 w-3 text-green-500" />
+                    <span className="text-xs text-green-500">Totalmente Validado</span>
+                  </div>
+                )}
               </div>
             )}
 
