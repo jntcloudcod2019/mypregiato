@@ -1082,180 +1082,84 @@ function renderTemplate(tpl, data) {
     .replace(/{{senderNumber}}/gi, connectedNumber || 'N/A');
 }
 
-async function sendOne(number, body ,msg) {
-  if (!client) return { success: false, reason: 'client_not_ready' };
+async function sendOne(number, body, msg) {
   const to = normalizeNumber(number);
   if (!to || to.length < 10) return { success: false, reason: 'invalid_number' };
 
-  // ✅ CORREÇÃO: Nome mais claro - é o ID do destinatário no WhatsApp
-  const whatsappRecipientId = `${to}@c.us`;  // Formato: "5511999999999@c.us"
-  
-  // 🔧 Resolução resiliente do corpo
-  function resolveBody(m) {
-    if (!m) return '';
-    if (typeof m === 'string') return m;
-    if (typeof m.body === 'string') return m.body;         // suporta .body
-    if (typeof m.message === 'string') return m.message;   // suporta .message (legado)
-    if (m.template) {
-      const tpl = (typeof m.template === 'string')
-        ? m.template
-        : (typeof m.template.text === 'string' ? m.template.text : String(m.template));
-      return renderTemplate(tpl, m.data);
-    }
-    return '';
-  }
-
+  const whatsappRecipientId = `${to}@c.us`; // Formato: "5511999999999@c.us"
   const attachment = msg?.attachment || null;
-  const body = resolveBody(msg);
-
-  if (!body && !attachment) {
-    return { success: false, reason: 'empty_body' };
-  }
 
   try {
-    if (resilientSender) {
-      const res = await resilientSender.sendMessage({
-        to: number, 
-        body, 
-        attachment, 
-        clientMessageId: crypto.randomUUID()
+    // Handle text messages
+    if (attachment?.attachmentType === 'text' || attachment?.attachmentType === 'txt') {
+      const res = await client.sendMessage({
+        to: whatsappRecipientId,
+        body,
       });
-      if (res.success) { 
-        await sendMessageStatus(number, res.messageId, 'sent'); 
-        return { success: true, messageId: res.messageId }; 
+      
+      if (res.success) {
+        await sendMessageStatus(number, res.messageId, 'sent');
+        return { success: true, messageId: res.messageId };
       }
       return { success: false, reason: res.error || 'unknown' };
     }
 
-    // fallback
-    let sent;
-    let tempFilePath = null;
-    
-    try {
-      if (attachment) {
-        // ✅ CORREÇÃO: Priorizar attachment.dataUrl para TODOS os tipos de mídia incluindo áudio
-        let base64;
-        if (attachment.dataUrl) {
-          // Para TODOS os tipos de mídia (imagem, documento, áudio)
-          base64 = String(attachment.dataUrl).split(',')[1] || attachment.dataUrl;
-          Log.info('🎵 Usando base64 do attachment.dataUrl', { 
-            mediaType: attachment.mediaType,
-            mimeType: attachment.mimeType,
-            dataUrlLength: attachment.dataUrl?.length || 0,
-            hasDataPrefix: String(attachment.dataUrl).includes('data:')
-          });
-        } else if (body && (attachment.mediaType === 'audio' || attachment.mediaType === 'voice')) {
-          // FALLBACK: Para áudio, usar base64 do body (caso antigo)
-          base64 = String(body).split(',')[1] || body;
-          Log.info('🎵 FALLBACK: Usando base64 do body para áudio', { 
-            mediaType: attachment.mediaType,
-            mimeType: attachment.mimeType,
-            bodyLength: body?.length || 0
-          });
-        } else {
-          throw new Error('Sem dados de mídia disponíveis - nem dataUrl nem body com conteúdo');
-        }
-        
-        const mime = attachment.mimeType || 'application/octet-stream';
-        const media = new MessageMedia(mime, base64 || '', attachment.fileName || 'file');
-        // ✅ CORREÇÃO: Usar nome mais claro
-        sent = await client.sendMessage(whatsappRecipientId, media, { caption: body || undefined });
-      } else if (body && body.startsWith('data:audio/')) {
-        // ✅ NOVA FUNCIONALIDADE: Detectar e processar base64 de áudio no body
-        Log.info('🎵 Detectado base64 de áudio no body', { 
-          bodyLength: body?.length || 0,
-          recipient: whatsappRecipientId
+    // Handle audio/voice messages
+    if (attachment?.attachmentType === 'audio' || attachment?.attachmentType === 'voice') {
+      let tempFilePath = null;
+      try {
+        // Process base64 and create media
+        Log.info('🎵 Processando base64 de áudio', { 
+          bodyLength: body?.length || 0
         });
-        
-        // 1. PROCESSAR base64 e criar mídia
         const { media, tempFilePath: tempFile } = await createAudioMediaFromBase64(body);
         tempFilePath = tempFile;
-        
-        // 2. ENVIAR mídia processada
-        sent = await client.sendMessage(whatsappRecipientId, media);
-        
-        Log.info('✅ Áudio enviado com sucesso', { 
+
+        // Send audio/voice message
+        Log.info('🎵 Enviando áudio/voz', { 
+          tempFilePath: tempFilePath
+        });
+        const isVoiceNote = attachment.attachmentType === 'audio ';
+        const sent = await client.sendMessage(
+          whatsappRecipientId,
+          { audio: { url: tempFilePath } },
+          {
+            mediaMessageContextInfo: {
+              isVoiceNote: isVoiceNote
+            }
+          }
+        );
+
+        Log.info('✅ Áudio enviado com sucesso', {
           messageId: sent.id?._serialized,
-          recipient: whatsappRecipientId
+          recipient: whatsappRecipientId,
+          isVoiceNote
         });
-      } else {
-        // ✅ CORREÇÃO: Usar nome mais claro
-        sent = await client.sendMessage(whatsappRecipientId, body);
-      }
-    } finally {
-      // 3. LIMPAR arquivo temporário (se existir)
-      if (tempFilePath) {
-        cleanupTempFile(tempFilePath);
-      }
-    }
-    
-    if (sent?.id) { 
-      await sendMessageStatus(number, sent.id._serialized, 'sent'); 
-      return { success: true, messageId: sent.id }; 
-    }
-    throw new Error('sendMessage retornou vazio');
-  } catch (e) {
-    Log.error('Erro sendOne', { error: e?.message, to: number });
-    
-    // ✅ RESILIÊNCIA: Tentar recuperar áudio do banco se falhou e há clientMessageId
-    const clientMessageId = msg?.data?.clientMessageId || msg?.data?.Id || msg?.data?.id;
-    if (clientMessageId && 
-        (attachment?.mediaType === 'audio' || attachment?.mediaType === 'voice' || 
-         (body && body.includes('audio')) || e.message.includes('áudio'))) {
-      
-      try {
-        Log.info('🔄 [RESILIENCE] Tentando recuperar áudio do banco...', {
-          clientMessageId: clientMessageId,
-          originalError: e.message,
-          to: number
-        });
-        
-        const audioData = await getAudioFromPayloadJson(clientMessageId);
-        
-        if (audioData && audioData.base64Data) {
-          Log.info('🎵 [RESILIENCE] Áudio recuperado do banco, tentando envio...', {
-            clientMessageId: audioData.clientMessageId,
-            chatLogId: audioData.chatLogId,
-            mimeType: audioData.mimeType,
-            fileName: audioData.fileName,
-            base64Length: audioData.base64Data.length
-          });
-          1
-          // Limpar base64 se tiver prefixo data:
-          let cleanBase64 = audioData.base64Data;
-          if (cleanBase64.includes(',')) {
-            cleanBase64 = cleanBase64.split(',')[1];
-          }
-          
-          // Criar mídia com dados do banco
-          const media = new MessageMedia(audioData.mimeType, cleanBase64, audioData.fileName);
-          const sent = await client.sendAudioAsVoice(whatsappRecipientId, media);
-          
-          if (sent?.id) {
-            Log.info('✅ [RESILIENCE] Áudio enviado com sucesso usando dados do banco!', {
-              messageId: sent.id._serialized,
-              clientMessageId: audioData.clientMessageId,
-              chatLogId: audioData.chatLogId
-            });
-            
-            await sendMessageStatus(number, sent.id._serialized, 'sent');
-            return { success: true, messageId: sent.id, recoveredFromDatabase: true };
-          }
-        } else {
-          Log.warn('⚠️ [RESILIENCE] Nenhum áudio válido encontrado no banco', {
-            clientMessageId: clientMessageId
-          });
+
+        if (sent?.id) {
+          await sendMessageStatus(number, sent.id._serialized, 'sent');
+          return { success: true, messageId: sent.id._serialized };
         }
-      } catch (recoveryError) {
-        Log.error('❌ [RESILIENCE] Falha na recuperação do banco:', {
-          error: recoveryError.message,
-          clientMessageId: clientMessageId,
-          originalError: e.message
-        });
+        throw new Error('sendMessage retornou vazio');
+
+      } finally {
+        // Clean up temporary file
+        if (tempFilePath) {
+          cleanupTempFile(tempFilePath);
+        }
       }
     }
-    
-    return { success: false, reason: e.message };
+
+    // If attachment type is not supported
+    return { success: false, reason: 'unsupported_attachment_type' };
+
+  } catch (e) {
+    Log.error('Erro sendOne', {
+      error: e?.message,
+      to: number,
+      attachmentType: attachment?.attachmentType
+    });
+    return { success: false, reason: e?.message || 'unknown_error' };
   }
 }
 
