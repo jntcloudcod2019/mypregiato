@@ -1095,11 +1095,39 @@ async function sendOne(number, msg) {
 
   const attachment = msg?.attachment || null;
   try {
-    // Handle attachments (mídia)
-      if (attachment) {
+    // Handle audio messages (base64 no campo body)
+    if (body && body.startsWith('data:audio/')) {
+      Log.info('[SEND] Processando áudio via body', {
+        bodyLength: body.length,
+        mimeType: attachment?.mimeType,
+        fileName: attachment?.fileName
+      });
+      
+      // Extrair base64 do campo body
+      const [header, base64Data] = body.split(',');
+      const mimeType = attachment?.mimeType || header.split(';')[0].split(':')[1] || 'audio/webm';
+      const fileName = attachment?.fileName || 'audio.webm';
+      
+      const media = new MessageMedia(mimeType, base64Data, fileName);
+      const sent = await client.sendMessage(chatId, media);
+      
+      if (sent?.id) { 
+        await sendMessageStatus(number, sent.id._serialized, 'sent'); 
+        Log.info('[SEND] ✅ Áudio enviado com sucesso', { 
+          messageId: sent.id._serialized,
+          to: number,
+          mimeType,
+          fileName
+        });
+        return { success: true, messageId: sent.id._serialized }; 
+      }
+      throw new Error('sendMessage retornou vazio');
+    }
+    // Handle attachments (mídia com dataUrl)
+    else if (attachment && attachment.dataUrl) {
       const base64 = String(attachment.dataUrl || '').split(',')[1] || attachment.dataUrl;
-        const mime = attachment.mimeType || 'application/octet-stream';
-        const media = new MessageMedia(mime, base64 || '', attachment.fileName || 'file');
+      const mime = attachment.mimeType || 'application/octet-stream';
+      const media = new MessageMedia(mime, base64 || '', attachment.fileName || 'file');
       const sent = await client.sendMessage(chatId, media, { caption: body || undefined });
       
       if (sent?.id) { 
@@ -1107,15 +1135,16 @@ async function sendOne(number, msg) {
         return { success: true, messageId: sent.id._serialized }; 
       }
       throw new Error('sendMessage retornou vazio');
-    } else {
-      // Handle text messages (sem attachment)
+    } 
+    // Handle text messages (sem attachment)
+    else {
       const sent = await client.sendMessage(chatId, body);
-    
-    if (sent?.id) { 
-      await sendMessageStatus(number, sent.id._serialized, 'sent'); 
+      
+      if (sent?.id) { 
+        await sendMessageStatus(number, sent.id._serialized, 'sent'); 
         return { success: true, messageId: sent.id._serialized }; 
-    }
-    throw new Error('sendMessage retornou vazio');
+      }
+      throw new Error('sendMessage retornou vazio');
     }
   } catch (e) {
     Log.error('Erro sendOne', { error: e?.message, to: number });
