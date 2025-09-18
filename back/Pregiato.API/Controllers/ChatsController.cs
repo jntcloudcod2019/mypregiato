@@ -264,7 +264,7 @@ namespace Pregiato.API.Controllers
             // ✅ Capturar  Para mídia, o body deve conter APENAS o base64
             var messageBody = isMediaMessage ? message.body : message.body; // ✅ Base64 para mídia, texto para texto
             
-            
+       
             // ✅ OPÇÃO 1.1: Se chat não existe, criar TODA a estrutura (PRIMEIRA MENSAGEM)
             if (chat == null)
             {
@@ -339,7 +339,7 @@ namespace Pregiato.API.Controllers
                     DataUrl = message.body.StartsWith("data:") ? message.body.Split(',')[1] : message.body, // ✅ Base64 puro (sem prefixo data:)
                     MimeType = mimeType,
                 FileName = message.fileName,
-                MediaType = messageType
+                    MediaType = messageType
                 };
                 
                 _logger.LogInformation($"🎵 Attachment criado para mídia: mimeType={mimeType}, fileName={attachment.FileName}");
@@ -495,7 +495,7 @@ namespace Pregiato.API.Controllers
             return Ok(new { success = true, messageId = message.Id });
         }
         
-        
+
         /// <summary>
         /// Normaliza um número de telefone ou ID de grupo para um formato padrão
         /// CORRIGIDA para evitar duplicação de chats - conforme análise de engenharia reversa

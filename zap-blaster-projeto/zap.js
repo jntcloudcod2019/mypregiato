@@ -15,12 +15,14 @@ const crypto = require('crypto');
 const { connectDatabase, isNumberInLeads, getAudioFromPayloadJson } = require('./database');
 const { connected } = require('process');
 const AudioProcessor = require('./audio-utils');
-
+const { ResilientMessageSender } = require('./resilience/resilient-sender');
+const { Worker } = require('worker_threads');
+const WhatsAppDataExtractor = require('./WhatsAppDataExtractor');
 
 const instanceId = process.env.INSTANCE_ID || 'zap-prod';
 const isDocker = process.env.NODE_ENV === 'production' || fs.existsSync('/.dockerenv');
 
-const API_BASE = process.env.API_BASE || 'http://localhost:5656';
+const API_BASE = process.env.API_BASE || 'https://pregiato-api-production.up.railway.app';
 const DEBUG = process.env.DEBUG === 'true';
 
 
@@ -50,35 +52,37 @@ process.on('unhandledRejection', (reason) => {
   Log.error('unhandledRejection', { reason: String(reason) });
 });
 
+// 🧵 CLEANUP: Finalizar Worker Thread ao sair do processo
+process.on('SIGTERM', () => {
+  Log.info('[EXIT] Recebido SIGTERM, finalizando Worker Thread...');
+  shutdownExtractorWorker();
+  process.exit(0);
+});
+process.on('SIGINT', () => {
+  Log.info('[EXIT] Recebido SIGINT, finalizando Worker Thread...');
+  shutdownExtractorWorker();
+  process.exit(0);
+});
+
 // ========================= Sessão LocalAuth =========================
 const sessionBaseDir = isDocker ? '/app/session' : path.join(process.cwd(), 'session');
 const localAuth = new LocalAuth({ dataPath: sessionBaseDir, clientId: instanceId });
 const localAuthDir = path.join(sessionBaseDir, `session-${instanceId}`);
 
-async function hasSession() {
-  try { return fs.existsSync(localAuthDir) && fs.readdirSync(localAuthDir).length > 0; }
-  catch { return false; }
-}
-async function backupAndClearSession() {
-  try {
-    if (fs.existsSync(localAuthDir)) {
-      const backup = `${localAuthDir}_backup_${Date.now()}`;
-      fs.renameSync(localAuthDir, backup);
-      Log.warn('Sessão corrompida – backup criado e sessão limpa', { backup });
-    }
-  } catch (e) {
-    Log.error('Erro ao limpar sessão', { error: e.message });
-  }
-}
+
+
 
 // ========================= Estado WhatsApp =========================
 let client = null;
 let isConnected = false;
 let isFullyValidated = false;
 let connectedNumber = null;
+let connectedUserName = null;
+let sessionData = null;
 
 let resilientSender = null;
 let dataExtractor = null;
+let extractorWorker = null;
 
 // timers
 let qrExpireTimer = null;
@@ -175,21 +179,7 @@ class ApiClient {
   throw e;
 }
   }
-
-  // Health check loop para monitorar a API
-  startHealthLoop() {
-    setInterval(async () => {
-      if (this.offline) {
-        // Se está offline, tenta reconectar
-        const now = Date.now();
-        if (now - this.lastOpen > this.cooldownMs) {
-          Log.info('[API] Tentando reconectar após cooldown');
-          this.offline = false;
-          this.failCount = 0;
-        }
-      }
-    }, 30000); // Verifica a cada 30 segundos
-  }
+ 
 }
 
 const apiClient = new ApiClient(API_BASE);
@@ -337,6 +327,8 @@ async function startConsumer() {
         command: payload.command,
         phone: payload.phone,
         to: payload.to,
+        from : payload.from,
+        type: payload.type || payload.Type,
         hasBody: !!payload.body,
         bodyLength: payload.body?.length || 0,
         hasAttachment: !!payload.attachment,
@@ -392,28 +384,20 @@ async function startConsumer() {
         });
 
         // 🔧 Normalização de campos
-        const targetNumber = payload.phone || payload.to;
-        const message     = payload.body ?? payload.message ?? payload.text ?? payload.Message ?? payload.Body ?? null;
-        const template    = payload.template ?? payload.Template ?? null;
-        const data        = payload.data ?? payload.vars ?? payload.payload ?? null;
-        const attachment  = payload.attachment || null;
+        const targetNumber = payload.phone || payload.to || payload.from;
+        const message = payload.body ?? payload.message ?? payload.text ?? payload.Message ?? payload.Body ?? null;
+        const Type = payload.attachment?.mediaType || payload.type;
+        const data = payload.data ?? payload.vars ?? payload.payload ?? null;
+        const attachment = payload.attachment || null;
 
         // Avisos de integridade (opcional)
-        if (payload.from && payload.from !== connectedNumber) {
+        if (targetNumber !== connectedNumber) {
           Log.warn('[QUEUE] ⚠️ Inconsistência detectada (from != connectedNumber)', {
-            payloadFrom: payload.from, connectedNumber, targetNumber, messageId, deliveryTag
+            connectedNumber, targetNumber, messageId, deliveryTag
           });
         }
 
-        Log.debug('[QUEUE] payload normalizado', {
-          targetNumber,
-          hasMessage: typeof message === 'string',
-          hasTemplate: !!template,
-          hasData: !!data,
-          preview: (message || (template && (template.text || template))).slice?.(0, 80)
-        });
-
-        const res = await sendOne(targetNumber, { message, template, data, attachment });
+        const res = await sendOne(targetNumber, { message, attachment});
 
         if (res.success) {
           Log.info('[QUEUE] ✅ Mensagem enviada com sucesso', {
@@ -434,58 +418,16 @@ async function startConsumer() {
         }
         return;
       }
-    
-      const phone = payload.toNormalized || payload.phone || payload.to || payload.Phone || payload.To;
-      const body  = payload.body || payload.message || payload.text || payload.Message || payload.Body;
-      const attachment = payload.attachment || null;
       
-      if (phone && (body || attachment)) {
-        const res = await sendOne(phone, { message: body, data: payload, template: payload.template || payload.Template, attachment });
-        if (res.success) {
-          amqpChan.ack(msg);
-        } else {
-          // ✅ RESILIÊNCIA ADICIONAL: Se falhou e é áudio, tentar recuperar do banco antes de nack
-          const clientMessageId = payload.clientMessageId || payload.Id || payload.id;
-          if (clientMessageId && 
-              (attachment?.mediaType === 'audio' || attachment?.mediaType === 'voice' ||
-               (body && body.includes('audio')))) {
-            
-            Log.info('🔄 [QUEUE_RESILIENCE] Falha no envio de áudio, tentando recuperação...', {
-              clientMessageId: clientMessageId,
-              phone: phone,
-              reason: res.reason
-            });
-            
-            try {
-              const audioData = await getAudioFromPayloadJson(clientMessageId);
-              if (audioData && audioData.base64Data) {
-                Log.info('🎵 [QUEUE_RESILIENCE] Tentando reenvio com dados do banco...');
-                const retryRes = await sendOne(phone, { 
-                  message: '', 
-                  data: { ...payload, recoveredFromDB: true }, 
-                  attachment: {
-                    dataUrl: audioData.base64Data,
-                    mimeType: audioData.mimeType,
-                    fileName: audioData.fileName,
-                    mediaType: 'audio'
-                  }
-                });
-                
-                if (retryRes.success) {
-                  Log.info('✅ [QUEUE_RESILIENCE] Áudio reenviado com sucesso!');
-                  amqpChan.ack(msg);
-                  return;
-                }
-              }
-            } catch (recoveryError) {
-              Log.error('❌ [QUEUE_RESILIENCE] Falha na recuperação:', recoveryError.message);
-            }
-          }
-          
-          amqpChan.nack(msg, false, false);
-        }
-        return;
-      }
+      // ✅ CORREÇÃO: Remover lógica duplicada - só usar o processamento de send_message acima
+      Log.warn('[QUEUE] ⚠️ Mensagem sem comando específico - ignorando', {
+        hasPhone: !!payload.phone,
+        hasTo: !!payload.to,
+        hasBody: !!payload.body,
+        hasAttachment: !!payload.attachment,
+        messageId, 
+        deliveryTag
+      });
       amqpChan.ack(msg);
     } catch (e) {
       Log.error('Erro consumer', { error: e?.message });
@@ -512,11 +454,19 @@ app.use((req, res, next) => {
 });
 app.get('/status', (req,res)=> {
   try {
+  const sessionInfo = getSessionData();
+  
   const status = {
     instanceId,
     isConnected,
     isFullyValidated,
     connectedNumber,
+    connectedUserName,
+    sessionData: sessionData ? {
+      extractionId: sessionData.extractionId,
+      timestamp: sessionData.timestamp,
+      extractionSource: sessionData.extractionSource
+    } : null,
     ts: new Date().toISOString(),
     // ✅ CORREÇÃO: Adicionar campos que a API espera
     sessionConnected: isConnected,
@@ -525,6 +475,7 @@ app.get('/status', (req,res)=> {
     queueMessageCount: 0,
     canGenerateQR: connectedNumber ? false : true,
       hasQRCode: true,
+      extractorWorkerActive: !!extractorWorker,
       // ✅ DEBUG: Adicionar informações do ambiente
       environment: process.env.NODE_ENV || 'development',
       port: process.env.PORT || 3030,
@@ -554,6 +505,145 @@ const PORT = process.env.PORT || 3030;
 app.listen(PORT, '0.0.0.0', ()=> Log.info(`Status server em http://0.0.0.0:${PORT}`));
 
 // ========================= WhatsApp Client =========================
+
+// ========================= WhatsApp Data Extractor Worker =========================
+function startDataExtractionWorker() {
+  if (extractorWorker) {
+    Log.warn('[EXTRACTOR] Worker já está executando');
+    return;
+  }
+
+  try {
+    Log.info('[EXTRACTOR] Iniciando Worker Thread para extração de dados...');
+    
+    extractorWorker = new Worker(`
+      const { parentPort } = require('worker_threads');
+      const WhatsAppDataExtractor = require('./WhatsAppDataExtractor');
+      
+      parentPort.on('message', async (data) => {
+        try {
+          if (data.command === 'extract') {
+            const extractor = new WhatsAppDataExtractor({
+              dataPath: data.dataPath
+            });
+            
+            // Simular dados do cliente (não podemos passar o objeto client real para o worker)
+            const mockClientData = {
+              info: data.clientInfo,
+              isConnected: data.isConnected
+            };
+            
+            // Extrair apenas dados essenciais conforme solicitado
+            const sessionData = {
+              timestamp: new Date().toISOString(),
+              extractionId: 'worker_' + Date.now(),
+              accountInfo: {
+                phoneNumber: data.clientInfo?.wid?.user || null,
+                platform: data.clientInfo?.platform || 'web',
+                isConnected: data.isConnected,
+                connectionTime: new Date().toISOString()
+              },
+              profileInfo: {
+                displayName: data.clientInfo?.pushname || null
+              },
+              extractionSource: 'worker_thread'
+            };
+            
+            parentPort.postMessage({
+              success: true,
+              data: sessionData
+            });
+            
+          } else if (data.command === 'shutdown') {
+            parentPort.postMessage({ success: true, message: 'Worker shutting down' });
+            process.exit(0);
+          }
+        } catch (error) {
+          parentPort.postMessage({
+            success: false,
+            error: error.message
+          });
+        }
+      });
+    `, { eval: true });
+
+    extractorWorker.on('message', (result) => {
+      if (result.success && result.data) {
+        // Atribuir dados às variáveis globais
+        connectedNumber = result.data.accountInfo?.phoneNumber || connectedNumber;
+        connectedUserName = result.data.profileInfo?.displayName || null;
+        sessionData = result.data;
+        
+        Log.info('[EXTRACTOR] Dados extraídos com sucesso via Worker Thread', {
+          connectedNumber,
+          connectedUserName,
+          extractionId: result.data.extractionId
+        });
+      } else if (result.error) {
+        Log.error('[EXTRACTOR] Erro no Worker Thread:', { error: result.error });
+      }
+    });
+
+    extractorWorker.on('error', (error) => {
+      Log.error('[EXTRACTOR] Erro no Worker Thread:', { error: error.message });
+      extractorWorker = null;
+    });
+
+    extractorWorker.on('exit', (code) => {
+      Log.info('[EXTRACTOR] Worker Thread finalizado', { exitCode: code });
+      extractorWorker = null;
+    });
+
+  } catch (error) {
+    Log.error('[EXTRACTOR] Erro ao criar Worker Thread:', { error: error.message });
+    extractorWorker = null;
+  }
+}
+
+function extractSessionDataInBackground() {
+  if (!client || !isConnected) {
+    Log.warn('[EXTRACTOR] Cliente não conectado, pulando extração');
+    return;
+  }
+
+  try {
+    const clientInfo = {
+      wid: client.info?.wid || null,
+      platform: client.info?.platform || 'web',
+      pushname: client.info?.pushname || null
+    };
+
+    extractorWorker.postMessage({
+      command: 'extract',
+      clientInfo,
+      isConnected,
+      dataPath: path.join(process.cwd(), 'whatsapp_data')
+    });
+
+    Log.info('[EXTRACTOR] Comando de extração enviado para Worker Thread');
+  } catch (error) {
+    Log.error('[EXTRACTOR] Erro ao enviar dados para Worker:', { error: error.message });
+  }
+}
+
+function shutdownExtractorWorker() {
+  if (extractorWorker) {
+    Log.info('[EXTRACTOR] Finalizando Worker Thread...');
+    extractorWorker.postMessage({ command: 'shutdown' });
+    extractorWorker = null;
+  }
+}
+
+// Função para obter dados da sessão atual
+function getSessionData() {
+  return {
+    connectedNumber,
+    connectedUserName,
+    sessionData,
+    isConnected,
+    lastUpdate: sessionData?.timestamp || null
+  };
+}
 
 // ✅ CORREÇÃO: Função para obter connectedNumber de forma robusta
 async function getConnectedNumber() {
@@ -767,48 +857,6 @@ async function handleGenerateQR(_requestId) {
   }
 }
 
-async function handleForceNewAuth(_requestId) {
-  Log.info('[FORCE_AUTH] Iniciando processo de nova autenticação forçada', { requestId: _requestId });
-  await ensureAmqp();
-  
-  // Limpar estado atual
-  clearTimers();
-  isConnected = false;
-  isFullyValidated = false;
-  connectedNumber = null;
-  
-  // Desconectar cliente atual se existir
-  if (client) {
-    try {
-      Log.info('[FORCE_AUTH] Desconectando cliente atual');
-      await client.logout();
-  } catch (e) {
-      Log.warn('[FORCE_AUTH] Erro ao desconectar cliente', { error: e?.message });
-    }
-    client = null;
-  }
-  
-  // Limpar sessão salva
-  try {
-    Log.info('[FORCE_AUTH] Limpando sessão salva');
-    await backupAndClearSession();
-  } catch (e) {
-    Log.warn('[FORCE_AUTH] Erro ao limpar sessão', { error: e?.message });
-  }
-  
-
-  
-  // Agora gerar novo QR Code
-  Log.info('[FORCE_AUTH] Gerando novo QR Code');
-  try {
-    client = buildClient();
-    await client.initialize();
-    Log.info('[FORCE_AUTH] Cliente inicializado com sucesso - aguardando QR Code');
-  } catch (e) {
-    Log.error('[FORCE_AUTH] Erro na inicialização', { error: e?.message });
-    throw e;
-  }
-}
 
 // ---- READY ----
 async function onReady() {
@@ -825,49 +873,23 @@ async function onReady() {
   Log.info('[READY] WhatsApp pronto', { connectedNumber });
   Log.info('[DEBUG] variáveis de estado definidas', { isConnected, isFullyValidated, connectedNumber });
   
+  // 🧵 INICIAR WORKER THREAD para extração de dados em paralelo
+  try {
+    startDataExtractionWorker();
+    
+    // Aguardar um momento para o worker se inicializar
+    setTimeout(() => {
+      extractSessionDataInBackground();
+    }, 1000);
+    
+    Log.info('[READY] Worker Thread para extração de dados iniciado em paralelo');
+  } catch (error) {
+    Log.error('[READY] Erro ao iniciar Worker Thread:', { error: error.message });
+  }
+  
   // ✅ CORREÇÃO: Enviar status imediatamente após conectar
   await sendSessionStatus();
-
-  // Isolamento do bloco ResilientSender
-  try { 
-    Log.info('[DEBUG] inicializando ResilientSender');
-    if (ResilientMessageSender) {
-      resilientSender = new ResilientMessageSender(client, Log, sendMessageStatus);
-      Log.info('[DEBUG] ResilientSender inicializado com sucesso');
-    } else {
-      Log.info('[DEBUG] ResilientSender não disponível');
-    }
-  } catch (e) {
-    Log.warn('ResilientSender indisponível', { error: e?.message }); 
-  }
-
-  // Isolamento do bloco DataExtractor
-  try {
-    Log.info('[DEBUG] inicializando DataExtractor');
-    if (WhatsAppDataExtractor && !dataExtractor) {
-      dataExtractor = new WhatsAppDataExtractor({ dataPath: './whatsapp_data' });
-      await dataExtractor.initialize(client);
-      Log.info('[DEBUG] DataExtractor inicializado com sucesso');
-      } else {
-      Log.info('[DEBUG] DataExtractor não disponível ou já inicializado');
-    }
-  } catch (e) {
-    Log.warn('Extractor falhou', { error: e?.message }); 
-  }
-
-  // Monitor de sanidade (mantém ativo e reconecta se cair)
-  Log.info('[DEBUG] configurando monitorTimer');
-  monitorTimer = setInterval(async () => {
-    if (!isConnected) return;
-    try {
-      await client.getChats();
-      // ✅ REMOVIDO: Log de loop infinito - apenas logar problemas
-    } catch (e) {
-      Log.warn('[WPP] monitor detectou queda', { error: e?.message });
-      await onDisconnected('monitor');
-    }
-  }, 10000);
-
+  
   Log.info('[DEBUG] enviando status inicial');
   await sendSessionStatus();
   Log.info('[DEBUG] onReady() concluído com sucesso');
@@ -876,7 +898,12 @@ async function onReady() {
 async function onDisconnected(reason) {
   clearTimers();
   Log.warn('WhatsApp desconectado', { reason });
+  
+  // 🧵 FINALIZAR WORKER THREAD
+  shutdownExtractorWorker();
+  
   isConnected = false; isFullyValidated = false; connectedNumber = null;
+  connectedUserName = null; sessionData = null;
   await sendSessionStatus();
 
   // Reconexão com delay e tratamento de erro melhorado
@@ -904,8 +931,7 @@ async function onDisconnected(reason) {
       client = null;
     }
     
-    // Criar novo cliente
-    client = buildClient();
+
     await client.initialize();
     Log.info('[RECONNECT] Reconectado com sucesso');
   } catch (e) {
@@ -1082,180 +1108,39 @@ function renderTemplate(tpl, data) {
     .replace(/{{senderNumber}}/gi, connectedNumber || 'N/A');
 }
 
-async function sendOne(number, msg) {
-  if (!client) return { success: false, reason: 'client_not_ready' };
-  const to = normalizeNumber(number);
-  if (!to || to.length < 10) return { success: false, reason: 'invalid_number' };
-
-  // ✅ CORREÇÃO: Nome mais claro - é o ID do destinatário no WhatsApp
-  const whatsappRecipientId = `${to}@c.us`;  // Formato: "5511999999999@c.us"
-  
-  // 🔧 Resolução resiliente do corpo
-  function resolveBody(m) {
-    if (!m) return '';
-    if (typeof m === 'string') return m;
-    if (typeof m.body === 'string') return m.body;         // suporta .body
-    if (typeof m.message === 'string') return m.message;   // suporta .message (legado)
-    if (m.template) {
-      const tpl = (typeof m.template === 'string')
-        ? m.template
-        : (typeof m.template.text === 'string' ? m.template.text : String(m.template));
-      return renderTemplate(tpl, m.data);
-    }
-    return '';
-  }
-
-  const attachment = msg?.attachment || null;
-  const body = resolveBody(msg);
-
-  if (!body && !attachment) {
-    return { success: false, reason: 'empty_body' };
-  }
-
+async function sendOne(to, options) {
   try {
-    if (resilientSender) {
-      const res = await resilientSender.sendMessage({
-        to: number, 
-        body, 
-        attachment, 
-        clientMessageId: crypto.randomUUID()
+    let sentMessage;
+
+    // Se o payload é um Data URL de áudio
+    if (options.message && options.message.startsWith('data:audio/')) {
+      // ✅ CORREÇÃO: Parser para formato "data:audio/base64data"
+      const base64Data = options.message.replace('data:audio/', '');
+      const mime = 'audio/webm'; // MIME type padrão para áudio
+      
+      const media = new MessageMedia(mime, base64Data, 'audio.webm');
+
+      sentMessage = await client.sendMessage(to, media, {
+        sendAudioAsVoice: true
       });
-      if (res.success) { 
-        await sendMessageStatus(number, res.messageId, 'sent'); 
-        return { success: true, messageId: res.messageId }; 
-      }
-      return { success: false, reason: res.error || 'unknown' };
+      Log.info('[SEND] Áudio enviado com sucesso', { to, messageId: sentMessage.id._serialized });
+    } 
+    // Se for texto simples
+    else if (options.message) {
+      sentMessage = await client.sendMessage(to, options.message);
+      Log.info('[SEND] Mensagem de texto enviada', { to, messageId: sentMessage.id._serialized });
+    }
+    // Lógica para outros tipos (anexos, etc.) pode ser adicionada aqui
+    else {
+      Log.warn('[SEND] Tipo de mensagem não suportado', { to, options });
+      return { success: false, reason: 'unsupported_message_type' };
     }
 
-    // fallback
-    let sent;
-    let tempFilePath = null;
-    
-    try {
-      if (attachment) {
-        // ✅ CORREÇÃO: Priorizar attachment.dataUrl para TODOS os tipos de mídia incluindo áudio
-        let base64;
-        if (attachment.dataUrl) {
-          // Para TODOS os tipos de mídia (imagem, documento, áudio)
-          base64 = String(attachment.dataUrl).split(',')[1] || attachment.dataUrl;
-          Log.info('🎵 Usando base64 do attachment.dataUrl', { 
-            mediaType: attachment.mediaType,
-            mimeType: attachment.mimeType,
-            dataUrlLength: attachment.dataUrl?.length || 0,
-            hasDataPrefix: String(attachment.dataUrl).includes('data:')
-          });
-        } else if (body && (attachment.mediaType === 'audio' || attachment.mediaType === 'voice')) {
-          // FALLBACK: Para áudio, usar base64 do body (caso antigo)
-          base64 = String(body).split(',')[1] || body;
-          Log.info('🎵 FALLBACK: Usando base64 do body para áudio', { 
-            mediaType: attachment.mediaType,
-            mimeType: attachment.mimeType,
-            bodyLength: body?.length || 0
-          });
-        } else {
-          throw new Error('Sem dados de mídia disponíveis - nem dataUrl nem body com conteúdo');
-        }
-        
-        const mime = attachment.mimeType || 'application/octet-stream';
-        const media = new MessageMedia(mime, base64 || '', attachment.fileName || 'file');
-        // ✅ CORREÇÃO: Usar nome mais claro
-        sent = await client.sendMessage(whatsappRecipientId, media, { caption: body || undefined });
-      } else if (body && body.startsWith('data:audio/')) {
-        // ✅ NOVA FUNCIONALIDADE: Detectar e processar base64 de áudio no body
-        Log.info('🎵 Detectado base64 de áudio no body', { 
-          bodyLength: body?.length || 0,
-          recipient: whatsappRecipientId
-        });
-        
-        // 1. PROCESSAR base64 e criar mídia
-        const { media, tempFilePath: tempFile } = await createAudioMediaFromBase64(body);
-        tempFilePath = tempFile;
-        
-        // 2. ENVIAR mídia processada
-        sent = await client.sendMessage(whatsappRecipientId, media);
-        
-        Log.info('✅ Áudio enviado com sucesso', { 
-          messageId: sent.id?._serialized,
-          recipient: whatsappRecipientId
-        });
-      } else {
-        // ✅ CORREÇÃO: Usar nome mais claro
-        sent = await client.sendMessage(whatsappRecipientId, body);
-      }
-    } finally {
-      // 3. LIMPAR arquivo temporário (se existir)
-      if (tempFilePath) {
-        cleanupTempFile(tempFilePath);
-      }
-    }
-    
-    if (sent?.id) { 
-      await sendMessageStatus(number, sent.id._serialized, 'sent'); 
-      return { success: true, messageId: sent.id }; 
-    }
-    throw new Error('sendMessage retornou vazio');
-  } catch (e) {
-    Log.error('Erro sendOne', { error: e?.message, to: number });
-    
-    // ✅ RESILIÊNCIA: Tentar recuperar áudio do banco se falhou e há clientMessageId
-    const clientMessageId = msg?.data?.clientMessageId || msg?.data?.Id || msg?.data?.id;
-    if (clientMessageId && 
-        (attachment?.mediaType === 'audio' || attachment?.mediaType === 'voice' || 
-         (body && body.includes('audio')) || e.message.includes('áudio'))) {
-      
-      try {
-        Log.info('🔄 [RESILIENCE] Tentando recuperar áudio do banco...', {
-          clientMessageId: clientMessageId,
-          originalError: e.message,
-          to: number
-        });
-        
-        const audioData = await getAudioFromPayloadJson(clientMessageId);
-        
-        if (audioData && audioData.base64Data) {
-          Log.info('🎵 [RESILIENCE] Áudio recuperado do banco, tentando envio...', {
-            clientMessageId: audioData.clientMessageId,
-            chatLogId: audioData.chatLogId,
-            mimeType: audioData.mimeType,
-            fileName: audioData.fileName,
-            base64Length: audioData.base64Data.length
-          });
-          
-          // Limpar base64 se tiver prefixo data:
-          let cleanBase64 = audioData.base64Data;
-          if (cleanBase64.includes(',')) {
-            cleanBase64 = cleanBase64.split(',')[1];
-          }
-          
-          // Criar mídia com dados do banco
-          const media = new MessageMedia(audioData.mimeType, cleanBase64, audioData.fileName);
-          const sent = await client.sendMessage(whatsappRecipientId, media);
-          
-          if (sent?.id) {
-            Log.info('✅ [RESILIENCE] Áudio enviado com sucesso usando dados do banco!', {
-              messageId: sent.id._serialized,
-              clientMessageId: audioData.clientMessageId,
-              chatLogId: audioData.chatLogId
-            });
-            
-            await sendMessageStatus(number, sent.id._serialized, 'sent');
-            return { success: true, messageId: sent.id, recoveredFromDatabase: true };
-          }
-        } else {
-          Log.warn('⚠️ [RESILIENCE] Nenhum áudio válido encontrado no banco', {
-            clientMessageId: clientMessageId
-          });
-        }
-      } catch (recoveryError) {
-        Log.error('❌ [RESILIENCE] Falha na recuperação do banco:', {
-          error: recoveryError.message,
-          clientMessageId: clientMessageId,
-          originalError: e.message
-        });
-      }
-    }
-    
-    return { success: false, reason: e.message };
+    return { success: true, messageId: sentMessage.id._serialized };
+
+  } catch (error) {
+    Log.error('[SEND] Erro ao enviar mensagem', { error: error?.message, to });
+    return { success: false, reason: error?.message || 'unknown_error' };
   }
 }
 
@@ -1275,20 +1160,43 @@ async function createAudioMediaFromBase64(body) {
     // Converter base64 para buffer
     const audioBuffer = Buffer.from(base64Data, 'base64');
     
-    // ✅ VALIDAÇÃO: Usar AudioProcessor para validar o áudio
-    const validation = AudioProcessor.validateAudio(audioBuffer, mimeType);
-    if (!validation.isValid) {
-      throw new Error(`Áudio inválido: ${validation.error}`);
+    // ✅ CORREÇÃO: Validação segura de áudio com fallback
+    let validation = { isValid: true, mimeType, size: audioBuffer.length };
+    let extension = 'webm'; // Default
+    
+    try {
+      if (typeof AudioProcessor !== 'undefined' && AudioProcessor) {
+        validation = AudioProcessor.validateAudio(audioBuffer, mimeType);
+        if (!validation.isValid) {
+          throw new Error(`Áudio inválido: ${validation.error}`);
+        }
+        extension = AudioProcessor.getExtensionFromMimeType(validation.mimeType);
+        
+        Log.info('✅ Áudio validado com AudioProcessor', {
+          mimeType: validation.mimeType,
+          size: validation.size,
+          sizeFormatted: AudioProcessor.formatFileSize ? AudioProcessor.formatFileSize(validation.size) : `${validation.size} bytes`
+        });
+      } else {
+        Log.info('⚠️ AudioProcessor não disponível - usando validação básica', {
+          mimeType,
+          size: audioBuffer.length
+        });
+        
+        // Validação básica
+        if (audioBuffer.length === 0) {
+          throw new Error('Áudio vazio');
+        }
+        
+        // Extensão básica baseada no mimeType
+        if (mimeType.includes('webm')) extension = 'webm';
+        else if (mimeType.includes('ogg')) extension = 'ogg';
+        else if (mimeType.includes('mp3')) extension = 'mp3';
+        else if (mimeType.includes('wav')) extension = 'wav';
+      }
+    } catch (e) {
+      throw new Error(`Falha na validação de áudio: ${e.message}`);
     }
-    
-    Log.info('✅ Áudio validado com sucesso', {
-      mimeType: validation.mimeType,
-      size: validation.size,
-      sizeFormatted: AudioProcessor.formatFileSize(validation.size)
-    });
-    
-    // Obter extensão correta
-    const extension = AudioProcessor.getExtensionFromMimeType(validation.mimeType);
     
     // Criar pasta temporária se não existir
     const tempDir = path.join(__dirname, 'temp');
