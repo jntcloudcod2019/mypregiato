@@ -413,7 +413,7 @@ async function startConsumer() {
          
         });
 
-        const res = await sendOne(targetNumber, data,{ message, template, data, attachment });
+        const res = await sendOne(targetNumber, { message, template, data, attachment });
 
         if (res.success) {
           Log.info('[QUEUE] ✅ Mensagem enviada com sucesso', {
@@ -1082,84 +1082,44 @@ function renderTemplate(tpl, data) {
     .replace(/{{senderNumber}}/gi, connectedNumber || 'N/A');
 }
 
-async function sendOne(number, body, msg) {
+async function sendOne(number, msg) {
+  if (!client) return { success: false, reason: 'client_not_ready' };
   const to = normalizeNumber(number);
   if (!to || to.length < 10) return { success: false, reason: 'invalid_number' };
 
-  const whatsappRecipientId = `${to}@c.us`; // Formato: "5511999999999@c.us"
+  const chatId = `${to}@c.us`;
+  let body = '';
+  if (typeof msg?.message === 'string') body = msg.message;
+  else if (msg?.template) body = renderTemplate(msg.template, msg.data);
+  else body = renderTemplate(String(msg || ''), msg?.data);
+
   const attachment = msg?.attachment || null;
-
   try {
-    // Handle text messages
-    if (attachment?.attachmentType === 'text' || attachment?.attachmentType === 'txt') {
-      const res = await client.sendMessage({
-        to: whatsappRecipientId,
-        body,
-      });
+    // Handle attachments (mídia)
+      if (attachment) {
+      const base64 = String(attachment.dataUrl || '').split(',')[1] || attachment.dataUrl;
+        const mime = attachment.mimeType || 'application/octet-stream';
+        const media = new MessageMedia(mime, base64 || '', attachment.fileName || 'file');
+      const sent = await client.sendMessage(chatId, media, { caption: body || undefined });
       
-      if (res.success) {
-        await sendMessageStatus(number, res.messageId, 'sent');
-        return { success: true, messageId: res.messageId };
+      if (sent?.id) { 
+        await sendMessageStatus(number, sent.id._serialized, 'sent'); 
+        return { success: true, messageId: sent.id._serialized }; 
       }
-      return { success: false, reason: res.error || 'unknown' };
+      throw new Error('sendMessage retornou vazio');
+    } else {
+      // Handle text messages (sem attachment)
+      const sent = await client.sendMessage(chatId, body);
+    
+    if (sent?.id) { 
+      await sendMessageStatus(number, sent.id._serialized, 'sent'); 
+        return { success: true, messageId: sent.id._serialized }; 
     }
-
-    // Handle audio/voice messages
-    if (attachment?.attachmentType === 'audio' || attachment?.attachmentType === 'voice') {
-      let tempFilePath = null;
-      try {
-        // Process base64 and create media
-        Log.info('🎵 Processando base64 de áudio', { 
-          bodyLength: body?.length || 0
-        });
-        const { media, tempFilePath: tempFile } = await createAudioMediaFromBase64(body);
-        tempFilePath = tempFile;
-
-        // Send audio/voice message
-        Log.info('🎵 Enviando áudio/voz', { 
-          tempFilePath: tempFilePath
-        });
-        const isVoiceNote = attachment.attachmentType === 'audio ';
-        const sent = await client.sendMessage(
-          whatsappRecipientId,
-          { audio: { url: tempFilePath } },
-          {
-            mediaMessageContextInfo: {
-              isVoiceNote: isVoiceNote
-            }
-          }
-        );
-
-        Log.info('✅ Áudio enviado com sucesso', {
-          messageId: sent.id?._serialized,
-          recipient: whatsappRecipientId,
-          isVoiceNote
-        });
-
-        if (sent?.id) {
-          await sendMessageStatus(number, sent.id._serialized, 'sent');
-          return { success: true, messageId: sent.id._serialized };
-        }
-        throw new Error('sendMessage retornou vazio');
-
-      } finally {
-        // Clean up temporary file
-        if (tempFilePath) {
-          cleanupTempFile(tempFilePath);
-        }
-      }
+    throw new Error('sendMessage retornou vazio');
     }
-
-    // If attachment type is not supported
-    return { success: false, reason: 'unsupported_attachment_type' };
-
   } catch (e) {
-    Log.error('Erro sendOne', {
-      error: e?.message,
-      to: number,
-      attachmentType: attachment?.attachmentType
-    });
-    return { success: false, reason: e?.message || 'unknown_error' };
+    Log.error('Erro sendOne', { error: e?.message, to: number });
+    return { success: false, reason: e.message };
   }
 }
 
