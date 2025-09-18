@@ -96,6 +96,15 @@ namespace Pregiato.API.Controllers
         }
 
         public class SessionUpdatedRequest { public bool sessionConnected { get; set; } public string? connectedNumber { get; set; } public bool isFullyValidated { get; set; } }
+        
+        public class AuthenticationRequest 
+        { 
+            public bool sessionConnected { get; set; } 
+            public string? connectedNumber { get; set; } 
+            public string? connectedUserName { get; set; }
+            public string? timestamp { get; set; }
+            public object? extractionData { get; set; }
+        }
 
         [HttpPost("session/updated")]
         public IActionResult SessionUpdated([FromBody] SessionUpdatedRequest req)
@@ -125,6 +134,40 @@ namespace Pregiato.API.Controllers
             }
             
             return Ok(new { success = true, updated = true });
+        }
+
+        [HttpPost("session/authenticated")]
+        public async Task<IActionResult> SessionAuthenticated([FromBody] AuthenticationRequest req)
+        {
+            try
+            {
+                // ✅ Atualizar status interno
+                _rabbit.SetSessionStatus(req.sessionConnected, req.connectedNumber, true);
+                _sessionInitialized = true;
+                _lastSessionUpdateUtc = DateTime.UtcNow;
+                
+                _logger.LogInformation("🎉 WhatsApp autenticado com sucesso! Número: {Number}, Usuário: {UserName}", 
+                    req.connectedNumber, req.connectedUserName);
+                
+                // 🚀 EMITIR EVENTO ESPECÍFICO via SignalR para auto-refresh do frontend
+                await _hub.Clients.Group("whatsapp").SendAsync("session.authenticated", new {
+                    sessionConnected = req.sessionConnected,
+                    connectedNumber = req.connectedNumber,
+                    connectedUserName = req.connectedUserName,
+                    isFullyValidated = true,
+                    timestamp = req.timestamp ?? DateTime.UtcNow.ToString("O"),
+                    extractionData = req.extractionData
+                });
+                
+                _logger.LogInformation("📤 Evento session.authenticated emitido via SignalR para todos os clientes");
+                
+                return Ok(new { success = true, message = "Autenticação processada e propagada com sucesso" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Erro ao processar autenticação do WhatsApp");
+                return StatusCode(500, new { success = false, message = "Erro interno ao processar autenticação" });
+            }
         }
 
         [HttpGet("status")]
