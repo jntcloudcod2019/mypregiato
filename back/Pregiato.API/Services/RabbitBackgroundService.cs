@@ -192,13 +192,21 @@ namespace Pregiato.API.Services
         {
             try
             {
+                // ✅ CORREÇÃO: Usar variáveis de ambiente com fallback para configuração
+                var host = Environment.GetEnvironmentVariable("RABBITMQ_HOST") ?? _rabbitConfig.Host;
+                var port = int.Parse(Environment.GetEnvironmentVariable("RABBITMQ_PORT") ?? _rabbitConfig.Port.ToString());
+                var username = Environment.GetEnvironmentVariable("RABBITMQ_USER") ?? _rabbitConfig.Username;
+                var password = Environment.GetEnvironmentVariable("RABBITMQ_PASS") ?? _rabbitConfig.Password;
+                var vhost = Environment.GetEnvironmentVariable("RABBITMQ_VHOST") ?? _rabbitConfig.VirtualHost;
+                var protocol = Environment.GetEnvironmentVariable("RABBITMQ_PROTOCOL") ?? _rabbitConfig.Protocol;
+
                 var factory = new ConnectionFactory
                 {
-                    HostName = _rabbitConfig.Host,
-                    Port = _rabbitConfig.Port,
-                    UserName = _rabbitConfig.Username,
-                    Password = _rabbitConfig.Password,
-                    VirtualHost = _rabbitConfig.VirtualHost,
+                    HostName = host,
+                    Port = port,
+                    UserName = username,
+                    Password = password,
+                    VirtualHost = vhost,
                     AutomaticRecoveryEnabled = true,
                     NetworkRecoveryInterval = TimeSpan.FromSeconds(10),
                     RequestedConnectionTimeout = TimeSpan.FromSeconds(30),
@@ -206,13 +214,13 @@ namespace Pregiato.API.Services
                     SocketWriteTimeout = TimeSpan.FromSeconds(30)
                 };
 
-                // Configurar SSL/TLS se for AMQPS
-                if (_rabbitConfig.Protocol == "amqp")
+                // ✅ CORREÇÃO: SSL apenas para AMQPS
+                if (protocol == "amqps")
                 {
-                    factory.Ssl.Enabled = false;
-                    factory.Ssl.ServerName = _rabbitConfig.Host;
+                    factory.Ssl.Enabled = true;
+                    factory.Ssl.ServerName = host;
                     factory.Ssl.AcceptablePolicyErrors = System.Net.Security.SslPolicyErrors.RemoteCertificateNameMismatch |
-                                                          System.Net.Security.SslPolicyErrors.RemoteCertificateChainErrors;
+                                                  System.Net.Security.SslPolicyErrors.RemoteCertificateChainErrors;
                 }
 
                 _connection = factory.CreateConnection();
@@ -220,7 +228,7 @@ namespace Pregiato.API.Services
                 _connected = true;
                 
                 _logger.LogInformation("✅ Conexão RabbitMQ estabelecida com {Protocol}://{Host}:{Port}", 
-                    _rabbitConfig.Protocol, _rabbitConfig.Host, _rabbitConfig.Port);
+                    protocol, host, port);
             }
             catch (Exception ex)
             {
