@@ -313,8 +313,13 @@ const AlocacaoLeadsPage: React.FC = () => {
       }>();
       
       // Iterar sobre o estado operatorLeads para mapear os dados
-      console.log('Estado operatorLeads:', operatorLeads);
-      console.log('Operadores encontrados:', operators);
+      console.log('🔍 DEBUG: Estado operatorLeads completo:', operatorLeads);
+      console.log('🔍 DEBUG: Chaves do operatorLeads:', Object.keys(operatorLeads));
+      console.log('🔍 DEBUG: Operadores encontrados:', operators);
+      
+      // Verificar se há leads alocados
+      const totalLeadsAllocated = Object.values(operatorLeads).reduce((total, leads) => total + leads.length, 0);
+      console.log('🔍 DEBUG: Total de leads alocados:', totalLeadsAllocated);
       
       Object.entries(operatorLeads).forEach(([operatorId, leads]) => {
         console.log(`Processando operador ${operatorId} com ${leads.length} leads:`, leads);
@@ -322,32 +327,72 @@ const AlocacaoLeadsPage: React.FC = () => {
         if (!leads || leads.length === 0) return;
         
         // Encontrar o operador correspondente
-        const operator = operators.find(op => op.id === operatorId);
+        console.log(`🔍 DEBUG: Procurando operador com ID: ${operatorId}`);
+        console.log(`🔍 DEBUG: IDs dos operadores disponíveis:`, operators.map(op => op.id));
+        
+        let operator = operators.find(op => op.id === operatorId);
         if (!operator) {
-          console.warn(`Operador não encontrado para ID: ${operatorId}`);
-          return;
+          console.warn(`❌ Operador não encontrado para ID: ${operatorId}`);
+          console.log(`🔍 DEBUG: Tentando buscar por clerkId...`);
+          
+          // Tentar buscar por clerkId como fallback
+          operator = operators.find(op => op.clerkId === operatorId);
+          if (operator) {
+            console.log(`✅ Operador encontrado por clerkId:`, operator);
+          } else {
+            console.warn(`❌ Operador não encontrado nem por ID nem por clerkId: ${operatorId}`);
+            return;
+          }
         }
         
         console.log(`Operador encontrado:`, operator);
         
         // Mapear leads para o formato esperado pela API
         const mappedLeads = leads.map(lead => {
-          // Extrair nome e telefone do lead baseado na estrutura ImportedRow
-          const nameLead = String(lead['Nome'] || lead['Participante'] || lead['Cliente'] || 'Nome não informado');
-          const phoneLead = String(lead['Telefone'] || lead['Celular'] || lead['Phone'] || 'Telefone não informado');
+          console.log(`🔍 DEBUG: Processando lead original:`, lead);
+          
+          // ✅ CORREÇÃO: Mapeamento mais flexível baseado nos headers disponíveis
+          // Primeiro, vamos ver quais campos estão disponíveis
+          const availableFields = Object.keys(lead);
+          console.log(`🔍 DEBUG: Campos disponíveis no lead:`, availableFields);
+          
+          // Função auxiliar para encontrar campo por similaridade
+          const findFieldBySimilarity = (targetNames: string[], availableFields: string[]) => {
+            for (const target of targetNames) {
+              const found = availableFields.find(field => 
+                field.toLowerCase().includes(target.toLowerCase()) ||
+                target.toLowerCase().includes(field.toLowerCase())
+              );
+              if (found) return found;
+            }
+            return null;
+          };
+          
+          // Buscar campo de nome
+          const nameField = findFieldBySimilarity(['nome', 'name', 'participante', 'cliente', 'client'], availableFields);
+          const nameLead = nameField ? String(lead[nameField]) : 'Nome não informado';
+          
+          // Buscar campo de telefone
+          const phoneField = findFieldBySimilarity(['telefone', 'phone', 'celular', 'mobile', 'whatsapp'], availableFields);
+          const phoneLead = phoneField ? String(lead[phoneField]) : 'Telefone não informado';
           
           // === NOVOS CAMPOS ADICIONADOS ===
           // Extrair responsável (pode vir de diferentes colunas)
-          const responsible = String(lead['Responsável'] || lead['Responsavel'] || lead['Responsible'] || '');
+          const responsibleField = findFieldBySimilarity(['responsável', 'responsible', 'responsavel'], availableFields);
+          const responsible = responsibleField ? String(lead[responsibleField]) : '';
           
           // Extrair idade (converter para número se possível)
-          const ageStr = String(lead['Idade'] || lead['Age'] || '');
+          const ageField = findFieldBySimilarity(['idade', 'age'], availableFields);
+          const ageStr = ageField ? String(lead[ageField]) : '';
           const age = ageStr && !isNaN(Number(ageStr)) ? Number(ageStr) : null;
           
           // Extrair se veio de publicidade/anúncios (string)
-          const publicADS = String(lead['PublicADS'] || lead['Publicidade'] || lead['Anuncio'] || '');
+          const publicADSField = findFieldBySimilarity(['publicads', 'publicidade', 'anuncio', 'advertisement'], availableFields);
+          const publicADS = publicADSField ? String(lead[publicADSField]) : '';
           
-          console.log(`Lead mapeado:`, { 
+          console.log(`✅ Lead mapeado:`, { 
+            nameField,
+            phoneField,
             nameLead, 
             phoneLead, 
             responsible, 
@@ -364,7 +409,13 @@ const AlocacaoLeadsPage: React.FC = () => {
             age: age,
             publicADS: publicADS
           };
-        }).filter(lead => lead.nameLead !== 'Nome não informado' && lead.phoneLead !== 'Telefone não informado');
+        }).filter(lead => {
+          const isValid = lead.nameLead !== 'Nome não informado' && lead.phoneLead !== 'Telefone não informado';
+          if (!isValid) {
+            console.log(`❌ Lead filtrado (inválido):`, lead);
+          }
+          return isValid;
+        });
         
         console.log(`Leads válidos para operador ${operatorId}:`, mappedLeads);
         
