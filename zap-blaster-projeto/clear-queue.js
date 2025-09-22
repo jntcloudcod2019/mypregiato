@@ -1,6 +1,6 @@
 const amqp = require('amqplib');
 
-const url = 'amqps://ewxcrhtv:DNcdH0NEeP4Fsgo2_w-vd47CqjelFk_S@mouse.rmq5.cloudamqp.com:5671/ewxcrhtv?heartbeat=30';
+const url = 'amqp://maqItSI6EBLd3Nmy:faLY4tAuA93tNFysRsigQ6VtBkmf2WoF@rabbitmq:5672?heartbeat=30';
 
 async function clearQueue() {
   try {
