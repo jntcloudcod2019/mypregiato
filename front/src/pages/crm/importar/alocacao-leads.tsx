@@ -80,6 +80,22 @@ const AlocacaoLeadsPage: React.FC = () => {
   const [selectedOperator, setSelectedOperator] = useState<string | null>(null);
   const [operatorLeads, setOperatorLeads] = useState<Record<string, ImportedRow[]>>({});
   const [allocatedLeads, setAllocatedLeads] = useState<ImportedRow[]>([]);
+  
+  // Estado para notificações (substitui alert())
+  const [notification, setNotification] = useState<{
+    type: 'success' | 'error' | 'info' | 'warning';
+    message: string;
+    show: boolean;
+  }>({ type: 'info', message: '', show: false });
+
+  // Função para mostrar notificações (substitui alert())
+  const showNotification = (type: 'success' | 'error' | 'info' | 'warning', message: string) => {
+    setNotification({ type, message, show: true });
+    // Auto-hide após 5 segundos
+    setTimeout(() => {
+      setNotification(prev => ({ ...prev, show: false }));
+    }, 5000);
+  };
 
   useEffect(() => {
     // Verificar autenticação primeiro
@@ -168,7 +184,7 @@ const AlocacaoLeadsPage: React.FC = () => {
   // Função para alocar leads selecionados para um operador
   const allocateLeadsToOperator = (operatorId: string) => {
     if (selectedRows.size === 0) {
-      alert('Selecione pelo menos um lead para alocar.');
+      showNotification('warning', 'Selecione pelo menos um lead para alocar.');
       return;
     }
 
@@ -197,7 +213,7 @@ const AlocacaoLeadsPage: React.FC = () => {
       totalRows: remainingRows.length
     }));
     
-    alert(`Leads alocados com sucesso para o operador ${operatorId}!`);
+    showNotification('success', `Leads alocados com sucesso para o operador ${operatorId}!`);
   };
 
   // Função para alocar todos os leads automaticamente entre os operadores
@@ -536,7 +552,7 @@ const AlocacaoLeadsPage: React.FC = () => {
           <p className="text-muted-foreground mb-4">
             Você precisa estar autenticado para acessar esta página.
           </p>
-          <Button onClick={() => navigate('/login')}>
+          <Button id="login-button" onClick={() => navigate('/login')}>
             Fazer Login
           </Button>
         </div>
@@ -565,7 +581,7 @@ const AlocacaoLeadsPage: React.FC = () => {
       <div className="space-y-6">
         {/* Header com navegação */}
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="icon" onClick={handleBackToImport}>
+          <Button id="back-to-import-button" variant="outline" size="icon" onClick={handleBackToImport}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
@@ -583,6 +599,28 @@ const AlocacaoLeadsPage: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* Componente de Notificação */}
+        {notification.show && (
+          <div className={`fixed top-4 right-4 z-50 p-4 rounded-md shadow-lg max-w-md ${
+            notification.type === 'success' ? 'bg-green-100 border border-green-400 text-green-700' :
+            notification.type === 'error' ? 'bg-red-100 border border-red-400 text-red-700' :
+            notification.type === 'warning' ? 'bg-yellow-100 border border-yellow-400 text-yellow-700' :
+            'bg-blue-100 border border-blue-400 text-blue-700'
+          }`}>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">{notification.message}</span>
+              <button
+                id="close-notification-button"
+                onClick={() => setNotification(prev => ({ ...prev, show: false }))}
+                className="ml-4 text-lg font-bold hover:opacity-70"
+                aria-label="Fechar notificação"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        )}
 
       {/* Estatísticas e Lista de Operadores - Layout horizontal lado a lado */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -638,50 +676,34 @@ const AlocacaoLeadsPage: React.FC = () => {
         </Card>
       </div>
         </div>
-          </div>
+      </div>
 
       {/* Tabela de dados - Volta ao tamanho original (largura total) */}
       <Card>
         <CardHeader className="py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Button
+            <Button
+                id="allocate-selected-leads-button"
                 onClick={() => {
                   if (selectedRows.size === 0) {
-                    alert('Selecione pelo menos um lead para alocar.');
+                    showNotification('warning', 'Selecione pelo menos um lead para alocar.');
                     return;
                   }
                   
-                  // Mostrar modal de seleção de operador
-                  const operatorId = prompt(
-                    `Você selecionou ${selectedRows.size} lead(s).\n\nDigite o ID do operador para alocar:\n\n` +
-                    '1 - João Silva\n' +
-                    '2 - Maria Santos\n' +
-                    '3 - Ana Clara\n' +
-                    '4 - Carlos Oliveira'
-                  );
-                  
-                  if (operatorId && ['1', '2', '3', '4'].includes(operatorId)) {
-                    const operatorMap: Record<string, string> = {
-                      '1': 'op_1',
-                      '2': 'op_2', 
-                      '3': 'op_3',
-                      '4': 'op_4'
-                    };
-                    
-                    allocateLeadsToOperator(operatorMap[operatorId]);
-                  } else if (operatorId) {
-                    alert('ID de operador inválido. Use 1, 2, 3 ou 4.');
-                  }
+                  // ✅ CORREÇÃO CSP: Substituir prompt() por uma solução mais segura
+                  // Usar o componente OperatorsList em vez de prompt()
+                  showNotification('info', `Você selecionou ${selectedRows.size} lead(s). Use a lista de operadores à direita para alocar os leads.`);
                 }}
-                disabled={selectedRows.size === 0}
+              disabled={selectedRows.size === 0}
                 className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700"
-              >
-                <Users className="h-4 w-4" />
-                Alocar {selectedRows.size} Lead{selectedRows.size !== 1 ? 's' : ''}
-              </Button>
-              
-              <Button
+            >
+              <Users className="h-4 w-4" />
+              Alocar {selectedRows.size} Lead{selectedRows.size !== 1 ? 's' : ''}
+            </Button>
+
+            <Button
+                id="allocate-all-leads-button"
                 onClick={allocateAllLeads}
                 disabled={rows.length === 0}
                 className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
@@ -691,6 +713,7 @@ const AlocacaoLeadsPage: React.FC = () => {
               </Button>
               
               <Button
+                id="save-allocated-leads-button"
                 onClick={saveAllocatedLeads}
                 disabled={allocatedLeads.length === 0}
                 className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
@@ -702,6 +725,7 @@ const AlocacaoLeadsPage: React.FC = () => {
             <div className="flex items-center gap-2">
               <Badge variant="outline">{rows.length} linhas</Badge>
               <Button
+                id="select-all-button"
                 variant="outline"
                 size="sm"
                 onClick={handleSelectAll}
@@ -719,9 +743,12 @@ const AlocacaoLeadsPage: React.FC = () => {
                   <TableRow>
                     <TableHead className="w-12">
                       <input
+                        id="select-all-leads"
+                        name="select-all-leads"
                         type="checkbox"
                         checked={selectedRows.size === rows.length && rows.length > 0}
                         onChange={handleSelectAll}
+                        aria-label="Selecionar todos os leads"
                       />
                     </TableHead>
                     {headers.map(header => (
@@ -754,9 +781,12 @@ const AlocacaoLeadsPage: React.FC = () => {
                     >
                       <TableCell>
                         <input
+                          id={`select-lead-${rowIndex}`}
+                          name={`select-lead-${rowIndex}`}
                           type="checkbox"
                           checked={selectedRows.has(rowIndex)}
                           onChange={() => handleSelectRow(rowIndex)}
+                          aria-label={`Selecionar lead ${rowIndex + 1}`}
                         />
                       </TableCell>
                       {headers.map(header => (
