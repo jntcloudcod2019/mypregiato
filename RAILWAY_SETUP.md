@@ -62,7 +62,7 @@ mypregiato/
    MYSQLPASSWORD=nmZKnTmDpQIwmvRBYIoIbFjYyaiZPoEq
    MYSQLPORT=3306
    MYSQLUSER=root
-   RABBITMQ_URL=amqps://ewxcrhtv:DNcdH0NEeP4Fsgo2_w-vd47CqjelFk_S@mouse.rmq5.cloudamqp.com:5671/ewxcrhtv?heartbeat=30
+   RABBITMQ_URL=amqp://maqItSI6EBLd3Nmy:faLY4tAuA93tNFysRsigQ6VtBkmf2WoF@${{RAILWAY_TCP_PROXY_DOMAIN}}:${{RAILWAY_TCP_PROXY_PORT}}
    ```
 
 ### **2. Projeto Zap Bot:**
@@ -84,7 +84,7 @@ mypregiato/
    MYSQLPASSWORD=nmZKnTmDpQIwmvRBYIoIbFjYyaiZPoEq
    MYSQLPORT=3306
    MYSQLUSER=root
-   RABBITMQ_URL=amqps://ewxcrhtv:DNcdH0NEeP4Fsgo2_w-vd47CqjelFk_S@mouse.rmq5.cloudamqp.com:5671/ewxcrhtv?heartbeat=30
+   RABBITMQ_URL=amqp://maqItSI6EBLd3Nmy:faLY4tAuA93tNFysRsigQ6VtBkmf2WoF@${{RAILWAY_TCP_PROXY_DOMAIN}}:${{RAILWAY_TCP_PROXY_PORT}}
    PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
    ```

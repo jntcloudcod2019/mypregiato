@@ -2,6 +2,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Pregiato.Core.Interfaces;
 using System.Text;
+using Minio;
+using Minio.DataModel.Args;
 
 namespace Pregiato.Infrastructure.Adapters
 {
