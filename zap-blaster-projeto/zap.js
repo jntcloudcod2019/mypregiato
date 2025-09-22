@@ -196,14 +196,14 @@ const apiClient = new ApiClient(API_BASE);
 
 // ========================= RabbitMQ Resiliente =========================
 const rabbitCfg = {
-  protocol: 'amqp',
-  hostname: process.env.RABBIT_HOST || 'rabbitmq',
-  port: Number(process.env.RABBIT_PORT || 5672),
-  username: process.env.RABBIT_USER || 'maqItSI6EBLd3Nmy',
-  password: process.env.RABBIT_PASS || 'faLY4tAuA93tNFysRsigQ6VtBkmf2WoF',
-  vhost: process.env.RABBIT_VHOST || '/',
+  protocol: 'amqps',
+  hostname: process.env.RABBIT_HOST || 'mouse.rmq5.cloudamqp.com',
+  port: Number(process.env.RABBIT_PORT || 5671),
+  username: process.env.RABBIT_USER || 'ewxcrhtv',
+  password: process.env.RABBIT_PASS || 'DNcdH0NEeP4Fsgo2_w-vd47CqjelFk_S',
+  vhost: process.env.RABBIT_VHOST || 'ewxcrhtv',
 };
-const RABBIT_URL = `amqp://${encodeURIComponent(rabbitCfg.username)}:${encodeURIComponent(rabbitCfg.password)}@${rabbitCfg.hostname}:${rabbitCfg.port}/${encodeURIComponent(rabbitCfg.vhost)}?heartbeat=30`;
+const RABBIT_URL = `amqps://${encodeURIComponent(rabbitCfg.username)}:${encodeURIComponent(rabbitCfg.password)}@${rabbitCfg.hostname}:${rabbitCfg.port}/${encodeURIComponent(rabbitCfg.vhost)}?heartbeat=30`;
 
 let amqpConn = null, amqpChan = null;
 let amqpHealthy = false;

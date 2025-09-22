@@ -209,7 +209,7 @@ namespace Pregiato.API.Services
                 // Configurar SSL/TLS se for AMQPS
                 if (_rabbitConfig.Protocol == "amqp")
                 {
-                    factory.Ssl.Enabled = true;
+                    factory.Ssl.Enabled = false;
                     factory.Ssl.ServerName = _rabbitConfig.Host;
                     factory.Ssl.AcceptablePolicyErrors = System.Net.Security.SslPolicyErrors.RemoteCertificateNameMismatch |
                                                           System.Net.Security.SslPolicyErrors.RemoteCertificateChainErrors;
