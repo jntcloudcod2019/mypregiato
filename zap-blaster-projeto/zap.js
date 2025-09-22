@@ -430,7 +430,17 @@ async function startConsumer() {
             queueMessageId: messageId,
             deliveryTag
           });
-          amqpChan.nack(msg, false, true);
+          
+          // Se cliente não está pronto, descartar mensagem para evitar loop infinito
+          if (res.reason === 'client_not_ready') {
+            Log.warn('[QUEUE] 🚫 Descartando mensagem - cliente não está conectado', {
+              targetNumber,
+              clientMessageId: payload.clientMessageId
+            });
+            amqpChan.ack(msg); // ACK para remover da fila
+          } else {
+            amqpChan.nack(msg, false, true); // Re-enfileirar para outros erros
+          }
         }
         return;
       }
@@ -444,6 +454,16 @@ async function startConsumer() {
         if (res.success) {
           amqpChan.ack(msg);
         } else {
+          // Se cliente não está pronto, descartar mensagem para evitar loop infinito
+          if (res.reason === 'client_not_ready') {
+            Log.warn('[QUEUE] 🚫 Descartando mensagem (fluxo legado) - cliente não está conectado', {
+              phone,
+              clientMessageId: payload.clientMessageId
+            });
+            amqpChan.ack(msg); // ACK para remover da fila
+            return;
+          }
+          
           // ✅ RESILIÊNCIA ADICIONAL: Se falhou e é áudio, tentar recuperar do banco antes de nack
           const clientMessageId = payload.clientMessageId || payload.Id || payload.id;
           if (clientMessageId && 
@@ -1126,8 +1146,8 @@ async function sendOne(number, msg) {
     // Handle attachments (mídia com dataUrl)
     else if (attachment && attachment.dataUrl) {
       const base64 = String(attachment.dataUrl || '').split(',')[1] || attachment.dataUrl;
-      const mime = attachment.mimeType || 'application/octet-stream';
-      const media = new MessageMedia(mime, base64 || '', attachment.fileName || 'file');
+        const mime = attachment.mimeType || 'application/octet-stream';
+        const media = new MessageMedia(mime, base64 || '', attachment.fileName || 'file');
       const sent = await client.sendMessage(chatId, media, { caption: body || undefined });
       
       if (sent?.id) { 
@@ -1139,12 +1159,12 @@ async function sendOne(number, msg) {
     // Handle text messages (sem attachment)
     else {
       const sent = await client.sendMessage(chatId, body);
-      
-      if (sent?.id) { 
-        await sendMessageStatus(number, sent.id._serialized, 'sent'); 
+    
+    if (sent?.id) { 
+      await sendMessageStatus(number, sent.id._serialized, 'sent'); 
         return { success: true, messageId: sent.id._serialized }; 
-      }
-      throw new Error('sendMessage retornou vazio');
+    }
+    throw new Error('sendMessage retornou vazio');
     }
   } catch (e) {
     Log.error('Erro sendOne', { error: e?.message, to: number });
