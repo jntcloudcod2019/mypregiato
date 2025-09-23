@@ -45,19 +45,81 @@ export const useWhatsAppConnection = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isGeneratingQR, setIsGeneratingQR] = useState(false);
 
-  // ✅ NOVO: Verificação inicial do status quando a página é recarregada
+  // ✅ ROBUSTO: Verificação inicial do status com cache persistente
   useEffect(() => {
     const checkInitialStatus = async () => {
       try {
         console.log('🔍 [useWhatsAppConnection] Verificando status inicial...');
+        
+        // ✅ NOVO: Primeiro, tentar usar cache persistente
+        const cachedStatus = globalCache.getPersistentSessionStatus();
+        if (cachedStatus && cachedStatus.sessionConnected) {
+          console.log('💾 [useWhatsAppConnection] Usando status do cache persistente:', cachedStatus);
+          
+          setConnectionState(prev => ({
+            ...prev,
+            status: ConnectionStatus.connected,
+            isConnected: true,
+            lastActivity: cachedStatus.lastActivity,
+            error: undefined,
+            canGenerateQR: false,
+            connectedNumber: cachedStatus.connectedNumber || prev.connectedNumber,
+            isFullyValidated: cachedStatus.isFullyValidated
+          }));
+          
+          // ✅ NOVO: Verificar se o status ainda é válido no servidor (em background)
+          setTimeout(async () => {
+            try {
+              const response = await fetch('/api/whatsapp/status');
+              if (response.ok) {
+                const statusData = await response.json();
+                console.log('🔄 [useWhatsAppConnection] Status do servidor verificado:', statusData);
+                
+                // Atualizar cache se necessário
+                if (statusData.connectedNumber) {
+                  globalCache.setConnectedNumber(statusData.connectedNumber);
+                }
+                globalCache.setSessionStatus({
+                  sessionConnected: statusData.sessionConnected,
+                  isFullyValidated: statusData.isFullyValidated,
+                  connectedNumber: statusData.connectedNumber,
+                  lastActivity: statusData.lastActivity
+                });
+                
+                // Atualizar estado se houver mudança
+                const isActuallyConnected = Boolean(statusData.sessionConnected);
+                if (isActuallyConnected !== cachedStatus.sessionConnected) {
+                  console.log('🔄 [useWhatsAppConnection] Status mudou, atualizando estado');
+                  setConnectionState(prev => ({
+                    ...prev,
+                    status: isActuallyConnected ? ConnectionStatus.connected : ConnectionStatus.disconnected,
+                    isConnected: isActuallyConnected,
+                    lastActivity: statusData.lastActivity,
+                    error: undefined,
+                    canGenerateQR: !isActuallyConnected,
+                    connectedNumber: statusData.connectedNumber || prev.connectedNumber,
+                    isFullyValidated: statusData.isFullyValidated
+                  }));
+                }
+              }
+            } catch (error) {
+              console.warn('⚠️ [useWhatsAppConnection] Erro ao verificar status do servidor:', error);
+            }
+          }, 1000);
+          
+          return; // Usar cache, não fazer fetch imediato
+        }
+        
+        // ✅ FALLBACK: Se não há cache válido, fazer fetch do servidor
+        console.log('🌐 [useWhatsAppConnection] Cache não disponível, consultando servidor...');
         const response = await fetch('/api/whatsapp/status');
         if (response.ok) {
           const statusData = await response.json();
-          console.log('📊 [useWhatsAppConnection] Status inicial recebido:', statusData);
+          console.log('📊 [useWhatsAppConnection] Status inicial recebido do servidor:', statusData);
           
           const isActuallyConnected = Boolean(statusData.sessionConnected);
-          const nextStatus = isActuallyConnected
-            ? ConnectionStatus.connected
+      const nextStatus = isActuallyConnected
+        ? ConnectionStatus.connected
             : ConnectionStatus.disconnected;
 
           // ✅ NOVO: Armazenar no cache global
@@ -71,19 +133,35 @@ export const useWhatsAppConnection = () => {
             lastActivity: statusData.lastActivity
           });
 
-          setConnectionState(prev => ({
-            ...prev,
-            status: nextStatus,
-            isConnected: isActuallyConnected,
+      setConnectionState(prev => ({
+        ...prev,
+        status: nextStatus,
+        isConnected: isActuallyConnected,
             lastActivity: statusData.lastActivity,
             error: undefined,
-            canGenerateQR: !isActuallyConnected,
-            connectedNumber: statusData.connectedNumber || prev.connectedNumber
-          }));
+        canGenerateQR: !isActuallyConnected,
+            connectedNumber: statusData.connectedNumber || prev.connectedNumber,
+            isFullyValidated: statusData.isFullyValidated
+      }));
         }
-      } catch (error) {
+    } catch (error) {
         console.warn('⚠️ [useWhatsAppConnection] Erro ao verificar status inicial:', error);
-        // Manter estado padrão se não conseguir verificar
+        
+        // ✅ FALLBACK: Tentar usar cache mesmo se expirado
+        const fallbackStatus = globalCache.getSessionStatus();
+        if (fallbackStatus) {
+          console.log('🔄 [useWhatsAppConnection] Usando cache como fallback:', fallbackStatus);
+      setConnectionState(prev => ({
+        ...prev,
+            status: fallbackStatus.sessionConnected ? ConnectionStatus.connected : ConnectionStatus.disconnected,
+            isConnected: fallbackStatus.sessionConnected,
+            lastActivity: fallbackStatus.lastActivity,
+            error: undefined,
+            canGenerateQR: !fallbackStatus.sessionConnected,
+            connectedNumber: fallbackStatus.connectedNumber || prev.connectedNumber,
+            isFullyValidated: fallbackStatus.isFullyValidated
+      }));
+    }
       }
     };
 

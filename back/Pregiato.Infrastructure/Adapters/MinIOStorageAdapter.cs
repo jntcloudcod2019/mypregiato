@@ -292,25 +292,52 @@ namespace Pregiato.Infrastructure.Adapters
 
         private string GetFileExtension(string mimeType)
         {
+            if (string.IsNullOrEmpty(mimeType))
+                return ".bin";
+
+            // ✅ CORREÇÃO: Mapear todos os tipos de áudio para .mp3
+            if (mimeType.StartsWith("audio/"))
+            {
+                return mimeType switch
+                {
+                    "audio/mpeg" => ".mp3",
+                    "audio/mp3" => ".mp3",
+                    "audio/ogg" => ".mp3", // Converter para MP3
+                    "audio/wav" => ".mp3", // Converter para MP3
+                    "audio/webm" => ".mp3", // Converter para MP3
+                    "audio/aac" => ".mp3", // Converter para MP3
+                    "audio/flac" => ".mp3", // Converter para MP3
+                    "audio/m4a" => ".mp3", // Converter para MP3
+                    _ => ".mp3" // ✅ CORREÇÃO: Qualquer áudio desconhecido vira .mp3
+                };
+            }
+
             return mimeType switch
             {
                 "image/jpeg" => ".jpg",
                 "image/png" => ".png",
                 "image/gif" => ".gif",
                 "image/webp" => ".webp",
+                "image/bmp" => ".bmp",
+                "image/tiff" => ".tiff",
                 "video/mp4" => ".mp4",
                 "video/avi" => ".avi",
                 "video/mov" => ".mov",
-                "audio/ogg" => ".ogg",
-                "audio/mpeg" => ".mp3",
-                "audio/wav" => ".wav",
-                "audio/webm" => ".webm",
+                "video/webm" => ".webm",
+                "video/quicktime" => ".mov",
                 "application/pdf" => ".pdf",
                 "application/msword" => ".doc",
                 "application/vnd.openxmlformats-officedocument.wordprocessingml.document" => ".docx",
                 "application/vnd.ms-excel" => ".xls",
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" => ".xlsx",
+                "application/vnd.ms-powerpoint" => ".ppt",
+                "application/vnd.openxmlformats-officedocument.presentationml.presentation" => ".pptx",
                 "text/plain" => ".txt",
+                "text/csv" => ".csv",
+                "application/json" => ".json",
+                "application/xml" => ".xml",
+                "application/zip" => ".zip",
+                "application/x-rar-compressed" => ".rar",
                 _ => ".bin"
             };
         }

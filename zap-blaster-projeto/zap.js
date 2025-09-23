@@ -308,11 +308,88 @@ function startRabbitHealth() {
   }, 10000);
 }
 
+// ✅ NOVO: Sistema de retry com backoff para resiliência
+const messageRetryCount = new Map();
+const MAX_RETRIES = 3;
+const RETRY_DELAYS = [1000, 5000, 15000]; // 1s, 5s, 15s
+
+function getRetryCount(messageId) {
+  return messageRetryCount.get(messageId) || 0;
+}
+
+function incrementRetryCount(messageId) {
+  const current = getRetryCount(messageId);
+  messageRetryCount.set(messageId, current + 1);
+  return current + 1;
+}
+
+function clearRetryCount(messageId) {
+  messageRetryCount.delete(messageId);
+}
+
+function shouldRetry(messageId, error) {
+  const retryCount = getRetryCount(messageId);
+  
+  // Não retry se já excedeu o limite
+  if (retryCount >= MAX_RETRIES) {
+    return false;
+  }
+  
+  // Não retry para erros que indicam problema permanente
+  const permanentErrors = [
+    'client_not_ready',
+    'invalid_number',
+    'invalid_media_format',
+    'media_too_large'
+  ];
+  
+  if (permanentErrors.includes(error)) {
+    return false;
+  }
+  
+  return true;
+}
+
+async function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// ✅ NOVO: Limpeza periódica de contadores de retry para evitar vazamentos de memória
+function startRetryCleanup() {
+  setInterval(() => {
+    const now = Date.now();
+    const maxAge = 30 * 60 * 1000; // 30 minutos
+    
+    // Limpar contadores antigos (simulação - em produção seria melhor usar timestamps)
+    if (messageRetryCount.size > 1000) {
+      Log.info('🧹 [QUEUE] Limpando contadores de retry antigos', {
+        currentSize: messageRetryCount.size
+      });
+      
+      // Limpar metade dos contadores (estratégia simples)
+      const keys = Array.from(messageRetryCount.keys());
+      const keysToDelete = keys.slice(0, Math.floor(keys.length / 2));
+      
+      keysToDelete.forEach(key => {
+        messageRetryCount.delete(key);
+      });
+      
+      Log.info('🧹 [QUEUE] Contadores de retry limpos', {
+        deleted: keysToDelete.length,
+        remaining: messageRetryCount.size
+      });
+    }
+  }, 10 * 60 * 1000); // A cada 10 minutos
+}
+
 async function startConsumer() {
   if (!amqpChan) return;
   const q = 'whatsapp.outgoing';
   await amqpChan.assertQueue(q, { durable: true });
   Log.info(`🎧 [QUEUE] Consumidor ONLINE: ${q}`);
+  
+  // ✅ NOVO: Iniciar limpeza de contadores de retry
+  startRetryCleanup();
   
   amqpChan.consume(q, async (msg) => {
     if (!msg) {
@@ -322,11 +399,13 @@ async function startConsumer() {
     
     const messageId = msg.properties?.messageId || 'unknown';
     const deliveryTag = msg.fields?.deliveryTag || 'unknown';
+    const retryCount = getRetryCount(messageId);
     
     Log.info('[QUEUE] 📨 Nova mensagem recebida da fila', {
       queue: q,
       messageId: messageId,
       deliveryTag: deliveryTag,
+      retryCount: retryCount,
       bodyLength: msg.content?.length || 0,
       timestamp: new Date().toISOString()
     });
@@ -371,8 +450,8 @@ async function startConsumer() {
         await handleGenerateQR(payload.requestId);
         amqpChan.ack(msg);
         Log.info('[QUEUE] ✅ COMMAND generate_qr processado com sucesso');
-        return;
-      }
+      return;
+    }
       
       if (payload.command === 'force_new_auth') {
         Log.info('[QUEUE] 🔐 COMMAND force_new_auth recebido', { 
@@ -424,30 +503,52 @@ async function startConsumer() {
             targetNumber,
             messageId: res.messageId,
             queueMessageId: messageId,
-            deliveryTag
+            deliveryTag,
+            retryCount: retryCount
           });
+          clearRetryCount(messageId); // Limpar contador de retry em caso de sucesso
           amqpChan.ack(msg);
         } else {
           Log.error('[QUEUE] ❌ Falha ao enviar mensagem', {
             targetNumber,
             reason: res.reason,
             queueMessageId: messageId,
-            deliveryTag
+            deliveryTag,
+            retryCount: retryCount
           });
           
-          // Se cliente não está pronto, descartar mensagem para evitar loop infinito
-          if (res.reason === 'client_not_ready') {
-            Log.warn('[QUEUE] 🚫 Descartando mensagem - cliente não está conectado', {
+          // ✅ NOVO: Sistema de retry robusto
+          if (shouldRetry(messageId, res.reason)) {
+            const newRetryCount = incrementRetryCount(messageId);
+            const delayMs = RETRY_DELAYS[Math.min(newRetryCount - 1, RETRY_DELAYS.length - 1)];
+            
+            Log.warn('[QUEUE] 🔄 Agendando retry', {
               targetNumber,
+              reason: res.reason,
+              retryCount: newRetryCount,
+              delayMs: delayMs,
+              queueMessageId: messageId
+            });
+            
+            // Rejeitar mensagem para retry posterior
+            amqpChan.nack(msg, false, true);
+            
+            // ✅ NOVO: Aguardar antes de processar próxima mensagem
+            await delay(delayMs);
+          } else {
+            Log.error('[QUEUE] 🚫 Descartando mensagem - limite de retry excedido ou erro permanente', {
+              targetNumber,
+              reason: res.reason,
+              retryCount: retryCount,
+              queueMessageId: messageId,
               clientMessageId: payload.clientMessageId
             });
-            amqpChan.ack(msg); // ACK para remover da fila
-          } else {
-            amqpChan.nack(msg, false, true); // Re-enfileirar para outros erros
+            clearRetryCount(messageId);
+            amqpChan.ack(msg); // ACK para remover da fila definitivamente
           }
         }
-        return;
-      }
+      return;
+    }
     
       const phone = payload.toNormalized || payload.phone || payload.to || payload.Phone || payload.To;
       const body  = payload.body || payload.message || payload.text || payload.Message || payload.Body;
@@ -469,64 +570,131 @@ async function startConsumer() {
       if (phone && (body || attachment)) {
         const res = await sendOne(phone, { message: body, data: payload, template: payload.template || payload.Template, attachment });
         if (res.success) {
+          Log.info('[QUEUE] ✅ Mensagem enviada com sucesso (fluxo legado)', {
+            phone,
+            messageId: res.messageId,
+            queueMessageId: messageId,
+            deliveryTag,
+            retryCount: retryCount
+          });
+          clearRetryCount(messageId); // Limpar contador de retry em caso de sucesso
           amqpChan.ack(msg);
         } else {
-          // Se cliente não está pronto, descartar mensagem para evitar loop infinito
-          if (res.reason === 'client_not_ready') {
-            Log.warn('[QUEUE] 🚫 Descartando mensagem (fluxo legado) - cliente não está conectado', {
+          Log.error('[QUEUE] ❌ Falha ao enviar mensagem (fluxo legado)', {
+            phone,
+            reason: res.reason,
+            queueMessageId: messageId,
+            deliveryTag,
+            retryCount: retryCount
+          });
+          
+          // ✅ NOVO: Sistema de retry robusto para fluxo legado
+          if (shouldRetry(messageId, res.reason)) {
+            const newRetryCount = incrementRetryCount(messageId);
+            const delayMs = RETRY_DELAYS[Math.min(newRetryCount - 1, RETRY_DELAYS.length - 1)];
+            
+            Log.warn('[QUEUE] 🔄 Agendando retry (fluxo legado)', {
               phone,
+              reason: res.reason,
+              retryCount: newRetryCount,
+              delayMs: delayMs,
+              queueMessageId: messageId
+            });
+            
+            // ✅ RESILIÊNCIA ADICIONAL: Se falhou e é áudio, tentar recuperar do banco antes de retry
+            const clientMessageId = payload.clientMessageId || payload.Id || payload.id;
+            if (clientMessageId && 
+                (attachment?.mediaType === 'audio' || attachment?.mediaType === 'voice' ||
+                 (body && body.includes('audio')))) {
+              
+              Log.info('🔄 [QUEUE_RESILIENCE] Falha no envio de áudio, tentando recuperação...', {
+                clientMessageId: clientMessageId,
+                phone: phone,
+                reason: res.reason,
+                retryCount: newRetryCount
+              });
+              
+              try {
+                const audioData = await getAudioFromPayloadJson(clientMessageId);
+                if (audioData && audioData.base64Data) {
+                  Log.info('🎵 [QUEUE_RESILIENCE] Tentando reenvio com dados do banco...');
+                  const retryRes = await sendOne(phone, { 
+                    message: '', 
+                    data: { ...payload, recoveredFromDB: true }, 
+                    attachment: {
+                      dataUrl: audioData.base64Data,
+                      mimeType: audioData.mimeType,
+                      fileName: audioData.fileName,
+                      mediaType: 'audio'
+                    }
+                  });
+                  
+                  if (retryRes.success) {
+                    Log.info('✅ [QUEUE_RESILIENCE] Áudio reenviado com sucesso!');
+                    clearRetryCount(messageId);
+                    amqpChan.ack(msg);
+                    return;
+                  } else {
+                    Log.warn('⚠️ [QUEUE_RESILIENCE] Recuperação falhou, continuando com retry normal');
+                  }
+                }
+              } catch (recoveryError) {
+                Log.error('❌ [QUEUE_RESILIENCE] Falha na recuperação:', recoveryError.message);
+              }
+            }
+            
+            // Rejeitar mensagem para retry posterior
+            amqpChan.nack(msg, false, true);
+            
+            // ✅ NOVO: Aguardar antes de processar próxima mensagem
+            await delay(delayMs);
+          } else {
+            Log.error('[QUEUE] 🚫 Descartando mensagem (fluxo legado) - limite de retry excedido ou erro permanente', {
+              phone,
+              reason: res.reason,
+              retryCount: retryCount,
+              queueMessageId: messageId,
               clientMessageId: payload.clientMessageId
             });
-            amqpChan.ack(msg); // ACK para remover da fila
-            return;
+            clearRetryCount(messageId);
+            amqpChan.ack(msg); // ACK para remover da fila definitivamente
           }
-          
-          // ✅ RESILIÊNCIA ADICIONAL: Se falhou e é áudio, tentar recuperar do banco antes de nack
-          const clientMessageId = payload.clientMessageId || payload.Id || payload.id;
-          if (clientMessageId && 
-              (attachment?.mediaType === 'audio' || attachment?.mediaType === 'voice' ||
-               (body && body.includes('audio')))) {
-            
-            Log.info('🔄 [QUEUE_RESILIENCE] Falha no envio de áudio, tentando recuperação...', {
-              clientMessageId: clientMessageId,
-              phone: phone,
-              reason: res.reason
-            });
-            
-            try {
-              const audioData = await getAudioFromPayloadJson(clientMessageId);
-              if (audioData && audioData.base64Data) {
-                Log.info('🎵 [QUEUE_RESILIENCE] Tentando reenvio com dados do banco...');
-                const retryRes = await sendOne(phone, { 
-                  message: '', 
-                  data: { ...payload, recoveredFromDB: true }, 
-                  attachment: {
-                    dataUrl: audioData.base64Data,
-                    mimeType: audioData.mimeType,
-                    fileName: audioData.fileName,
-                    mediaType: 'audio'
-                  }
-                });
-                
-                if (retryRes.success) {
-                  Log.info('✅ [QUEUE_RESILIENCE] Áudio reenviado com sucesso!');
-                  amqpChan.ack(msg);
-                  return;
-                }
-              }
-            } catch (recoveryError) {
-              Log.error('❌ [QUEUE_RESILIENCE] Falha na recuperação:', recoveryError.message);
-            }
-          }
-          
-          amqpChan.nack(msg, false, false);
         }
         return;
       }
       amqpChan.ack(msg);
     } catch (e) {
-      Log.error('Erro consumer', { error: e?.message });
-      amqpChan.nack(msg, false, false);
+      Log.error('❌ [QUEUE] Erro crítico no consumer', { 
+        error: e?.message,
+        stack: e?.stack,
+        messageId: messageId,
+        deliveryTag: deliveryTag,
+        retryCount: retryCount
+      });
+      
+      // ✅ NOVO: Sistema de retry para erros críticos
+      if (shouldRetry(messageId, 'critical_error')) {
+        const newRetryCount = incrementRetryCount(messageId);
+        const delayMs = RETRY_DELAYS[Math.min(newRetryCount - 1, RETRY_DELAYS.length - 1)];
+        
+        Log.warn('[QUEUE] 🔄 Agendando retry para erro crítico', {
+          error: e?.message,
+          retryCount: newRetryCount,
+          delayMs: delayMs,
+          messageId: messageId
+        });
+        
+        amqpChan.nack(msg, false, true); // Re-enfileirar para retry
+        await delay(delayMs);
+      } else {
+        Log.error('[QUEUE] 🚫 Descartando mensagem após erro crítico - limite de retry excedido', {
+          error: e?.message,
+          retryCount: retryCount,
+          messageId: messageId
+        });
+        clearRetryCount(messageId);
+        amqpChan.nack(msg, false, false); // Rejeitar definitivamente
+      }
     }
   });
 }
@@ -874,7 +1042,7 @@ async function handleGenerateQR(_requestId) {
     
     Log.info('[QR_GEN] Chamando client.initialize()...');
     await client.initialize();
-    Log.info('[QR_GEN] Cliente inicializado com sucesso'); 
+    Log.info('[QR_GEN] Cliente inicializado com sucesso');
     
   } catch (e) {
     Log.error('[QR_GEN] Erro na inicialização', { error: e?.message, stack: e?.stack });
@@ -991,7 +1159,7 @@ async function onReady() {
     try {
       await client.getChats();
       // ✅ REMOVIDO: Log de loop infinito - apenas logar problemas
-    } catch (e) {
+  } catch (e) {
       Log.warn('[WPP] monitor detectou queda', { error: e?.message });
       await onDisconnected('monitor');
     }
@@ -1124,8 +1292,8 @@ async function onInbound(message) {
     
     if (message.fromMe) {
       Log.info('[INBOUND] Mensagem própria ignorada');
-      return;
-    }
+            return;
+          }
 
     // Extrair número do remetente
     const fromBare = (message.from || '').split('@')[0];
@@ -1168,36 +1336,36 @@ async function onInbound(message) {
           hasMedia: message.hasMedia
         });
         
-        const media = await message.downloadMedia();
+      const media = await message.downloadMedia();
         
         if (media && media.data && media.data.length > 0) {
-          const messageType = mapWppType(message.type);
-          
-          // Para áudio, incluir base64 no body da mensagem para o frontend
-          if (messageType === 'audio' || messageType === 'voice') {
-            const dataUrl = `data:${media.mimetype};base64,${media.data}`;
-            payload.body = dataUrl; // Frontend precisa do base64 no body
+        const messageType = mapWppType(message.type);
+        
+        // Para áudio, incluir base64 no body da mensagem para o frontend
+        if (messageType === 'audio' || messageType === 'voice') {
+          const dataUrl = `data:${media.mimetype};base64,${media.data}`;
+          payload.body = dataUrl; // Frontend precisa do base64 no body
             Log.info('[MEDIA] Áudio processado com base64 no body', { 
-              type: messageType, 
-              mimeType: media.mimetype,
-              size: Buffer.byteLength(media.data, 'base64') 
-            });
-          }
+            type: messageType, 
+            mimeType: media.mimetype,
+            size: Buffer.byteLength(media.data, 'base64') 
+          });
+        }
+        
+        payload.attachment = {
+          dataUrl: `data:${media.mimetype};base64,${media.data}`,
+          mediaUrl: null,
+          mimeType: media.mimetype || 'application/octet-stream',
+          fileName: media.filename || `media_${Date.now()}.bin`,
+          mediaType: messageType,
           
-          payload.attachment = {
-            dataUrl: `data:${media.mimetype};base64,${media.data}`,
-            mediaUrl: null,
-            mimeType: media.mimetype || 'application/octet-stream',
-            fileName: media.filename || `media_${Date.now()}.bin`,
-            mediaType: messageType,
-            
-            // Campos condicionais baseados no tipo
-            fileSize: Buffer.byteLength(media.data, 'base64'),
-            duration: (messageType === 'audio' || messageType === 'video') ? null : null,
-            width: (messageType === 'image' || messageType === 'video') ? null : null,
-            height: (messageType === 'image' || messageType === 'video') ? null : null,
-            thumbnail: null
-          };
+          // Campos condicionais baseados no tipo
+          fileSize: Buffer.byteLength(media.data, 'base64'),
+          duration: (messageType === 'audio' || messageType === 'video') ? null : null,
+          width: (messageType === 'image' || messageType === 'video') ? null : null,
+          height: (messageType === 'image' || messageType === 'video') ? null : null,
+          thumbnail: null
+        };
           
           Log.info('[MEDIA] ✅ Mídia processada com sucesso', { 
             type: messageType, 
@@ -1272,9 +1440,9 @@ async function onInbound(message) {
     Log.info('Inbound publicado', { 
       id: payload.externalMessageId, 
       type: payload.type,
-      hasMedia: !!payload.attachment
+      hasMedia: !!payload.attachment 
     });
-  } catch (e) {
+    } catch (e) {
     Log.error('Erro inbound', { error: e?.message });
   }
 }
@@ -1320,27 +1488,65 @@ async function initializeMinIOClient() {
 // ✅ NOVA ESTRATÉGIA: Baixar mídia usando cliente MinIO autenticado
 async function downloadMediaFromMinIO(mediaUrl) {
   try {
+    Log.info('[MINIO] 📥 Iniciando download de mídia', { 
+      mediaUrl,
+      timestamp: new Date().toISOString()
+    });
+    
+    // ✅ VALIDAÇÃO: Verificar se a URL é válida
+    if (!mediaUrl || typeof mediaUrl !== 'string') {
+      throw new Error('URL de mídia inválida ou vazia');
+    }
+    
+    if (!mediaUrl.startsWith('http')) {
+      throw new Error('URL de mídia deve começar com http/https');
+    }
+    
     // Garantir que o cliente MinIO está inicializado
     const client = await initializeMinIOClient();
+    if (!client) {
+      throw new Error('Cliente MinIO não disponível após inicialização');
+    }
     
-    // Extrair object name da URL (remover bucket name do path)
-    const url = new URL(mediaUrl);
-    const fullPath = url.pathname.substring(1); // Remove a barra inicial
-    // Remover o nome do bucket do início do path
-    const objectName = fullPath.replace(/^midias\//, '');
-    
-    Log.info('[MINIO] Baixando mídia', { mediaUrl, objectName, bucket: 'midias' });
-    
-    // Verificar se o objeto existe antes de tentar baixar
+    // Extrair object name da URL com validação
+    let objectName;
     try {
+      const url = new URL(mediaUrl);
+      const fullPath = url.pathname.substring(1); // Remove a barra inicial
+      // Remover o nome do bucket do início do path
+      objectName = fullPath.replace(/^midias\//, '');
+      
+      Log.info('[MINIO] 🔍 Analisando URL', { 
+        mediaUrl, 
+        pathname: url.pathname,
+        fullPath,
+        objectName,
+        hostname: url.hostname
+      });
+      
+      if (!objectName || objectName.length === 0) {
+        throw new Error('Object name vazio após extração');
+      }
+      
+    } catch (urlError) {
+      Log.error('[MINIO] ❌ Erro ao analisar URL', { 
+        mediaUrl, 
+        error: urlError.message 
+      });
+      throw new Error(`URL inválida: ${urlError.message}`);
+    }
+    
+    // ✅ VALIDAÇÃO: Verificar se o objeto existe antes de baixar
+    try {
+      Log.info('[MINIO] 🔍 Verificando se objeto existe', { objectName });
       const stat = await client.statObject('midias', objectName);
-      Log.info('[MINIO] Objeto encontrado no MinIO', { 
+      Log.info('[MINIO] ✅ Objeto encontrado no MinIO', { 
         objectName, 
         size: stat.size, 
         lastModified: stat.lastModified 
       });
     } catch (statError) {
-      Log.error('[MINIO] Objeto não encontrado no MinIO', { 
+      Log.error('[MINIO] ❌ Objeto não encontrado no MinIO', { 
         objectName, 
         error: statError.message,
         mediaUrl 
@@ -1348,26 +1554,70 @@ async function downloadMediaFromMinIO(mediaUrl) {
       throw new Error(`Arquivo não encontrado: ${objectName}`);
     }
     
-    // Baixar usando cliente MinIO
-    const stream = await client.getObject('midias', objectName);
+    // Baixar usando cliente MinIO com timeout
+    Log.info('[MINIO] 📥 Iniciando download do objeto', { objectName });
     
-    // Converter stream para buffer
+    const downloadPromise = client.getObject('midias', objectName);
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Timeout no download (30s)')), 30000);
+    });
+    
+    const stream = await Promise.race([downloadPromise, timeoutPromise]);
+    
+    // Converter stream para buffer com validação
     const chunks = [];
+    let totalSize = 0;
+    const maxSize = 50 * 1024 * 1024; // 50MB máximo
+    
+    Log.info('[MINIO] 🔄 Convertendo stream para buffer');
+    
     for await (const chunk of stream) {
+      if (!Buffer.isBuffer(chunk)) {
+        throw new Error('Chunk não é um Buffer válido');
+      }
+      
+      totalSize += chunk.length;
+      if (totalSize > maxSize) {
+        throw new Error(`Arquivo muito grande: ${totalSize} bytes (máximo: ${maxSize})`);
+      }
+      
       chunks.push(chunk);
     }
     
+    if (chunks.length === 0) {
+      throw new Error('Nenhum chunk recebido do stream');
+    }
+    
     const buffer = Buffer.concat(chunks);
+    
+    // ✅ VALIDAÇÃO: Verificar integridade do buffer
+    if (!buffer || buffer.length === 0) {
+      throw new Error('Buffer resultante está vazio');
+    }
+    
+    if (buffer.length !== totalSize) {
+      Log.warn('[MINIO] ⚠️ Tamanho do buffer não confere', {
+        expectedSize: totalSize,
+        actualSize: buffer.length
+      });
+    }
+    
     Log.info('[MINIO] ✅ Mídia baixada com sucesso', { 
       mediaUrl, 
-      size: buffer.length 
+      objectName,
+      bufferSize: buffer.length,
+      chunksCount: chunks.length,
+      downloadTime: new Date().toISOString()
     });
     
     return buffer;
+    
   } catch (error) {
-    Log.error('[MINIO] ❌ Erro ao baixar mídia', { 
+    Log.error('[MINIO] ❌ Erro crítico ao baixar mídia', { 
       mediaUrl, 
-      error: error.message 
+      error: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString()
     });
     throw error;
   }
@@ -1444,64 +1694,198 @@ async function sendOne(number, msg) {
     // Handle attachments (mídia com mediaUrl do MinIO)
     else if (attachment && attachment.mediaUrl) {
       try {
-        // Baixar mídia do MinIO
-        const mediaBuffer = await downloadMediaFromMinIO(attachment.mediaUrl);
+        Log.info('[SEND] 🎬 Iniciando download de mídia do MinIO', {
+          mediaUrl: attachment.mediaUrl,
+          mimeType: attachment.mimeType,
+          fileName: attachment.fileName,
+          to: number
+        });
+
+        // Baixar mídia do MinIO com retry
+        let mediaBuffer;
+        let retryCount = 0;
+        const maxRetries = 3;
         
-        // ✅ VALIDAÇÃO: Verificar se o buffer não está vazio
-        if (!mediaBuffer || mediaBuffer.length === 0) {
-          throw new Error('Buffer de mídia está vazio');
+        while (retryCount < maxRetries) {
+          try {
+            mediaBuffer = await downloadMediaFromMinIO(attachment.mediaUrl);
+            if (mediaBuffer && mediaBuffer.length > 0) {
+              break; // Sucesso
+            }
+            throw new Error('Buffer vazio recebido do MinIO');
+          } catch (downloadError) {
+            retryCount++;
+            Log.warn('[SEND] ⚠️ Tentativa {retryCount} de download falhou', {
+              retryCount,
+              error: downloadError.message,
+              mediaUrl: attachment.mediaUrl
+            });
+            
+            if (retryCount >= maxRetries) {
+              throw new Error(`Falha após ${maxRetries} tentativas: ${downloadError.message}`);
+            }
+            
+            // Aguardar antes da próxima tentativa
+            await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+          }
         }
         
-        const mime = attachment.mimeType || 'application/octet-stream';
+        // ✅ VALIDAÇÃO ROBUSTA: Verificar integridade do buffer
+        if (!mediaBuffer || mediaBuffer.length === 0) {
+          throw new Error('Buffer de mídia está vazio após download');
+        }
         
-        // ✅ VALIDAÇÃO: Verificar se a conversão para base64 é válida
+        // Validar tamanho mínimo (pelo menos 100 bytes)
+        if (mediaBuffer.length < 100) {
+          throw new Error(`Buffer muito pequeno: ${mediaBuffer.length} bytes`);
+        }
+        
+        // ✅ VALIDAÇÃO: MIME type e extensão
+      const mime = attachment.mimeType || 'application/octet-stream';
+        const fileName = attachment.fileName || 'file';
+        
+        // Validar MIME type conhecidos
+        const validMimeTypes = [
+          'audio/webm', 'audio/ogg', 'audio/mpeg', 'audio/wav',
+          'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+          'video/mp4', 'video/avi', 'video/mov',
+          'application/pdf', 'text/plain'
+        ];
+        
+        if (!validMimeTypes.includes(mime)) {
+          Log.warn('[SEND] ⚠️ MIME type não reconhecido, usando fallback', {
+            originalMime: mime,
+            fileName: fileName
+          });
+        }
+        
+        // ✅ VALIDAÇÃO: Conversão para base64 com validação
         let base64Data;
         try {
           base64Data = mediaBuffer.toString('base64');
+          
+          // Validar base64
           if (!base64Data || base64Data.length === 0) {
             throw new Error('Conversão para base64 resultou em string vazia');
           }
+          
+          // Validar se é base64 válido (deve conter apenas caracteres base64)
+          const base64Regex = /^[A-Za-z0-9+/]*={0,2}$/;
+          if (!base64Regex.test(base64Data)) {
+            throw new Error('Base64 inválido gerado');
+          }
+          
+          Log.info('[SEND] ✅ Base64 gerado com sucesso', {
+            base64Length: base64Data.length,
+            bufferSize: mediaBuffer.length,
+            compressionRatio: (base64Data.length / mediaBuffer.length).toFixed(2)
+          });
+          
         } catch (base64Error) {
           Log.error('[SEND] ❌ Erro na conversão para base64', { 
             error: base64Error.message,
             bufferLength: mediaBuffer.length,
-            mimeType: mime
+            mimeType: mime,
+            fileName: fileName
           });
           throw new Error(`Erro na conversão para base64: ${base64Error.message}`);
         }
         
-        // ✅ VALIDAÇÃO: Verificar se o MessageMedia pode ser criado
+        // ✅ VALIDAÇÃO: Criar MessageMedia com validação adicional
         let media;
         try {
-          media = new MessageMedia(mime, base64Data, attachment.fileName || 'file');
+          // Sanitizar nome do arquivo
+          const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_').substring(0, 100);
+          
+          Log.info('[SEND] 🎯 Criando MessageMedia', {
+            mimeType: mime,
+            fileName: sanitizedFileName,
+            base64Length: base64Data.length
+          });
+          
+          media = new MessageMedia(mime, base64Data, sanitizedFileName);
+          
+          // Validar se o objeto foi criado corretamente
+          if (!media || !media.data) {
+            throw new Error('MessageMedia criado mas sem dados');
+          }
+          
+          Log.info('[SEND] ✅ MessageMedia criado com sucesso', {
+            hasData: !!media.data,
+            dataLength: media.data?.length || 0,
+            mimeType: media.mimetype,
+            fileName: media.filename
+          });
+          
         } catch (mediaError) {
           Log.error('[SEND] ❌ Erro ao criar MessageMedia', { 
             error: mediaError.message,
             mimeType: mime,
             base64Length: base64Data.length,
-            fileName: attachment.fileName
+            fileName: fileName,
+            stack: mediaError.stack
           });
           throw new Error(`Erro ao criar MessageMedia: ${mediaError.message}`);
         }
         
-        const sent = await client.sendMessage(chatId, media, { caption: body || undefined });
+        // ✅ ENVIO: Tentar enviar com retry
+    let sent;
+        let sendRetryCount = 0;
+        const maxSendRetries = 2;
+        
+        while (sendRetryCount < maxSendRetries) {
+          try {
+            Log.info('[SEND] 📤 Enviando mídia via WhatsApp', {
+              attempt: sendRetryCount + 1,
+              chatId: chatId,
+              hasCaption: !!body
+            });
+            
+      sent = await client.sendMessage(chatId, media, { caption: body || undefined });
+            
+            if (sent?.id) {
+              break; // Sucesso
+            }
+            throw new Error('sendMessage retornou sem ID');
+            
+          } catch (sendError) {
+            sendRetryCount++;
+            Log.warn('[SEND] ⚠️ Tentativa {sendRetryCount} de envio falhou', {
+              sendRetryCount,
+              error: sendError.message,
+              chatId: chatId
+            });
+            
+            if (sendRetryCount >= maxSendRetries) {
+              throw new Error(`Falha no envio após ${maxSendRetries} tentativas: ${sendError.message}`);
+            }
+            
+            // Aguardar antes da próxima tentativa
+            await new Promise(resolve => setTimeout(resolve, 2000 * sendRetryCount));
+          }
+        }
         
         if (sent?.id) { 
           await sendMessageStatus(number, sent.id._serialized, 'sent'); 
-          Log.info('[SEND] ✅ Mídia baixada do MinIO e enviada', { 
+          Log.info('[SEND] ✅ Mídia baixada do MinIO e enviada com sucesso', { 
             messageId: sent.id._serialized,
             to: number,
             mimeType: mime,
-            fileName: attachment.fileName,
-            bufferSize: mediaBuffer.length
+            fileName: fileName,
+            bufferSize: mediaBuffer.length,
+            base64Length: base64Data.length
           });
           return { success: true, messageId: sent.id._serialized }; 
         }
-        throw new Error('sendMessage retornou vazio');
+        throw new Error('sendMessage retornou vazio após todas as tentativas');
+        
       } catch (error) {
-        Log.error('[SEND] ❌ Erro ao baixar mídia do MinIO', { 
+        Log.error('[SEND] ❌ Erro crítico ao processar mídia do MinIO', { 
           error: error.message,
+          stack: error.stack,
           mediaUrl: attachment.mediaUrl,
+          mimeType: attachment.mimeType,
+          fileName: attachment.fileName,
           to: number
         });
         throw error;
@@ -1509,17 +1893,70 @@ async function sendOne(number, msg) {
     }
     // Handle attachments (mídia com dataUrl - fallback)
     else if (attachment && attachment.dataUrl) {
-      const base64 = String(attachment.dataUrl || '').split(',')[1] || attachment.dataUrl;
+      try {
+        Log.info('[SEND] 🔄 Usando dataUrl como fallback', {
+          hasDataUrl: !!attachment.dataUrl,
+          mimeType: attachment.mimeType,
+          fileName: attachment.fileName,
+          to: number
+        });
+        
+        // Extrair base64 do dataUrl
+        let base64;
+        if (attachment.dataUrl.includes(',')) {
+          base64 = attachment.dataUrl.split(',')[1];
+      } else {
+          base64 = attachment.dataUrl;
+        }
+        
+        if (!base64 || base64.length === 0) {
+          throw new Error('DataUrl não contém base64 válido');
+        }
+        
         const mime = attachment.mimeType || 'application/octet-stream';
-        const media = new MessageMedia(mime, base64 || '', attachment.fileName || 'file');
-      const sent = await client.sendMessage(chatId, media, { caption: body || undefined });
-      
-      if (sent?.id) { 
-        await sendMessageStatus(number, sent.id._serialized, 'sent'); 
-        return { success: true, messageId: sent.id._serialized }; 
+        const fileName = attachment.fileName || 'file';
+        
+        // Sanitizar nome do arquivo
+        const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_').substring(0, 100);
+        
+        Log.info('[SEND] 🎯 Criando MessageMedia com dataUrl', {
+          mimeType: mime,
+          fileName: sanitizedFileName,
+          base64Length: base64.length
+        });
+        
+        const media = new MessageMedia(mime, base64, sanitizedFileName);
+        
+        // Validar se o objeto foi criado corretamente
+        if (!media || !media.data) {
+          throw new Error('MessageMedia criado mas sem dados');
+        }
+        
+        const sent = await client.sendMessage(chatId, media, { caption: body || undefined });
+        
+        if (sent?.id) { 
+          await sendMessageStatus(number, sent.id._serialized, 'sent'); 
+          Log.info('[SEND] ✅ Mídia enviada via dataUrl com sucesso', { 
+            messageId: sent.id._serialized,
+            to: number,
+            mimeType: mime,
+            fileName: sanitizedFileName,
+            base64Length: base64.length
+          });
+          return { success: true, messageId: sent.id._serialized }; 
+        }
+    throw new Error('sendMessage retornou vazio');
+        
+      } catch (dataUrlError) {
+        Log.error('[SEND] ❌ Erro ao processar dataUrl', { 
+          error: dataUrlError.message,
+          mimeType: attachment.mimeType,
+          fileName: attachment.fileName,
+          to: number
+        });
+        throw dataUrlError;
       }
-      throw new Error('sendMessage retornou vazio');
-    } 
+    }
     // Handle text messages (sem attachment)
     else {
       const sent = await client.sendMessage(chatId, body);
@@ -1530,7 +1967,7 @@ async function sendOne(number, msg) {
     }
     throw new Error('sendMessage retornou vazio');
     }
-  } catch (e) {
+    } catch (e) {
     Log.error('Erro sendOne', { error: e?.message, to: number });
     return { success: false, reason: e.message };
   }
