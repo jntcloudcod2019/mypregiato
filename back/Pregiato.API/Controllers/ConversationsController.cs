@@ -111,14 +111,24 @@ namespace Pregiato.API.Controllers
                     // Normalizar número de telefone
                     var normalizedPhone = NormalizePhoneNumber(phoneNumber);
                     
-                    // ✅ CORREÇÃO: Obter o número conectado do WhatsApp do status da sessão
-                    var sessionStatus = _rabbit.GetSessionStatus();
-                    var connectedNumber = sessionStatus.connectedNumber;
+                    // ✅ CORREÇÃO: Obter o número conectado do WhatsApp (priorizar do frontend, fallback para RabbitMQ)
+                    var connectedNumber = request.From; // Número conectado enviado pelo frontend
                     
                     if (string.IsNullOrEmpty(connectedNumber))
                     {
-                        _logger.LogError("❌ Número conectado do WhatsApp não disponível. Status da sessão: {SessionConnected}", sessionStatus.sessionConnected);
-                        return BadRequest(new { error = "WhatsApp não está conectado. Verifique o status da sessão." });
+                        // Fallback: consultar status da sessão via RabbitMQ
+                        var sessionStatus = _rabbit.GetSessionStatus();
+                        connectedNumber = sessionStatus.connectedNumber;
+                        
+                        if (string.IsNullOrEmpty(connectedNumber))
+                        {
+                            _logger.LogError("❌ Número conectado do WhatsApp não disponível. Status da sessão: {SessionConnected}", sessionStatus.sessionConnected);
+                            return BadRequest(new { error = "WhatsApp não está conectado. Verifique o status da sessão." });
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogInformation("✅ Usando número conectado do frontend: {ConnectedNumber}", connectedNumber);
                     }
                     
                     // Formatar o número conectado no formato esperado pelo ZapBot
@@ -194,6 +204,7 @@ namespace Pregiato.API.Controllers
         public string Text { get; set; } = string.Empty;
         public string? ClientMessageId { get; set; }
         public AttachmentDto? Attachment { get; set; }
+        public string? From { get; set; } // ✅ NOVO: Número conectado do WhatsApp
     }
 
     public class AttachmentDto

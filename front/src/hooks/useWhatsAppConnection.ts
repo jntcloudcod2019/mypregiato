@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { rabbitMQService, WhatsAppStatus, QRCodeResponse } from '../services/whatsapp-api';
 import { qrCodeQueueService } from '@/services/qr-code-queue-service';
 import { toast } from '@/components/ui/sonner';
+import { globalCache } from '@/services/global-cache';
 
 // Interface para o status do bot
 interface BotStatusUpdate {
@@ -44,17 +45,79 @@ export const useWhatsAppConnection = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isGeneratingQR, setIsGeneratingQR] = useState(false);
 
-  // ✅ REMOVIDO: checkStatus não é mais necessário com status em tempo real via SignalR
+  // ✅ NOVO: Verificação inicial do status quando a página é recarregada
+  useEffect(() => {
+    const checkInitialStatus = async () => {
+      try {
+        console.log('🔍 [useWhatsAppConnection] Verificando status inicial...');
+        const response = await fetch('/api/whatsapp/status');
+        if (response.ok) {
+          const statusData = await response.json();
+          console.log('📊 [useWhatsAppConnection] Status inicial recebido:', statusData);
+          
+          const isActuallyConnected = Boolean(statusData.sessionConnected);
+          const nextStatus = isActuallyConnected
+            ? ConnectionStatus.connected
+            : ConnectionStatus.disconnected;
+
+          // ✅ NOVO: Armazenar no cache global
+          if (statusData.connectedNumber) {
+            globalCache.setConnectedNumber(statusData.connectedNumber);
+          }
+          globalCache.setSessionStatus({
+            sessionConnected: statusData.sessionConnected,
+            isFullyValidated: statusData.isFullyValidated,
+            connectedNumber: statusData.connectedNumber,
+            lastActivity: statusData.lastActivity
+          });
+
+          setConnectionState(prev => ({
+            ...prev,
+            status: nextStatus,
+            isConnected: isActuallyConnected,
+            lastActivity: statusData.lastActivity,
+            error: undefined,
+            canGenerateQR: !isActuallyConnected,
+            connectedNumber: statusData.connectedNumber || prev.connectedNumber
+          }));
+        }
+      } catch (error) {
+        console.warn('⚠️ [useWhatsAppConnection] Erro ao verificar status inicial:', error);
+        // Manter estado padrão se não conseguir verificar
+      }
+    };
+
+    checkInitialStatus();
+  }, []);
 
   // Listener para atualizações de status via SignalR
   useEffect(() => {
     const handleStatusUpdate = (statusData: BotStatusUpdate) => {
+      console.log('📡 [useWhatsAppConnection] Status recebido via SignalR:', statusData);
+      
       const isActuallyConnected = Boolean(statusData.sessionConnected);
       
       // Lógica de status corrigida: se não está conectado, deve ser 'disconnected'
       const nextStatus = isActuallyConnected
         ? ConnectionStatus.connected
         : ConnectionStatus.disconnected;
+
+      console.log('🔄 [useWhatsAppConnection] Atualizando estado:', {
+        isActuallyConnected,
+        nextStatus,
+        connectedNumber: statusData.connectedNumber
+      });
+
+      // ✅ NOVO: Armazenar no cache global quando receber via SignalR
+      if (statusData.connectedNumber) {
+        globalCache.setConnectedNumber(statusData.connectedNumber);
+      }
+      globalCache.setSessionStatus({
+        sessionConnected: statusData.sessionConnected,
+        isFullyValidated: statusData.isFullyValidated,
+        connectedNumber: statusData.connectedNumber,
+        lastActivity: statusData.lastActivity
+      });
 
       setConnectionState(prev => ({
         ...prev,
@@ -70,6 +133,17 @@ export const useWhatsAppConnection = () => {
     // 🎉 NOVO: Listener para evento específico de autenticação concluída
     const handleSessionAuthenticated = (data: { connectedNumber?: string; connectedUserName?: string; isFullyValidated?: boolean; timestamp?: string }) => {
       console.log('🎉 WhatsApp autenticado!', data);
+      
+      // ✅ NOVO: Armazenar no cache global quando autenticado
+      if (data.connectedNumber) {
+        globalCache.setConnectedNumber(data.connectedNumber);
+      }
+      globalCache.setSessionStatus({
+        sessionConnected: true,
+        isFullyValidated: data.isFullyValidated || false,
+        connectedNumber: data.connectedNumber,
+        lastActivity: data.timestamp || new Date().toISOString()
+      });
       
       setConnectionState(prev => ({
         ...prev,

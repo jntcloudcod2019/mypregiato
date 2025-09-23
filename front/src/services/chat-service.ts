@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { globalCache } from './global-cache';
 
 /**
  * ============================================================================
@@ -495,7 +496,7 @@ const saveToCache = (key: string, data: unknown) => {
 
 export const chatsApi = {
   list: async (search = '', page = 1, pageSize = 20, operatorEmail?: string) => {
-    const params: any = { search, page, pageSize };
+    const params: Record<string, unknown> = { search, page, pageSize };
     if (operatorEmail) {
       params.operatorEmail = operatorEmail;
     }
@@ -577,7 +578,7 @@ export const chatsApi = {
         IsRead: false,
         Status: "pending",
         Type: normalizedAttachment?.mediaType || "text",
-        from: null, // Será preenchido pela API com o número conectado do WhatsApp
+        from: globalCache.getConnectedNumber() ? `${globalCache.getConnectedNumber()}@c.us` : null, // ✅ NOVO: Usar número conectado do cache global
         mimeType: normalizedAttachment?.mimeType || null,
         fileName: normalizedAttachment?.fileName || null,
         size: normalizedAttachment?.dataUrl ? normalizedAttachment.dataUrl.length : null,

@@ -507,14 +507,24 @@ namespace Pregiato.API.Controllers
                 };
             }
             
-            // ✅ CORREÇÃO: Obter o número conectado do WhatsApp do status da sessão
-            var sessionStatus = _rabbit.GetSessionStatus();
-            var connectedNumber = sessionStatus.connectedNumber;
+            // ✅ CORREÇÃO: Obter o número conectado do WhatsApp (priorizar do frontend, fallback para RabbitMQ)
+            var connectedNumber = message.from; // Número conectado enviado pelo frontend
             
             if (string.IsNullOrEmpty(connectedNumber))
             {
-                _logger.LogError("❌ Número conectado do WhatsApp não disponível. Status da sessão: {SessionConnected}", sessionStatus.sessionConnected);
-                return BadRequest(new { error = "WhatsApp não está conectado. Verifique o status da sessão." });
+                // Fallback: consultar status da sessão via RabbitMQ
+                var sessionStatus = _rabbit.GetSessionStatus();
+                connectedNumber = sessionStatus.connectedNumber;
+                
+                if (string.IsNullOrEmpty(connectedNumber))
+                {
+                    _logger.LogError("❌ Número conectado do WhatsApp não disponível. Status da sessão: {SessionConnected}", sessionStatus.sessionConnected);
+                    return BadRequest(new { error = "WhatsApp não está conectado. Verifique o status da sessão." });
+                }
+            }
+            else
+            {
+                _logger.LogInformation("✅ Usando número conectado do frontend: {ConnectedNumber}", connectedNumber);
             }
             
             // Formatar o número conectado no formato esperado pelo ZapBot
