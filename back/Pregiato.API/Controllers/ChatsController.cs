@@ -132,7 +132,7 @@ namespace Pregiato.API.Controllers
                             
                             // DEBUG adicional para tipos
                             _debug_originalType = message.Type,
-                            body = message.body ?? "", // ✅ CORREÇÃO: Apenas body recebe conteúdo, sem fallback para outros campos
+                            body = message.body ?? "", // ✅ CORREÇÃO: body pode ser texto ou URL do MinIO dependendo do type
                             mediaUrl = message.MediaUrl ?? "",
                             fileName = message.fileName ?? "",
                             clientMessageId = message.Id,
@@ -144,7 +144,7 @@ namespace Pregiato.API.Controllers
                             
                             // Campos de compatibilidade para o frontend
                             externalMessageId = message.Id,
-                            text = message.body ?? "", // ✅ CORREÇÃO: Campo text deve usar apenas body, sem fallback
+                            text = message.body ?? "", // ✅ CORREÇÃO: text pode ser texto ou URL do MinIO dependendo do type
                             ts = message.timestamp ?? message.Ts.ToString("O"),
                             fromMe = message.Direction == "outbound", // ✅ CORREÇÃO: outbound = true, inbound = false
                             
@@ -155,15 +155,10 @@ namespace Pregiato.API.Controllers
                             // ✅ ADICIONADO: Campo from para verificação de chat existente
                             from = message.Direction == "inbound" ? $"{message.from}@c.us" : "operator@frontend",
                             
-                            // CORREÇÃO CRÍTICA: Para áudio/voice, usar body como dataUrl (base64)
-                            attachment = (message.Type == "audio" || message.Type == "voice") && !string.IsNullOrEmpty(message.body) ? new
+                            // ✅ CORREÇÃO: Attachment baseado no type da mensagem
+                            attachment = (message.Type == "image" || message.Type == "video" || message.Type == "document" || message.Type == "audio" || message.Type == "voice") ? new
                             {
-                                dataUrl = message.body, // Base64 completo com prefixo data:
-                                mimeType = message.mimeType ?? "audio/mpeg",
-                                fileName = message.fileName ?? "audio-message.mp3"
-                            } : !string.IsNullOrEmpty(message.MediaUrl) ? new
-                            {
-                                dataUrl = message.MediaUrl,
+                                dataUrl = !string.IsNullOrEmpty(message.MediaUrl) ? message.MediaUrl : message.body, // URL do MinIO ou base64 legado
                                 mimeType = message.mimeType ?? "application/octet-stream",
                                 fileName = message.fileName ?? ""
                             } : null
@@ -312,37 +307,54 @@ namespace Pregiato.API.Controllers
             }
             _logger.LogInformation($"✅ Chat encontrado: {chat.Id}, ChatId: {chat.ChatId}");
 
-            // ✅ CORREÇÃO 3: Criar attachment apenas se for mídia
+            // ✅ NOVO FLUXO: Para mídia, fazer upload para MinIO e salvar URL
+            string? mediaUrl = null;
             var attachment = null as ChatLogService.ChatAttachment;
+            
             if (isMediaMessage)
             {
-                // Extrair mimeType do dataUrl se não estiver definido
-                var mimeType = message.mimeType;
-                if (string.IsNullOrEmpty(mimeType) && message.body.StartsWith("data:"))
+                try
                 {
-                    var dataUrlParts = message.body.Split(',');
-                    if (dataUrlParts.Length > 0)
+                    // Extrair mimeType do dataUrl se não estiver definido
+                    var mimeType = message.mimeType;
+                    if (string.IsNullOrEmpty(mimeType) && message.body.StartsWith("data:"))
                     {
-                        var mimePart = dataUrlParts[0].Replace("data:", "");
-                        mimeType = mimePart;
+                        var dataUrlParts = message.body.Split(',');
+                        if (dataUrlParts.Length > 0)
+                        {
+                            var mimePart = dataUrlParts[0].Replace("data:", "");
+                            mimeType = mimePart;
+                        }
                     }
+                    
+                    // Definir mimeType padrão para áudio se ainda não estiver definido
+                    if (string.IsNullOrEmpty(mimeType))
+                    {
+                        mimeType = messageType == "audio" || messageType == "voice" ? "audio/webm" : "application/octet-stream";
+                    }
+                    
+                    // ✅ NOVO: Fazer upload para MinIO
+                    var mediaStorageService = HttpContext.RequestServices.GetRequiredService<Pregiato.Core.Interfaces.IMediaStoragePort>();
+                    mediaUrl = await mediaStorageService.StoreMediaAsync(message.body, mimeType, message.fileName ?? "media");
+                    
+                    _logger.LogInformation($"🎵 Mídia enviada para MinIO: {mediaUrl}");
+                    
+                    // Criar attachment com URL da mídia
+                    attachment = new ChatLogService.ChatAttachment
+                    {
+                        DataUrl = mediaUrl, // ✅ URL da mídia no MinIO
+                        MimeType = mimeType,
+                        FileName = message.fileName,
+                        MediaType = messageType
+                    };
+                    
+                    _logger.LogInformation($"🎵 Attachment criado para mídia: mimeType={mimeType}, fileName={attachment.FileName}, url={mediaUrl}");
                 }
-                
-                // Definir mimeType padrão para áudio se ainda não estiver definido
-                if (string.IsNullOrEmpty(mimeType))
+                catch (Exception ex)
                 {
-                    mimeType = messageType == "audio" || messageType == "voice" ? "audio/webm" : "application/octet-stream";
+                    _logger.LogError(ex, "❌ Erro ao fazer upload da mídia para MinIO");
+                    // Em caso de erro, continuar sem attachment
                 }
-                
-                attachment = new ChatLogService.ChatAttachment
-                {
-                    DataUrl = message.body.StartsWith("data:") ? message.body.Split(',')[1] : message.body, // ✅ Base64 puro (sem prefixo data:)
-                    MimeType = mimeType,
-                FileName = message.fileName,
-                    MediaType = messageType
-                };
-                
-                _logger.LogInformation($"🎵 Attachment criado para mídia: mimeType={mimeType}, fileName={attachment.FileName}");
             }
 
             // ✅ CORREÇÃO: Para chats existentes, atualizar PayloadJson seguindo o mesmo padrão do RabbitBackgroundService
@@ -370,20 +382,20 @@ namespace Pregiato.API.Controllers
                 {
                     Id = message.Id,
                     Content = null, // Campo Content deve ser null conforme padrão
-                    body = messageBody, // Campo body principal conforme padrão
+                    body = isMediaMessage ? mediaUrl : messageBody, // ✅ NOVO: Para mídia, salvar URL; para texto, salvar conteúdo
                     Direction = "outbound",
                     Ts = DateTime.UtcNow,
                     timestamp = DateTime.UtcNow.ToString("O"), // Campo timestamp principal conforme padrão
                     Status = "pending", // Status inicial como pending para mensagens enviadas
                     Type = message.Type,
-                    MediaUrl = null, // ✅ CORREÇÃO: Campo MediaUrl deve ser null, apenas body recebe conteúdo
+                    MediaUrl = isMediaMessage ? mediaUrl : null, // ✅ NOVO: Para mídia, salvar URL da mídia
                     IsRead = false, // Campo IsRead conforme padrão
                     from = "operator@frontend", // Campo from conforme padrão
                     
                     // Campos de mídia conforme padrão
                     mimeType = attachment?.MimeType,
                     fileName = attachment?.FileName,
-                    size = attachment?.DataUrl != null ? (long)(attachment.DataUrl.Length * 0.75) : null, // Tamanho aproximado do base64
+                    size = attachment?.DataUrl != null ? (long)(attachment.DataUrl.Length * 0.75) : null, // Tamanho aproximado
                     
                     // Campos adicionais conforme padrão (inicializados como null)
                     duration = null,
@@ -473,27 +485,9 @@ namespace Pregiato.API.Controllers
             
             _logger.LogInformation($"🎵 [AUDIO DEBUG] Tipo: {message.Type}, IsAudio: {isAudio}, HasAttachment: {attachment != null}");
             
-            // Se vier só base64 "puro", garanta que vira Data URL completo
-            string? dataUrl = null;
-            if (attachment != null)
-            {
-                if (!string.IsNullOrWhiteSpace(attachment.DataUrl))
-                {
-                    dataUrl = attachment.DataUrl;
-                    _logger.LogInformation($"🎵 [AUDIO DEBUG] DataUrl já completo: {dataUrl.Substring(0, Math.Min(50, dataUrl.Length))}...");
-                }
-                else if (!string.IsNullOrWhiteSpace(attachment.DataUrl) && !isAudio)
-                {
-                    dataUrl = BuildDataUrl(attachment.MimeType, attachment.DataUrl);
-                    _logger.LogInformation($"🎵 [AUDIO DEBUG] DataUrl construído: {dataUrl.Substring(0, Math.Min(50, dataUrl.Length))}...");
-                }
-            }
-            
-            // Para áudio, o Data URL tem que ir no BODY:
-            string? body = isAudio
-                ? (!string.IsNullOrWhiteSpace(attachment?.DataUrl)
-                    ? attachment!.DataUrl
-                    : BuildDataUrl(attachment!.MimeType, attachment!.DataUrl))
+            // ✅ NOVO: Para mídia, usar URL do MinIO; para texto, usar messageBody
+            string? body = isMediaMessage 
+                ? mediaUrl  // URL da mídia no MinIO
                 : (string.IsNullOrWhiteSpace(messageBody) ? null : messageBody);
             
             _logger.LogInformation($"🎵 [AUDIO DEBUG] Body final: {body?.Substring(0, Math.Min(50, body?.Length ?? 0))}...");
@@ -501,22 +495,12 @@ namespace Pregiato.API.Controllers
             // Montagem final do comando
             object? attachmentObj = null;
             
-            if (isAudio && attachment != null)
+            if (isMediaMessage && attachment != null)
             {
-                // Para áudio, attachment é opcional (meta); o essencial é o BODY com data:audio/...
+                // ✅ NOVO: Para todas as mídias, attachment contém metadados + URL
                 attachmentObj = new
                 {
-                    mimeType = attachment.MimeType,
-                    fileName = attachment.FileName,
-                    mediaType = attachment.MediaType
-                };
-            }
-            else if (!isAudio && dataUrl != null && attachment != null)
-            {
-                // Para outras mídias, attachment contém o dataUrl
-                attachmentObj = new
-                {
-                    dataUrl = dataUrl, // data:<mime>;base64,XXXX
+                    mediaUrl = mediaUrl, // URL da mídia no MinIO
                     mimeType = attachment.MimeType,
                     fileName = attachment.FileName,
                     mediaType = attachment.MediaType

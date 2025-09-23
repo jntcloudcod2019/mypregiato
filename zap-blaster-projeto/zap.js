@@ -344,6 +344,7 @@ async function startConsumer() {
         attachmentType: payload.attachment?.mediaType,
         attachmentMime: payload.attachment?.mimeType,
         attachmentDataUrlLength: payload.attachment?.dataUrl?.length || 0,
+        attachmentMediaUrl: payload.attachment?.mediaUrl,
         clientMessageId: payload.clientMessageId
       });
       if (payload.command === 'disconnect') {
@@ -1111,6 +1112,23 @@ async function onInbound(message) {
   }
 }
 
+// ---- MinIO Media Download ----
+async function downloadMediaFromMinIO(mediaUrl) {
+  try {
+    const response = await fetch(mediaUrl);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    return Buffer.from(await response.arrayBuffer());
+  } catch (error) {
+    Log.error('[MINIO] Erro ao baixar mídia', { 
+      mediaUrl, 
+      error: error.message 
+    });
+    throw error;
+  }
+}
+
 // ---- Outbound ----
 function renderTemplate(tpl, data) {
   let s = '';
@@ -1145,9 +1163,10 @@ async function sendOne(number, msg) {
   const chatId = `${to}@c.us`;
   let body = '';
   if (typeof msg?.message === 'string') body = msg.message;
+ 
   else if (msg?.template) body = renderTemplate(msg.template, msg.data);
   else body = renderTemplate(String(msg || ''), msg?.data);
-
+  console.log('Validação do tamplete?');
   const attachment = msg?.attachment || null;
   try {
     // Handle audio messages (base64 no campo body)
@@ -1178,7 +1197,36 @@ async function sendOne(number, msg) {
       }
       throw new Error('sendMessage retornou vazio');
     }
-    // Handle attachments (mídia com dataUrl)
+    // Handle attachments (mídia com mediaUrl do MinIO)
+    else if (attachment && attachment.mediaUrl) {
+      try {
+        // Baixar mídia do MinIO
+        const mediaBuffer = await downloadMediaFromMinIO(attachment.mediaUrl);
+        const mime = attachment.mimeType || 'application/octet-stream';
+        const media = new MessageMedia(mime, mediaBuffer.toString('base64'), attachment.fileName || 'file');
+        const sent = await client.sendMessage(chatId, media, { caption: body || undefined });
+        
+        if (sent?.id) { 
+          await sendMessageStatus(number, sent.id._serialized, 'sent'); 
+          Log.info('[SEND] ✅ Mídia baixada do MinIO e enviada', { 
+            messageId: sent.id._serialized,
+            to: number,
+            mimeType: mime,
+            fileName: attachment.fileName
+          });
+          return { success: true, messageId: sent.id._serialized }; 
+        }
+        throw new Error('sendMessage retornou vazio');
+      } catch (error) {
+        Log.error('[SEND] ❌ Erro ao baixar mídia do MinIO', { 
+          error: error.message,
+          mediaUrl: attachment.mediaUrl,
+          to: number
+        });
+        throw error;
+      }
+    }
+    // Handle attachments (mídia com dataUrl - fallback)
     else if (attachment && attachment.dataUrl) {
       const base64 = String(attachment.dataUrl || '').split(',')[1] || attachment.dataUrl;
         const mime = attachment.mimeType || 'application/octet-stream';

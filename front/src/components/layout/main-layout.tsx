@@ -22,7 +22,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
   const { user, isLoaded, isSignedIn } = useUser();
   const { signOut } = useClerk();
   
-  // Verificar se o Clerk já falhou antes (via sessionStorage)
+ // Verificar se o Clerk já falhou antes (via sessionStorage)
   useEffect(() => {
     if (typeof window !== 'undefined') {
       try {
