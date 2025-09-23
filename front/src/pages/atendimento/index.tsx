@@ -4,10 +4,15 @@ import { MessageType } from '@/types/message';
 import { MessageDirection } from '@/services/chat-service';
 import { normalizePhone } from '@/utils/phoneUtils';
 
-// Função para detectar se o texto é apenas base64 de mídia
+// Função para detectar se o texto é apenas base64 de mídia ou URL MinIO
 const isMediaOnlyContent = (text: string, messageType: MessageType): boolean => {
   // Se o texto começa com "data:" é base64
   if (text.startsWith('data:')) {
+    return true;
+  }
+  
+  // ✅ NOVO: Se o texto é uma URL do MinIO
+  if (text.startsWith('https://bucket-production-1aef.up.railway.app/midias/')) {
     return true;
   }
   
@@ -1557,24 +1562,26 @@ export default function AtendimentoPage() {
                       {messages.map((m) => (
                         <div key={(m.id||m.externalMessageId)!} className={`mb-3 flex ${m.direction === MessageDirection.Out ? 'justify-end' : 'justify-start'}`}>
                           <div className={`max-w-[85%] md:max-w-[70%] px-3 py-2 rounded-lg ${m.direction === MessageDirection.Out ? 'bg-primary text-primary-foreground' : 'bg-muted'}`} translate="no">
-                            {/* Renderizador unificado de mídia */}
-                            <MediaRenderer
-                              type={getMessageType(m.type)}
-                              dataUrl={m.attachment?.dataUrl || (m as ExtendedChatMessage).mediaUrl}
-                              fileName={m.attachment?.fileName || (m as ExtendedChatMessage).fileName}
-                              mimeType={m.attachment?.mimeType || (m as ExtendedChatMessage).mimeType}
-                              size={(m as ExtendedChatMessage).attachment?.fileSize || (m as ExtendedChatMessage).size}
-                              duration={(m as ExtendedChatMessage).attachment?.duration || (m as ExtendedChatMessage).duration}
-                              thumbnail={(m as ExtendedChatMessage).thumbnail}
-                              latitude={(m as ExtendedChatMessage).latitude}
-                              longitude={(m as ExtendedChatMessage).longitude}
-                              locationAddress={(m as ExtendedChatMessage).locationAddress}
-                              contactName={(m as ExtendedChatMessage).contactName}
-                              contactPhone={(m as ExtendedChatMessage).contactPhone}
-                              className="mb-2"
-                            />
+                            {/* Renderizador unificado de mídia - apenas quando há mídia */}
+                            {(m.attachment?.dataUrl || (m as ExtendedChatMessage).mediaUrl) && (
+                              <MediaRenderer
+                                type={getMessageType(m.type)}
+                                dataUrl={m.attachment?.dataUrl || (m as ExtendedChatMessage).mediaUrl}
+                                fileName={m.attachment?.fileName || (m as ExtendedChatMessage).fileName}
+                                mimeType={m.attachment?.mimeType || (m as ExtendedChatMessage).mimeType}
+                                size={(m as ExtendedChatMessage).attachment?.fileSize || (m as ExtendedChatMessage).size}
+                                duration={(m as ExtendedChatMessage).attachment?.duration || (m as ExtendedChatMessage).duration}
+                                thumbnail={(m as ExtendedChatMessage).thumbnail}
+                                latitude={(m as ExtendedChatMessage).latitude}
+                                longitude={(m as ExtendedChatMessage).longitude}
+                                locationAddress={(m as ExtendedChatMessage).locationAddress}
+                                contactName={(m as ExtendedChatMessage).contactName}
+                                contactPhone={(m as ExtendedChatMessage).contactPhone}
+                                className="mb-2"
+                              />
+                            )}
                             
-                            
+                            {/* Texto da mensagem - apenas quando não é apenas mídia */}
                             {m.text && !isMediaOnlyContent(m.text, getMessageType(m.type)) && (
                               <div className="whitespace-pre-wrap break-words text-sm">
                                 <TextAnimate animation="scaleUp" by="character">{m.text}</TextAnimate>
