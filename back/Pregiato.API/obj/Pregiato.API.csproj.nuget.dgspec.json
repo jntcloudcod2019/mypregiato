@@ -122,7 +122,7 @@
             },
             "SixLabors.ImageSharp": {
               "target": "Package",
-              "version": "[3.1.6, )"
+              "version": "[3.1.7, )"
             },
             "SixLabors.ImageSharp.Web": {
               "target": "Package",
@@ -391,7 +391,7 @@
             },
             "Minio": {
               "target": "Package",
-              "version": "[5.0.0, )"
+              "version": "[6.0.2, )"
             },
             "Pomelo.EntityFrameworkCore.MySql": {
               "target": "Package",

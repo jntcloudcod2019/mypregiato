@@ -15,6 +15,7 @@ const crypto = require('crypto');
 const { connectDatabase, isNumberInLeads, getAudioFromPayloadJson } = require('./database');
 const { connected } = require('process');
 const AudioProcessor = require('./audio-utils');
+const MinIOService = require('./minio-service');
 
 
 const instanceId = process.env.INSTANCE_ID || 'zap-prod';
@@ -548,7 +549,10 @@ app.get('/status', (req,res)=> {
       // ✅ DEBUG: Adicionar informações do ambiente
       environment: process.env.NODE_ENV || 'development',
       port: process.env.PORT || 3030,
-      railway: !!process.env.RAILWAY_ENVIRONMENT
+      railway: !!process.env.RAILWAY_ENVIRONMENT,
+      // ✅ MinIO Status
+      minioAvailable: !!global.minioService,
+      minioEndpoint: process.env.MINIO_PRIVATE_ENDPOINT || 'not configured'
     };
     
     Log.info('[STATUS] ✅ Endpoint /status respondendo', {
@@ -569,6 +573,37 @@ app.get('/status', (req,res)=> {
   }
 });
 app.get('/health', (req,res)=> res.json({ status: 'OK', ts: new Date().toISOString() }));
+
+// ✅ Endpoint para testar MinIO
+app.get('/minio-test', async (req, res) => {
+  try {
+    if (!global.minioService) {
+      return res.status(503).json({ 
+        status: 'error', 
+        message: 'MinIO Service não disponível',
+        ts: new Date().toISOString()
+      });
+    }
+
+    const testResult = await global.minioService.testConnection();
+    
+    res.json({
+      status: testResult ? 'success' : 'error',
+      message: testResult ? 'MinIO conectado com sucesso' : 'Falha na conexão MinIO',
+      endpoint: process.env.MINIO_PRIVATE_ENDPOINT || 'not configured',
+      bucket: 'midias',
+      ts: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    Log.error('❌ Erro no teste MinIO:', error.message);
+    res.status(500).json({
+      status: 'error',
+      message: error.message,
+      ts: new Date().toISOString()
+    });
+  }
+});
 // ✅ CORREÇÃO: Configurar servidor para escutar em todas as interfaces (necessário para Railway)
 const PORT = process.env.PORT || 3030;
 app.listen(PORT, '0.0.0.0', ()=> Log.info(`Status server em http://0.0.0.0:${PORT}`));
@@ -1349,6 +1384,18 @@ async function ensureDirectories() {
 
   // Criar diretórios necessários
   await ensureDirectories();
+
+  // ✅ Inicializar MinIO Service
+  Log.info('🔄 Inicializando MinIO Service...');
+  try {
+    const minioService = new MinIOService();
+    await minioService.initialize();
+    global.minioService = minioService; // Disponibilizar globalmente
+    Log.info('✅ MinIO Service inicializado com sucesso');
+  } catch (minioError) {
+    Log.warn('⚠️ MinIO Service não disponível - usando fallback local:', { error: minioError.message });
+    global.minioService = null;
+  }
 
   // Conexão com o banco de dados
   await connectDatabase();

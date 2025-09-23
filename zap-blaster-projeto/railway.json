@@ -25,6 +25,11 @@
         "MYSQLPORT": "3306",
         "MYSQLUSER": "root",
         "RABBITMQ_URL": "amqp://maqItSI6EBLd3Nmy:faLY4tAuA93tNFysRsigQ6VtBkmf2WoF@rabbitmq:5672",
+        "MINIO_PUBLIC_ENDPOINT": "https://bucket-production-1aef.up.railway.app:443",
+        "MINIO_PUBLIC_HOST": "bucket-production-1aef.up.railway.app",
+        "MINIO_PUBLIC_PORT": "443",
+        "MINIO_ROOT_USER": "7bW6zf9Vo0QBtueWnzM73OMhcsTIFuWi",
+        "MINIO_ROOT_PASSWORD": "OduQXA4WGbZ83GhL5vclllgRmmVr0xas2QhLCPOq6o8Qhpgt",
         "PUPPETEER_SKIP_CHROMIUM_DOWNLOAD": "true",
         "PUPPETEER_EXECUTABLE_PATH": "/usr/bin/chromium-browser"
       }

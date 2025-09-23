@@ -19,6 +19,16 @@
             Usa a mesma lógica do RabbitBackgroundService.GetMessageType
             </summary>
         </member>
+        <member name="M:Pregiato.API.Controllers.ChatsController.IsAudio(System.String)">
+            <summary>
+            Verifica se o tipo da mensagem é áudio ou voice
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.ChatsController.BuildDataUrl(System.String,System.String)">
+            <summary>
+            Constrói um data URL completo a partir do MIME type e base64
+            </summary>
+        </member>
         <member name="T:Pregiato.API.Controllers.HealthController">
             <summary>
             Controller para monitoramento de saúde dos serviços

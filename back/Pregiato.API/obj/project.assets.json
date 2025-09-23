@@ -1929,7 +1929,7 @@
           }
         }
       },
-      "SixLabors.ImageSharp/3.1.6": {
+      "SixLabors.ImageSharp/3.1.7": {
         "type": "package",
         "compile": {
           "lib/net6.0/SixLabors.ImageSharp.dll": {
@@ -2754,7 +2754,7 @@
           "Microsoft.EntityFrameworkCore": "8.0.0",
           "Microsoft.Extensions.Configuration.EnvironmentVariables": "8.0.0",
           "Microsoft.Extensions.Configuration.Json": "8.0.0",
-          "Minio": "5.0.0",
+          "Minio": "6.0.2",
           "Pomelo.EntityFrameworkCore.MySql": "8.0.0",
           "Pregiato.Core": "1.0.0"
         },
@@ -5541,10 +5541,10 @@
         "serilog.sinks.file.nuspec"
       ]
     },
-    "SixLabors.ImageSharp/3.1.6": {
-      "sha512": "dHQ5jugF9v+5/LCVHCWVzaaIL6WOehqJy6eju/0VFYFPEj2WtqkGPoEV9EVQP83dHsdoqYaTuWpZdwAd37UwfA==",
+    "SixLabors.ImageSharp/3.1.7": {
+      "sha512": "9fIOOAsyLFid6qKypM2Iy0Z3Q9yoanV8VoYAHtI2sYGMNKzhvRTjgFDHonIiVe+ANtxIxM6SuqUzj0r91nItpA==",
       "type": "package",
-      "path": "sixlabors.imagesharp/3.1.6",
+      "path": "sixlabors.imagesharp/3.1.7",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -5553,7 +5553,7 @@
         "lib/net6.0/SixLabors.ImageSharp.dll",
         "lib/net6.0/SixLabors.ImageSharp.xml",
         "sixlabors.imagesharp.128.png",
-        "sixlabors.imagesharp.3.1.6.nupkg.sha512",
+        "sixlabors.imagesharp.3.1.7.nupkg.sha512",
         "sixlabors.imagesharp.nuspec"
       ]
     },
@@ -7081,7 +7081,7 @@
       "RabbitMQ.Client >= 6.8.1",
       "Serilog.AspNetCore >= 8.0.0",
       "Serilog.Sinks.Console >= 5.0.1",
-      "SixLabors.ImageSharp >= 3.1.6",
+      "SixLabors.ImageSharp >= 3.1.7",
       "SixLabors.ImageSharp.Web >= 3.1.3",
       "Swashbuckle.AspNetCore >= 6.5.0"
     ]
@@ -7207,7 +7207,7 @@
           },
           "SixLabors.ImageSharp": {
             "target": "Package",
-            "version": "[3.1.6, )"
+            "version": "[3.1.7, )"
           },
           "SixLabors.ImageSharp.Web": {
             "target": "Package",
@@ -7253,20 +7253,10 @@
       ]
     },
     {
-      "code": "NU1903",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "O pacote 'SixLabors.ImageSharp' 3.1.6 tem uma alta vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-2cmq-823j-5qj8",
-      "libraryId": "SixLabors.ImageSharp",
-      "targetGraphs": [
-        "net8.0"
-      ]
-    },
-    {
       "code": "NU1902",
       "level": "Warning",
       "warningLevel": 1,
-      "message": "O pacote 'SixLabors.ImageSharp' 3.1.6 tem uma moderado vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-rxmq-m78w-7wmc",
+      "message": "O pacote 'SixLabors.ImageSharp' 3.1.7 tem uma moderado vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-rxmq-m78w-7wmc",
       "libraryId": "SixLabors.ImageSharp",
       "targetGraphs": [
         "net8.0"

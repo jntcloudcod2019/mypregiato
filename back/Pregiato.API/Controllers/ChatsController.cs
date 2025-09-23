@@ -468,22 +468,71 @@ namespace Pregiato.API.Controllers
             // Log para debug de normalização
             _logger.LogDebug($"🔧 Normalização em Send: original={to}, limpo={toClean}, normalizado={toNormalized}, isGroup={isGroup}");
             
-            // ✅ CORREÇÃO 4: Para mídia, body deve ser vazio e base64 deve ir no attachment.dataUrl
+            // ✅ NOVA LÓGICA: Tratamento diferenciado para áudio vs outras mídias
+            var isAudio = IsAudio(message.Type);
+            
+            _logger.LogInformation($"🎵 [AUDIO DEBUG] Tipo: {message.Type}, IsAudio: {isAudio}, HasAttachment: {attachment != null}");
+            
+            // Se vier só base64 "puro", garanta que vira Data URL completo
+            string? dataUrl = null;
+            if (attachment != null)
+            {
+                if (!string.IsNullOrWhiteSpace(attachment.DataUrl))
+                {
+                    dataUrl = attachment.DataUrl;
+                    _logger.LogInformation($"🎵 [AUDIO DEBUG] DataUrl já completo: {dataUrl.Substring(0, Math.Min(50, dataUrl.Length))}...");
+                }
+                else if (!string.IsNullOrWhiteSpace(attachment.DataUrl) && !isAudio)
+                {
+                    dataUrl = BuildDataUrl(attachment.MimeType, attachment.DataUrl);
+                    _logger.LogInformation($"🎵 [AUDIO DEBUG] DataUrl construído: {dataUrl.Substring(0, Math.Min(50, dataUrl.Length))}...");
+                }
+            }
+            
+            // Para áudio, o Data URL tem que ir no BODY:
+            string? body = isAudio
+                ? (!string.IsNullOrWhiteSpace(attachment?.DataUrl)
+                    ? attachment!.DataUrl
+                    : BuildDataUrl(attachment!.MimeType, attachment!.DataUrl))
+                : (string.IsNullOrWhiteSpace(messageBody) ? null : messageBody);
+            
+            _logger.LogInformation($"🎵 [AUDIO DEBUG] Body final: {body?.Substring(0, Math.Min(50, body?.Length ?? 0))}...");
+            
+            // Montagem final do comando
+            object? attachmentObj = null;
+            
+            if (isAudio && attachment != null)
+            {
+                // Para áudio, attachment é opcional (meta); o essencial é o BODY com data:audio/...
+                attachmentObj = new
+                {
+                    mimeType = attachment.MimeType,
+                    fileName = attachment.FileName,
+                    mediaType = attachment.MediaType
+                };
+            }
+            else if (!isAudio && dataUrl != null && attachment != null)
+            {
+                // Para outras mídias, attachment contém o dataUrl
+                attachmentObj = new
+                {
+                    dataUrl = dataUrl, // data:<mime>;base64,XXXX
+                    mimeType = attachment.MimeType,
+                    fileName = attachment.FileName,
+                    mediaType = attachment.MediaType
+                };
+            }
+            
             var cmd = new
             {
                 command = "send_message",
                 phone = toNormalized, // ✅ DESTINATÁRIO: Número para onde enviar a mensagem
                 to = toNormalized, // Manter para compatibilidade
-                from = "5511977240565",
-                body = messageBody, // refrencia o dataUrl do front 
+                from = message.from,
+                body = body, // ÁUDIO: data URL aqui | OUTROS: legenda aqui
                 clientMessageId = message.Id,
                 chatId = chat.ChatId,
-                attachment = attachment != null ? new
-                {               
-                    mimeType = attachment.MimeType,
-                    fileName = attachment.FileName,
-                    mediaType = attachment.MediaType
-                } : null
+                attachment = attachmentObj
             };
             
             await _rabbit.PublishAsync("whatsapp.outgoing", cmd);
@@ -551,6 +600,19 @@ namespace Pregiato.API.Controllers
                 _ => false
             };
         }
+
+        /// <summary>
+        /// Verifica se o tipo da mensagem é áudio ou voice
+        /// </summary>
+        private static bool IsAudio(string? mediaType) =>
+            string.Equals(mediaType, "audio", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(mediaType, "voice", StringComparison.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// Constrói um data URL completo a partir do MIME type e base64
+        /// </summary>
+        private static string BuildDataUrl(string mime, string base64) =>
+            $"data:{mime};base64,{base64}";
         
         private static string GetExtensionFromMimeType(string mimeType)
         {

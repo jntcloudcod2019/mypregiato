@@ -3,7 +3,8 @@ using Microsoft.Extensions.Options;
 using Pregiato.Core.Interfaces;
 using System.Text;
 using Minio;
-using Minio.DataModel.Args;
+using Minio.DataModel.Args; // ✅ Adicionado para resolver o erro CS0234
+using Minio.Exceptions;
 
 namespace Pregiato.Infrastructure.Adapters
 {
@@ -15,43 +16,111 @@ namespace Pregiato.Infrastructure.Adapters
         public string BucketName { get; set; } = "midias";
         public bool UseSSL { get; set; } = true;
         public string Region { get; set; } = "us-east-1";
+        public int TimeoutMs { get; set; } = 30000;
     }
 
     /// <summary>
     /// Adaptador de saída para MinIO
     /// Implementa IMediaStoragePort usando MinIO (S3-compatible)
-    /// TODO: Implementar integração real com MinIO quando necessário
+    /// Versão simplificada para compatibilidade com MinIO 6.0.5
     /// </summary>
     public class MinIOStorageAdapter : IMediaStoragePort
     {
         private readonly MinIOOptions _options;
         private readonly ILogger<MinIOStorageAdapter> _logger;
+        private readonly IMinioClient _minioClient;
+        private bool _isInitialized = false;
 
         public MinIOStorageAdapter(IOptions<MinIOOptions> options, ILogger<MinIOStorageAdapter> logger)
         {
             _options = options.Value;
             _logger = logger;
+            
+            // ✅ CORREÇÃO: Inicializar o cliente MinIO usando o novo construtor
+            _minioClient = new MinioClient()
+                .WithEndpoint(_options.Endpoint)
+                .WithCredentials(_options.AccessKey, _options.SecretKey)
+                .WithSSL(_options.UseSSL)
+                .Build();
+        }
+
+        private async Task EnsureInitializedAsync()
+        {
+            if (_isInitialized) return;
+
+            try
+            {
+                _logger.LogInformation("🔄 Inicializando conexão MinIO...");
+                
+                // ✅ CORREÇÃO: Usar BucketExistsAsync e MakeBucketAsync
+                var bucketExistsArgs = new BucketExistsArgs().WithBucket(_options.BucketName);
+                bool found = await _minioClient.BucketExistsAsync(bucketExistsArgs);
+
+                if (!found)
+                {
+                    _logger.LogInformation("Bucket MinIO não existe. Criando: {BucketName}", _options.BucketName);
+                    var makeBucketArgs = new MakeBucketArgs().WithBucket(_options.BucketName);
+                    await _minioClient.MakeBucketAsync(makeBucketArgs);
+                    _logger.LogInformation("✅ Bucket MinIO criado com sucesso: {BucketName}", _options.BucketName);
+                }
+                else
+                {
+                    _logger.LogInformation("✅ Bucket MinIO já existe: {BucketName}", _options.BucketName);
+                }
+
+                _isInitialized = true;
+                _logger.LogInformation("🎉 MinIO inicializado com sucesso - Endpoint: {Endpoint}, Bucket: {BucketName}", 
+                    _options.Endpoint, _options.BucketName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Falha ao inicializar MinIO - Endpoint: {Endpoint}, Bucket: {BucketName}", 
+                    _options.Endpoint, _options.BucketName);
+                throw;
+            }
         }
 
         public async Task<string> StoreMediaAsync(string base64Data, string mimeType, string filename)
         {
             try
             {
+                await EnsureInitializedAsync();
+                
                 _logger.LogInformation("🎬 Iniciando upload para MinIO: {MimeType}, {Filename}", mimeType, filename);
 
-                // TODO: Implementar upload real para MinIO
-                // Por enquanto, retornar URL simulada
+                var base64Content = ExtractBase64Content(base64Data);
+                var bytes = Convert.FromBase64String(base64Content);
+
                 var uniqueFileName = $"{Guid.NewGuid()}{GetFileExtension(mimeType)}";
-                var mediaUrl = $"{_options.Endpoint}/{_options.BucketName}/media/{uniqueFileName}";
+                var objectName = $"media/{uniqueFileName}";
+
+                using var stream = new MemoryStream(bytes);
+
+                // ✅ CORREÇÃO: Usar PutObjectAsync com PutObjectArgs
+                var putObjectArgs = new PutObjectArgs()
+                    .WithBucket(_options.BucketName)
+                    .WithObject(objectName)
+                    .WithStreamData(stream)
+                    .WithObjectSize(stream.Length)
+                    .WithContentType(mimeType);
+
+                await _minioClient.PutObjectAsync(putObjectArgs);
+
+                var mediaUrl = $"{(_options.UseSSL ? "https" : "http")}://{_options.Endpoint.Replace("http://", "").Replace("https://", "")}/{_options.BucketName}/{objectName}";
                 
-                _logger.LogInformation("✅ Upload simulado concluído: {MediaUrl}", mediaUrl);
+                _logger.LogInformation("✅ Upload para MinIO concluído: {MediaUrl} ({Size} bytes)", 
+                    mediaUrl, bytes.Length);
                 
-                await Task.Delay(100); // Simular operação assíncrona
                 return mediaUrl;
+            }
+            catch (MinioException ex)
+            {
+                _logger.LogError(ex, "❌ Erro do MinIO ao fazer upload: {MimeType}, {Filename}", mimeType, filename);
+                throw;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Erro ao fazer upload para MinIO: {MimeType}, {Filename}", mimeType, filename);
+                _logger.LogError(ex, "❌ Erro genérico ao fazer upload para MinIO: {MimeType}, {Filename}", mimeType, filename);
                 throw;
             }
         }
@@ -60,18 +129,40 @@ namespace Pregiato.Infrastructure.Adapters
         {
             try
             {
+                await EnsureInitializedAsync();
+                
                 _logger.LogInformation("📥 Iniciando download do MinIO: {MediaUrl}", mediaUrl);
 
-                // TODO: Implementar download real do MinIO
-                // Por enquanto, retornar array vazio
-                await Task.Delay(100); // Simular operação assíncrona
+                var objectName = ExtractObjectKeyFromUrl(mediaUrl);
                 
-                _logger.LogInformation("✅ Download simulado concluído: {MediaUrl}", mediaUrl);
-                return new byte[0];
+                using var stream = new MemoryStream();
+
+                // ✅ CORREÇÃO: Usar GetObjectAsync com GetObjectArgs
+                var getObjectArgs = new GetObjectArgs()
+                    .WithBucket(_options.BucketName)
+                    .WithObject(objectName)
+                    .WithCallbackStream((responseStream) =>
+                    {
+                        responseStream.CopyTo(stream);
+                    });
+
+                await _minioClient.GetObjectAsync(getObjectArgs);
+                
+                var bytes = stream.ToArray();
+                
+                _logger.LogInformation("✅ Download do MinIO concluído: {MediaUrl} ({Size} bytes)", 
+                    mediaUrl, bytes.Length);
+                
+                return bytes;
+            }
+            catch (MinioException ex)
+            {
+                _logger.LogError(ex, "❌ Erro do MinIO ao fazer download: {MediaUrl}", mediaUrl);
+                throw;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Erro ao fazer download do MinIO: {MediaUrl}", mediaUrl);
+                _logger.LogError(ex, "❌ Erro genérico ao fazer download do MinIO: {MediaUrl}", mediaUrl);
                 throw;
             }
         }
@@ -80,25 +171,39 @@ namespace Pregiato.Infrastructure.Adapters
         {
             try
             {
+                await EnsureInitializedAsync();
+                
                 _logger.LogInformation("🗑️ Iniciando exclusão do MinIO: {MediaUrl}", mediaUrl);
 
-                // TODO: Implementar exclusão real do MinIO
-                await Task.Delay(100); // Simular operação assíncrona
+                var objectName = ExtractObjectKeyFromUrl(mediaUrl);
                 
-                _logger.LogInformation("✅ Exclusão simulada concluída: {MediaUrl}", mediaUrl);
+                // ✅ CORREÇÃO: Usar RemoveObjectAsync com RemoveObjectArgs
+                var removeObjectArgs = new RemoveObjectArgs()
+                    .WithBucket(_options.BucketName)
+                    .WithObject(objectName);
+                
+                await _minioClient.RemoveObjectAsync(removeObjectArgs);
+                
+                _logger.LogInformation("✅ Exclusão do MinIO concluída: {MediaUrl}", mediaUrl);
                 return true;
+            }
+            catch (MinioException ex)
+            {
+                _logger.LogError(ex, "❌ Erro do MinIO ao excluir: {MediaUrl}", mediaUrl);
+                throw;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Erro ao excluir do MinIO: {MediaUrl}", mediaUrl);
-                return false;
+                _logger.LogError(ex, "❌ Erro genérico ao excluir do MinIO: {MediaUrl}", mediaUrl);
+                throw;
             }
         }
 
-        public async Task<string> GetPublicUrlAsync(string mediaUrl)
+        // ✅ Método de interface renomeado e ajustado
+        public Task<string> GetPublicUrlAsync(string mediaUrl)
         {
             // Para MinIO, a URL já é pública se o bucket permitir
-            return mediaUrl;
+            return Task.FromResult(mediaUrl);
         }
 
         private string ExtractBase64Content(string base64Data)
@@ -120,14 +225,12 @@ namespace Pregiato.Infrastructure.Adapters
 
         private string ExtractObjectKeyFromUrl(string mediaUrl)
         {
-            // Extrair object key da URL: https://endpoint/bucket/key
             var uri = new Uri(mediaUrl);
             var pathSegments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
             
             if (pathSegments.Length < 2)
                 throw new ArgumentException("URL de mídia inválida");
 
-            // Pular o bucket name e pegar o resto como object key
             return string.Join("/", pathSegments.Skip(1));
         }
 

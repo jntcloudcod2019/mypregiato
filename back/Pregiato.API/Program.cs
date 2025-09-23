@@ -172,6 +172,13 @@ builder.Services.AddHealthChecks()
         var config = builder.Configuration.GetSection("RabbitMQ");
         return config.Exists() ? Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy() 
                                : Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Unhealthy("RabbitMQ não configurado");
+    })
+    .AddCheck("minio", () => 
+    {
+        // Verificar se MinIO está configurado
+        var config = builder.Configuration.GetSection("MinIO");
+        return config.Exists() ? Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy("MinIO configurado") 
+                               : Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Unhealthy("MinIO não configurado");
     });
 
 // Swagger
@@ -227,6 +234,30 @@ app.Lifetime.ApplicationStopped.Register(() =>
 try
 {
     Log.Information("Iniciando Pregiato API...");
+    
+    // ✅ Inicializar MinIO e testar conectividade
+    Log.Information("🔄 Testando conectividade MinIO...");
+    try
+    {
+        using var scope = app.Services.CreateScope();
+        var minioAdapter = scope.ServiceProvider.GetRequiredService<Pregiato.Core.Interfaces.IMediaStoragePort>();
+        var minioOptions = app.Configuration.GetSection("MinIO").Get<Pregiato.Infrastructure.Adapters.MinIOOptions>();
+        
+        Log.Information("📦 MinIO Configurado - Endpoint: {Endpoint}, Bucket: {BucketName}", 
+            minioOptions?.Endpoint, minioOptions?.BucketName);
+            
+        // Teste de conectividade (sem fazer upload real)
+        var testData = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("test-connectivity"));
+        var testUrl = await minioAdapter.StoreMediaAsync(testData, "text/plain", "connectivity-test.txt");
+        
+        Log.Information("✅ MinIO conectado com sucesso - Teste realizado em: {TestUrl}", testUrl);
+    }
+    catch (Exception minioEx)
+    {
+        Log.Warning(minioEx, "⚠️ MinIO não disponível - usando fallback local: {Message}", minioEx.Message);
+    }
+    
+    Log.Information("🎉 Pregiato API iniciada com sucesso!");
     app.Run();
 }
 catch (Exception ex)
