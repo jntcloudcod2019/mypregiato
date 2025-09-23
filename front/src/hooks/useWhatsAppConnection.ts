@@ -44,36 +44,7 @@ export const useWhatsAppConnection = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isGeneratingQR, setIsGeneratingQR] = useState(false);
 
-  const checkStatus = useCallback(async () => {
-    try {
-      const status: WhatsAppStatus = await rabbitMQService.getStatus();
-      // Considerar conectado quando a sessão está conectada, independente do número
-      const isActuallyConnected = Boolean(status.sessionConnected);
-      
-      // Lógica de status corrigida: se não está conectado, deve ser 'disconnected'
-      const nextStatus = isActuallyConnected
-        ? ConnectionStatus.connected
-        : ConnectionStatus.disconnected;
-
-      setConnectionState(prev => ({
-        ...prev,
-        status: nextStatus,
-        isConnected: isActuallyConnected,
-        lastActivity: status.lastActivity,
-        error: status.error,
-        canGenerateQR: !isActuallyConnected,
-        connectedNumber: status.connectedNumber || prev.connectedNumber
-      }));
-    } catch (error) {
-      setConnectionState(prev => ({
-        ...prev,
-        status: ConnectionStatus.disconnected,
-        isConnected: false,
-        error: 'Erro ao conectar com o servidor',
-        canGenerateQR: true
-      }));
-    }
-  }, []);
+  // ✅ REMOVIDO: checkStatus não é mais necessário com status em tempo real via SignalR
 
   // Listener para atualizações de status via SignalR
   useEffect(() => {
@@ -97,7 +68,7 @@ export const useWhatsAppConnection = () => {
     };
 
     // 🎉 NOVO: Listener para evento específico de autenticação concluída
-    const handleSessionAuthenticated = (data: any) => {
+    const handleSessionAuthenticated = (data: { connectedNumber?: string; connectedUserName?: string; isFullyValidated?: boolean; timestamp?: string }) => {
       console.log('🎉 WhatsApp autenticado!', data);
       
       setConnectionState(prev => ({
@@ -115,9 +86,7 @@ export const useWhatsAppConnection = () => {
       }));
 
       // 🔔 Notificação para o usuário
-      if (typeof window !== 'undefined' && window.toast) {
-        window.toast(`✅ WhatsApp conectado com sucesso! Número: ${data.connectedNumber}`);
-      }
+      toast.success(`✅ WhatsApp conectado com sucesso! Número: ${data.connectedNumber}`);
     };
 
     // Registrar listeners
@@ -146,9 +115,11 @@ export const useWhatsAppConnection = () => {
 
   const connect = useCallback(async () => {
     setIsConnecting(true);
-    try { await checkStatus(); } finally { setIsConnecting(false); }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Removida dependência de checkStatus para evitar loops
+    try { 
+      // ✅ REMOVIDO: checkStatus não é mais necessário
+      // Status será atualizado automaticamente via SignalR
+    } finally { setIsConnecting(false); }
+  }, []);
 
   const disconnect = useCallback(async () => {
     try { 
@@ -200,11 +171,8 @@ export const useWhatsAppConnection = () => {
 
   // Removido polling automático: status só será verificado quando o usuário clicar no botão
 
-  // Verificação inicial única (sem polling automático)
-  useEffect(() => {
-    // Apenas verificação inicial quando o componente monta
-    checkStatus();
-  }, [checkStatus]); // Incluir checkStatus na dependência
+  // ✅ REMOVIDO: Verificação inicial não é mais necessária
+  // Status será atualizado automaticamente via SignalR quando o componente montar
 
   useEffect(() => {
     const handleQRCode = (qrCode: string | null) => {
@@ -267,7 +235,7 @@ export const useWhatsAppConnection = () => {
     disconnect, 
     generateQR, 
     getQRCode, 
-    checkStatus,
+    // ✅ REMOVIDO: checkStatus não é mais necessário
     // Exportar novas propriedades para uso nos componentes
     connectedUserName: connectionState.connectedUserName,
     isFullyValidated: connectionState.isFullyValidated

@@ -107,7 +107,7 @@ namespace Pregiato.API.Controllers
         }
 
         [HttpPost("session/updated")]
-        public IActionResult SessionUpdated([FromBody] SessionUpdatedRequest req)
+        public async Task<IActionResult> SessionUpdated([FromBody] SessionUpdatedRequest req)
         {
             var current = _rabbit.GetSessionStatus();
             
@@ -126,6 +126,18 @@ namespace Pregiato.API.Controllers
             {
                 _logger.LogInformation("📥 Webhook session/updated: connected={Connected} number={Number} validated={Validated} (mudança detectada)", 
                     req.sessionConnected, req.connectedNumber, req.isFullyValidated);
+                
+                // ✅ NOVO: Propagação em tempo real via SignalR
+                await _hub.Clients.Group("whatsapp").SendAsync("bot.status.update", new {
+                    sessionConnected = req.sessionConnected,
+                    connectedNumber = req.connectedNumber,
+                    isFullyValidated = req.isFullyValidated,
+                    isConnected = req.sessionConnected,
+                    status = req.sessionConnected ? (req.isFullyValidated ? "connected" : "connecting") : "disconnected",
+                    lastActivity = DateTime.UtcNow.ToString("O")
+                });
+                
+                _logger.LogInformation("📤 Status do bot propagado via SignalR para todos os clientes");
             }
             else
             {
@@ -168,6 +180,55 @@ namespace Pregiato.API.Controllers
                 _logger.LogError(ex, "❌ Erro ao processar autenticação do WhatsApp");
                 return StatusCode(500, new { success = false, message = "Erro interno ao processar autenticação" });
             }
+        }
+
+        /// <summary>
+        /// Endpoint para broadcast de status em tempo real via SignalR
+        /// </summary>
+        [HttpPost("status/broadcast")]
+        public async Task<IActionResult> BroadcastStatus([FromBody] BotStatusBroadcastRequest req)
+        {
+            try
+            {
+                _logger.LogInformation("📡 Recebendo broadcast de status do ZapBot: {Status}, {Connected}, {Number}", 
+                    req.status, req.sessionConnected, req.connectedNumber);
+
+                // ✅ Atualizar status interno
+                _rabbit.SetSessionStatus(req.sessionConnected, req.connectedNumber, req.isFullyValidated);
+                _sessionInitialized = true;
+                _lastSessionUpdateUtc = DateTime.UtcNow;
+
+                // 🚀 EMITIR STATUS EM TEMPO REAL via SignalR
+                await _hub.Clients.Group("whatsapp").SendAsync("bot.status.update", new {
+                    sessionConnected = req.sessionConnected,
+                    connectedNumber = req.connectedNumber,
+                    isFullyValidated = req.isFullyValidated,
+                    status = req.status,
+                    lastActivity = req.lastActivity,
+                    timestamp = req.timestamp ?? DateTime.UtcNow.ToString("O"),
+                    instanceId = req.instanceId
+                });
+
+                _logger.LogInformation("📤 Status broadcast emitido via SignalR para todos os clientes");
+
+                return Ok(new { success = true, message = "Status broadcast enviado com sucesso" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Erro ao processar broadcast de status");
+                return StatusCode(500, new { success = false, message = "Erro interno ao processar broadcast" });
+            }
+        }
+
+        public class BotStatusBroadcastRequest
+        {
+            public bool sessionConnected { get; set; }
+            public string? connectedNumber { get; set; }
+            public bool isFullyValidated { get; set; }
+            public string status { get; set; } = string.Empty;
+            public string lastActivity { get; set; } = string.Empty;
+            public string? timestamp { get; set; }
+            public string? instanceId { get; set; }
         }
 
         [HttpGet("status")]

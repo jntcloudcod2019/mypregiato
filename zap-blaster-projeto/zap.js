@@ -926,6 +926,15 @@ async function onReady() {
 
   Log.info('[DEBUG] enviando status inicial');
   await sendSessionStatus();
+  
+  // ✅ NOVO: Inicializar cliente MinIO no startup
+  try {
+    await initializeMinIOClient();
+    Log.info('[DEBUG] Cliente MinIO inicializado no startup');
+  } catch (error) {
+    Log.warn('[DEBUG] Falha ao inicializar MinIO no startup, será inicializado sob demanda', { error: error.message });
+  }
+  
   Log.info('[DEBUG] onReady() concluído com sucesso');
 }
 
@@ -1113,15 +1122,73 @@ async function onInbound(message) {
 }
 
 // ---- MinIO Media Download ----
+let minioClient = null;
+let minioInitialized = false;
+
+// ✅ NOVA ESTRATÉGIA: Inicializar cliente MinIO uma vez e reutilizar
+async function initializeMinIOClient() {
+  if (minioInitialized && minioClient) {
+    return minioClient;
+  }
+
+  try {
+    const Minio = require('minio');
+    
+    minioClient = new Minio.Client({
+      endPoint: process.env.MINIO_PUBLIC_HOST || 'bucket-production-1aef.up.railway.app',
+      port: parseInt(process.env.MINIO_PUBLIC_PORT) || 443,
+      useSSL: true,
+      accessKey: process.env.MINIO_ROOT_USER || '7bW6zf9Vo0QBtueWnzM73OMhcsTIFuWi',
+      secretKey: process.env.MINIO_ROOT_PASSWORD || 'OduQXA4WGbZ83GhL5vclllgRmmVr0xas2QhLCPOq6o8Qhpgt'
+    });
+
+    // Testar conexão
+    const bucketExists = await minioClient.bucketExists('midias');
+    if (!bucketExists) {
+      throw new Error('Bucket midias não existe');
+    }
+
+    minioInitialized = true;
+    Log.info('[MINIO] ✅ Cliente MinIO inicializado e conectado com sucesso');
+    return minioClient;
+  } catch (error) {
+    Log.error('[MINIO] ❌ Erro ao inicializar cliente MinIO', { error: error.message });
+    minioClient = null;
+    minioInitialized = false;
+    throw error;
+  }
+}
+
+// ✅ NOVA ESTRATÉGIA: Baixar mídia usando cliente MinIO autenticado
 async function downloadMediaFromMinIO(mediaUrl) {
   try {
-    const response = await fetch(mediaUrl);
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    // Garantir que o cliente MinIO está inicializado
+    const client = await initializeMinIOClient();
+    
+    // Extrair object name da URL
+    const url = new URL(mediaUrl);
+    const objectName = url.pathname.substring(1); // Remove a barra inicial
+    
+    Log.info('[MINIO] Baixando mídia', { mediaUrl, objectName });
+    
+    // Baixar usando cliente MinIO
+    const stream = await client.getObject('midias', objectName);
+    
+    // Converter stream para buffer
+    const chunks = [];
+    for await (const chunk of stream) {
+      chunks.push(chunk);
     }
-    return Buffer.from(await response.arrayBuffer());
+    
+    const buffer = Buffer.concat(chunks);
+    Log.info('[MINIO] ✅ Mídia baixada com sucesso', { 
+      mediaUrl, 
+      size: buffer.length 
+    });
+    
+    return buffer;
   } catch (error) {
-    Log.error('[MINIO] Erro ao baixar mídia', { 
+    Log.error('[MINIO] ❌ Erro ao baixar mídia', { 
       mediaUrl, 
       error: error.message 
     });
@@ -1394,12 +1461,14 @@ async function sendSessionStatus() {
   Log.info('[SESSION_STATUS] Enviando status para API', statusData);
   
   try {
+    // ✅ NOVO: Enviar para endpoint que propaga via SignalR
     await apiClient.post('/api/whatsapp/session/updated', statusData);
     Log.info('[SESSION_STATUS] ✅ Status enviado com sucesso para API');
   } catch (error) {
     Log.error('[SESSION_STATUS] ❌ Erro ao enviar status para API', { error: error?.message });
   }
 }
+
 
 async function sendMessageStatus(phone, externalMessageId, status) {
   await publish('whatsapp.message-status', {

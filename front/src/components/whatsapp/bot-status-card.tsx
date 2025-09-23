@@ -31,8 +31,7 @@ export const BotStatusCard = () => {
     isFullyValidated,
     connect,
     disconnect,
-    generateQR,
-    checkStatus
+    generateQR
   } = useWhatsAppConnection();
 
   // Buscar dados do usuário para verificar role
@@ -176,17 +175,7 @@ export const BotStatusCard = () => {
                 )
               )}
               
-              {/* Botão de Teste para Debug */}
-              <Button 
-                onClick={checkStatus}
-                disabled={isConnecting}
-                className="w-full"
-                variant="ghost"
-                size="sm"
-              >
-                <RefreshCw className={`h-3 w-3 mr-1 ${isConnecting ? 'animate-spin' : ''}`} />
-                {isConnecting ? 'Verificando...' : 'Verificar Status'}
-              </Button>
+              {/* Status atualizado automaticamente via SignalR - botão removido */}
             </div>
 
             {/* Connected WhatsApp Status */}
