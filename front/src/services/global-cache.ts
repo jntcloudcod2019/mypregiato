@@ -1,6 +1,6 @@
 /**
  * Serviço de cache global para armazenar dados da sessão WhatsApp
- * ✅ ROBUSTO: Usa sessionStorage para persistir dados entre refreshes
+ * ✅ ROBUSTO: Usa localStorage para persistir dados entre refreshes e fechamento do navegador
  */
 class GlobalCacheService {
   private static instance: GlobalCacheService;
@@ -9,7 +9,7 @@ class GlobalCacheService {
   private readonly STORAGE_VERSION = '1.0';
 
   private constructor() {
-    // ✅ NOVO: Carregar dados do sessionStorage na inicialização
+    // ✅ NOVO: Carregar dados do localStorage na inicialização
     this.loadFromStorage();
   }
 
@@ -21,25 +21,25 @@ class GlobalCacheService {
   }
 
   /**
-   * ✅ NOVO: Carrega dados do sessionStorage
+   * ✅ NOVO: Carrega dados do localStorage
    */
   private loadFromStorage(): void {
     try {
-      const stored = sessionStorage.getItem(this.STORAGE_KEY);
+      const stored = localStorage.getItem(this.STORAGE_KEY);
       if (stored) {
         const data = JSON.parse(stored);
         if (data.version === this.STORAGE_VERSION && data.cache) {
           this.cache = new Map(Object.entries(data.cache));
-          console.log('🔄 [GlobalCache] Dados carregados do sessionStorage:', this.cache.size, 'itens');
+          console.log('🔄 [GlobalCache] Dados carregados do localStorage:', this.cache.size, 'itens');
         }
       }
     } catch (error) {
-      console.warn('⚠️ [GlobalCache] Erro ao carregar do sessionStorage:', error);
+      console.warn('⚠️ [GlobalCache] Erro ao carregar do localStorage:', error);
     }
   }
 
   /**
-   * ✅ NOVO: Salva dados no sessionStorage
+   * ✅ NOVO: Salva dados no localStorage
    */
   private saveToStorage(): void {
     try {
@@ -48,10 +48,10 @@ class GlobalCacheService {
         timestamp: new Date().toISOString(),
         cache: Object.fromEntries(this.cache)
       };
-      sessionStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
-      console.log('💾 [GlobalCache] Dados salvos no sessionStorage');
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
+      console.log('💾 [GlobalCache] Dados salvos no localStorage');
     } catch (error) {
-      console.warn('⚠️ [GlobalCache] Erro ao salvar no sessionStorage:', error);
+      console.warn('⚠️ [GlobalCache] Erro ao salvar no localStorage:', error);
     }
   }
 
@@ -60,7 +60,7 @@ class GlobalCacheService {
    */
   private isCacheValid(): boolean {
     try {
-      const stored = sessionStorage.getItem(this.STORAGE_KEY);
+      const stored = localStorage.getItem(this.STORAGE_KEY);
       if (!stored) return false;
       
       const data = JSON.parse(stored);
@@ -68,8 +68,8 @@ class GlobalCacheService {
       const now = new Date();
       const diffMinutes = (now.getTime() - cacheTime.getTime()) / (1000 * 60);
       
-      // Cache válido por 30 minutos
-      return diffMinutes < 30;
+      // Cache válido por 24 horas (localStorage persiste mais tempo)
+      return diffMinutes < 1440; // 24 horas = 1440 minutos
     } catch {
       return false;
     }
@@ -151,7 +151,7 @@ class GlobalCacheService {
     lastActivity?: string;
   } | null {
     try {
-      const stored = sessionStorage.getItem(this.STORAGE_KEY);
+      const stored = localStorage.getItem(this.STORAGE_KEY);
       if (!stored) return null;
       
       const data = JSON.parse(stored);

@@ -763,6 +763,20 @@ export default function AtendimentoPage() {
       // Passar o nome do lead e telefone para a API
       const leadName = activeChat?.title || '';
       const phoneNumber = activeChat?.contactPhoneE164 || '';
+      
+      // ✅ DEBUG: Log para verificar os dados do activeChat
+      console.log('🔍 [DEBUG] Dados do activeChat:', {
+        activeChat,
+        leadName,
+        phoneNumber,
+        selectedChatId
+      });
+      
+      // ✅ VALIDAÇÃO: Verificar se o phoneNumber não está vazio
+      if (!phoneNumber || phoneNumber.trim() === '') {
+        throw new Error('Número do telefone do lead não encontrado');
+      }
+      
       await chatsApi.send(phoneNumber, text, clientMessageId, leadName, attachment);
     } catch {
       setMessages(prev => prev.map(m => m.id === clientMessageId ? { ...m, status: 'failed' } : m));
@@ -797,6 +811,12 @@ export default function AtendimentoPage() {
       // Passar o nome do lead e telefone para a API
       const leadName = activeChat?.title || '';
       const phoneNumber = activeChat?.contactPhoneE164 || '';
+      
+      // ✅ VALIDAÇÃO: Verificar se o phoneNumber não está vazio
+      if (!phoneNumber || phoneNumber.trim() === '') {
+        throw new Error('Número do telefone do lead não encontrado para envio de áudio');
+      }
+      
       const base64Data = dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl;
       const audioBody = `data:audio/${base64Data}`;
       await chatsApi.send(phoneNumber, audioBody, clientMessageId, leadName,  { dataUrl, mimeType, fileName, mediaType: 'audio' });
@@ -816,16 +836,16 @@ export default function AtendimentoPage() {
       const mr = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
       audioChunksRef.current = [];
       mr.ondataavailable = (e: BlobEvent) => { if (e.data && e.data.size > 0) audioChunksRef.current.push(e.data); };
-              mr.onstop = async () => {
-          try {
-            const blob = new Blob(audioChunksRef.current, { type: mr.mimeType || 'audio/webm' });
+      mr.onstop = async () => {
+        try {
+          const blob = new Blob(audioChunksRef.current, { type: mr.mimeType || 'audio/webm' });
             console.log('🎵 [DEBUG] Blob de áudio criado:', {
               size: blob.size,
               type: blob.type,
               chunks: audioChunksRef.current.length
             });
             
-            const reader = new FileReader();
+          const reader = new FileReader();
             const dataUrl: string = await new Promise((res, rej) => { 
               reader.onload = () => {
                 const result = String(reader.result);
@@ -840,14 +860,14 @@ export default function AtendimentoPage() {
               reader.readAsDataURL(blob); 
             });
             
-            await sendAudio(dataUrl, blob.type || 'audio/webm');
-          } finally {
-            stream.getTracks().forEach(t => t.stop());
-            setIsRecording(false);
-            if (recordTickRef.current) { window.clearInterval(recordTickRef.current); recordTickRef.current = null; }
-            setRecordMs(0);
-          }
-        };
+          await sendAudio(dataUrl, blob.type || 'audio/webm');
+        } finally {
+          stream.getTracks().forEach(t => t.stop());
+          setIsRecording(false);
+          if (recordTickRef.current) { window.clearInterval(recordTickRef.current); recordTickRef.current = null; }
+          setRecordMs(0);
+        }
+      };
       mr.start(100);
       mediaRecorderRef.current = mr;
       setIsRecording(true);
@@ -1564,21 +1584,21 @@ export default function AtendimentoPage() {
                           <div className={`max-w-[85%] md:max-w-[70%] px-3 py-2 rounded-lg ${m.direction === MessageDirection.Out ? 'bg-primary text-primary-foreground' : 'bg-muted'}`} translate="no">
                             {/* Renderizador unificado de mídia - apenas quando há mídia */}
                             {(m.attachment?.dataUrl || (m as ExtendedChatMessage).mediaUrl) && (
-                              <MediaRenderer
-                                type={getMessageType(m.type)}
-                                dataUrl={m.attachment?.dataUrl || (m as ExtendedChatMessage).mediaUrl}
-                                fileName={m.attachment?.fileName || (m as ExtendedChatMessage).fileName}
-                                mimeType={m.attachment?.mimeType || (m as ExtendedChatMessage).mimeType}
-                                size={(m as ExtendedChatMessage).attachment?.fileSize || (m as ExtendedChatMessage).size}
-                                duration={(m as ExtendedChatMessage).attachment?.duration || (m as ExtendedChatMessage).duration}
-                                thumbnail={(m as ExtendedChatMessage).thumbnail}
-                                latitude={(m as ExtendedChatMessage).latitude}
-                                longitude={(m as ExtendedChatMessage).longitude}
-                                locationAddress={(m as ExtendedChatMessage).locationAddress}
-                                contactName={(m as ExtendedChatMessage).contactName}
-                                contactPhone={(m as ExtendedChatMessage).contactPhone}
-                                className="mb-2"
-                              />
+                            <MediaRenderer
+                              type={getMessageType(m.type)}
+                              dataUrl={m.attachment?.dataUrl || (m as ExtendedChatMessage).mediaUrl}
+                              fileName={m.attachment?.fileName || (m as ExtendedChatMessage).fileName}
+                              mimeType={m.attachment?.mimeType || (m as ExtendedChatMessage).mimeType}
+                              size={(m as ExtendedChatMessage).attachment?.fileSize || (m as ExtendedChatMessage).size}
+                              duration={(m as ExtendedChatMessage).attachment?.duration || (m as ExtendedChatMessage).duration}
+                              thumbnail={(m as ExtendedChatMessage).thumbnail}
+                              latitude={(m as ExtendedChatMessage).latitude}
+                              longitude={(m as ExtendedChatMessage).longitude}
+                              locationAddress={(m as ExtendedChatMessage).locationAddress}
+                              contactName={(m as ExtendedChatMessage).contactName}
+                              contactPhone={(m as ExtendedChatMessage).contactPhone}
+                              className="mb-2"
+                            />
                             )}
                             
                             {/* Texto da mensagem - apenas quando não é apenas mídia */}

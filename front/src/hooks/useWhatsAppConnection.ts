@@ -53,7 +53,9 @@ export const useWhatsAppConnection = () => {
         
         // ✅ NOVO: Primeiro, tentar usar cache persistente
         const cachedStatus = globalCache.getPersistentSessionStatus();
-        if (cachedStatus && cachedStatus.sessionConnected) {
+        console.log('🔍 [useWhatsAppConnection] Cache persistente verificado:', cachedStatus);
+        
+        if (cachedStatus && cachedStatus.sessionConnected && cachedStatus.connectedNumber) {
           console.log('💾 [useWhatsAppConnection] Usando status do cache persistente:', cachedStatus);
           
           setConnectionState(prev => ({
@@ -63,13 +65,14 @@ export const useWhatsAppConnection = () => {
             lastActivity: cachedStatus.lastActivity,
             error: undefined,
             canGenerateQR: false,
-            connectedNumber: cachedStatus.connectedNumber || prev.connectedNumber,
+            connectedNumber: cachedStatus.connectedNumber,
             isFullyValidated: cachedStatus.isFullyValidated
           }));
           
           // ✅ NOVO: Verificar se o status ainda é válido no servidor (em background)
           setTimeout(async () => {
             try {
+              console.log('🔄 [useWhatsAppConnection] Verificando status do servidor em background...');
               const response = await fetch('/api/whatsapp/status');
               if (response.ok) {
                 const statusData = await response.json();
@@ -100,7 +103,11 @@ export const useWhatsAppConnection = () => {
                     connectedNumber: statusData.connectedNumber || prev.connectedNumber,
                     isFullyValidated: statusData.isFullyValidated
                   }));
+                } else {
+                  console.log('✅ [useWhatsAppConnection] Status do servidor confirma cache - sem mudanças');
                 }
+              } else {
+                console.warn('⚠️ [useWhatsAppConnection] Erro na resposta do servidor:', response.status);
               }
             } catch (error) {
               console.warn('⚠️ [useWhatsAppConnection] Erro ao verificar status do servidor:', error);
@@ -108,6 +115,12 @@ export const useWhatsAppConnection = () => {
           }, 1000);
           
           return; // Usar cache, não fazer fetch imediato
+        } else {
+          console.log('❌ [useWhatsAppConnection] Cache não disponível ou inválido:', {
+            hasCache: !!cachedStatus,
+            sessionConnected: cachedStatus?.sessionConnected,
+            connectedNumber: cachedStatus?.connectedNumber
+          });
         }
         
         // ✅ FALLBACK: Se não há cache válido, fazer fetch do servidor

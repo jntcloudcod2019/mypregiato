@@ -603,6 +603,9 @@ export const chatsApi = {
     });
     
     try {
+      // ✅ CORREÇÃO: Se o ID estiver vazio, usar um fallback
+      const chatId = id && id.trim() !== '' ? id : clientMessageId ;
+      
       // Usar o endpoint correto que salva no PayloadJson do ChatLogs
       const { data } = await api.post(`/chats/${id}/send`, request);
       
