@@ -225,12 +225,20 @@ namespace Pregiato.API.Controllers
         [HttpPost("{id}/send")]
         public async Task<IActionResult> Send(string id, [FromBody] SendRequest req)
         {
+            _logger.LogInformation($"🔍 [DEBUG] Send request recebido: ID={id}, Contact={req?.Contact?.PhoneE164}, Messages={req?.Messages?.Count}");
+            
             if (req.Contact == null || req.Messages == null || !req.Messages.Any())
+            {
+                _logger.LogWarning($"❌ [DEBUG] Validação falhou: Contact={req?.Contact != null}, Messages={req?.Messages?.Count}");
                 return BadRequest(new { error = "Contact e Messages são obrigatórios" });
+            }
 
             var message = req.Messages.First();
             if (string.IsNullOrWhiteSpace(message.Id))
+            {
+                _logger.LogWarning($"❌ [DEBUG] Message.Id está vazio: '{message.Id}'");
                 return BadRequest(new { error = "Message.Id é obrigatório" });
+            }
 
             ChatLog? chat = null;
             
@@ -357,10 +365,10 @@ namespace Pregiato.API.Controllers
                 }
             }
 
-            // ✅ CORREÇÃO: Para chats existentes, atualizar PayloadJson seguindo o mesmo padrão do RabbitBackgroundService
+            // ✅ CORREÇÃO: Para TODOS os chats (novos e existentes), atualizar PayloadJson seguindo o mesmo padrão do RabbitBackgroundService
             if (chat != null)
             {
-                _logger.LogInformation($"🔄 Atualizando PayloadJson do chat existente {chat.Id}");
+                _logger.LogInformation($"🔄 Atualizando PayloadJson do chat {chat.Id}");
                 
                 // Deserializar o PayloadJson existente
                 var chatLogService = HttpContext.RequestServices.GetRequiredService<ChatLogService>();
@@ -448,9 +456,8 @@ namespace Pregiato.API.Controllers
             }
             else
             {
-                // Para chats novos, usar o método original
-                var (updatedChat, msg) = await _chatService.AddOutboundPendingAsync(chat.Id, messageBody, message.Id, DateTime.UtcNow, attachment);
-                chat = updatedChat;
+                _logger.LogError("❌ Chat não foi criado nem encontrado. Isso não deveria acontecer.");
+                return BadRequest(new { error = "Falha ao criar ou encontrar o chat." });
             }
 
             await _hub.Clients.Group("whatsapp").SendAsync("message.outbound", new { chatId = chat.Id, message = new { id = message.Id, body = messageBody, type = message.Type } });
