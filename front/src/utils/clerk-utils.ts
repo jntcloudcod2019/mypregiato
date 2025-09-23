@@ -82,6 +82,8 @@ export function shouldEnableClerk(): boolean {
     return envEnable === 'true';
   }
   
-  // Por padrão, habilitar em desenvolvimento
-  return import.meta.env.DEV;
+  // ✅ CORREÇÃO: Habilitar sempre, não apenas em desenvolvimento
+  // Verificar se temos uma chave válida
+  const publishableKey = getClerkPublishableKey();
+  return publishableKey && publishableKey.startsWith('pk_');
 }
