@@ -111,17 +111,33 @@ namespace Pregiato.API.Controllers
                     // Normalizar número de telefone
                     var normalizedPhone = NormalizePhoneNumber(phoneNumber);
                     
+                    // ✅ CORREÇÃO: Obter o número conectado do WhatsApp do status da sessão
+                    var sessionStatus = _rabbit.GetSessionStatus();
+                    var connectedNumber = sessionStatus.connectedNumber;
+                    
+                    if (string.IsNullOrEmpty(connectedNumber))
+                    {
+                        _logger.LogError("❌ Número conectado do WhatsApp não disponível. Status da sessão: {SessionConnected}", sessionStatus.sessionConnected);
+                        return BadRequest(new { error = "WhatsApp não está conectado. Verifique o status da sessão." });
+                    }
+                    
+                    // Formatar o número conectado no formato esperado pelo ZapBot
+                    var fromNumber = $"{connectedNumber}@c.us";
+                    
                     // Publicar comando para RabbitMQ
                     var cmd = new
                     {
                         command = "send_message",
                         to = normalizedPhone,
+                        from = fromNumber, // ✅ CORREÇÃO: Usar número conectado do WhatsApp
                         isGroup = false,
                         body = request.Text,
                         clientMessageId = request.ClientMessageId ?? message.Id.ToString(),
                         conversationId = id.ToString(),
                         attachment = request.Attachment
                     };
+                    
+                    _logger.LogInformation("📤 Enviando mensagem: from={From} to={To}", fromNumber, normalizedPhone);
                     
                     await _rabbit.PublishAsync("whatsapp.outgoing", cmd);
                     _logger.LogInformation($"📤 Mensagem enviada para RabbitMQ: {normalizedPhone}");

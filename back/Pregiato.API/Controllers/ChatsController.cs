@@ -507,17 +507,32 @@ namespace Pregiato.API.Controllers
                 };
             }
             
+            // ✅ CORREÇÃO: Obter o número conectado do WhatsApp do status da sessão
+            var sessionStatus = _rabbit.GetSessionStatus();
+            var connectedNumber = sessionStatus.connectedNumber;
+            
+            if (string.IsNullOrEmpty(connectedNumber))
+            {
+                _logger.LogError("❌ Número conectado do WhatsApp não disponível. Status da sessão: {SessionConnected}", sessionStatus.sessionConnected);
+                return BadRequest(new { error = "WhatsApp não está conectado. Verifique o status da sessão." });
+            }
+            
+            // Formatar o número conectado no formato esperado pelo ZapBot
+            var fromNumber = $"{connectedNumber}@c.us";
+            
             var cmd = new
             {
                 command = "send_message",
                 phone = toNormalized, // ✅ DESTINATÁRIO: Número para onde enviar a mensagem
                 to = toNormalized, // Manter para compatibilidade
-                from = message.from,
+                from = fromNumber, // ✅ CORREÇÃO: Usar número conectado do WhatsApp
                 body = body, // ÁUDIO: data URL aqui | OUTROS: legenda aqui
                 clientMessageId = message.Id,
                 chatId = chat.ChatId,
                 attachment = attachmentObj
             };
+            
+            _logger.LogInformation("📤 Enviando mensagem: from={From} to={To}", fromNumber, toNormalized);
             
             await _rabbit.PublishAsync("whatsapp.outgoing", cmd);
             

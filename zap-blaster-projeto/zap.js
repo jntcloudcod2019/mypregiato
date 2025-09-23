@@ -338,6 +338,7 @@ async function startConsumer() {
         command: payload.command,
         phone: payload.phone,
         to: payload.to,
+        from: payload.from,
         hasBody: !!payload.body,
         bodyLength: payload.body?.length || 0,
         hasAttachment: !!payload.attachment,
@@ -345,7 +346,8 @@ async function startConsumer() {
         attachmentMime: payload.attachment?.mimeType,
         attachmentDataUrlLength: payload.attachment?.dataUrl?.length || 0,
         attachmentMediaUrl: payload.attachment?.mediaUrl,
-        clientMessageId: payload.clientMessageId
+        clientMessageId: payload.clientMessageId,
+        connectedNumber: connectedNumber
       });
       if (payload.command === 'disconnect') {
         Log.info('[QUEUE] 🔌 COMMAND disconnect recebido', { messageId, deliveryTag });
@@ -450,6 +452,19 @@ async function startConsumer() {
       const phone = payload.toNormalized || payload.phone || payload.to || payload.Phone || payload.To;
       const body  = payload.body || payload.message || payload.text || payload.Message || payload.Body;
       const attachment = payload.attachment || null;
+      const from = payload.from;
+      
+      // ✅ VALIDAÇÃO: Verificar se o campo from está correto
+      if (from && from !== `${connectedNumber}@c.us`) {
+        Log.warn('[QUEUE] ⚠️ Inconsistência detectada (from != connectedNumber)', {
+          payloadFrom: from,
+          connectedNumber: connectedNumber,
+          targetNumber: phone,
+          messageId: messageId,
+          deliveryTag: deliveryTag
+        });
+        // Continuar processamento mesmo com inconsistência
+      }
       
       if (phone && (body || attachment)) {
         const res = await sendOne(phone, { message: body, data: payload, template: payload.template || payload.Template, attachment });
@@ -614,14 +629,22 @@ app.listen(PORT, '0.0.0.0', ()=> Log.info(`Status server em http://0.0.0.0:${POR
 // ✅ CORREÇÃO: Função para obter connectedNumber de forma robusta
 async function getConnectedNumber() {
   try {
+    Log.info('[CONNECTED_NUMBER] Iniciando obtenção do número conectado');
+    
+    // Verificar se o cliente existe
+    if (!client) {
+      Log.warn('[CONNECTED_NUMBER] Cliente não disponível');
+      return null;
+    }
+    
     // Tentar obter do client.info primeiro
-    if (client?.info?.wid?.user) {
+    if (client.info?.wid?.user) {
       Log.info('[CONNECTED_NUMBER] Obtido do client.info:', client.info.wid.user);
       return client.info.wid.user;
     }
     
     // Se não estiver disponível, tentar obter do getState
-    if (client?.getState) {
+    if (client.getState) {
       const state = await client.getState();
       Log.info('[CONNECTED_NUMBER] Estado do cliente:', state);
       
@@ -638,6 +661,19 @@ async function getConnectedNumber() {
     if (client?.info?.wid?.user) {
       Log.info('[CONNECTED_NUMBER] Obtido após delay:', client.info.wid.user);
       return client.info.wid.user;
+    }
+    
+    // ✅ NOVA TENTATIVA: Tentar obter via getMe se disponível
+    if (client.getMe) {
+      try {
+        const me = await client.getMe();
+        Log.info('[CONNECTED_NUMBER] Obtido via getMe:', me);
+        if (me?.id?.user) {
+          return me.id.user;
+        }
+      } catch (getMeError) {
+        Log.warn('[CONNECTED_NUMBER] getMe falhou:', { error: getMeError?.message });
+      }
     }
     
     Log.warn('[CONNECTED_NUMBER] Não foi possível obter o número conectado');
@@ -739,9 +775,32 @@ function buildClient() {
       validationTimer = setTimeout(async () => {
         Log.info('[DEBUG] executando validação pós-ready');
         try {
+          // ✅ VALIDAÇÃO MELHORADA: Verificar múltiplos aspectos
+          const state = await client.getState();
+          Log.info('[DEBUG] Estado do cliente:', state);
+          
+          if (state !== 'CONNECTED') {
+            throw new Error(`Cliente não está conectado: ${state}`);
+          }
+          
+          // Verificar se connectedNumber foi obtido
+          if (!connectedNumber) {
+            Log.warn('[DEBUG] connectedNumber não disponível, tentando obter novamente');
+            connectedNumber = await getConnectedNumber();
+            if (!connectedNumber) {
+              throw new Error('Não foi possível obter o número conectado');
+            }
+          }
+          
+          // Testar funcionalidade básica
           await client.getChats();
+          
           isFullyValidated = true;
-          Log.info('[DEBUG] validação concluída com sucesso');
+          Log.info('[DEBUG] validação concluída com sucesso', { 
+            connectedNumber, 
+            isFullyValidated,
+            state 
+          });
           await sendSessionStatus();
         } catch (e) {
           Log.warn('Validação pós-ready falhou', { error: e?.message });
@@ -883,6 +942,20 @@ async function onReady() {
   
   // ✅ CORREÇÃO: Enviar status imediatamente após conectar
   await sendSessionStatus();
+  
+  // ✅ NOVO: Se connectedNumber não foi obtido, tentar novamente após um delay
+  if (!connectedNumber) {
+    Log.warn('[READY] connectedNumber não obtido, tentando novamente em 3 segundos');
+    setTimeout(async () => {
+      connectedNumber = await getConnectedNumber();
+      if (connectedNumber) {
+        Log.info('[READY] connectedNumber obtido na segunda tentativa:', connectedNumber);
+        await sendSessionStatus();
+      } else {
+        Log.error('[READY] Falha ao obter connectedNumber na segunda tentativa');
+      }
+    }, 3000);
+  }
 
   // Isolamento do bloco ResilientSender
   try { 
@@ -1078,35 +1151,120 @@ async function onInbound(message) {
 
     // Processar mídia se existir
     if (message.hasMedia) {
-      const media = await message.downloadMedia();
-      if (media && media.data) {
-        const messageType = mapWppType(message.type);
-        
-        // Para áudio, incluir base64 no body da mensagem para o frontend
-        if (messageType === 'audio' || messageType === 'voice') {
-          const dataUrl = `data:${media.mimetype};base64,${media.data}`;
-          payload.body = dataUrl; // Frontend precisa do base64 no body
-          Log.info('Áudio processado com base64 no body', { 
-            type: messageType, 
-            mimeType: media.mimetype,
-            size: Buffer.byteLength(media.data, 'base64') 
+      try {
+        // ✅ NOVO: Validação adicional antes de tentar baixar mídia
+        if (!message || typeof message.downloadMedia !== 'function') {
+          Log.error('[MEDIA] ❌ Objeto message inválido ou método downloadMedia não disponível', {
+            messageExists: !!message,
+            hasDownloadMedia: typeof message?.downloadMedia === 'function',
+            messageId: message?.id?._serialized || 'unknown'
           });
+          return;
         }
         
-        payload.attachment = {
-          dataUrl: `data:${media.mimetype};base64,${media.data}`,
-          mediaUrl: null,
-          mimeType: media.mimetype || 'application/octet-stream',
-          fileName: media.filename || `media_${Date.now()}.bin`,
-          mediaType: messageType,
+        Log.info('[MEDIA] Tentando baixar mídia do WhatsApp', { 
+          messageId: message.id._serialized,
+          type: message.type,
+          hasMedia: message.hasMedia
+        });
+        
+        const media = await message.downloadMedia();
+        
+        if (media && media.data && media.data.length > 0) {
+          const messageType = mapWppType(message.type);
           
-          // Campos condicionais baseados no tipo
-          fileSize: Buffer.byteLength(media.data, 'base64'),
-          duration: (messageType === 'audio' || messageType === 'video') ? null : null,
-          width: (messageType === 'image' || messageType === 'video') ? null : null,
-          height: (messageType === 'image' || messageType === 'video') ? null : null,
-          thumbnail: null
-        };
+          // Para áudio, incluir base64 no body da mensagem para o frontend
+          if (messageType === 'audio' || messageType === 'voice') {
+            const dataUrl = `data:${media.mimetype};base64,${media.data}`;
+            payload.body = dataUrl; // Frontend precisa do base64 no body
+            Log.info('[MEDIA] Áudio processado com base64 no body', { 
+              type: messageType, 
+              mimeType: media.mimetype,
+              size: Buffer.byteLength(media.data, 'base64') 
+            });
+          }
+          
+          payload.attachment = {
+            dataUrl: `data:${media.mimetype};base64,${media.data}`,
+            mediaUrl: null,
+            mimeType: media.mimetype || 'application/octet-stream',
+            fileName: media.filename || `media_${Date.now()}.bin`,
+            mediaType: messageType,
+            
+            // Campos condicionais baseados no tipo
+            fileSize: Buffer.byteLength(media.data, 'base64'),
+            duration: (messageType === 'audio' || messageType === 'video') ? null : null,
+            width: (messageType === 'image' || messageType === 'video') ? null : null,
+            height: (messageType === 'image' || messageType === 'video') ? null : null,
+            thumbnail: null
+          };
+          
+          Log.info('[MEDIA] ✅ Mídia processada com sucesso', { 
+            type: messageType, 
+            mimeType: media.mimetype,
+            fileName: media.filename,
+            dataLength: media.data.length 
+          });
+        } else {
+          Log.warn('[MEDIA] ⚠️ Mídia não pôde ser baixada ou está vazia', { 
+            hasMedia: message.hasMedia,
+            mediaExists: !!media,
+            hasData: media?.data ? true : false,
+            dataLength: media?.data?.length || 0,
+            mimeType: media?.mimetype || 'unknown'
+          });
+          
+          // ✅ NOVO: Tentar novamente com delay se a mídia estiver vazia
+          if (media && !media.data) {
+            Log.info('[MEDIA] 🔄 Tentando baixar mídia novamente após delay...');
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            try {
+              const retryMedia = await message.downloadMedia();
+              if (retryMedia && retryMedia.data && retryMedia.data.length > 0) {
+                const messageType = mapWppType(message.type);
+                
+                if (messageType === 'audio' || messageType === 'voice') {
+                  const dataUrl = `data:${retryMedia.mimetype};base64,${retryMedia.data}`;
+                  payload.body = dataUrl;
+                }
+                
+                payload.attachment = {
+                  dataUrl: `data:${retryMedia.mimetype};base64,${retryMedia.data}`,
+                  mediaUrl: null,
+                  mimeType: retryMedia.mimetype || 'application/octet-stream',
+                  fileName: retryMedia.filename || `media_${Date.now()}.bin`,
+                  mediaType: messageType,
+                  fileSize: Buffer.byteLength(retryMedia.data, 'base64'),
+                  duration: (messageType === 'audio' || messageType === 'video') ? null : null,
+                  width: (messageType === 'image' || messageType === 'video') ? null : null,
+                  height: (messageType === 'image' || messageType === 'video') ? null : null,
+                  thumbnail: null
+                };
+                
+                Log.info('[MEDIA] ✅ Mídia baixada com sucesso na segunda tentativa', { 
+                  type: messageType, 
+                  mimeType: retryMedia.mimetype,
+                  dataLength: retryMedia.data.length 
+                });
+              } else {
+                Log.error('[MEDIA] ❌ Falha na segunda tentativa de download da mídia');
+              }
+            } catch (retryError) {
+              Log.error('[MEDIA] ❌ Erro na segunda tentativa de download', { error: retryError.message });
+            }
+          }
+        }
+      } catch (mediaError) {
+        Log.error('[MEDIA] ❌ Erro ao baixar mídia do WhatsApp', { 
+          error: mediaError.message,
+          messageId: message.id._serialized,
+          type: message.type,
+          hasMedia: message.hasMedia
+        });
+        
+        // ✅ NOVO: Continuar processamento mesmo com erro de mídia
+        Log.info('[MEDIA] Continuando processamento da mensagem sem mídia...');
       }
     }
 
@@ -1288,8 +1446,44 @@ async function sendOne(number, msg) {
       try {
         // Baixar mídia do MinIO
         const mediaBuffer = await downloadMediaFromMinIO(attachment.mediaUrl);
+        
+        // ✅ VALIDAÇÃO: Verificar se o buffer não está vazio
+        if (!mediaBuffer || mediaBuffer.length === 0) {
+          throw new Error('Buffer de mídia está vazio');
+        }
+        
         const mime = attachment.mimeType || 'application/octet-stream';
-        const media = new MessageMedia(mime, mediaBuffer.toString('base64'), attachment.fileName || 'file');
+        
+        // ✅ VALIDAÇÃO: Verificar se a conversão para base64 é válida
+        let base64Data;
+        try {
+          base64Data = mediaBuffer.toString('base64');
+          if (!base64Data || base64Data.length === 0) {
+            throw new Error('Conversão para base64 resultou em string vazia');
+          }
+        } catch (base64Error) {
+          Log.error('[SEND] ❌ Erro na conversão para base64', { 
+            error: base64Error.message,
+            bufferLength: mediaBuffer.length,
+            mimeType: mime
+          });
+          throw new Error(`Erro na conversão para base64: ${base64Error.message}`);
+        }
+        
+        // ✅ VALIDAÇÃO: Verificar se o MessageMedia pode ser criado
+        let media;
+        try {
+          media = new MessageMedia(mime, base64Data, attachment.fileName || 'file');
+        } catch (mediaError) {
+          Log.error('[SEND] ❌ Erro ao criar MessageMedia', { 
+            error: mediaError.message,
+            mimeType: mime,
+            base64Length: base64Data.length,
+            fileName: attachment.fileName
+          });
+          throw new Error(`Erro ao criar MessageMedia: ${mediaError.message}`);
+        }
+        
         const sent = await client.sendMessage(chatId, media, { caption: body || undefined });
         
         if (sent?.id) { 
@@ -1298,7 +1492,8 @@ async function sendOne(number, msg) {
             messageId: sent.id._serialized,
             to: number,
             mimeType: mime,
-            fileName: attachment.fileName
+            fileName: attachment.fileName,
+            bufferSize: mediaBuffer.length
           });
           return { success: true, messageId: sent.id._serialized }; 
         }
@@ -1477,7 +1672,14 @@ async function sendSessionStatus() {
     timestamp: new Date().toISOString()
   };
   
-  Log.info('[SESSION_STATUS] Enviando status para API', statusData);
+  Log.info('[SESSION_STATUS] Enviando status para API', {
+    ...statusData,
+    clientState: client?.getState ? await client.getState().catch(() => 'unknown') : 'no_client',
+    clientInfo: client?.info ? {
+      wid: client.info.wid?.user,
+      pushname: client.info.pushname
+    } : 'no_info'
+  });
   
   try {
     // ✅ NOVO: Enviar para endpoint que propaga via SignalR

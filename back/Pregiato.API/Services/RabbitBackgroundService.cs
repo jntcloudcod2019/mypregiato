@@ -214,10 +214,10 @@ namespace Pregiato.API.Services
                     SocketWriteTimeout = TimeSpan.FromSeconds(30)
                 };
 
-                // ✅ CORREÇÃO: SSL apenas para AMQPS
-                if (protocol == "amqps")
+
+                if (protocol == "amqp")
                 {
-                    factory.Ssl.Enabled = true;
+                    factory.Ssl.Enabled = false;
                     factory.Ssl.ServerName = host;
                     factory.Ssl.AcceptablePolicyErrors = System.Net.Security.SslPolicyErrors.RemoteCertificateNameMismatch |
                                                   System.Net.Security.SslPolicyErrors.RemoteCertificateChainErrors;
@@ -344,6 +344,13 @@ namespace Pregiato.API.Services
 
                         if (conversationId != Guid.Empty)
                         {
+                            // ✅ NOVO: Verificar se a mensagem já existe no banco antes de adicionar à fila
+                            if (await IsMessageAlreadyProcessed(whatsappMessage.externalMessageId, conversationId))
+                            {
+                                _logger.LogInformation("🔄 Mensagem já processada, ignorando: {ExternalMessageId}", whatsappMessage.externalMessageId);
+                                return; // Sair sem processar
+                            }
+
                             // Criar entidade de mensagem mais robusta com todos os campos
                             var messageEntity = CreateRobustMessageEntity(whatsappMessage, conversationId);
                             _messageBatchQueue.Enqueue(messageEntity);
@@ -1041,6 +1048,26 @@ namespace Pregiato.API.Services
             }
         }
 
+        // ✅ NOVO: Verificar se a mensagem já foi processada no banco de dados
+        private async Task<bool> IsMessageAlreadyProcessed(string externalMessageId, Guid conversationId)
+        {
+            try
+            {
+                using var scope = _services.CreateScope();
+                var context = scope.ServiceProvider.GetRequiredService<PregiatoDbContext>();
+                
+                var existingMessage = await context.Messages
+                    .FirstOrDefaultAsync(m => m.ExternalMessageId == externalMessageId && m.ConversationId == conversationId);
+                
+                return existingMessage != null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Erro ao verificar se mensagem já foi processada: {ExternalMessageId}", externalMessageId);
+                return false; // Em caso de erro, permitir processamento
+            }
+        }
+
         // Método para decidir se deve reencaminhar mensagem com erro
         private bool ShouldRequeueMessage(Exception ex, WhatsAppMessage? whatsappMessage)
         {
@@ -1094,32 +1121,58 @@ namespace Pregiato.API.Services
                         using var scope = _services.CreateScope();
                         var context = scope.ServiceProvider.GetRequiredService<PregiatoDbContext>();
                         
-                        // Usar CreateExecutionStrategy para suportar retry com transações
-                        var strategy = context.Database.CreateExecutionStrategy();
-                        await strategy.ExecuteAsync(async () =>
+                        // ✅ NOVO: Verificar duplicatas no batch antes de salvar
+                        var filteredMessages = new List<Message>();
+                        foreach (var message in messages)
                         {
-                            using var transaction = await context.Database.BeginTransactionAsync(stoppingToken);
-                            try
+                            var exists = await context.Messages
+                                .AnyAsync(m => m.ExternalMessageId == message.ExternalMessageId && 
+                                             m.ConversationId == message.ConversationId);
+                            
+                            if (!exists)
                             {
-                                await context.Messages.AddRangeAsync(messages, stoppingToken);
-                                await context.SaveChangesAsync(stoppingToken);
-                                await transaction.CommitAsync(stoppingToken);
-                                
-                                _logger.LogInformation("✅ Salvas {Count} mensagens em batch", messages.Count);
+                                filteredMessages.Add(message);
                             }
-                            catch (Exception ex)
+                            else
                             {
-                                await transaction.RollbackAsync(stoppingToken);
-                                _logger.LogError(ex, "❌ Erro ao salvar mensagens em batch");
-                                
-                                // Recolocar mensagens na fila
-                                foreach (var msg in messages)
+                                _logger.LogInformation("🔄 Mensagem duplicada removida do batch: {ExternalMessageId}", message.ExternalMessageId);
+                            }
+                        }
+                        
+                        if (filteredMessages.Any())
+                        {
+                            // Usar CreateExecutionStrategy para suportar retry com transações
+                            var strategy = context.Database.CreateExecutionStrategy();
+                            await strategy.ExecuteAsync(async () =>
+                            {
+                                using var transaction = await context.Database.BeginTransactionAsync(stoppingToken);
+                                try
                                 {
-                                    _messageBatchQueue.Enqueue(msg);
+                                    await context.Messages.AddRangeAsync(filteredMessages, stoppingToken);
+                                    await context.SaveChangesAsync(stoppingToken);
+                                    await transaction.CommitAsync(stoppingToken);
+                                    
+                                    _logger.LogInformation("✅ Salvas {Count} mensagens em batch (filtradas de {OriginalCount})", 
+                                        filteredMessages.Count, messages.Count);
                                 }
-                                throw; // Re-throw para que o execution strategy possa tentar novamente
-                            }
-                        });
+                                catch (Exception ex)
+                                {
+                                    await transaction.RollbackAsync(stoppingToken);
+                                    _logger.LogError(ex, "❌ Erro ao salvar mensagens em batch");
+                                    
+                                    // Recolocar mensagens na fila
+                                    foreach (var msg in filteredMessages)
+                                    {
+                                        _messageBatchQueue.Enqueue(msg);
+                                    }
+                                    throw; // Re-throw para que o execution strategy possa tentar novamente
+                                }
+                            });
+                        }
+                        else
+                        {
+                            _logger.LogInformation("ℹ️ Todas as mensagens do batch eram duplicadas, nenhuma salva");
+                        }
                     }
                     
                     // Aguardar 2 segundos antes do próximo batch

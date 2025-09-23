@@ -577,7 +577,7 @@ export const chatsApi = {
         IsRead: false,
         Status: "pending",
         Type: normalizedAttachment?.mediaType || "text",
-        from: `${id}@c.us`,
+        from: null, // Será preenchido pela API com o número conectado do WhatsApp
         mimeType: normalizedAttachment?.mimeType || null,
         fileName: normalizedAttachment?.fileName || null,
         size: normalizedAttachment?.dataUrl ? normalizedAttachment.dataUrl.length : null,
