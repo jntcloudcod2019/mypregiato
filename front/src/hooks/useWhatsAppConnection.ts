@@ -215,9 +215,9 @@ export const useWhatsAppConnection = () => {
     // Registrar handlers
     qrCodeQueueService.onQRCode(handleQRCode);
     qrCodeQueueService.addListener('qr.update', handleQRUpdate);
-    qrCodeQueueService.startQRCodeConsumer();
+    // ✅ REMOVIDO: startQRCodeConsumer() - já é inicializado globalmente pelo WhatsAppProvider
     
-    console.log('🎧 [QR] Handlers registrados e conexão SignalR iniciada');
+    console.log('🎧 [QR] Handlers registrados');
     
     return () => {
       console.log('🧹 [QR] Limpando handlers e parando conexão');

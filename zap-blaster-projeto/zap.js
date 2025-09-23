@@ -1165,11 +1165,30 @@ async function downloadMediaFromMinIO(mediaUrl) {
     // Garantir que o cliente MinIO está inicializado
     const client = await initializeMinIOClient();
     
-    // Extrair object name da URL
+    // Extrair object name da URL (remover bucket name do path)
     const url = new URL(mediaUrl);
-    const objectName = url.pathname.substring(1); // Remove a barra inicial
+    const fullPath = url.pathname.substring(1); // Remove a barra inicial
+    // Remover o nome do bucket do início do path
+    const objectName = fullPath.replace(/^midias\//, '');
     
-    Log.info('[MINIO] Baixando mídia', { mediaUrl, objectName });
+    Log.info('[MINIO] Baixando mídia', { mediaUrl, objectName, bucket: 'midias' });
+    
+    // Verificar se o objeto existe antes de tentar baixar
+    try {
+      const stat = await client.statObject('midias', objectName);
+      Log.info('[MINIO] Objeto encontrado no MinIO', { 
+        objectName, 
+        size: stat.size, 
+        lastModified: stat.lastModified 
+      });
+    } catch (statError) {
+      Log.error('[MINIO] Objeto não encontrado no MinIO', { 
+        objectName, 
+        error: statError.message,
+        mediaUrl 
+      });
+      throw new Error(`Arquivo não encontrado: ${objectName}`);
+    }
     
     // Baixar usando cliente MinIO
     const stream = await client.getObject('midias', objectName);

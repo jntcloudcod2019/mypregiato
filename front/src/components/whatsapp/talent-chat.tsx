@@ -33,10 +33,15 @@ interface TalentChatProps {
   onClose: () => void
 }
 
-// Função para detectar se mensagem é apenas mídia (base64)
+// Função para detectar se mensagem é apenas mídia (base64 ou URL MinIO)
 const isMediaOnlyMessage = (msg: Message): boolean => {
   // Se tem attachment/mídia e o body começa com "data:" é base64
   if ((msg.mediaUrl || msg.attachment) && msg.body?.startsWith('data:')) {
+    return true;
+  }
+  
+  // ✅ NOVO: Se tem attachment/mídia e o body é uma URL do MinIO
+  if ((msg.mediaUrl || msg.attachment) && msg.body?.startsWith('https://bucket-production-1aef.up.railway.app/midias/')) {
     return true;
   }
   
