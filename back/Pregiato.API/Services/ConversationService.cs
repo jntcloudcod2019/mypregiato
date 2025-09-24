@@ -54,38 +54,64 @@ namespace Pregiato.API.Services
             using var scope = _serviceProvider.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<PregiatoDbContext>();
 
-            // Buscar conversa existente por WhatsApp
-            var conversation = await db.Conversations
-                .FirstOrDefaultAsync(c => c.InstanceId == instanceId && c.PeerE164 == peerE164);
-
-            if (conversation != null)
+            // ✅ CORREÇÃO: Usar estratégia de execução para evitar race conditions
+            return await db.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
             {
-                _logger.LogDebug("📞 Conversa WhatsApp encontrada para {PeerE164}: {ConversationId}", peerE164, conversation.Id);
-                return conversation;
-            }
+                using var transaction = await db.Database.BeginTransactionAsync();
+                
+                try
+                {
+                    // Buscar conversa existente por WhatsApp
+                    var conversation = await db.Conversations
+                        .FirstOrDefaultAsync(c => c.InstanceId == instanceId && c.PeerE164 == peerE164);
 
-            // Criar nova conversa WhatsApp
-            conversation = new Conversation
-            {
-                Id = Guid.NewGuid(),
-                InstanceId = instanceId,
-                PeerE164 = peerE164,
-                IsGroup = isGroup,
-                Title = title ?? $"Chat com {peerE164}",
-                LastMessageAt = DateTime.UtcNow,
-                CreatedAt = DateTime.UtcNow,
-                // Campos obrigatórios para compatibilidade
-                ContactId = null, // OPCIONAL - para conversas WhatsApp sem Contact
-                Channel = "whatsapp",
-                Status = ConversationStatus.Queued,
-                Priority = ConversationPriority.Normal
-            };
+                    if (conversation != null)
+                    {
+                        _logger.LogDebug("📞 Conversa WhatsApp encontrada para {PeerE164}: {ConversationId}", peerE164, conversation.Id);
+                        return conversation;
+                    }
 
-            await db.Conversations.AddAsync(conversation);
-            await db.SaveChangesAsync();
+                    // Criar nova conversa WhatsApp
+                    conversation = new Conversation
+                    {
+                        Id = Guid.NewGuid(),
+                        InstanceId = instanceId,
+                        PeerE164 = peerE164,
+                        IsGroup = isGroup,
+                        Title = title ?? $"Chat com {peerE164}",
+                        LastMessageAt = DateTime.UtcNow,
+                        CreatedAt = DateTime.UtcNow,
+                        // Campos obrigatórios para compatibilidade
+                        ContactId = null, // OPCIONAL - para conversas WhatsApp sem Contact
+                        Channel = "whatsapp",
+                        Status = ConversationStatus.Queued,
+                        Priority = ConversationPriority.Normal
+                    };
 
-            _logger.LogInformation("📞 ✅ Nova conversa WhatsApp criada para {PeerE164}: {ConversationId}", peerE164, conversation.Id);
-            return conversation;
+                    await db.Conversations.AddAsync(conversation);
+                    await db.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    _logger.LogInformation("📞 ✅ Nova conversa WhatsApp criada para {PeerE164}: {ConversationId}", peerE164, conversation.Id);
+                    return conversation;
+                }
+                catch (Exception ex) when (ex.Message.Contains("Duplicate entry"))
+                {
+                    await transaction.RollbackAsync();
+                    
+                    // ✅ FALLBACK: Tentar buscar novamente após rollback
+                    var existingConversation = await db.Conversations
+                        .FirstOrDefaultAsync(c => c.InstanceId == instanceId && c.PeerE164 == peerE164);
+                    
+                    if (existingConversation != null)
+                    {
+                        _logger.LogWarning("📞 Conversa WhatsApp encontrada após rollback para {PeerE164}: {ConversationId}", peerE164, existingConversation.Id);
+                        return existingConversation;
+                    }
+                    
+                    throw; // Re-throw se ainda não encontrar
+                }
+            });
         }
 
         /// <summary>

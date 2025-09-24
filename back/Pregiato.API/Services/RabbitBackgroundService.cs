@@ -220,7 +220,7 @@ namespace Pregiato.API.Services
                     factory.Ssl.Enabled = false;
                     factory.Ssl.ServerName = host;
                     factory.Ssl.AcceptablePolicyErrors = System.Net.Security.SslPolicyErrors.RemoteCertificateNameMismatch |
-                                                  System.Net.Security.SslPolicyErrors.RemoteCertificateChainErrors;
+                                                          System.Net.Security.SslPolicyErrors.RemoteCertificateChainErrors;
                 }
 
                 _connection = factory.CreateConnection();
@@ -362,7 +362,23 @@ namespace Pregiato.API.Services
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "❌ Erro crítico no processamento da mensagem RabbitMQ");
+                    
+                    // ✅ CORREÇÃO: Melhor tratamento de erros RabbitMQ
+                    try
+                    {
+                        if (_channel.IsOpen)
+                        {
                     _channel.BasicNack(ea.DeliveryTag, false, true);
+                        }
+                        else
+                        {
+                            _logger.LogWarning("⚠️ Canal RabbitMQ fechado, não é possível fazer NACK");
+                        }
+                    }
+                    catch (Exception nackEx)
+                    {
+                        _logger.LogError(nackEx, "❌ Erro ao fazer NACK da mensagem RabbitMQ");
+                    }
                 }
             };
             
@@ -1141,33 +1157,33 @@ namespace Pregiato.API.Services
                         
                         if (filteredMessages.Any())
                         {
-                            // Usar CreateExecutionStrategy para suportar retry com transações
-                            var strategy = context.Database.CreateExecutionStrategy();
-                            await strategy.ExecuteAsync(async () =>
+                        // Usar CreateExecutionStrategy para suportar retry com transações
+                        var strategy = context.Database.CreateExecutionStrategy();
+                        await strategy.ExecuteAsync(async () =>
+                        {
+                            using var transaction = await context.Database.BeginTransactionAsync(stoppingToken);
+                            try
                             {
-                                using var transaction = await context.Database.BeginTransactionAsync(stoppingToken);
-                                try
-                                {
                                     await context.Messages.AddRangeAsync(filteredMessages, stoppingToken);
-                                    await context.SaveChangesAsync(stoppingToken);
-                                    await transaction.CommitAsync(stoppingToken);
-                                    
+                                await context.SaveChangesAsync(stoppingToken);
+                                await transaction.CommitAsync(stoppingToken);
+                                
                                     _logger.LogInformation("✅ Salvas {Count} mensagens em batch (filtradas de {OriginalCount})", 
                                         filteredMessages.Count, messages.Count);
-                                }
-                                catch (Exception ex)
-                                {
-                                    await transaction.RollbackAsync(stoppingToken);
-                                    _logger.LogError(ex, "❌ Erro ao salvar mensagens em batch");
-                                    
-                                    // Recolocar mensagens na fila
+                            }
+                            catch (Exception ex)
+                            {
+                                await transaction.RollbackAsync(stoppingToken);
+                                _logger.LogError(ex, "❌ Erro ao salvar mensagens em batch");
+                                
+                                // Recolocar mensagens na fila
                                     foreach (var msg in filteredMessages)
-                                    {
-                                        _messageBatchQueue.Enqueue(msg);
-                                    }
-                                    throw; // Re-throw para que o execution strategy possa tentar novamente
+                                {
+                                    _messageBatchQueue.Enqueue(msg);
                                 }
-                            });
+                                throw; // Re-throw para que o execution strategy possa tentar novamente
+                            }
+                        });
                         }
                         else
                         {
@@ -1322,10 +1338,10 @@ namespace Pregiato.API.Services
                                 {
                                     var mediaStorageService = mediaScope.ServiceProvider.GetRequiredService<MediaStorageService>();
                                     mediaUrl = await mediaStorageService.StoreMediaAsync(
-                                        message.attachment.dataUrl ?? string.Empty,
-                                        message.attachment.mimeType ?? "application/octet-stream",
-                                        message.attachment.fileName ?? "unknown"
-                                    );
+                                    message.attachment.dataUrl ?? string.Empty,
+                                    message.attachment.mimeType ?? "application/octet-stream",
+                                    message.attachment.fileName ?? "unknown"
+                                );
                                 }
                                 _logger.LogInformation("🎬 Mídia processada e armazenada: {MediaUrl}", mediaUrl);
                             }
@@ -1423,10 +1439,10 @@ namespace Pregiato.API.Services
                                 {
                                     var mediaStorageService = mediaScope.ServiceProvider.GetRequiredService<MediaStorageService>();
                                     mediaUrl = await mediaStorageService.StoreMediaAsync(
-                                        message.attachment.dataUrl ?? string.Empty,
-                                        message.attachment.mimeType ?? "application/octet-stream",
-                                        message.attachment.fileName ?? "unknown"
-                                    );
+                                    message.attachment.dataUrl ?? string.Empty,
+                                    message.attachment.mimeType ?? "application/octet-stream",
+                                    message.attachment.fileName ?? "unknown"
+                                );
                                 }
                                 _logger.LogInformation("🎬 Mídia processada e armazenada: {MediaUrl}", mediaUrl);
                             }
