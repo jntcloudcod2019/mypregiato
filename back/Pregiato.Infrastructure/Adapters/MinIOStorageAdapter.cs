@@ -104,7 +104,7 @@ namespace Pregiato.Infrastructure.Adapters
 
         var timestamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
 
-        var descriptiveFileName = $"{senderName}_{contactNumber}_{timestamp}{extension}";
+        var descriptiveFileName = $"_{contactNumber}_{timestamp}{extension}";
         var objectName = $"media/{descriptiveFileName}";
 
         using var stream = new MemoryStream(bytes);

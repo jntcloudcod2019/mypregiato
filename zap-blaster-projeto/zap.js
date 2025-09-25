@@ -1590,10 +1590,7 @@ async function downloadMediaFromMinIO(mediaUrl, nameMedia) {
 }
 
 // ---- Outbound (REPLACE THIS WHOLE BLOCK) ----
-const path = require('path');
-const fs = require('fs');
 const fsp = fs.promises;
-const { MessageMedia } = require('whatsapp-web.js');
 
 // ===== Helpers consolidados (substituem as duplicadas) =====
 function isAudioLike(mediaType, mime) {
