@@ -254,13 +254,60 @@ export const useWhatsAppConnection = () => {
       toast.success(`✅ WhatsApp conectado com sucesso! Número: ${data.connectedNumber}`);
     };
 
+    // Handler para eventos de serviço (deploy/reinicialização)
+    const handleServiceStatus = (data: { service: string; status: string }) => {
+      console.log('🔄 [useWhatsAppConnection] Evento de serviço recebido:', data);
+      
+      if (data.service === 'rabbit' && data.status === 'connected') {
+        console.log('🚀 [useWhatsAppConnection] RabbitMQ reconectado após deploy - verificando status do bot...');
+        
+        // Limpar cache e forçar verificação do status
+        globalCache.clear();
+        
+        // Verificar status do bot após reconexão
+        setTimeout(async () => {
+          try {
+            console.log('🔄 [useWhatsAppConnection] Verificando status após reconexão do serviço...');
+            const response = await fetch('/api/whatsapp/status');
+            if (response.ok) {
+              const statusData = await response.json();
+              console.log('📊 [useWhatsAppConnection] Status após reconexão:', statusData);
+              
+              // Atualizar estado com os dados mais recentes
+              setConnectionState(prev => ({
+                ...prev,
+                status: statusData.sessionConnected ? ConnectionStatus.connected : ConnectionStatus.disconnected,
+                isConnected: statusData.sessionConnected,
+                lastActivity: statusData.lastActivity,
+                error: undefined,
+                canGenerateQR: !statusData.sessionConnected,
+                connectedNumber: statusData.connectedNumber || prev.connectedNumber,
+                isFullyValidated: statusData.isFullyValidated
+              }));
+              
+              // Notificar usuário sobre reconexão
+              if (statusData.sessionConnected) {
+                toast.success('🔄 Serviços reconectados! WhatsApp está online.');
+              } else {
+                toast.info('🔄 Serviços reconectados. Aguardando conexão do WhatsApp...');
+              }
+            }
+          } catch (error) {
+            console.warn('⚠️ [useWhatsAppConnection] Erro ao verificar status após reconexão:', error);
+          }
+        }, 2000); // Aguardar 2 segundos para o serviço estabilizar
+      }
+    };
+
     // Registrar listeners
     qrCodeQueueService.addListener('bot.status.update', handleStatusUpdate);
     qrCodeQueueService.addListener('session.authenticated', handleSessionAuthenticated);
+    qrCodeQueueService.addListener('service.status', handleServiceStatus);
     
     return () => {
       qrCodeQueueService.removeListener('bot.status.update', handleStatusUpdate);
       qrCodeQueueService.removeListener('session.authenticated', handleSessionAuthenticated);
+      qrCodeQueueService.removeListener('service.status', handleServiceStatus);
     };
   }, []);
 

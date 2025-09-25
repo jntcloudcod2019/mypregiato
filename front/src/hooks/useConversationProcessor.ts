@@ -1,8 +1,7 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { useChatStore } from '@/store/chat-store';
 import { qrCodeQueueService } from '@/services/qr-code-queue-service';
-import { MessageDto, MessageType, MessageStatus } from '@/types/message';
-import { MessageDirection } from '@/services/chat-service';
+import { MessageDto, MessageType, MessageStatus, MessageDirection } from '@/types/message';
 import { convertBackendMessage } from '@/services/conversations-api';
 import { toast } from '@/hooks/use-toast';
 
@@ -114,6 +113,7 @@ export const useConversationProcessor = () => {
         status: MessageStatus.Sent,
         createdAt: timestamp,
         fromMe: false,
+        isGroup: false, // ✅ CORREÇÃO: Adicionar propriedade isGroup obrigatória
         text: String(payload.body || ''),
         ts: timestamp,
         // Incluir attachment se presente
@@ -221,7 +221,7 @@ export const useConversationProcessor = () => {
       dataUrl: string;
       mimeType: string;
       fileName?: string;
-      mediaType?: 'image' | 'file' | 'audio';
+      mediaType?: 'image' | 'document' | 'audio';
     }
   ) => {
     try {
@@ -235,6 +235,7 @@ export const useConversationProcessor = () => {
         status: MessageStatus.Sending,
         createdAt: new Date().toISOString(),
         fromMe: true,
+        isGroup: false, // ✅ CORREÇÃO: Adicionar propriedade isGroup obrigatória
         text,
         ts: new Date().toISOString(),
         attachment: attachment ? {
