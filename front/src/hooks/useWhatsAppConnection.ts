@@ -79,7 +79,7 @@ export const useWhatsAppConnection = () => {
           setTimeout(async () => {
             try {
               console.log('🔄 [useWhatsAppConnection] Verificando status do servidor em background...');
-              const response = await fetch('/api/whatsapp/status');
+              const response = await fetch(`${API_BASE_URL}/api/whatsapp/status`);
               if (response.ok) {
                 const statusData = await response.json();
                 console.log('🔄 [useWhatsAppConnection] Status do servidor verificado:', statusData);
@@ -132,7 +132,7 @@ export const useWhatsAppConnection = () => {
         
         // ✅ FALLBACK: Se não há cache válido ou deploy detectado, fazer fetch do servidor
         console.log('🌐 [useWhatsAppConnection] Cache não disponível, consultando servidor...');
-        const response = await fetch('/api/whatsapp/status');
+        const response = await fetch(`${API_BASE_URL}/api/whatsapp/status`);
         if (response.ok) {
           const statusData = await response.json();
           console.log('📊 [useWhatsAppConnection] Status inicial recebido do servidor:', statusData);
@@ -286,7 +286,7 @@ export const useWhatsAppConnection = () => {
         setTimeout(async () => {
           try {
             console.log('🔄 [useWhatsAppConnection] Verificando status após reconexão do serviço...');
-            const response = await fetch('/api/whatsapp/status');
+            const response = await fetch(`${API_BASE_URL}/api/whatsapp/status`);
             if (response.ok) {
               const statusData = await response.json();
               console.log('📊 [useWhatsAppConnection] Status após reconexão:', statusData);

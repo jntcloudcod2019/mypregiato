@@ -54,18 +54,28 @@ export const useOperatorStatus = () => {
   // Buscar dados do usuário na API
   const fetchUserFromApi = async (email: string): Promise<ApiUser | null> => {
     try {
+      console.log('🔍 [useOperatorStatus] Buscando usuário na API:', email);
       const response = await axios.get(`${API_BASE_URL}/api/users/by-email/${email}`);
+      console.log('✅ [useOperatorStatus] Usuário encontrado na API:', response.data);
       return response.data;
     } catch (error) {
-      console.error('Erro ao buscar usuário na API:', error);
+      console.error('❌ [useOperatorStatus] Erro ao buscar usuário na API:', error);
       return null;
     }
   };
   
   // Registrar operador atual quando componente montar
   useEffect(() => {
+    console.log('🔍 [useOperatorStatus] Verificando autenticação:', { 
+      user: !!user, 
+      isLoaded, 
+      userEmail: user?.emailAddresses?.[0]?.emailAddress,
+      userId: user?.id 
+    });
+    
     // Só criar operador se o usuário estiver autenticado
     if (!user || !isLoaded) {
+      console.log('⚠️ [useOperatorStatus] Usuário não autenticado ou não carregado');
       setCurrentOperator(null);
       return;
     }
@@ -77,13 +87,16 @@ export const useOperatorStatus = () => {
       setLoading(true);
       try {
         const userEmail = user.emailAddresses[0]?.emailAddress;
+        console.log('🔍 [useOperatorStatus] Configurando operador:', { userEmail, userId: user.id });
+        
         if (!userEmail) {
-          console.error('Email do usuário não encontrado');
+          console.error('❌ [useOperatorStatus] Email do usuário não encontrado');
           setCurrentOperator(null);
           return;
         }
 
         // Buscar dados do usuário na API
+        console.log('🔍 [useOperatorStatus] Buscando dados do usuário na API...');
         const apiUser = await fetchUserFromApi(userEmail);
         
         // Criar operador baseado nos dados da API ou fallback para dados do Clerk
@@ -104,7 +117,11 @@ export const useOperatorStatus = () => {
         setCurrentOperator(operator)
         currentOperatorId = operator.id;
         
-        console.log(`✅ Operador ${operator.name} conectado com status: ${operator.status}`)
+        console.log(`✅ [useOperatorStatus] Operador ${operator.name} conectado com status: ${operator.status}`, {
+          operatorId: operator.id,
+          operatorEmail: operator.email,
+          apiUserFound: !!apiUser
+        });
         notifyOperatorChange()
 
         // Heartbeat para manter presença ativa

@@ -238,11 +238,183 @@ namespace Pregiato.API.Controllers
             }
 
             var message = req.Messages.First();
+            _logger.LogInformation($"🔍 [DEBUG] Message details: Id='{message.Id}', Type='{message.Type}', body='{message.body?.Substring(0, Math.Min(50, message.body?.Length ?? 0))}...'");
+            
             if (string.IsNullOrWhiteSpace(message.Id))
             {
                 _logger.LogWarning($"❌ [DEBUG] Message.Id está vazio: '{message.Id}'");
                 return BadRequest(new { error = "Message.Id é obrigatório" });
             }
+            
+            // ✅ NOVA VALIDAÇÃO: Verificar se o campo 'from' está presente
+            if (string.IsNullOrWhiteSpace(message.from))
+            {
+                _logger.LogWarning($"❌ [DEBUG] Message.from está vazio: '{message.from}'");
+                return BadRequest(new { error = "Message.from é obrigatório" });
+            }
+            
+            // ✅ NOVA VALIDAÇÃO: Verificar se o campo 'body' está presente
+            if (string.IsNullOrWhiteSpace(message.body))
+            {
+                _logger.LogWarning($"❌ [DEBUG] Message.body está vazio: '{message.body}'");
+                return BadRequest(new { error = "Message.body é obrigatório" });
+            }
+            
+            // ✅ NOVA VALIDAÇÃO: Verificar se o campo 'Type' está presente
+            if (string.IsNullOrWhiteSpace(message.Type))
+            {
+                _logger.LogWarning($"❌ [DEBUG] Message.Type está vazio: '{message.Type}'");
+                return BadRequest(new { error = "Message.Type é obrigatório" });
+            }
+            
+            // ✅ NOVA VALIDAÇÃO: Verificar se o campo 'Direction' está presente
+            if (string.IsNullOrWhiteSpace(message.Direction))
+            {
+                _logger.LogWarning($"❌ [DEBUG] Message.Direction está vazio: '{message.Direction}'");
+                return BadRequest(new { error = "Message.Direction é obrigatório" });
+            }
+            
+            // ✅ NOVA VALIDAÇÃO: Verificar se o campo 'Status' está presente
+            if (string.IsNullOrWhiteSpace(message.Status))
+            {
+                _logger.LogWarning($"❌ [DEBUG] Message.Status está vazio: '{message.Status}'");
+                return BadRequest(new { error = "Message.Status é obrigatório" });
+            }
+            
+            // ✅ NOVA VALIDAÇÃO: Verificar se o campo 'Ts' está presente
+            if (string.IsNullOrWhiteSpace(message.Ts))
+            {
+                _logger.LogWarning($"❌ [DEBUG] Message.Ts está vazio: '{message.Ts}'");
+                return BadRequest(new { error = "Message.Ts é obrigatório" });
+            }
+            
+            // ✅ NOVA VALIDAÇÃO: Verificar se o campo 'timestamp' está presente
+            if (string.IsNullOrWhiteSpace(message.timestamp))
+            {
+                _logger.LogWarning($"❌ [DEBUG] Message.timestamp está vazio: '{message.timestamp}'");
+                return BadRequest(new { error = "Message.timestamp é obrigatório" });
+            }
+            
+            // ✅ NOVA VALIDAÇÃO: Verificar se o campo 'ActualContent' está presente
+            if (string.IsNullOrWhiteSpace(message.ActualContent))
+            {
+                _logger.LogWarning($"❌ [DEBUG] Message.ActualContent está vazio: '{message.ActualContent}'");
+                return BadRequest(new { error = "Message.ActualContent é obrigatório" });
+            }
+            
+            // ✅ NOVA VALIDAÇÃO: Verificar se o campo 'ActualTs' está presente
+            if (string.IsNullOrWhiteSpace(message.ActualTs))
+            {
+                _logger.LogWarning($"❌ [DEBUG] Message.ActualTs está vazio: '{message.ActualTs}'");
+                return BadRequest(new { error = "Message.ActualTs é obrigatório" });
+            }
+            
+            // ✅ NOVA VALIDAÇÃO: Verificar se o campo 'contactName' está presente
+            if (string.IsNullOrWhiteSpace(message.contactName))
+            {
+                _logger.LogWarning($"❌ [DEBUG] Message.contactName está vazio: '{message.contactName}'");
+                return BadRequest(new { error = "Message.contactName é obrigatório" });
+            }
+            
+            // ✅ NOVA VALIDAÇÃO: Verificar se o campo 'contactPhone' está presente
+            if (string.IsNullOrWhiteSpace(message.contactPhone))
+            {
+                _logger.LogWarning($"❌ [DEBUG] Message.contactPhone está vazio: '{message.contactPhone}'");
+                return BadRequest(new { error = "Message.contactPhone é obrigatório" });
+            }
+            
+            // ✅ NOVA VALIDAÇÃO: Verificar se o campo 'IsRead' está presente
+            if (!message.IsRead.HasValue)
+            {
+                _logger.LogWarning($"❌ [DEBUG] Message.IsRead está vazio: '{message.IsRead}'");
+                return BadRequest(new { error = "Message.IsRead é obrigatório" });
+            }
+            
+            // ✅ NOVA VALIDAÇÃO: Verificar se o campo 'size' está presente
+            if (!message.size.HasValue)
+            {
+                _logger.LogWarning($"❌ [DEBUG] Message.size está vazio: '{message.size}'");
+                return BadRequest(new { error = "Message.size é obrigatório" });
+            }
+            
+            // ✅ NOVA VALIDAÇÃO: Verificar se o campo 'duration' está presente
+            if (!message.duration.HasValue)
+            {
+                _logger.LogWarning($"❌ [DEBUG] Message.duration está vazio: '{message.duration}'");
+                return BadRequest(new { error = "Message.duration é obrigatório" });
+            }
+            
+            // ✅ NOVA VALIDAÇÃO: Verificar se o campo 'thumbnail' está presente
+            if (string.IsNullOrWhiteSpace(message.thumbnail))
+            {
+                _logger.LogWarning($"❌ [DEBUG] Message.thumbnail está vazio: '{message.thumbnail}'");
+                return BadRequest(new { error = "Message.thumbnail é obrigatório" });
+            }
+            
+            // ✅ NOVA VALIDAÇÃO: Verificar se o campo 'latitude' está presente
+            if (!message.latitude.HasValue)
+            {
+                _logger.LogWarning($"❌ [DEBUG] Message.latitude está vazio: '{message.latitude}'");
+                return BadRequest(new { error = "Message.latitude é obrigatório" });
+            }
+            
+            // ✅ NOVA VALIDAÇÃO: Verificar se o campo 'longitude' está presente
+            if (!message.longitude.HasValue)
+            {
+                _logger.LogWarning($"❌ [DEBUG] Message.longitude está vazio: '{message.longitude}'");
+                return BadRequest(new { error = "Message.longitude é obrigatório" });
+            }
+            
+            // ✅ NOVA VALIDAÇÃO: Verificar se o campo 'locationAddress' está presente
+            if (string.IsNullOrWhiteSpace(message.locationAddress))
+            {
+                _logger.LogWarning($"❌ [DEBUG] Message.locationAddress está vazio: '{message.locationAddress}'");
+                return BadRequest(new { error = "Message.locationAddress é obrigatório" });
+            }
+            
+            // ✅ NOVA VALIDAÇÃO: Verificar se o campo 'mimeType' está presente
+            if (string.IsNullOrWhiteSpace(message.mimeType))
+            {
+                _logger.LogWarning($"❌ [DEBUG] Message.mimeType está vazio: '{message.mimeType}'");
+                return BadRequest(new { error = "Message.mimeType é obrigatório" });
+            }
+            
+            // ✅ NOVA VALIDAÇÃO: Verificar se o campo 'fileName' está presente
+            if (string.IsNullOrWhiteSpace(message.fileName))
+            {
+                _logger.LogWarning($"❌ [DEBUG] Message.fileName está vazio: '{message.fileName}'");
+                return BadRequest(new { error = "Message.fileName é obrigatório" });
+            }
+            
+            // ✅ NOVA VALIDAÇÃO: Verificar se o campo 'MediaUrl' está presente
+            if (string.IsNullOrWhiteSpace(message.MediaUrl))
+            {
+                _logger.LogWarning($"❌ [DEBUG] Message.MediaUrl está vazio: '{message.MediaUrl}'");
+                return BadRequest(new { error = "Message.MediaUrl é obrigatório" });
+            }
+            
+            // ✅ NOVA VALIDAÇÃO: Verificar se o campo 'Content' está presente
+            if (string.IsNullOrWhiteSpace(message.Content))
+            {
+                _logger.LogWarning($"❌ [DEBUG] Message.Content está vazio: '{message.Content}'");
+                return BadRequest(new { error = "Message.Content é obrigatório" });
+            }
+            
+            // ✅ NOVA VALIDAÇÃO: Verificar se o campo 'IsRead' está presente
+            if (!message.IsRead.HasValue)
+            {
+                _logger.LogWarning($"❌ [DEBUG] Message.IsRead está vazio: '{message.IsRead}'");
+                return BadRequest(new { error = "Message.IsRead é obrigatório" });
+            }
+            
+            // ✅ NOVA VALIDAÇÃO: Verificar se o campo 'IsRead' está presente
+            if (!message.IsRead.HasValue)
+            {
+                _logger.LogWarning($"❌ [DEBUG] Message.IsRead está vazio: '{message.IsRead}'");
+                return BadRequest(new { error = "Message.IsRead é obrigatório" });
+            }
+            
+            _logger.LogInformation($"🔍 [DEBUG] Validações básicas passaram. Continuando processamento...");
 
             ChatLog? chat = null;
             
@@ -276,10 +448,13 @@ namespace Pregiato.API.Controllers
             if (chat == null) 
             {
                 _logger.LogInformation($"🆕 Chat não encontrado para ID: {id} - Criando nova estrutura");
+                _logger.LogInformation($"🔍 [DEBUG] Dados do contato: PhoneE164={req.Contact.PhoneE164}, Name={req.Contact.Name}");
                 
                 // Usar dados do PayloadJson
                 var normalizedPhone = NormalizePhoneE164Br(req.Contact.PhoneE164);
                 var leadName = req.Contact.Name;
+                
+                _logger.LogInformation($"🔍 [DEBUG] Telefone normalizado: {normalizedPhone} (original: {req.Contact.PhoneE164})");
                 
                 // Criar Conversation
                 var conversation = await _conversationService.GetOrCreateConversationAsync(
@@ -288,6 +463,8 @@ namespace Pregiato.API.Controllers
                     false, // isGroup
                     leadName
                 );
+                
+                _logger.LogInformation($"🔍 [DEBUG] Conversa criada/encontrada: Id={conversation.Id}, Phone={conversation.PhoneNumber}");
                 
                 // Criar ChatLog com PayloadJson ESTRUTURAL
                 chat = new ChatLog
@@ -316,6 +493,7 @@ namespace Pregiato.API.Controllers
                 await _db.SaveChangesAsync();
                 
                 _logger.LogInformation($"✅ ChatLog criado: {chat.Id} para {normalizedPhone}");
+                _logger.LogInformation($"🔍 [DEBUG] ChatLog salvo com sucesso no banco de dados");
             }
             _logger.LogInformation($"✅ Chat encontrado: {chat.Id}, ChatId: {chat.ChatId}");
 
@@ -328,6 +506,7 @@ namespace Pregiato.API.Controllers
                 try
                 {
                     _logger.LogInformation($"🎵 Processando mídia - Tipo: {messageType}, Body Length: {message.body?.Length ?? 0}");
+                    _logger.LogInformation($"🔍 [DEBUG] Iniciando processamento de mídia para tipo: {messageType}");
                     
                     // ✅ CORREÇÃO: Extrair mimeType do dataUrl corretamente
                     var mimeType = message.mimeType;
@@ -396,6 +575,7 @@ namespace Pregiato.API.Controllers
             if (chat != null)
             {
                 _logger.LogInformation($"🔄 Atualizando PayloadJson do chat {chat.Id}");
+                _logger.LogInformation($"🔍 [DEBUG] Iniciando atualização do PayloadJson para chat: {chat.Id}");
                 
                 // Deserializar o PayloadJson existente
                 var chatLogService = HttpContext.RequestServices.GetRequiredService<ChatLogService>();
@@ -446,12 +626,16 @@ namespace Pregiato.API.Controllers
                     $"Body: {(messageInfo.body?.Length > 50 ? messageInfo.body.Substring(0, 50) + "..." : messageInfo.body)}, " +
                     $"MediaUrl: {messageInfo.MediaUrl}, MimeType: {messageInfo.mimeType}, FileName: {messageInfo.fileName}");
                 
+                _logger.LogInformation($"🔍 [DEBUG] MessageInfo criada com sucesso para mensagem: {messageInfo.Id}");
+                
                 // Verificar se a mensagem já existe (evitar duplicatas)
                 var existingMessage = existingPayload.Messages?.FirstOrDefault(m => m.Id == messageInfo.Id);
                 if (existingMessage == null)
                 {
                     // Adicionar mensagem ao payload existente
                     existingPayload.Messages.Add(messageInfo);
+                    
+                    _logger.LogInformation($"🔍 [DEBUG] Mensagem adicionada ao payload existente: {messageInfo.Id}");
                     
                     // Ordenar mensagens por timestamp para manter cronologia
                     existingPayload.Messages = existingPayload.Messages
@@ -470,6 +654,8 @@ namespace Pregiato.API.Controllers
                     
                     _logger.LogInformation("💾 Atualizando PayloadJson (antes: {OldSize} chars, depois: {NewSize} chars)", 
                         chat.PayloadJson?.Length ?? 0, newPayloadJson.Length);
+                    
+                    _logger.LogInformation($"🔍 [DEBUG] PayloadJson serializado com sucesso: {newPayloadJson.Length} caracteres");
                     
                     chat.PayloadJson = newPayloadJson;
                     chat.LastMessageAt = DateTime.UtcNow;

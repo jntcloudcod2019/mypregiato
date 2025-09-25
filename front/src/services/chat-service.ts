@@ -531,6 +531,21 @@ export const chatsApi = {
     return result;
   },
   send: async (id: string, text: string, clientMessageId: string, leadName?: string, attachment?: { dataUrl: string; mimeType: string; fileName?: string; mediaType?: 'text' | 'image' | 'video' | 'audio' | 'document' | 'voice' | 'sticker' | 'location' | 'contact' | 'system' }) => {
+    console.log('🔍 [DEBUG] chatsApi.send chamado:', { 
+      id, 
+      text: text.substring(0, 50), 
+      clientMessageId, 
+      leadName, 
+      hasAttachment: !!attachment,
+      connectedNumber: globalCache.getConnectedNumber()
+    });
+    
+    // ✅ VALIDAÇÃO: Verificar se clientMessageId está presente
+    if (!clientMessageId || clientMessageId.trim() === '') {
+      console.error('❌ [DEBUG] clientMessageId está vazio ou null:', clientMessageId);
+      throw new Error('clientMessageId é obrigatório');
+    }
+    
     // ✅ VALIDAÇÃO E NORMALIZAÇÃO DE TIPOS DE MÍDIA
     let normalizedAttachment = attachment;
     
@@ -578,7 +593,7 @@ export const chatsApi = {
         IsRead: false,
         Status: "pending",
         Type: normalizedAttachment?.mediaType || "text",
-        from: globalCache.getConnectedNumber() ? `${globalCache.getConnectedNumber()}@c.us` : null, // ✅ NOVO: Usar número conectado do cache global
+        from: globalCache.getConnectedNumber() ? `${globalCache.getConnectedNumber()}@c.us` : "system@c.us", // ✅ CORREÇÃO: Usar fallback se não houver número conectado
         mimeType: normalizedAttachment?.mimeType || null,
         fileName: normalizedAttachment?.fileName || null,
         size: normalizedAttachment?.dataUrl ? normalizedAttachment.dataUrl.length : null,
@@ -599,7 +614,9 @@ export const chatsApi = {
       text: text.substring(0, 50) + (text.length > 50 ? '...' : ''),
       mediaType: normalizedAttachment?.mediaType || 'text',
       mimeType: normalizedAttachment?.mimeType,
-      hasAttachment: !!normalizedAttachment
+      hasAttachment: !!normalizedAttachment,
+      clientMessageId: clientMessageId,
+      requestPayload: JSON.stringify(request, null, 2)
     });
     
     try {

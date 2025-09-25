@@ -1,3 +1,5 @@
+import { API_BASE_URL } from '../config/api';
+
 /**
  * Serviço de cache global para armazenar dados da sessão WhatsApp
  * ✅ ROBUSTO: Usa localStorage para persistir dados entre refreshes e fechamento do navegador
@@ -197,7 +199,7 @@ class GlobalCacheService {
   public async detectServerRestart(): Promise<boolean> {
     try {
       // Fazer uma requisição para o servidor para obter timestamp atual
-      const response = await fetch('/api/health', { 
+      const response = await fetch(`${API_BASE_URL}/api/health`, { 
         method: 'GET',
         cache: 'no-cache' // Forçar requisição fresh
       });

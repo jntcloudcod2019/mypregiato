@@ -7,6 +7,7 @@ import { Progress } from "./ui/progress"
 import { Download, Share, Eye, X } from "lucide-react"
 import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
+import { API_BASE_URL } from '../config/api'
 
 interface CompositeTemplatesProps {
   talent: any
@@ -100,7 +101,7 @@ export function CompositeTemplates({ talent, photos }: CompositeTemplatesProps) 
       
       // API call to send via WhatsApp
       /*
-      await fetch('/api/whatsapp/send-composite', {
+      await fetch(`${API_BASE_URL}/api/whatsapp/send-composite`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
