@@ -1665,7 +1665,20 @@ async function sendOne(number, msg, typeMessage) {
   }
 }
 
-
+// ✅ CORREÇÃO: Função isAudioLike que estava faltando
+function isAudioLike(mediaType, mimeType) {
+  // Verificar por tipo de mídia
+  if (mediaType === 'audio' || mediaType === 'voice' || mediaType === 'ptt') {
+    return true;
+  }
+  
+  // Verificar por MIME type
+  if (mimeType && mimeType.startsWith('audio/')) {
+    return true;
+  }
+  
+  return false;
+}
 
 
 
