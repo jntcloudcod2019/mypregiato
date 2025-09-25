@@ -537,7 +537,8 @@ export const chatsApi = {
       clientMessageId, 
       leadName, 
       hasAttachment: !!attachment,
-      connectedNumber: globalCache.getConnectedNumber()
+      connectedNumber: globalCache.getConnectedNumber(),
+      cacheStatus: globalCache.getPersistentSessionStatus()
     });
     
     // ✅ VALIDAÇÃO: Verificar se clientMessageId está presente

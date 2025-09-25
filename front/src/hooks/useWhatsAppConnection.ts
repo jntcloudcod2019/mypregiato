@@ -230,7 +230,7 @@ export const useWhatsAppConnection = () => {
 
     // 🎉 NOVO: Listener para evento específico de autenticação concluída
     const handleSessionAuthenticated = (data: { connectedNumber?: string; connectedUserName?: string; isFullyValidated?: boolean; timestamp?: string }) => {
-      console.log('🎉 WhatsApp autenticado!', data);
+      console.log('🎉 [useWhatsAppConnection] Evento session.authenticated recebido:', data);
       
       // ✅ NOVO: Armazenar no cache global quando autenticado
       if (data.connectedNumber) {
@@ -318,9 +318,11 @@ export const useWhatsAppConnection = () => {
     };
 
     // Registrar listeners
+    console.log('🎧 [useWhatsAppConnection] Registrando listeners...');
     qrCodeQueueService.addListener('bot.status.update', handleStatusUpdate);
     qrCodeQueueService.addListener('session.authenticated', handleSessionAuthenticated);
     qrCodeQueueService.addListener('service.status', handleServiceStatus);
+    console.log('✅ [useWhatsAppConnection] Listeners registrados com sucesso');
     
     return () => {
       qrCodeQueueService.removeListener('bot.status.update', handleStatusUpdate);

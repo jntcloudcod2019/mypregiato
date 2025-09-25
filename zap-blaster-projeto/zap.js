@@ -1710,9 +1710,20 @@ async function sendSessionStatus() {
   });
   
   try {
-    // ✅ NOVO: Enviar para endpoint que propaga via SignalR
-    await apiClient.post('/api/whatsapp/session/updated', statusData);
-    Log.info('[SESSION_STATUS] ✅ Status enviado com sucesso para API');
+    // ✅ CORREÇÃO: Enviar para endpoint correto baseado no status
+    if (isConnected && connectedNumber) {
+      // Se está conectado e tem número, enviar como autenticado
+      await apiClient.post('/api/whatsapp/session/authenticated', {
+        ...statusData,
+        connectedUserName: client?.info?.pushname || 'Usuário WhatsApp',
+        timestamp: new Date().toISOString()
+      });
+      Log.info('[SESSION_STATUS] ✅ Status de autenticação enviado com sucesso para API');
+    } else {
+      // Se não está conectado, enviar como atualização de status
+      await apiClient.post('/api/whatsapp/session/updated', statusData);
+      Log.info('[SESSION_STATUS] ✅ Status atualizado enviado com sucesso para API');
+    }
   } catch (error) {
     Log.error('[SESSION_STATUS] ❌ Erro ao enviar status para API', { error: error?.message });
   }
