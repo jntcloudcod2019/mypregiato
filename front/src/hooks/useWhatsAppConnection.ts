@@ -51,11 +51,17 @@ export const useWhatsAppConnection = () => {
       try {
         console.log('🔍 [useWhatsAppConnection] Verificando status inicial...');
         
-        // ✅ NOVO: Primeiro, tentar usar cache persistente
-        const cachedStatus = globalCache.getPersistentSessionStatus();
-        console.log('🔍 [useWhatsAppConnection] Cache persistente verificado:', cachedStatus);
+        // ✅ NOVO: Verificar se houve deploy antes de usar cache
+        const deployDetected = await globalCache.detectServerRestart();
+        if (deployDetected) {
+          console.log('🚀 [useWhatsAppConnection] Deploy detectado - cache limpo, verificando status atual...');
+          // Continuar para verificar status atual do servidor
+        } else {
+          // ✅ NOVO: Primeiro, tentar usar cache persistente
+          const cachedStatus = globalCache.getPersistentSessionStatus();
+          console.log('🔍 [useWhatsAppConnection] Cache persistente verificado:', cachedStatus);
         
-        if (cachedStatus && cachedStatus.sessionConnected && cachedStatus.connectedNumber) {
+          if (cachedStatus && cachedStatus.sessionConnected && cachedStatus.connectedNumber) {
           console.log('💾 [useWhatsAppConnection] Usando status do cache persistente:', cachedStatus);
           
           setConnectionState(prev => ({
@@ -115,15 +121,16 @@ export const useWhatsAppConnection = () => {
           }, 1000);
           
           return; // Usar cache, não fazer fetch imediato
-        } else {
-          console.log('❌ [useWhatsAppConnection] Cache não disponível ou inválido:', {
-            hasCache: !!cachedStatus,
-            sessionConnected: cachedStatus?.sessionConnected,
-            connectedNumber: cachedStatus?.connectedNumber
-          });
+          } else {
+            console.log('❌ [useWhatsAppConnection] Cache não disponível ou inválido:', {
+              hasCache: !!cachedStatus,
+              sessionConnected: cachedStatus?.sessionConnected,
+              connectedNumber: cachedStatus?.connectedNumber
+            });
+          }
         }
         
-        // ✅ FALLBACK: Se não há cache válido, fazer fetch do servidor
+        // ✅ FALLBACK: Se não há cache válido ou deploy detectado, fazer fetch do servidor
         console.log('🌐 [useWhatsAppConnection] Cache não disponível, consultando servidor...');
         const response = await fetch('/api/whatsapp/status');
         if (response.ok) {
@@ -261,8 +268,19 @@ export const useWhatsAppConnection = () => {
       if (data.service === 'rabbit' && data.status === 'connected') {
         console.log('🚀 [useWhatsAppConnection] RabbitMQ reconectado após deploy - verificando status do bot...');
         
-        // Limpar cache e forçar verificação do status
-        globalCache.clear();
+        // ✅ CORREÇÃO: Usar método específico para limpeza em deploy
+        globalCache.clearOnDeploy();
+        
+        // Resetar estado para desconectado até verificar o status real
+        setConnectionState(prev => ({
+          ...prev,
+          status: ConnectionStatus.disconnected,
+          isConnected: false,
+          error: undefined,
+          canGenerateQR: true,
+          connectedNumber: undefined,
+          isFullyValidated: false
+        }));
         
         // Verificar status do bot após reconexão
         setTimeout(async () => {

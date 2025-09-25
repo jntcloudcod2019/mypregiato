@@ -18,13 +18,13 @@ namespace Pregiato.API.Controllers
     {
         private readonly ChatLogService _chatService;
         private readonly PregiatoDbContext _db;
-        private readonly MinIOStorageAdapter _minIOStorageAdapter;
+        private readonly IMediaStoragePort _minIOStorageAdapter;
         private readonly IHubContext<WhatsAppHub> _hub;
         private readonly RabbitBackgroundService _rabbit;
         private readonly ILogger<ChatsController> _logger;
         private readonly ConversationService _conversationService;
 
-        public ChatsController(MinIOStorageAdapter minIOStorageAdapter, ChatLogService chatService, PregiatoDbContext db, IHubContext<WhatsAppHub> hub, RabbitBackgroundService rabbit, ILogger<ChatsController> logger, ConversationService conversationService)
+        public ChatsController(IMediaStoragePort minIOStorageAdapter, ChatLogService chatService, PregiatoDbContext db, IHubContext<WhatsAppHub> hub, RabbitBackgroundService rabbit, ILogger<ChatsController> logger, ConversationService conversationService)
         {
             _chatService = chatService;
             _db = db;

@@ -169,8 +169,9 @@ class GlobalCacheService {
    */
   public clear(): void {
     this.cache.clear();
+    localStorage.removeItem(this.STORAGE_KEY); // ✅ CORREÇÃO: Limpar localStorage também
     sessionStorage.removeItem(this.STORAGE_KEY);
-    console.log('🗑️ [GlobalCache] Cache limpo');
+    console.log('🗑️ [GlobalCache] Cache limpo (localStorage + sessionStorage)');
   }
 
   /**
@@ -187,6 +188,55 @@ class GlobalCacheService {
   public refresh(): void {
     this.loadFromStorage();
     console.log('🔄 [GlobalCache] Cache recarregado');
+  }
+
+  /**
+   * ✅ NOVO: Detecta se houve deploy/reinicialização do servidor
+   * Compara o timestamp do cache com o timestamp atual do servidor
+   */
+  public async detectServerRestart(): Promise<boolean> {
+    try {
+      // Fazer uma requisição para o servidor para obter timestamp atual
+      const response = await fetch('/api/health', { 
+        method: 'GET',
+        cache: 'no-cache' // Forçar requisição fresh
+      });
+      
+      if (response.ok) {
+        const serverData = await response.json();
+        const serverTimestamp = serverData.timestamp || serverData.serverTime;
+        
+        if (serverTimestamp) {
+          const cachedData = this.getPersistentSessionStatus();
+          if (cachedData && cachedData.lastActivity) {
+            const cacheTime = new Date(cachedData.lastActivity);
+            const serverTime = new Date(serverTimestamp);
+            
+            // Se o servidor foi reiniciado após o cache, limpar cache
+            if (serverTime > cacheTime) {
+              console.log('🚀 [GlobalCache] Deploy detectado - servidor reiniciado após cache');
+              this.clear();
+              return true;
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.warn('⚠️ [GlobalCache] Erro ao detectar restart do servidor:', error);
+    }
+    
+    return false;
+  }
+
+  /**
+   * ✅ NOVO: Força limpeza do cache quando há deploy
+   */
+  public clearOnDeploy(): void {
+    console.log('🚀 [GlobalCache] Limpeza forçada devido a deploy detectado');
+    this.clear();
+    
+    // Marcar que houve deploy para evitar cache desatualizado
+    sessionStorage.setItem('deploy_detected', new Date().toISOString());
   }
 }
 

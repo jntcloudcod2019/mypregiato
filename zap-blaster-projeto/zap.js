@@ -426,7 +426,7 @@ async function startConsumer() {
         attachmentDataUrlLength: payload.attachment?.dataUrl?.length || 0,
         attachmentMediaUrl: payload.attachment?.mediaUrl,
         clientMessageId: payload.clientMessageId,
-        connectedNumber: from
+        connectedNumber: payload.from || 'unknown'
       });
       if (payload.command === 'disconnect') {
         Log.info('[QUEUE] 🔌 COMMAND disconnect recebido', { messageId, deliveryTag });
@@ -549,12 +549,12 @@ async function startConsumer() {
       const phone = payload.toNormalized || payload.phone || payload.to || payload.Phone || payload.To;
       const body  = payload.body || payload.message || payload.text || payload.Message || payload.Body;
       const attachment = payload.attachment || null;
-      const from = payload.from;
+      const payloadFrom = payload.from;
       
       // ✅ VALIDAÇÃO: Verificar se o campo from está correto
-      if (from && from !== `${connectedNumber}@c.us`) {
+      if (payloadFrom && payloadFrom !== `${connectedNumber}@c.us`) {
         Log.warn('[QUEUE] ⚠️ Inconsistência detectada (from != connectedNumber)', {
-          payloadFrom: from,
+          payloadFrom: payloadFrom,
           connectedNumber: connectedNumber,
           targetNumber: phone,
           messageId: messageId,
@@ -1613,10 +1613,10 @@ async function sendOne(number, msg, typeMessage) {
       const sent = await client.sendMessage(chatId, messageMedia, opts);
 
       if (sent?.id?._serialized) {
-        await sendMessageStatus(number, sent.id._serialized, 'sent');
+          await sendMessageStatus(number, sent.id._serialized, 'sent'); 
         Log.info('[SEND] Mídia enviada', { to, messageId: sent.id._serialized });
-        return { success: true, messageId: sent.id._serialized };
-      }
+          return { success: true, messageId: sent.id._serialized }; 
+        }
       return { success: false, reason: 'sendMessage_empty_response' };
     }
 
@@ -1627,16 +1627,16 @@ async function sendOne(number, msg, typeMessage) {
     if (!body) return { success: false, reason: 'empty_text' };
 
     Log.info('[SEND] texto', { to, length: body.length });
-    const sent = await client.sendMessage(chatId, body);
-
+      const sent = await client.sendMessage(chatId, body);
+    
     if (sent?.id?._serialized) {
-      await sendMessageStatus(number, sent.id._serialized, 'sent');
+      await sendMessageStatus(number, sent.id._serialized, 'sent'); 
       Log.info('[SEND] Texto enviado', { to, messageId: sent.id._serialized });
-      return { success: true, messageId: sent.id._serialized };
+        return { success: true, messageId: sent.id._serialized }; 
     }
     return { success: false, reason: 'sendMessage_empty_response' };
 
-  } catch (e) {
+    } catch (e) {
     Log.error('[SEND] erro', { to, typeMessage, error: e?.message });
     return { success: false, reason: e?.message || 'unknown_error' };
   }
