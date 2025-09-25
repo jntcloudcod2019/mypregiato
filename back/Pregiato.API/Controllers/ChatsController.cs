@@ -309,7 +309,7 @@ namespace Pregiato.API.Controllers
                     leadName
                 );
                 
-                _logger.LogInformation($"🔍 [DEBUG] Conversa criada/encontrada: Id={conversation.Id}, Phone={conversation.PhoneNumber}");
+                _logger.LogInformation($"🔍 [DEBUG] Conversa criada/encontrada: Id={conversation.Id}, Phone={conversation.PeerE164}");
                 
                 // Criar ChatLog com PayloadJson ESTRUTURAL
                 chat = new ChatLog

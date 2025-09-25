@@ -69,12 +69,12 @@ namespace Pregiato.Infrastructure.Adapters
                 }
 
                 _isInitialized = true;
-                _logger.LogInformation("🎉 MinIO inicializado com sucesso ", 
+                _logger.LogInformation("🎉 MinIO inicializado com sucesso - Endpoint: {Endpoint}, Bucket: {BucketName}", 
                     _options.Endpoint, _options.BucketName);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Falha ao inicializar MinIO ", 
+                _logger.LogError(ex, "❌ Falha ao inicializar MinIO - Endpoint: {Endpoint}, Bucket: {BucketName}", 
                     _options.Endpoint, _options.BucketName);
                 throw;
             }
@@ -86,7 +86,7 @@ namespace Pregiato.Infrastructure.Adapters
         /// Armazena mídia com nomenclatura descritiva baseada no contexto da mensagem
         /// Formato: messageId_contato_data_hora_remetente.extensao
         /// </summary>
-        public async Task<MediaResultDto> StoreMediaAsync(string base64Data, string mimeType, string contactNumber, string senderName)
+        public async Task<MediaResultDto> StoreMediaAsync(string base64Data, string mimeType, string contactNumber, string? senderName)
         {
             try
             {

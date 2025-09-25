@@ -5,12 +5,11 @@ namespace Pregiato.Core.Interfaces
     /// Define o contrato para operações de armazenamento sem depender de implementação específica
     /// </summary>
     /// 
-/// 
-/// 
+
     public class MediaResultDto
     {
-        public string MediaUrl { get; set; }
-        public string ObjectName { get; set; }
+        public required string MediaUrl { get; set; }
+        public required string ObjectName { get; set; }
     }
 
 
