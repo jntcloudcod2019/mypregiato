@@ -1611,6 +1611,32 @@ function extFromMime(mime) {
 async function sendOne(number, msg, typeMessage) {
   if (!client) return { success: false, reason: 'client_not_ready' };
 
+  // Helpers locais (não conflitam com utils externos se você já tiver)
+  const extFromMime = (mime) => {
+    const map = {
+      'image/jpeg': '.jpg',
+      'image/png': '.png',
+      'image/webp': '.webp',
+      'image/gif': '.gif',
+      'video/mp4': '.mp4',
+      'audio/ogg': '.ogg',
+      'audio/webm': '.webm',
+      'audio/mpeg': '.mp3',
+      'audio/wav': '.wav',
+      'application/pdf': '.pdf',
+    };
+    return map[mime?.toLowerCase()];
+  };
+
+  const isAudioLike = (mediaType, mime) => {
+    const mt = String(mediaType || '').toLowerCase();
+    const mm = String(mime || '').toLowerCase();
+    return mt === 'audio' || mm.startsWith('audio/');
+  };
+
+  // Considerado "seguro" para PTT (normalmente Opus)
+  const isOpusFriendly = (mime) => /^(audio\/ogg|audio\/webm)$/.test(String(mime || '').toLowerCase());
+
   const to = normalizeNumber(number); // garante E.164 sem @c.us
   if (!to || to.length < 10) return { success: false, reason: 'invalid_number' };
 
@@ -1626,60 +1652,87 @@ async function sendOne(number, msg, typeMessage) {
         return { success: false, reason: 'media_attachment_missing' };
       }
 
-      const mediaType = (attachment.mediaType || typeMessage || '').toLowerCase();
-      const originalMime = attachment.mimeType || attachment.attachmentMime || 'application/octet-stream';
+      const mediaType    = String(attachment.mediaType || typeMessage || '').toLowerCase();
+      const originalMime = String(attachment.mimeType || attachment.attachmentMime || 'application/octet-stream').toLowerCase();
       const originalName = attachment.fileName || `media-${Date.now()}`;
 
-      // baixa do MinIO (Buffer)
+      // 1) Baixa buffer do MinIO
       const buffer = await downloadMediaFromMinIO(attachment.mediaUrl, attachment.fileName);
       if (!buffer || !buffer.length) {
         return { success: false, reason: 'empty_buffer_from_minio' };
       }
 
-      // ====== Regras de áudio (core do fix) ======
+      // 2) Normaliza MIME/filename coerentes
       let finalMime = originalMime;
       let finalName = originalName;
 
-      if (isAudioLike(mediaType, originalMime)) {
-        // Não forçar MP3; manter contêiner + codec de origem
-        // Ajusta extensão do arquivo para combinar com o MIME (evita .mp3 falso)
-        const wantedExt = extFromMime(originalMime);
-        if (wantedExt && !finalName.toLowerCase().endsWith(wantedExt)) {
-          const base = finalName.replace(/\.[a-z0-9]+$/i, '');
-          finalName = `${base}${wantedExt}`;
-        }
+      const wantedExt = extFromMime(finalMime);
+      if (wantedExt && !finalName.toLowerCase().endsWith(wantedExt)) {
+        const base = finalName.replace(/\.[a-z0-9]+$/i, '');
+        finalName = `${base}${wantedExt}`;
       }
 
-      // Monta MessageMedia a partir do buffer
+      // 3) Monta MessageMedia
       let messageMedia;
       try {
         const base64Data = buffer.toString('base64');
         messageMedia = new MessageMedia(finalMime, base64Data, finalName);
       } catch (err) {
-        Log.error('[SEND] falha ao criar MessageMedia', { to, err: err?.message, mime: finalMime, name: finalName });
+        Log.error('[SEND] falha ao criar MessageMedia', {
+          to, err: err?.message, mime: finalMime, name: finalName
+        });
         return { success: false, reason: 'message_media_build_failed' };
       }
 
-      // Opções de envio
-      const opts = {};
-      if (isAudioLike(mediaType, originalMime)) {
-        // Envia como PTT **apenas** quando for Opus (ogg/webm)
-        opts.sendAudioAsVoice = isOpus(originalMime);
+      // 4) Opções iniciais
+      // - Envia como PTT (voice) APENAS se for OGG/WEBM (tipicamente Opus)
+      // - Se não for áudio, aplica caption (até 3000 chars)
+      let opts = {};
+      const wantsVoice = attachment.asVoice === true || mediaType === 'audio';
+      if (isAudioLike(mediaType, finalMime)) {
+        opts.sendAudioAsVoice = wantsVoice && isOpusFriendly(finalMime);
       } else if (msg?.caption) {
         opts.caption = String(msg.caption).slice(0, 3000);
       }
 
-      Log.info('[SEND] mídia (Buffer via MinIO)', {
+      Log.info('[SEND] mídia', {
         to, chatId,
         mediaType,
-        originalMime,
-        finalMime,
-        finalName,
+        originalMime, finalMime,
+        originalName, finalName,
         asVoice: !!opts.sendAudioAsVoice
       });
 
-      // Envia
-      const sent = await client.sendMessage(chatId, messageMedia, opts);
+      // 5) Envio com fallbacks progressivos
+      const trySend = async (extraOpts = {}) => {
+        return client.sendMessage(chatId, messageMedia, { ...opts, ...extraOpts });
+      };
+
+      let sent;
+      try {
+        sent = await trySend(); // tentativa normal
+      } catch (err1) {
+        Log.warn('[SEND] tentativa 1 falhou, avaliando fallback', { err: err1?.message || String(err1) });
+
+        // Fallback A: se era voice, tenta sem voice
+        if (opts.sendAudioAsVoice) {
+          try {
+            sent = await trySend({ sendAudioAsVoice: false });
+          } catch (err2) {
+            Log.warn('[SEND] fallback A (sem voice) falhou, tentando documento', { err: err2?.message || String(err2) });
+          }
+        }
+
+        // Fallback B: como documento (evita decoder/preview do WA)
+        if (!sent) {
+          try {
+            sent = await trySend({ sendAudioAsVoice: false, sendMediaAsDocument: true });
+          } catch (err3) {
+            Log.error('[SEND] fallback B (documento) falhou', { err: err3?.message || String(err3) });
+            return { success: false, reason: err3?.message || 'evaluate_failed' };
+          }
+        }
+      }
 
       if (sent?.id?._serialized) {
         await sendMessageStatus(number, sent.id._serialized, 'sent');
@@ -1706,7 +1759,7 @@ async function sendOne(number, msg, typeMessage) {
     return { success: false, reason: 'sendMessage_empty_response' };
 
   } catch (e) {
-    // Erros típicos que vimos no log: "Evaluation failed: b"
+    // Ex.: "Evaluation failed: b" vindo do page.evaluate interno do wwebjs
     Log.error('[SEND] erro', {
       to,
       typeMessage,
