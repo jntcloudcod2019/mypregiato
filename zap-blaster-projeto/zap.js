@@ -1591,17 +1591,34 @@ async function downloadMediaFromMinIO(mediaUrl, nameMedia) {
 
 // ---- Outbound ----
 
+// Helpers locais (podem subir p/ utils)
+function isAudioLike(mediaType, mime) {
+  return (mediaType && mediaType.toLowerCase() === 'audio') || /^audio\//i.test(String(mime || ''));
+}
+function isOpus(mime) {
+  const m = String(mime || '').toLowerCase();
+  return (m.includes('audio/ogg') || m.includes('audio/webm')) && m.includes('opus');
+}
+function extFromMime(mime) {
+  const m = String(mime || '').toLowerCase();
+  if (m.startsWith('audio/ogg')) return '.ogg';
+  if (m.startsWith('audio/webm')) return '.webm';
+  if (m.startsWith('audio/mpeg') || m.startsWith('audio/mp3')) return '.mp3';
+  if (m.startsWith('audio/wav')) return '.wav';
+  return '';
+}
+
 async function sendOne(number, msg, typeMessage) {
   if (!client) return { success: false, reason: 'client_not_ready' };
-  const to = normalizeNumber(number);
+
+  const to = normalizeNumber(number); // garante E.164 sem @c.us
   if (!to || to.length < 10) return { success: false, reason: 'invalid_number' };
 
   const chatId = `${to}@c.us`;
 
-  
   try {
     // =========================
-    // MÍDIA (não-text)
+    // MÍDIA
     // =========================
     if (typeMessage && typeMessage !== 'text') {
       const attachment = msg?.attachment;
@@ -1609,52 +1626,66 @@ async function sendOne(number, msg, typeMessage) {
         return { success: false, reason: 'media_attachment_missing' };
       }
 
-      const mediaType = attachment.mediaType || typeMessage;
-      const fileName  = attachment.fileName || `media-${Date.now()}`;
-      const mimeType  = attachment.mimeType || 'application/octet-stream';
+      const mediaType = (attachment.mediaType || typeMessage || '').toLowerCase();
+      const originalMime = attachment.mimeType || attachment.attachmentMime || 'application/octet-stream';
+      const originalName = attachment.fileName || `media-${Date.now()}`;
 
-      // ↓↓↓ usa a SUA função (retorna Buffer)
+      // baixa do MinIO (Buffer)
       const buffer = await downloadMediaFromMinIO(attachment.mediaUrl, attachment.fileName);
       if (!buffer || !buffer.length) {
         return { success: false, reason: 'empty_buffer_from_minio' };
       }
 
-      // ✅ CORREÇÃO: Para áudio, renomear arquivo e corrigir MIME type
-      let finalFileName = fileName;
-      let finalMimeType = mimeType;
-      
-      if (isAudioLike(mediaType, mimeType)) {
-        finalFileName = 'audio.mp3';
-        finalMimeType = 'audio/mpeg'; // MIME type padrão para MP3
-        Log.info('[SEND] �� Arquivo de áudio renomeado para teste', {
-          originalFileName: fileName,
-          finalFileName: finalFileName,
-          originalMimeType: mimeType,
-          finalMimeType: finalMimeType
-        });
+      // ====== Regras de áudio (core do fix) ======
+      let finalMime = originalMime;
+      let finalName = originalName;
+
+      if (isAudioLike(mediaType, originalMime)) {
+        // Não forçar MP3; manter contêiner + codec de origem
+        // Ajusta extensão do arquivo para combinar com o MIME (evita .mp3 falso)
+        const wantedExt = extFromMime(originalMime);
+        if (wantedExt && !finalName.toLowerCase().endsWith(wantedExt)) {
+          const base = finalName.replace(/\.[a-z0-9]+$/i, '');
+          finalName = `${base}${wantedExt}`;
+        }
       }
 
-      const base64Data = buffer.toString('base64');
-      const messageMedia = new MessageMedia(finalMimeType, base64Data, finalFileName);
+      // Monta MessageMedia a partir do buffer
+      let messageMedia;
+      try {
+        const base64Data = buffer.toString('base64');
+        messageMedia = new MessageMedia(finalMime, base64Data, finalName);
+      } catch (err) {
+        Log.error('[SEND] falha ao criar MessageMedia', { to, err: err?.message, mime: finalMime, name: finalName });
+        return { success: false, reason: 'message_media_build_failed' };
+      }
 
+      // Opções de envio
       const opts = {};
-      if (isAudioLike(mediaType, mimeType)) {
-        opts.sendAudioAsVoice = true; // envia como PTT
+      if (isAudioLike(mediaType, originalMime)) {
+        // Envia como PTT **apenas** quando for Opus (ogg/webm)
+        opts.sendAudioAsVoice = isOpus(originalMime);
       } else if (msg?.caption) {
         opts.caption = String(msg.caption).slice(0, 3000);
       }
 
       Log.info('[SEND] mídia (Buffer via MinIO)', {
-        to, chatId, mediaType, mimeType: finalMimeType, fileName: finalFileName, asVoice: !!opts.sendAudioAsVoice
+        to, chatId,
+        mediaType,
+        originalMime,
+        finalMime,
+        finalName,
+        asVoice: !!opts.sendAudioAsVoice
       });
 
+      // Envia
       const sent = await client.sendMessage(chatId, messageMedia, opts);
 
       if (sent?.id?._serialized) {
-          await sendMessageStatus(number, sent.id._serialized, 'sent'); 
+        await sendMessageStatus(number, sent.id._serialized, 'sent');
         Log.info('[SEND] Mídia enviada', { to, messageId: sent.id._serialized });
-          return { success: true, messageId: sent.id._serialized }; 
-        }
+        return { success: true, messageId: sent.id._serialized };
+      }
       return { success: false, reason: 'sendMessage_empty_response' };
     }
 
@@ -1665,36 +1696,27 @@ async function sendOne(number, msg, typeMessage) {
     if (!body) return { success: false, reason: 'empty_text' };
 
     Log.info('[SEND] texto', { to, length: body.length });
-      const sent = await client.sendMessage(chatId, body);
-    
+    const sent = await client.sendMessage(chatId, body);
+
     if (sent?.id?._serialized) {
-      await sendMessageStatus(number, sent.id._serialized, 'sent'); 
+      await sendMessageStatus(number, sent.id._serialized, 'sent');
       Log.info('[SEND] Texto enviado', { to, messageId: sent.id._serialized });
-        return { success: true, messageId: sent.id._serialized }; 
+      return { success: true, messageId: sent.id._serialized };
     }
     return { success: false, reason: 'sendMessage_empty_response' };
 
-    } catch (e) {
-    Log.error('[SEND] erro', { to, typeMessage, error: e?.message });
+  } catch (e) {
+    // Erros típicos que vimos no log: "Evaluation failed: b"
+    Log.error('[SEND] erro', {
+      to,
+      typeMessage,
+      error: e?.message,
+      name: e?.name,
+      stack: e?.stack?.split('\n').slice(0, 3).join(' | ')
+    });
     return { success: false, reason: e?.message || 'unknown_error' };
   }
 }
-
-// ✅ CORREÇÃO: Função isAudioLike que estava faltando
-function isAudioLike(mediaType, mimeType) {
-  // Verificar por tipo de mídia
-  if (mediaType === 'audio' || mediaType === 'voice' || mediaType === 'ptt') {
-    return true;
-  }
-  
-  // Verificar por MIME type
-  if (mimeType && mimeType.startsWith('audio/')) {
-    return true;
-  }
-  
-  return false;
-}
-
 
 
 // ✅ FUNÇÃO: Limpeza automática de arquivos temporários antigos
