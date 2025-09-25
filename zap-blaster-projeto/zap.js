@@ -1619,8 +1619,23 @@ async function sendOne(number, msg, typeMessage) {
         return { success: false, reason: 'empty_buffer_from_minio' };
       }
 
+      // ✅ CORREÇÃO: Para áudio, renomear arquivo e corrigir MIME type
+      let finalFileName = fileName;
+      let finalMimeType = mimeType;
+      
+      if (isAudioLike(mediaType, mimeType)) {
+        finalFileName = 'audio.mp3';
+        finalMimeType = 'audio/mpeg'; // MIME type padrão para MP3
+        Log.info('[SEND] �� Arquivo de áudio renomeado para teste', {
+          originalFileName: fileName,
+          finalFileName: finalFileName,
+          originalMimeType: mimeType,
+          finalMimeType: finalMimeType
+        });
+      }
+
       const base64Data = buffer.toString('base64');
-      const messageMedia = new MessageMedia(mimeType, base64Data, fileName);
+      const messageMedia = new MessageMedia(finalMimeType, base64Data, finalFileName);
 
       const opts = {};
       if (isAudioLike(mediaType, mimeType)) {
@@ -1630,10 +1645,10 @@ async function sendOne(number, msg, typeMessage) {
       }
 
       Log.info('[SEND] mídia (Buffer via MinIO)', {
-        to, chatId, mediaType, mimeType, fileName, asVoice: !!opts.sendAudioAsVoice
+        to, chatId, mediaType, mimeType: finalMimeType, fileName: finalFileName, asVoice: !!opts.sendAudioAsVoice
       });
 
-      const sent = await client.sendMessage(chatId, messageMedia, opts);
+      const sent = await client.sendAudioAsVoice(chatId, messageMedia, opts);
 
       if (sent?.id?._serialized) {
           await sendMessageStatus(number, sent.id._serialized, 'sent'); 
