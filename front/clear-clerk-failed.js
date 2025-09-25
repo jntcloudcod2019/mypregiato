@@ -1,37 +1,24 @@
-// Script para limpar todo o estado de autenticação problemático
-console.log('🔧 Limpando estado de autenticação...');
+// Script para limpar o status de falha do Clerk
+// Execute este script no console do navegador para resetar o Clerk
+
+console.log('🧹 Limpando status de falha do Clerk...');
 
 try {
-  // Verificar valores atuais
-  console.log('Estado atual:', {
-    clerk_failed: sessionStorage.getItem('clerk_failed'),
-    clerk_last_failure: sessionStorage.getItem('clerk_last_failure'),
-    auth_token: sessionStorage.getItem('auth_token'),
-    userRole: sessionStorage.getItem('userRole')
-  });
+  // Limpar sessionStorage
+  sessionStorage.removeItem('clerk_failed');
+  sessionStorage.removeItem('clerk_last_failure');
   
-  // Limpar todos os itens relacionados à autenticação
-  const authKeys = [
-    'clerk_failed',
-    'clerk_last_failure', 
-    'auth_token',
-    'userRole',
-    'auth_checked',
-    'clerk_auth_state'
-  ];
+  // Limpar localStorage também
+  localStorage.removeItem('clerk_failed');
+  localStorage.removeItem('clerk_last_failure');
   
-  authKeys.forEach(key => {
-    sessionStorage.removeItem(key);
-    localStorage.removeItem(key);
-  });
+  console.log('✅ Status de falha do Clerk limpo com sucesso!');
+  console.log('🔄 Recarregue a página para tentar novamente.');
   
-  console.log('✅ Estado de autenticação limpo');
-  
-  // Aguardar um pouco e recarregar
-  setTimeout(() => {
-    window.location.reload();
-  }, 500);
+  // Recarregar a página automaticamente
+  window.location.reload();
   
 } catch (error) {
-  console.error('❌ Erro ao limpar estado:', error);
+  console.error('❌ Erro ao limpar status do Clerk:', error);
+  console.log('🔄 Tente recarregar a página manualmente.');
 }

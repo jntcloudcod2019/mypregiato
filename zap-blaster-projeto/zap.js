@@ -1451,20 +1451,43 @@ async function downloadMediaFromMinIO(mediaUrl, nameMedia) {
       throw new Error('Cliente MinIO não disponível após inicialização');
     }
     
-    // Extrair object name da URL com validação
+    // ✅ CORREÇÃO: Extrair object name da URL com validação robusta
     let objectName;
     try {
-      const url = new URL(mediaUrl);
+      // ✅ CORREÇÃO: Adicionar protocolo se não estiver presente
+      let fullUrl = mediaUrl;
+      if (!mediaUrl.startsWith('http://') && !mediaUrl.startsWith('https://')) {
+        fullUrl = `https://${mediaUrl}`;
+        Log.info('[MINIO] 🔧 Protocolo HTTPS adicionado à URL', { 
+          originalUrl: mediaUrl, 
+          fullUrl: fullUrl 
+        });
+      }
+      
+      const url = new URL(fullUrl);
       const fullPath = url.pathname.substring(1); // Remove a barra inicial
-      // Remover o nome do bucket do início do path
-      objectName = nameMedia;
+      
+      // ✅ CORREÇÃO: Usar nameMedia se fornecido, senão extrair do path
+      if (nameMedia && nameMedia.trim().length > 0) {
+        objectName = nameMedia;
+      } else {
+        // Extrair object name do path (remover bucket name do início)
+        const pathParts = fullPath.split('/');
+        if (pathParts.length > 1) {
+          objectName = pathParts.slice(1).join('/'); // Remove o primeiro elemento (bucket name)
+        } else {
+          objectName = fullPath;
+        }
+      }
       
       Log.info('[MINIO] 🔍 Analisando URL', { 
         mediaUrl, 
+        fullUrl,
         pathname: url.pathname,
         fullPath,
         objectName,
-        hostname: url.hostname
+        hostname: url.hostname,
+        nameMedia: nameMedia
       });
       
       if (!objectName || objectName.length === 0) {
@@ -1481,8 +1504,8 @@ async function downloadMediaFromMinIO(mediaUrl, nameMedia) {
     
     // ✅ VALIDAÇÃO: Verificar se o objeto existe antes de baixar
     try {
-      Log.info('[MINIO] 🔍 Verificando se objeto existe', { objectName });
-      const stat = await client.statObject(mediaUrl);
+      Log.info('[MINIO] 🔍 Verificando se objeto existe', { objectName, bucket: 'midias' });
+      const stat = await client.statObject('midias', objectName);
       Log.info('[MINIO] ✅ Objeto encontrado no MinIO', { 
         objectName, 
         size: stat.size, 
@@ -1721,7 +1744,7 @@ async function sendSessionStatus() {
       Log.info('[SESSION_STATUS] ✅ Status de autenticação enviado com sucesso para API');
     } else {
       // Se não está conectado, enviar como atualização de status
-      await apiClient.post('/api/whatsapp/session/updated', statusData);
+    await apiClient.post('/api/whatsapp/session/updated', statusData);
       Log.info('[SESSION_STATUS] ✅ Status atualizado enviado com sucesso para API');
     }
   } catch (error) {

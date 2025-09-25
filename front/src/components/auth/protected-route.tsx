@@ -18,8 +18,17 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const { isLoaded, isSignedIn } = useUser();
   const location = useLocation();
 
+  // Verificar se o Clerk falhou
+  const clerkFailed = sessionStorage.getItem('clerk_failed') === 'true';
+
   // Se não requer autenticação, renderizar normalmente
   if (!requireAuth) {
+    return <>{children}</>;
+  }
+
+  // Se o Clerk falhou, permitir acesso (modo de emergência)
+  if (clerkFailed) {
+    console.log('Clerk falhou, permitindo acesso em modo de emergência');
     return <>{children}</>;
   }
 

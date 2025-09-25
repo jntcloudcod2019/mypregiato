@@ -19,6 +19,10 @@ export function ClerkErrorFallback({ onRetry }: ClerkErrorFallbackProps) {
       // Limpar o status de falha e tentar novamente
       try {
         sessionStorage.removeItem('clerk_failed');
+        sessionStorage.removeItem('clerk_last_failure');
+        localStorage.removeItem('clerk_failed');
+        localStorage.removeItem('clerk_last_failure');
+        console.log('✅ Status de falha do Clerk limpo, recarregando página...');
         window.location.reload();
       } catch (e) {
         console.error('Erro ao limpar status de falha:', e);
@@ -31,6 +35,10 @@ export function ClerkErrorFallback({ onRetry }: ClerkErrorFallbackProps) {
     // Limpar o status de falha e ir para login
     try {
       sessionStorage.removeItem('clerk_failed');
+      sessionStorage.removeItem('clerk_last_failure');
+      localStorage.removeItem('clerk_failed');
+      localStorage.removeItem('clerk_last_failure');
+      console.log('✅ Status de falha do Clerk limpo, redirecionando para login...');
     } catch (e) {
       console.error('Erro ao limpar status de falha:', e);
     }

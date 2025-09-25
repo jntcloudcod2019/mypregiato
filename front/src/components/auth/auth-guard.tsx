@@ -21,6 +21,9 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   // Rotas públicas que não requerem autenticação
   const publicRoutes = ['/login', '/ficha'];
   const isPublicRoute = publicRoutes.some(route => location.pathname.startsWith(route));
+  
+  // Verificar se o Clerk está disponível
+  const clerkFailed = sessionStorage.getItem('clerk_failed') === 'true';
 
   // TEMPORARIAMENTE DESABILITADO: Verificação de servidor reiniciado
   // useEffect(() => {
@@ -44,12 +47,23 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   // }, [isLoaded, isSignedIn]);
 
   useEffect(() => {
+    // Se o Clerk falhou, permitir acesso a todas as rotas (modo de emergência)
+    if (clerkFailed) {
+      console.log('Clerk falhou, permitindo acesso em modo de emergência');
+      return;
+    }
+    
     // Se o Clerk carregou e não está autenticado, redirecionar para login
     if (isLoaded && !isSignedIn && !isPublicRoute) {
       console.log('Usuário não autenticado, redirecionando para login');
       navigate('/login', { state: { from: location }, replace: true });
     }
-  }, [isLoaded, isSignedIn, isPublicRoute, navigate, location]);
+  }, [isLoaded, isSignedIn, isPublicRoute, navigate, location, clerkFailed]);
+
+  // Se o Clerk falhou, permitir acesso a todas as rotas (modo de emergência)
+  if (clerkFailed) {
+    return <>{children}</>;
+  }
 
   // Se ainda está carregando, mostrar loading
   if (!isLoaded) {

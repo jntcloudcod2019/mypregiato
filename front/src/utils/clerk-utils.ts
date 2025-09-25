@@ -70,7 +70,14 @@ export function getClerkPublishableKey(): string {
   if (envKey) return envKey;
   
   // Fallback para chave de teste hardcoded (apenas desenvolvimento)
-  return "pk_test_c21pbGluZy1tYW1tb3RoLTYuY2xlcmsuYWNjb3VudHMuZGV2JA";
+  // Verificar se a chave está válida
+  const fallbackKey = "pk_test_c21pbGluZy1tYW1tb3RoLTYuY2xlcmsuYWNjb3VudHMuZGV2JA";
+  if (fallbackKey && fallbackKey.startsWith('pk_')) {
+    return fallbackKey;
+  }
+  
+  // Se a chave fallback não for válida, retornar uma chave de teste genérica
+  return "pk_test_fallback-key-for-development";
 }
 
 /**
@@ -82,8 +89,16 @@ export function shouldEnableClerk(): boolean {
     return envEnable === 'true';
   }
   
-  // ✅ CORREÇÃO: Habilitar sempre, não apenas em desenvolvimento
-  // Verificar se temos uma chave válida
+  // ✅ CORREÇÃO: Verificar se temos uma chave válida e se não há falhas recentes
   const publishableKey = getClerkPublishableKey();
-  return publishableKey && publishableKey.startsWith('pk_');
+  const hasValidKey = publishableKey && publishableKey.startsWith('pk_');
+  
+  // Verificar se o Clerk não falhou recentemente
+  const clerkFailed = sessionStorage.getItem('clerk_failed') === 'true';
+  if (clerkFailed) {
+    console.log('Clerk desabilitado devido a falhas anteriores');
+    return false;
+  }
+  
+  return hasValidKey;
 }

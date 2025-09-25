@@ -118,7 +118,9 @@ namespace Pregiato.Infrastructure.Adapters
 
         await _minioClient.PutObjectAsync(putObjectArgs);
 
-        var mediaUrl = $"{_options.Endpoint}/{_options.BucketName}/{objectName}";
+        // ✅ CORREÇÃO: Construir URL completa com protocolo HTTPS
+        var protocol = _options.UseSSL ? "https" : "http";
+        var mediaUrl = $"{protocol}://{_options.Endpoint}/{_options.BucketName}/{objectName}";
         var result = new MediaResultDto
         {
             MediaUrl = mediaUrl,
