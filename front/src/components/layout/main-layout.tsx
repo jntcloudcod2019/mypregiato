@@ -35,7 +35,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
         // Ignorar erros de sessão
       }
     }
-  }, []);
+  }, [])
 
   // Verificar se o Clerk está carregando por tempo demais
   useEffect(() => {

@@ -79,6 +79,11 @@
             Verifica se um talento existe por email ou documento
             </summary>
         </member>
+        <member name="M:Pregiato.API.Controllers.WhatsAppController.BroadcastStatus(Pregiato.API.Controllers.WhatsAppController.BotStatusBroadcastRequest)">
+            <summary>
+            Endpoint para broadcast de status em tempo real via SignalR
+            </summary>
+        </member>
         <member name="T:Pregiato.API.Middleware.ErrorResponse">
             <summary>
             Classe para padronizar respostas de erro

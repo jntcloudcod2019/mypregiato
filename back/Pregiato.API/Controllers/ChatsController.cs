@@ -4,7 +4,9 @@ using Microsoft.AspNetCore.SignalR;
 using Pregiato.API.Hubs;
 using Pregiato.API.Services;
 using Pregiato.Core.Entities;
+using Pregiato.Core.Interfaces;
 using Pregiato.Infrastructure.Data;
+using Pregiato.Infrastructure.Adapters;
 using System.Text.Json;
 using System.Text;
 
@@ -16,12 +18,13 @@ namespace Pregiato.API.Controllers
     {
         private readonly ChatLogService _chatService;
         private readonly PregiatoDbContext _db;
+        private readonly MinIOStorageAdapter _minIOStorageAdapter;
         private readonly IHubContext<WhatsAppHub> _hub;
         private readonly RabbitBackgroundService _rabbit;
         private readonly ILogger<ChatsController> _logger;
         private readonly ConversationService _conversationService;
 
-        public ChatsController(ChatLogService chatService, PregiatoDbContext db, IHubContext<WhatsAppHub> hub, RabbitBackgroundService rabbit, ILogger<ChatsController> logger, ConversationService conversationService)
+        public ChatsController(MinIOStorageAdapter minIOStorageAdapter, ChatLogService chatService, PregiatoDbContext db, IHubContext<WhatsAppHub> hub, RabbitBackgroundService rabbit, ILogger<ChatsController> logger, ConversationService conversationService)
         {
             _chatService = chatService;
             _db = db;
@@ -29,6 +32,7 @@ namespace Pregiato.API.Controllers
             _rabbit = rabbit;
             _logger = logger;
             _conversationService = conversationService;
+            _minIOStorageAdapter = minIOStorageAdapter;
         }
 
         [HttpGet]
@@ -315,53 +319,76 @@ namespace Pregiato.API.Controllers
             }
             _logger.LogInformation($"✅ Chat encontrado: {chat.Id}, ChatId: {chat.ChatId}");
 
-            // ✅ NOVO FLUXO: Para mídia, fazer upload para MinIO e salvar URL
-            string? mediaUrl = null;
+            // ✅ CORREÇÃO: Processamento robusto de mídia para MinIO
+            MediaResultDto? mediaUrl = null;
             var attachment = null as ChatLogService.ChatAttachment;
             
             if (isMediaMessage)
             {
                 try
                 {
-                    // Extrair mimeType do dataUrl se não estiver definido
+                    _logger.LogInformation($"🎵 Processando mídia - Tipo: {messageType}, Body Length: {message.body?.Length ?? 0}");
+                    
+                    // ✅ CORREÇÃO: Extrair mimeType do dataUrl corretamente
                     var mimeType = message.mimeType;
                     if (string.IsNullOrEmpty(mimeType) && message.body.StartsWith("data:"))
                     {
                         var dataUrlParts = message.body.Split(',');
                         if (dataUrlParts.Length > 0)
                         {
-                            var mimePart = dataUrlParts[0].Replace("data:", "");
+                            var mimePart = dataUrlParts[0].Replace("data:", "").Split(';')[0]; // Remover parâmetros como codecs
                             mimeType = mimePart;
+                            _logger.LogInformation($"🎵 MimeType extraído do dataUrl: {mimeType}");
                         }
                     }
                     
-                    // Definir mimeType padrão para áudio se ainda não estiver definido
+                    // ✅ CORREÇÃO: Definir mimeType padrão baseado no tipo da mensagem
                     if (string.IsNullOrEmpty(mimeType))
                     {
-                        mimeType = messageType == "audio" || messageType == "voice" ? "audio/webm" : "application/octet-stream";
+                        mimeType = messageType switch
+                        {
+                            "audio" or "voice" => "audio/mp3", // ✅ CORREÇÃO: Forçar MP3 para áudio
+                            "image" => "image/jpeg",
+                            "video" => "video/mp4",
+                            _ => "application/octet-stream"
+                        };
+                        _logger.LogInformation($"🎵 MimeType padrão definido: {mimeType}");
                     }
                     
+                    // ✅ CORREÇÃO: Gerar nome de arquivo apropriado
+                    var fileName = message.fileName ?? Guid.NewGuid().ToString();
+                    if (messageType == "audio" || messageType == "voice")
+                    {
+                        fileName = fileName.EndsWith(".mp3") ? fileName : $"{Path.GetFileNameWithoutExtension(fileName)}.mp3";
+                    }
+                    
+                    
+                    
                     // ✅ NOVO: Fazer upload para MinIO
-                    var mediaStorageService = HttpContext.RequestServices.GetRequiredService<Pregiato.Core.Interfaces.IMediaStoragePort>();
-                    mediaUrl = await mediaStorageService.StoreMediaAsync(message.body, mimeType, message.fileName ?? "media");
+                    var mediaResult = await _minIOStorageAdapter.StoreMediaAsync(message.body, mimeType, req.Contact.PhoneE164, req.Contact.Name.ToString());
+                    mediaUrl = mediaResult;
                     
-                    _logger.LogInformation($"🎵 Mídia enviada para MinIO: {mediaUrl}");
+                    _logger.LogInformation("✅ Mídia enviada para MinIO com sucesso: {MediaUrl}", mediaUrl?.MediaUrl);
                     
-                    // Criar attachment com URL da mídia
+                    // ✅ CORREÇÃO: Criar attachment com todos os campos preenchidos
                     attachment = new ChatLogService.ChatAttachment
                     {
-                        DataUrl = mediaUrl, // ✅ URL da mídia no MinIO
+                        DataUrl = mediaUrl?.MediaUrl, // ✅ URL da mídia no MinIO
                         MimeType = mimeType,
-                        FileName = message.fileName,
+                        FileName = mediaUrl?.ObjectName,
                         MediaType = messageType
                     };
                     
-                    _logger.LogInformation($"🎵 Attachment criado para mídia: mimeType={mimeType}, fileName={attachment.FileName}, url={mediaUrl}");
+                    _logger.LogInformation($"✅ Attachment criado: mimeType={mimeType}, fileName={fileName}, url={mediaUrl}");
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "❌ Erro ao fazer upload da mídia para MinIO");
-                    // Em caso de erro, continuar sem attachment
+                    _logger.LogError(ex, "❌ Erro ao fazer upload da mídia para MinIO - Tipo: {MessageType}, MimeType: {MimeType}", 
+                        messageType, message.mimeType);
+                    
+                    // ✅ FALLBACK: Continuar sem attachment mas logar o erro
+                    mediaUrl = null;
+                    attachment = null;
                 }
             }
 
@@ -385,25 +412,25 @@ namespace Pregiato.API.Controllers
                     };
                 }
                 
-                // Criar nova MessageInfo para mensagem outbound
+                // ✅ CORREÇÃO: Criar MessageInfo com todos os campos preenchidos corretamente
                 var messageInfo = new ChatLogService.MessageInfo
                 {
                     Id = message.Id,
                     Content = null, // Campo Content deve ser null conforme padrão
-                    body = isMediaMessage ? mediaUrl : messageBody, // ✅ NOVO: Para mídia, salvar URL; para texto, salvar conteúdo
+                    body = isMediaMessage ? mediaUrl?.MediaUrl : messageBody, // ✅ Para mídia: URL do MinIO; para texto: conteúdo
                     Direction = "outbound",
                     Ts = DateTime.UtcNow,
                     timestamp = DateTime.UtcNow.ToString("O"), // Campo timestamp principal conforme padrão
                     Status = "pending", // Status inicial como pending para mensagens enviadas
                     Type = message.Type,
-                    MediaUrl = isMediaMessage ? mediaUrl : null, // ✅ NOVO: Para mídia, salvar URL da mídia
+                    MediaUrl = isMediaMessage ? mediaUrl?.MediaUrl : null, // ✅ URL da mídia no MinIO
                     IsRead = false, // Campo IsRead conforme padrão
                     from = "operator@frontend", // Campo from conforme padrão
                     
-                    // Campos de mídia conforme padrão
-                    mimeType = attachment?.MimeType,
-                    fileName = attachment?.FileName,
-                    size = attachment?.DataUrl != null ? (long)(attachment.DataUrl.Length * 0.75) : null, // Tamanho aproximado
+                    // ✅ CORREÇÃO: Campos de mídia preenchidos corretamente
+                    mimeType = attachment?.MimeType ?? message.mimeType,
+                    fileName = attachment?.FileName ?? message.fileName,
+                    size = isMediaMessage && mediaUrl != null ? message.body?.Length : null,
                     
                     // Campos adicionais conforme padrão (inicializados como null)
                     duration = null,
@@ -411,9 +438,13 @@ namespace Pregiato.API.Controllers
                     latitude = null,
                     longitude = null,
                     locationAddress = null,
-                    contactName = null,
-                    contactPhone = null
+                    contactName = req.Contact.Name,
+                    contactPhone = req.Contact.PhoneE164
                 };
+                
+                _logger.LogInformation($"✅ MessageInfo criada - ID: {messageInfo.Id}, Type: {messageInfo.Type}, " +
+                    $"Body: {(messageInfo.body?.Length > 50 ? messageInfo.body.Substring(0, 50) + "..." : messageInfo.body)}, " +
+                    $"MediaUrl: {messageInfo.MediaUrl}, MimeType: {messageInfo.mimeType}, FileName: {messageInfo.fileName}");
                 
                 // Verificar se a mensagem já existe (evitar duplicatas)
                 var existingMessage = existingPayload.Messages?.FirstOrDefault(m => m.Id == messageInfo.Id);
@@ -494,7 +525,7 @@ namespace Pregiato.API.Controllers
             
             // ✅ NOVO: Para mídia, usar URL do MinIO; para texto, usar messageBody
             string? body = isMediaMessage 
-                ? mediaUrl  // URL da mídia no MinIO
+                ? mediaUrl?.MediaUrl  // URL da mídia no MinIO
                 : (string.IsNullOrWhiteSpace(messageBody) ? null : messageBody);
             
             _logger.LogInformation($"🎵 [AUDIO DEBUG] Body final: {body?.Substring(0, Math.Min(50, body?.Length ?? 0))}...");
@@ -507,7 +538,7 @@ namespace Pregiato.API.Controllers
                 // ✅ NOVO: Para todas as mídias, attachment contém metadados + URL
                 attachmentObj = new
                 {
-                    mediaUrl = mediaUrl, // URL da mídia no MinIO
+                    mediaUrl = mediaUrl?.MediaUrl, // URL da mídia no MinIO
                     mimeType = attachment.MimeType,
                     fileName = attachment.FileName,
                     mediaType = attachment.MediaType
@@ -516,23 +547,6 @@ namespace Pregiato.API.Controllers
             
             // ✅ CORREÇÃO: Obter o número conectado do WhatsApp (priorizar do frontend, fallback para RabbitMQ)
             var connectedNumber = message.from; // Número conectado enviado pelo frontend
-            
-            if (string.IsNullOrEmpty(connectedNumber))
-            {
-                // Fallback: consultar status da sessão via RabbitMQ
-                var sessionStatus = _rabbit.GetSessionStatus();
-                connectedNumber = sessionStatus.connectedNumber;
-                
-                if (string.IsNullOrEmpty(connectedNumber))
-                {
-                    _logger.LogError("❌ Número conectado do WhatsApp não disponível. Status da sessão: {SessionConnected}", sessionStatus.sessionConnected);
-                    return BadRequest(new { error = "WhatsApp não está conectado. Verifique o status da sessão." });
-                }
-            }
-            else
-            {
-                _logger.LogInformation("✅ Usando número conectado do frontend: {ConnectedNumber}", connectedNumber);
-            }
             
             // Formatar o número conectado no formato esperado pelo ZapBot
             var fromNumber = $"{connectedNumber}@c.us";
@@ -544,12 +558,13 @@ namespace Pregiato.API.Controllers
                 to = toNormalized, // Manter para compatibilidade
                 from = fromNumber, // ✅ CORREÇÃO: Usar número conectado do WhatsApp
                 body = body, // ÁUDIO: data URL aqui | OUTROS: legenda aqui
+                type = message.Type,
                 clientMessageId = message.Id,
                 chatId = chat.ChatId,
                 attachment = attachmentObj
             };
             
-            _logger.LogInformation("📤 Enviando mensagem: from={From} to={To}", fromNumber, toNormalized);
+            _logger.LogInformation($"📤 Enviando mensagem: from={fromNumber} to={toNormalized}");
             
             await _rabbit.PublishAsync("whatsapp.outgoing", cmd);
             

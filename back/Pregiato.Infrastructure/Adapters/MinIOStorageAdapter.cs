@@ -69,116 +69,75 @@ namespace Pregiato.Infrastructure.Adapters
                 }
 
                 _isInitialized = true;
-                _logger.LogInformation("🎉 MinIO inicializado com sucesso - Endpoint: {Endpoint}, Bucket: {BucketName}", 
+                _logger.LogInformation("🎉 MinIO inicializado com sucesso ", 
                     _options.Endpoint, _options.BucketName);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Falha ao inicializar MinIO - Endpoint: {Endpoint}, Bucket: {BucketName}", 
+                _logger.LogError(ex, "❌ Falha ao inicializar MinIO ", 
                     _options.Endpoint, _options.BucketName);
                 throw;
             }
         }
 
-        public async Task<string> StoreMediaAsync(string base64Data, string mimeType, string filename)
-        {
-            try
-            {
-                await EnsureInitializedAsync();
-                
-                _logger.LogInformation("🎬 Iniciando upload para MinIO: {MimeType}, {Filename}", mimeType, filename);
-
-                var base64Content = ExtractBase64Content(base64Data);
-                var bytes = Convert.FromBase64String(base64Content);
-
-                var uniqueFileName = $"{Guid.NewGuid()}{GetFileExtension(mimeType)}";
-                var objectName = $"media/{uniqueFileName}";
-
-                using var stream = new MemoryStream(bytes);
-
-                // ✅ CORREÇÃO: Usar PutObjectAsync com PutObjectArgs
-                var putObjectArgs = new PutObjectArgs()
-                    .WithBucket(_options.BucketName)
-                    .WithObject(objectName)
-                    .WithStreamData(stream)
-                    .WithObjectSize(stream.Length)
-                    .WithContentType(mimeType);
-
-                await _minioClient.PutObjectAsync(putObjectArgs);
-
-                var mediaUrl = $"{(_options.UseSSL ? "https" : "http")}://{_options.Endpoint.Replace("http://", "").Replace("https://", "")}/{_options.BucketName}/{objectName}";
-                
-                _logger.LogInformation("✅ Upload para MinIO concluído: {MediaUrl} ({Size} bytes)", 
-                    mediaUrl, bytes.Length);
-                
-                return mediaUrl;
-            }
-            catch (MinioException ex)
-            {
-                _logger.LogError(ex, "❌ Erro do MinIO ao fazer upload: {MimeType}, {Filename}", mimeType, filename);
-                throw;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Erro genérico ao fazer upload para MinIO: {MimeType}, {Filename}", mimeType, filename);
-                throw;
-            }
-        }
+      
 
         /// <summary>
         /// Armazena mídia com nomenclatura descritiva baseada no contexto da mensagem
         /// Formato: messageId_contato_data_hora_remetente.extensao
         /// </summary>
-        public async Task<string> StoreMediaAsync(string base64Data, string mimeType, string messageId, string contactNumber, string senderName)
+        public async Task<MediaResultDto> StoreMediaAsync(string base64Data, string mimeType, string contactNumber, string senderName)
         {
             try
             {
-                await EnsureInitializedAsync();
-                
-                _logger.LogInformation("🎬 Iniciando upload para MinIO com nomenclatura descritiva: {MimeType}, {MessageId}, {ContactNumber}, {SenderName}", 
-                    mimeType, messageId, contactNumber, senderName);
+                 await EnsureInitializedAsync();
 
-                var base64Content = ExtractBase64Content(base64Data);
-                var bytes = Convert.FromBase64String(base64Content);
+        var base64Content = ExtractBase64Content(base64Data);
+        var bytes = Convert.FromBase64String(base64Content);
 
-                // ✅ NOVA NOMENCLATURA: messageId_contato_data_hora_remetente.extensao
-                var timestamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
-                var extension = GetFileExtension(mimeType);
-                
-                var descriptiveFileName = $"{messageId}_{contactNumber}_{timestamp}_{senderName}{extension}";
-                var objectName = $"media/{descriptiveFileName}";
+        if (bytes.Length == 0)
+            throw new InvalidOperationException("Arquivo vazio não pode ser enviado.");
 
-                using var stream = new MemoryStream(bytes);
+        // 🔑 Pega extensão e ContentType baseados no MIME recebido
+        var extension = GetFileExtension(mimeType); // ex: ".mp3" para audio/mpeg
+        var finalMimeType = mimeType ?? "application/octet-stream";
 
-                // ✅ CORREÇÃO: Usar PutObjectAsync com PutObjectArgs
-                var putObjectArgs = new PutObjectArgs()
-                    .WithBucket(_options.BucketName)
-                    .WithObject(objectName)
-                    .WithStreamData(stream)
-                    .WithObjectSize(stream.Length)
-                    .WithContentType(mimeType);
+        var timestamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
 
-                await _minioClient.PutObjectAsync(putObjectArgs);
+        var descriptiveFileName = $"{senderName}_{contactNumber}_{timestamp}{extension}";
+        var objectName = $"media/{descriptiveFileName}";
 
-                var mediaUrl = $"{(_options.UseSSL ? "https" : "http")}://{_options.Endpoint.Replace("http://", "").Replace("https://", "")}/{_options.BucketName}/{objectName}";
-                
-                _logger.LogInformation("✅ Upload para MinIO concluído com nomenclatura descritiva: {MediaUrl} ({Size} bytes)", 
-                    mediaUrl, bytes.Length);
-                
-                return mediaUrl;
-            }
-            catch (MinioException ex)
-            {
-                _logger.LogError(ex, "❌ Erro do MinIO ao fazer upload: {MimeType}, {MessageId}, {ContactNumber}, {SenderName}", 
-                    mimeType, messageId, contactNumber, senderName);
-                throw;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Erro inesperado ao fazer upload: {MimeType}, {MessageId}, {ContactNumber}, {SenderName}", 
-                    mimeType, messageId, contactNumber, senderName);
-                throw;
-            }
+        using var stream = new MemoryStream(bytes);
+
+        var putObjectArgs = new PutObjectArgs()
+            .WithBucket(_options.BucketName)
+            .WithObject(objectName)
+            .WithStreamData(stream)
+            .WithObjectSize(stream.Length)
+            .WithContentType(finalMimeType);
+
+        await _minioClient.PutObjectAsync(putObjectArgs);
+
+        var mediaUrl = $"{_options.Endpoint}/{_options.BucketName}/{objectName}";
+        var result = new MediaResultDto
+        {
+            MediaUrl = mediaUrl,
+            ObjectName = objectName
+        };
+
+        _logger.LogInformation("✅ Upload concluído: {Url}", mediaUrl);
+        return result;
+    }
+    catch (MinioException ex)
+    {
+        _logger.LogError(ex, "❌ Erro do MinIO ao fazer upload");
+        throw;
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "❌ Erro inesperado ao fazer upload");
+        throw;
+    }
         }
 
         public async Task<byte[]> GetMediaAsync(string mediaUrl)
@@ -223,38 +182,7 @@ namespace Pregiato.Infrastructure.Adapters
             }
         }
 
-        public async Task<bool> DeleteMediaAsync(string mediaUrl)
-        {
-            try
-            {
-                await EnsureInitializedAsync();
-                
-                _logger.LogInformation("🗑️ Iniciando exclusão do MinIO: {MediaUrl}", mediaUrl);
-
-                var objectName = ExtractObjectKeyFromUrl(mediaUrl);
-                
-                // ✅ CORREÇÃO: Usar RemoveObjectAsync com RemoveObjectArgs
-                var removeObjectArgs = new RemoveObjectArgs()
-                    .WithBucket(_options.BucketName)
-                    .WithObject(objectName);
-                
-                await _minioClient.RemoveObjectAsync(removeObjectArgs);
-                
-                _logger.LogInformation("✅ Exclusão do MinIO concluída: {MediaUrl}", mediaUrl);
-                return true;
-            }
-            catch (MinioException ex)
-            {
-                _logger.LogError(ex, "❌ Erro do MinIO ao excluir: {MediaUrl}", mediaUrl);
-                throw;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Erro genérico ao excluir do MinIO: {MediaUrl}", mediaUrl);
-                throw;
-            }
-        }
-
+        
         // ✅ Método de interface renomeado e ajustado
         public Task<string> GetPublicUrlAsync(string mediaUrl)
         {
@@ -321,17 +249,11 @@ namespace Pregiato.Infrastructure.Adapters
                 "image/bmp" => ".bmp",
                 "image/tiff" => ".tiff",
                 "video/mp4" => ".mp4",
-                "video/avi" => ".avi",
                 "video/mov" => ".mov",
                 "video/webm" => ".webm",
                 "video/quicktime" => ".mov",
                 "application/pdf" => ".pdf",
                 "application/msword" => ".doc",
-                "application/vnd.openxmlformats-officedocument.wordprocessingml.document" => ".docx",
-                "application/vnd.ms-excel" => ".xls",
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" => ".xlsx",
-                "application/vnd.ms-powerpoint" => ".ppt",
-                "application/vnd.openxmlformats-officedocument.presentationml.presentation" => ".pptx",
                 "text/plain" => ".txt",
                 "text/csv" => ".csv",
                 "application/json" => ".json",

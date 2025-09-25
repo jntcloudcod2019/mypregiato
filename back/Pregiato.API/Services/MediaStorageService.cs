@@ -26,7 +26,7 @@ namespace Pregiato.API.Services
             }
         }
 
-        public async Task<string> StoreMediaAsync(string base64Data, string mimeType, string filename)
+        public async Task<MediaResultDto> StoreMediaAsync(string base64Data, string mimeType, string filename)
         {
             try
             {
@@ -35,7 +35,7 @@ namespace Pregiato.API.Services
                 // ✅ TENTAR MINIO PRIMEIRO
                 try
                 {
-                    var minioUrl = await _mediaStoragePort.StoreMediaAsync(base64Data, mimeType, filename);
+                    var minioUrl = await _mediaStoragePort.StoreMediaAsync(base64Data, mimeType, filename,"nada" );
                     _logger.LogInformation("✅ Mídia armazenada no MinIO: {MinioUrl}", minioUrl);
                     return minioUrl;
                 }
@@ -45,7 +45,17 @@ namespace Pregiato.API.Services
                 }
 
                 // ✅ FALLBACK: ARMAZENAMENTO LOCAL
-                return await StoreMediaLocallyAsync(base64Data, mimeType, filename);
+                var result = await StoreMediaLocallyAsync(base64Data, mimeType, filename);
+                
+                var data = new MediaResultDto
+                {
+                    MediaUrl = result,
+                    ObjectName = filename
+                };
+
+            _logger.LogInformation("✅ Upload concluído: {Url}", data.MediaUrl);
+            return data;
+
             }
             catch (Exception ex)
             {

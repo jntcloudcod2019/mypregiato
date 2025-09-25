@@ -245,12 +245,7 @@ try
         
         Log.Information("📦 MinIO Configurado - Endpoint: {Endpoint}, Bucket: {BucketName}", 
             minioOptions?.Endpoint, minioOptions?.BucketName);
-            
-        // Teste de conectividade (sem fazer upload real)
-        var testData = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("test-connectivity"));
-        var testUrl = await minioAdapter.StoreMediaAsync(testData, "text/plain", "connectivity-test.txt");
-        
-        Log.Information("✅ MinIO conectado com sucesso - Teste realizado em: {TestUrl}", testUrl);
+    
     }
     catch (Exception minioEx)
     {

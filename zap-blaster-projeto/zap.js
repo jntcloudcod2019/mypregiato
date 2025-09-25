@@ -406,7 +406,6 @@ async function startConsumer() {
       messageId: messageId,
       deliveryTag: deliveryTag,
       retryCount: retryCount,
-      bodyLength: msg.content?.length || 0,
       timestamp: new Date().toISOString()
     });
     
@@ -420,13 +419,14 @@ async function startConsumer() {
         from: payload.from,
         hasBody: !!payload.body,
         bodyLength: payload.body?.length || 0,
+        type: payload.type,
         hasAttachment: !!payload.attachment,
         attachmentType: payload.attachment?.mediaType,
         attachmentMime: payload.attachment?.mimeType,
         attachmentDataUrlLength: payload.attachment?.dataUrl?.length || 0,
         attachmentMediaUrl: payload.attachment?.mediaUrl,
         clientMessageId: payload.clientMessageId,
-        connectedNumber: connectedNumber
+        connectedNumber: from
       });
       if (payload.command === 'disconnect') {
         Log.info('[QUEUE] 🔌 COMMAND disconnect recebido', { messageId, deliveryTag });
@@ -470,6 +470,7 @@ async function startConsumer() {
           deliveryTag,
           phone: payload.phone,
           to: payload.to,
+          type: payload.type,
           clientMessageId: payload.clientMessageId,
           hasAttachment: !!payload.attachment
         });
@@ -478,15 +479,10 @@ async function startConsumer() {
         const targetNumber = payload.to;
         const message     = payload.body ?? payload.message ?? payload.text ?? payload.Message ?? payload.Body ?? null;
         const template    = payload.template ?? payload.Template ?? null;
-        const data        = payload.data ?? payload.vars ?? payload.payload ?? null;
+        const data        = payload.data ??  payload.payload ?? null;
         const attachment  = payload.attachment || null;
+        const typeMessage = payload.type || null;
 
-        // Avisos de integridade (opcional)
-        if (payload.from && payload.from !== connectedNumber) {
-          Log.warn('[QUEUE] ⚠️ Inconsistência detectada (from != connectedNumber)', {
-            payloadFrom: payload.from, connectedNumber, targetNumber, messageId, deliveryTag
-          });
-        }
 
         Log.debug('[QUEUE] payload normalizado', {
           targetNumber,
@@ -496,7 +492,7 @@ async function startConsumer() {
          
         });
 
-        const res = await sendOne(targetNumber, { message, template, data, attachment });
+        const res = await sendOne(targetNumber, { message, template, data, attachment }, typeMessage);
 
         if (res.success) {
           Log.info('[QUEUE] ✅ Mensagem enviada com sucesso', {
@@ -601,50 +597,7 @@ async function startConsumer() {
               queueMessageId: messageId
             });
             
-            // ✅ RESILIÊNCIA ADICIONAL: Se falhou e é áudio, tentar recuperar do banco antes de retry
-            const clientMessageId = payload.clientMessageId || payload.Id || payload.id;
-            if (clientMessageId && 
-                (attachment?.mediaType === 'audio' || attachment?.mediaType === 'voice' ||
-                 (body && body.includes('audio')))) {
-              
-              Log.info('🔄 [QUEUE_RESILIENCE] Falha no envio de áudio, tentando recuperação...', {
-                clientMessageId: clientMessageId,
-                phone: phone,
-                reason: res.reason,
-                retryCount: newRetryCount
-              });
-              
-              try {
-                const audioData = await getAudioFromPayloadJson(clientMessageId);
-                if (audioData && audioData.base64Data) {
-                  Log.info('🎵 [QUEUE_RESILIENCE] Tentando reenvio com dados do banco...');
-                  const retryRes = await sendOne(phone, { 
-                    message: '', 
-                    data: { ...payload, recoveredFromDB: true }, 
-                    attachment: {
-                      dataUrl: audioData.base64Data,
-                      mimeType: audioData.mimeType,
-                      fileName: audioData.fileName,
-                      mediaType: 'audio'
-                    }
-                  });
-                  
-                  if (retryRes.success) {
-                    Log.info('✅ [QUEUE_RESILIENCE] Áudio reenviado com sucesso!');
-                    clearRetryCount(messageId);
-                    amqpChan.ack(msg);
-                    return;
-                  } else {
-                    Log.warn('⚠️ [QUEUE_RESILIENCE] Recuperação falhou, continuando com retry normal');
-                  }
-                }
-              } catch (recoveryError) {
-                Log.error('❌ [QUEUE_RESILIENCE] Falha na recuperação:', recoveryError.message);
-              }
-            }
-            
-            // Rejeitar mensagem para retry posterior
-            amqpChan.nack(msg, false, true);
+          
             
             // ✅ NOVO: Aguardar antes de processar próxima mensagem
             await delay(delayMs);
@@ -1468,12 +1421,6 @@ async function initializeMinIOClient() {
       secretKey: process.env.MINIO_ROOT_PASSWORD || 'OduQXA4WGbZ83GhL5vclllgRmmVr0xas2QhLCPOq6o8Qhpgt'
     });
 
-    // Testar conexão
-    const bucketExists = await minioClient.bucketExists('midias');
-    if (!bucketExists) {
-      throw new Error('Bucket midias não existe');
-    }
-
     minioInitialized = true;
     Log.info('[MINIO] ✅ Cliente MinIO inicializado e conectado com sucesso');
     return minioClient;
@@ -1486,7 +1433,7 @@ async function initializeMinIOClient() {
 }
 
 // ✅ NOVA ESTRATÉGIA: Baixar mídia usando cliente MinIO autenticado
-async function downloadMediaFromMinIO(mediaUrl) {
+async function downloadMediaFromMinIO(mediaUrl, nameMedia) {
   try {
     Log.info('[MINIO] 📥 Iniciando download de mídia', { 
       mediaUrl,
@@ -1496,10 +1443,6 @@ async function downloadMediaFromMinIO(mediaUrl) {
     // ✅ VALIDAÇÃO: Verificar se a URL é válida
     if (!mediaUrl || typeof mediaUrl !== 'string') {
       throw new Error('URL de mídia inválida ou vazia');
-    }
-    
-    if (!mediaUrl.startsWith('http')) {
-      throw new Error('URL de mídia deve começar com http/https');
     }
     
     // Garantir que o cliente MinIO está inicializado
@@ -1514,7 +1457,7 @@ async function downloadMediaFromMinIO(mediaUrl) {
       const url = new URL(mediaUrl);
       const fullPath = url.pathname.substring(1); // Remove a barra inicial
       // Remover o nome do bucket do início do path
-      objectName = fullPath.replace(/^midias\//, '');
+      objectName = nameMedia;
       
       Log.info('[MINIO] 🔍 Analisando URL', { 
         mediaUrl, 
@@ -1539,7 +1482,7 @@ async function downloadMediaFromMinIO(mediaUrl) {
     // ✅ VALIDAÇÃO: Verificar se o objeto existe antes de baixar
     try {
       Log.info('[MINIO] 🔍 Verificando se objeto existe', { objectName });
-      const stat = await client.statObject('midias', objectName);
+      const stat = await client.statObject(mediaUrl);
       Log.info('[MINIO] ✅ Objeto encontrado no MinIO', { 
         objectName, 
         size: stat.size, 
@@ -1624,436 +1567,84 @@ async function downloadMediaFromMinIO(mediaUrl) {
 }
 
 // ---- Outbound ----
-function renderTemplate(tpl, data) {
-  let s = '';
-  if (typeof tpl === 'string') {
-    s = tpl;
-  } else if (tpl && typeof tpl.text === 'string') {
-    s = tpl.text;
-  } else {
-    // Último recurso: não quebrar o fluxo
-    return String(tpl || '');
-  }
 
-  if (data) {
-    for (const k of Object.keys(data)) {
-      s = s.replace(new RegExp(`{{${k}}}`, 'g'), String(data[k] ?? ''));
-    }
-  }
-
-  return s
-    .replace(/{{currentDate}}/gi, new Date().toLocaleDateString('pt-BR'))
-    .replace(/{{currentTime}}/gi, new Date().toLocaleTimeString('pt-BR'))
-    .replace(/{{timestamp}}/gi, new Date().toISOString())
-    .replace(/{{instanceId}}/gi, instanceId)
-    .replace(/{{senderNumber}}/gi, connectedNumber || 'N/A');
-}
-
-async function sendOne(number, msg) {
+async function sendOne(number, msg, typeMessage) {
   if (!client) return { success: false, reason: 'client_not_ready' };
   const to = normalizeNumber(number);
   if (!to || to.length < 10) return { success: false, reason: 'invalid_number' };
 
   const chatId = `${to}@c.us`;
-  let body = '';
-  if (typeof msg?.message === 'string') body = msg.message;
- 
-  else if (msg?.template) body = renderTemplate(msg.template, msg.data);
-  else body = renderTemplate(String(msg || ''), msg?.data);
-  console.log('Validação do tamplete?');
-  const attachment = msg?.attachment || null;
-  try {
-    // Handle audio messages (base64 no campo body)
-    if (body && body.startsWith('data:audio/')) {
-      Log.info('[SEND] Processando áudio via body', {
-        bodyLength: body.length,
-        mimeType: attachment?.mimeType,
-        fileName: attachment?.fileName
-      });
-      
-      // Extrair base64 do campo body
-      const [header, base64Data] = body.split(',');
-      const mimeType = attachment?.mimeType || header.split(';')[0].split(':')[1] || 'audio/webm';
-      const fileName = attachment?.fileName || 'audio.webm';
-      
-      const media = new MessageMedia(mimeType, base64Data, fileName);
-      const sent = await client.sendMessage(chatId, media);
-      
-      if (sent?.id) { 
-        await sendMessageStatus(number, sent.id._serialized, 'sent'); 
-        Log.info('[SEND] ✅ Áudio enviado com sucesso', { 
-          messageId: sent.id._serialized,
-          to: number,
-          mimeType,
-          fileName
-        });
-        return { success: true, messageId: sent.id._serialized }; 
-      }
-      throw new Error('sendMessage retornou vazio');
-    }
-    // Handle attachments (mídia com mediaUrl do MinIO)
-    else if (attachment && attachment.mediaUrl) {
-      try {
-        Log.info('[SEND] 🎬 Iniciando download de mídia do MinIO', {
-          mediaUrl: attachment.mediaUrl,
-          mimeType: attachment.mimeType,
-          fileName: attachment.fileName,
-          to: number
-        });
 
-        // Baixar mídia do MinIO com retry
-        let mediaBuffer;
-        let retryCount = 0;
-        const maxRetries = 3;
-        
-        while (retryCount < maxRetries) {
-          try {
-            mediaBuffer = await downloadMediaFromMinIO(attachment.mediaUrl);
-            if (mediaBuffer && mediaBuffer.length > 0) {
-              break; // Sucesso
-            }
-            throw new Error('Buffer vazio recebido do MinIO');
-          } catch (downloadError) {
-            retryCount++;
-            Log.warn('[SEND] ⚠️ Tentativa {retryCount} de download falhou', {
-              retryCount,
-              error: downloadError.message,
-              mediaUrl: attachment.mediaUrl
-            });
-            
-            if (retryCount >= maxRetries) {
-              throw new Error(`Falha após ${maxRetries} tentativas: ${downloadError.message}`);
-            }
-            
-            // Aguardar antes da próxima tentativa
-            await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
-          }
-        }
-        
-        // ✅ VALIDAÇÃO ROBUSTA: Verificar integridade do buffer
-        if (!mediaBuffer || mediaBuffer.length === 0) {
-          throw new Error('Buffer de mídia está vazio após download');
-        }
-        
-        // Validar tamanho mínimo (pelo menos 100 bytes)
-        if (mediaBuffer.length < 100) {
-          throw new Error(`Buffer muito pequeno: ${mediaBuffer.length} bytes`);
-        }
-        
-        // ✅ VALIDAÇÃO: MIME type e extensão
-      const mime = attachment.mimeType || 'application/octet-stream';
-        const fileName = attachment.fileName || 'file';
-        
-        // Validar MIME type conhecidos
-        const validMimeTypes = [
-          'audio/webm', 'audio/ogg', 'audio/mpeg', 'audio/wav',
-          'image/jpeg', 'image/png', 'image/gif', 'image/webp',
-          'video/mp4', 'video/avi', 'video/mov',
-          'application/pdf', 'text/plain'
-        ];
-        
-        if (!validMimeTypes.includes(mime)) {
-          Log.warn('[SEND] ⚠️ MIME type não reconhecido, usando fallback', {
-            originalMime: mime,
-            fileName: fileName
-          });
-        }
-        
-        // ✅ VALIDAÇÃO: Conversão para base64 com validação
-        let base64Data;
-        try {
-          base64Data = mediaBuffer.toString('base64');
-          
-          // Validar base64
-          if (!base64Data || base64Data.length === 0) {
-            throw new Error('Conversão para base64 resultou em string vazia');
-          }
-          
-          // Validar se é base64 válido (deve conter apenas caracteres base64)
-          const base64Regex = /^[A-Za-z0-9+/]*={0,2}$/;
-          if (!base64Regex.test(base64Data)) {
-            throw new Error('Base64 inválido gerado');
-          }
-          
-          Log.info('[SEND] ✅ Base64 gerado com sucesso', {
-            base64Length: base64Data.length,
-            bufferSize: mediaBuffer.length,
-            compressionRatio: (base64Data.length / mediaBuffer.length).toFixed(2)
-          });
-          
-        } catch (base64Error) {
-          Log.error('[SEND] ❌ Erro na conversão para base64', { 
-            error: base64Error.message,
-            bufferLength: mediaBuffer.length,
-            mimeType: mime,
-            fileName: fileName
-          });
-          throw new Error(`Erro na conversão para base64: ${base64Error.message}`);
-        }
-        
-        // ✅ VALIDAÇÃO: Criar MessageMedia com validação adicional
-        let media;
-        try {
-          // Sanitizar nome do arquivo
-          const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_').substring(0, 100);
-          
-          Log.info('[SEND] 🎯 Criando MessageMedia', {
-            mimeType: mime,
-            fileName: sanitizedFileName,
-            base64Length: base64Data.length
-          });
-          
-          media = new MessageMedia(mime, base64Data, sanitizedFileName);
-          
-          // Validar se o objeto foi criado corretamente
-          if (!media || !media.data) {
-            throw new Error('MessageMedia criado mas sem dados');
-          }
-          
-          Log.info('[SEND] ✅ MessageMedia criado com sucesso', {
-            hasData: !!media.data,
-            dataLength: media.data?.length || 0,
-            mimeType: media.mimetype,
-            fileName: media.filename
-          });
-          
-        } catch (mediaError) {
-          Log.error('[SEND] ❌ Erro ao criar MessageMedia', { 
-            error: mediaError.message,
-            mimeType: mime,
-            base64Length: base64Data.length,
-            fileName: fileName,
-            stack: mediaError.stack
-          });
-          throw new Error(`Erro ao criar MessageMedia: ${mediaError.message}`);
-        }
-        
-        // ✅ ENVIO: Tentar enviar com retry
-    let sent;
-        let sendRetryCount = 0;
-        const maxSendRetries = 2;
-        
-        while (sendRetryCount < maxSendRetries) {
-          try {
-            Log.info('[SEND] 📤 Enviando mídia via WhatsApp', {
-              attempt: sendRetryCount + 1,
-              chatId: chatId,
-              hasCaption: !!body
-            });
-            
-      sent = await client.sendMessage(chatId, media, { caption: body || undefined });
-            
-            if (sent?.id) {
-              break; // Sucesso
-            }
-            throw new Error('sendMessage retornou sem ID');
-            
-          } catch (sendError) {
-            sendRetryCount++;
-            Log.warn('[SEND] ⚠️ Tentativa {sendRetryCount} de envio falhou', {
-              sendRetryCount,
-              error: sendError.message,
-              chatId: chatId
-            });
-            
-            if (sendRetryCount >= maxSendRetries) {
-              throw new Error(`Falha no envio após ${maxSendRetries} tentativas: ${sendError.message}`);
-            }
-            
-            // Aguardar antes da próxima tentativa
-            await new Promise(resolve => setTimeout(resolve, 2000 * sendRetryCount));
-          }
-        }
-        
-        if (sent?.id) { 
-          await sendMessageStatus(number, sent.id._serialized, 'sent'); 
-          Log.info('[SEND] ✅ Mídia baixada do MinIO e enviada com sucesso', { 
-            messageId: sent.id._serialized,
-            to: number,
-            mimeType: mime,
-            fileName: fileName,
-            bufferSize: mediaBuffer.length,
-            base64Length: base64Data.length
-          });
-          return { success: true, messageId: sent.id._serialized }; 
-        }
-        throw new Error('sendMessage retornou vazio após todas as tentativas');
-        
-      } catch (error) {
-        Log.error('[SEND] ❌ Erro crítico ao processar mídia do MinIO', { 
-          error: error.message,
-          stack: error.stack,
-          mediaUrl: attachment.mediaUrl,
-          mimeType: attachment.mimeType,
-          fileName: attachment.fileName,
-          to: number
-        });
-        throw error;
-      }
-    }
-    // Handle attachments (mídia com dataUrl - fallback)
-    else if (attachment && attachment.dataUrl) {
-      try {
-        Log.info('[SEND] 🔄 Usando dataUrl como fallback', {
-          hasDataUrl: !!attachment.dataUrl,
-          mimeType: attachment.mimeType,
-          fileName: attachment.fileName,
-          to: number
-        });
-        
-        // Extrair base64 do dataUrl
-        let base64;
-        if (attachment.dataUrl.includes(',')) {
-          base64 = attachment.dataUrl.split(',')[1];
-      } else {
-          base64 = attachment.dataUrl;
-        }
-        
-        if (!base64 || base64.length === 0) {
-          throw new Error('DataUrl não contém base64 válido');
-        }
-        
-        const mime = attachment.mimeType || 'application/octet-stream';
-        const fileName = attachment.fileName || 'file';
-        
-        // Sanitizar nome do arquivo
-        const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_').substring(0, 100);
-        
-        Log.info('[SEND] 🎯 Criando MessageMedia com dataUrl', {
-          mimeType: mime,
-          fileName: sanitizedFileName,
-          base64Length: base64.length
-        });
-        
-        const media = new MessageMedia(mime, base64, sanitizedFileName);
-        
-        // Validar se o objeto foi criado corretamente
-        if (!media || !media.data) {
-          throw new Error('MessageMedia criado mas sem dados');
-        }
-        
-        const sent = await client.sendMessage(chatId, media, { caption: body || undefined });
-        
-        if (sent?.id) { 
-          await sendMessageStatus(number, sent.id._serialized, 'sent'); 
-          Log.info('[SEND] ✅ Mídia enviada via dataUrl com sucesso', { 
-            messageId: sent.id._serialized,
-            to: number,
-            mimeType: mime,
-            fileName: sanitizedFileName,
-            base64Length: base64.length
-          });
-          return { success: true, messageId: sent.id._serialized }; 
-        }
-    throw new Error('sendMessage retornou vazio');
-        
-      } catch (dataUrlError) {
-        Log.error('[SEND] ❌ Erro ao processar dataUrl', { 
-          error: dataUrlError.message,
-          mimeType: attachment.mimeType,
-          fileName: attachment.fileName,
-          to: number
-        });
-        throw dataUrlError;
-      }
-    }
-    // Handle text messages (sem attachment)
-    else {
-      const sent = await client.sendMessage(chatId, body);
-    
-    if (sent?.id) { 
-      await sendMessageStatus(number, sent.id._serialized, 'sent'); 
-        return { success: true, messageId: sent.id._serialized }; 
-    }
-    throw new Error('sendMessage retornou vazio');
-    }
-    } catch (e) {
-    Log.error('Erro sendOne', { error: e?.message, to: number });
-    return { success: false, reason: e.message };
-  }
-}
-
-// ✅ FUNÇÃO: Processar base64 de áudio e criar MessageMedia
-async function createAudioMediaFromBase64(body) {
-  let tempFilePath = null;
   
   try {
-    Log.info('🎵 Processando base64 de áudio', { 
-      bodyLength: body?.length || 0
-    });
+    // =========================
+    // MÍDIA (não-text)
+    // =========================
+    if (typeMessage && typeMessage !== 'text') {
+      const attachment = msg?.attachment;
+      if (!attachment || !attachment.mediaUrl) {
+        return { success: false, reason: 'media_attachment_missing' };
+      }
 
-    // Extrair informações do data URL
-    const [header, base64Data] = body.split(',');
-    const mimeType = header.split(';')[0].split(':')[1];
-    
-    // Converter base64 para buffer
-    const audioBuffer = Buffer.from(base64Data, 'base64');
-    
-    // ✅ VALIDAÇÃO: Usar AudioProcessor para validar o áudio
-    const validation = AudioProcessor.validateAudio(audioBuffer, mimeType);
-    if (!validation.isValid) {
-      throw new Error(`Áudio inválido: ${validation.error}`);
-    }
-    
-    Log.info('✅ Áudio validado com sucesso', {
-      mimeType: validation.mimeType,
-      size: validation.size,
-      sizeFormatted: AudioProcessor.formatFileSize(validation.size)
-    });
-    
-    // Obter extensão correta
-    const extension = AudioProcessor.getExtensionFromMimeType(validation.mimeType);
-    
-    // Criar pasta temporária se não existir
-    const tempDir = path.join(__dirname, 'temp');
-    if (!fs.existsSync(tempDir)) {
-      fs.mkdirSync(tempDir, { recursive: true });
-    }
-    
-    // Gerar nome único para o arquivo
-    const timestamp = Date.now();
-    const randomId = Math.random().toString(36).substring(2, 8);
-    const fileName = `audio_${timestamp}_${randomId}.${extension}`;
-    tempFilePath = path.join(tempDir, fileName);
-    
-    // Salvar arquivo validado
-    fs.writeFileSync(tempFilePath, audioBuffer);
-    
-    Log.info('📁 Arquivo de áudio criado', { 
-      filePath: tempFilePath,
-      fileName: fileName,
-      fileSize: audioBuffer.length,
-      mimeType: validation.mimeType
-    });
-    
-    // Criar MessageMedia a partir do arquivo
-    const media = MessageMedia.fromFilePath(tempFilePath);
-    media.mimetype = validation.mimeType;
-    
-    return { media, tempFilePath };
-    
-  } catch (error) {
-    Log.error('❌ Erro ao processar base64 de áudio', { 
-      error: error.message
-    });
-    throw error;
-  }
-}
+      const mediaType = attachment.mediaType || typeMessage;
+      const fileName  = attachment.fileName || `media-${Date.now()}`;
+      const mimeType  = attachment.mimeType || 'application/octet-stream';
 
-// ✅ FUNÇÃO: Limpar arquivo temporário
-function cleanupTempFile(tempFilePath) {
-  if (tempFilePath && fs.existsSync(tempFilePath)) {
-    try {
-      fs.unlinkSync(tempFilePath);
-      Log.info('🗑️ Arquivo temporário excluído', { filePath: tempFilePath });
-    } catch (deleteError) {
-      Log.error('⚠️ Erro ao excluir arquivo temporário', { 
-        filePath: tempFilePath,
-        error: deleteError.message
+      // ↓↓↓ usa a SUA função (retorna Buffer)
+      const buffer = await downloadMediaFromMinIO(attachment.mediaUrl, attachment.fileName);
+      if (!buffer || !buffer.length) {
+        return { success: false, reason: 'empty_buffer_from_minio' };
+      }
+
+      const base64Data = buffer.toString('base64');
+      const messageMedia = new MessageMedia(mimeType, base64Data, fileName);
+
+      const opts = {};
+      if (isAudioLike(mediaType, mimeType)) {
+        opts.sendAudioAsVoice = true; // envia como PTT
+      } else if (msg?.caption) {
+        opts.caption = String(msg.caption).slice(0, 3000);
+      }
+
+      Log.info('[SEND] mídia (Buffer via MinIO)', {
+        to, chatId, mediaType, mimeType, fileName, asVoice: !!opts.sendAudioAsVoice
       });
+
+      const sent = await client.sendMessage(chatId, messageMedia, opts);
+
+      if (sent?.id?._serialized) {
+        await sendMessageStatus(number, sent.id._serialized, 'sent');
+        Log.info('[SEND] Mídia enviada', { to, messageId: sent.id._serialized });
+        return { success: true, messageId: sent.id._serialized };
+      }
+      return { success: false, reason: 'sendMessage_empty_response' };
     }
+
+    // =========================
+    // TEXTO
+    // =========================
+    const body = String(msg?.body || msg?.message || '').trim();
+    if (!body) return { success: false, reason: 'empty_text' };
+
+    Log.info('[SEND] texto', { to, length: body.length });
+    const sent = await client.sendMessage(chatId, body);
+
+    if (sent?.id?._serialized) {
+      await sendMessageStatus(number, sent.id._serialized, 'sent');
+      Log.info('[SEND] Texto enviado', { to, messageId: sent.id._serialized });
+      return { success: true, messageId: sent.id._serialized };
+    }
+    return { success: false, reason: 'sendMessage_empty_response' };
+
+  } catch (e) {
+    Log.error('[SEND] erro', { to, typeMessage, error: e?.message });
+    return { success: false, reason: e?.message || 'unknown_error' };
   }
 }
+
+
+
+
 
 // ✅ FUNÇÃO: Limpeza automática de arquivos temporários antigos
 function cleanupOldTempFiles() {

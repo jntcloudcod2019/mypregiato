@@ -1337,11 +1337,12 @@ namespace Pregiato.API.Services
                                 using (var mediaScope = _services.CreateScope())
                                 {
                                     var mediaStorageService = mediaScope.ServiceProvider.GetRequiredService<MediaStorageService>();
-                                    mediaUrl = await mediaStorageService.StoreMediaAsync(
+                                    var mediaResult = await mediaStorageService.StoreMediaAsync(
                                     message.attachment.dataUrl ?? string.Empty,
                                     message.attachment.mimeType ?? "application/octet-stream",
                                     message.attachment.fileName ?? "unknown"
                                 );
+                                    mediaUrl = mediaResult.MediaUrl;
                                 }
                                 _logger.LogInformation("🎬 Mídia processada e armazenada: {MediaUrl}", mediaUrl);
                             }
@@ -1438,11 +1439,12 @@ namespace Pregiato.API.Services
                                 using (var mediaScope = _services.CreateScope())
                                 {
                                     var mediaStorageService = mediaScope.ServiceProvider.GetRequiredService<MediaStorageService>();
-                                    mediaUrl = await mediaStorageService.StoreMediaAsync(
+                                    var mediaResult = await mediaStorageService.StoreMediaAsync(
                                     message.attachment.dataUrl ?? string.Empty,
                                     message.attachment.mimeType ?? "application/octet-stream",
                                     message.attachment.fileName ?? "unknown"
                                 );
+                                    mediaUrl = mediaResult.MediaUrl;
                                 }
                                 _logger.LogInformation("🎬 Mídia processada e armazenada: {MediaUrl}", mediaUrl);
                             }
