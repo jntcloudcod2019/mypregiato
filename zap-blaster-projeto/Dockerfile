@@ -10,11 +10,17 @@ RUN apk update && apk add --no-cache \
     harfbuzz \
     ca-certificates \
     ttf-freefont \
+    ffmpeg \
+    ffmpeg-dev \
     && rm -rf /var/cache/apk/*
 
 # Configurar Puppeteer para usar Chromium instalado
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
+    # Linha 18-20: Adicionar após PUPPETEER_EXECUTABLE_PATH
+ENV FFMPEG_PATH=/usr/bin/ffmpeg \
+FFPROBE_PATH=/usr/bin/ffprobe
 
 # Criar usuário não-root para segurança
 RUN addgroup -g 1001 -S appuser && \

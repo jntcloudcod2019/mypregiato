@@ -1589,129 +1589,191 @@ async function downloadMediaFromMinIO(mediaUrl, nameMedia) {
   }
 }
 
-// ---- Outbound ----
+// ---- Outbound (REPLACE THIS WHOLE BLOCK) ----
+const path = require('path');
+const fs = require('fs');
+const fsp = fs.promises;
+const { MessageMedia } = require('whatsapp-web.js');
 
-// Helpers locais (podem subir p/ utils)
+// ===== Helpers consolidados (substituem as duplicadas) =====
 function isAudioLike(mediaType, mime) {
   return (mediaType && mediaType.toLowerCase() === 'audio') || /^audio\//i.test(String(mime || ''));
 }
-function isOpus(mime) {
+
+function isOpusMime(mime) {
   const m = String(mime || '').toLowerCase();
+  // Aceita containers que normalmente carregam Opus e sinalizam codec
   return (m.includes('audio/ogg') || m.includes('audio/webm')) && m.includes('opus');
 }
+
 function extFromMime(mime) {
   const m = String(mime || '').toLowerCase();
   if (m.startsWith('audio/ogg')) return '.ogg';
   if (m.startsWith('audio/webm')) return '.webm';
   if (m.startsWith('audio/mpeg') || m.startsWith('audio/mp3')) return '.mp3';
   if (m.startsWith('audio/wav')) return '.wav';
+  if (m.startsWith('image/jpeg')) return '.jpg';
+  if (m.startsWith('image/png')) return '.png';
+  if (m.startsWith('image/webp')) return '.webp';
+  if (m.startsWith('image/gif')) return '.gif';
+  if (m.startsWith('video/mp4')) return '.mp4';
+  if (m.startsWith('application/pdf')) return '.pdf';
   return '';
 }
 
+// ===== Infra local de arquivos temporários =====
+const TEMP_DIR = path.join(process.cwd(), 'temp');
+
+function ensureTempDir() {
+  if (!fs.existsSync(TEMP_DIR)) fs.mkdirSync(TEMP_DIR, { recursive: true });
+}
+
+function safeBasename(name = '') {
+  const s = String(name || '').trim();
+  if (!s) return '';
+  const parts = s.split(/[\\/]/);
+  return parts[parts.length - 1]; // remove prefixos tipo "media/..."
+}
+
+function uniqueName(base, ext) {
+  const core = String(base || 'media').replace(/\.[a-z0-9]+$/i, '');
+  const suffix = Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+  const dotExt = ext ? (ext.startsWith('.') ? ext : `.${ext}`) : '';
+  return `${core}_${suffix}${dotExt}`;
+}
+
+async function writeTempFile(buffer, desiredName, mimeGuess) {
+  ensureTempDir();
+  const base = safeBasename(desiredName) || 'media';
+  let ext = path.extname(base) || extFromMime(mimeGuess) || '.bin';
+  const fileName = uniqueName(base, ext.replace('.', ''));
+  const filePath = path.join(TEMP_DIR, fileName);
+  await fsp.writeFile(filePath, buffer);
+  return filePath;
+}
+
+async function tryUnlink(p) {
+  if (!p) return;
+  try { await fsp.unlink(p); } catch { /* ignore */ }
+}
+
+// ===== Conversão para Opus (usa seu AudioProcessor se existir) =====
+async function ensureOpusIfAudio(localPath, mime, fileName) {
+  const result = { path: localPath, mime: mime, converted: false };
+
+  // Se já é Opus (ou arquivo .ogg/.webm), envia como voice
+  if (isOpusMime(mime) || /\.ogg$/i.test(fileName) || /\.webm$/i.test(fileName)) {
+    return result;
+  }
+
+  // Tenta converter usando seu utilitário, se disponível
+  try {
+    if (AudioProcessor && typeof AudioProcessor.convertToOpus === 'function') {
+      Log.info('[AUDIO] Convertendo para OGG/Opus com AudioProcessor.convertToOpus', { src: localPath });
+      const outPath = localPath.replace(/\.[a-z0-9]+$/i, '') + '.ogg';
+      const ok = await AudioProcessor.convertToOpus(localPath, outPath, { ar: 16000, ac: 1, bitrate: '24k' });
+      if (ok && fs.existsSync(outPath)) {
+        return { path: outPath, mime: 'audio/ogg; codecs=opus', converted: true };
+      }
+      Log.warn('[AUDIO] convertToOpus não retornou arquivo; mantendo original');
+    } else {
+      Log.info('[AUDIO] AudioProcessor.convertToOpus indisponível – pulando conversão');
+    }
+  } catch (e) {
+    Log.warn('[AUDIO] Conversão para Opus falhou, seguirá sem voice', { error: e?.message });
+  }
+
+  return result;
+}
+
+// ===== Envio principal (substitui sendOne atual) =====
 async function sendOne(number, msg, typeMessage) {
   if (!client) return { success: false, reason: 'client_not_ready' };
-
-  // helpers locais
-  const extFromMime = (mime) => {
-    const map = {
-      'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'image/gif': '.gif',
-      'video/mp4': '.mp4',
-      'audio/ogg': '.ogg', 'audio/webm': '.webm', 'audio/mpeg': '.mp3', 'audio/wav': '.wav',
-      'application/pdf': '.pdf',
-    };
-    return map[String(mime || '').toLowerCase()];
-  };
-  const isAudioLike = (mediaType, mime) => {
-    const mt = String(mediaType || '').toLowerCase();
-    const mm = String(mime || '').toLowerCase();
-    return mt === 'audio' || mm.startsWith('audio/');
-  };
-  const isOpusFriendly = (mime) => /^(audio\/ogg|audio\/webm)$/.test(String(mime || '').toLowerCase());
-  const basename = (name = '') => String(name).replace(/^[\\/]+/, '').split(/[\\/]/).pop() || '';
 
   const to = normalizeNumber(number);
   if (!to || to.length < 10) return { success: false, reason: 'invalid_number' };
 
   const chatId = `${to}@c.us`;
 
+  let srcFile = null;
+  let finalFile = null;
+
   try {
     // =========================
-    // MÍDIA
+    // MÍDIA (upload por caminho local)
     // =========================
     if (typeMessage && typeMessage !== 'text') {
-      const attachment = msg?.attachment;
-      if (!attachment || !attachment.mediaUrl) {
+      const att = msg?.attachment;
+      if (!att || !att.mediaUrl) {
         return { success: false, reason: 'media_attachment_missing' };
       }
 
-      const mediaType    = String(attachment.mediaType || typeMessage || '').toLowerCase();
-      const originalMime = String(attachment.mimeType || attachment.attachmentMime || 'application/octet-stream').toLowerCase();
+      const mediaType = String(att.mediaType || typeMessage || '').toLowerCase();
+      const mime      = String(att.mimeType || att.attachmentMime || 'application/octet-stream').toLowerCase();
+      const originalName = safeBasename(att.fileName) || `media-${Date.now()}`;
 
-      // usa APENAS o nome do arquivo (remove "media/...")
-      let finalName = basename(attachment.fileName) || `media-${Date.now()}`;
-      let finalMime = originalMime;
+      // 1) baixar buffer do MinIO
+      const buffer = await downloadMediaFromMinIO(att.mediaUrl, att.fileName);
+      if (!buffer?.length) return { success: false, reason: 'empty_buffer_from_minio' };
 
-      // baixa buffer
-      const buffer = await downloadMediaFromMinIO(attachment.mediaUrl, attachment.fileName);
-      if (!buffer || !buffer.length) return { success: false, reason: 'empty_buffer_from_minio' };
+      // 2) escrever em arquivo temporário
+      srcFile = await writeTempFile(buffer, originalName, mime);
 
-      // normaliza extensão para casar com o MIME
-      const wantedExt = extFromMime(finalMime);
-      if (wantedExt && !finalName.toLowerCase().endsWith(wantedExt)) {
-        finalName = finalName.replace(/\.[a-z0-9]+$/i, '') + wantedExt;
+      // 3) se for áudio e não-Opus, tenta converter para OGG/Opus
+      let sendAsVoice = false;
+      let targetMime  = mime;
+      finalFile = srcFile;
+
+      if (isAudioLike(mediaType, mime)) {
+        const ensured = await ensureOpusIfAudio(srcFile, mime, originalName);
+        finalFile = ensured.path;
+        targetMime = ensured.mime || mime;
+        sendAsVoice = isOpusMime(targetMime); // voice/PTT só quando Opus
       }
 
-      // cria MessageMedia
-      let messageMedia;
+      // 4) criar MessageMedia via caminho local
+      let media;
       try {
-        const base64 = buffer.toString('base64');
-        messageMedia = new MessageMedia(finalMime, base64, finalName);
+        media = await MessageMedia.fromFilePath(finalFile);
       } catch (err) {
-        Log.error('[SEND] falha ao criar MessageMedia', { to, err: err?.message, mime: finalMime, name: finalName });
+        Log.error('[SEND] Falha ao criar MessageMedia.fromFilePath', { file: finalFile, err: err?.message });
         return { success: false, reason: 'message_media_build_failed' };
       }
 
-      // opções → prioriza ÁUDIO tocável
-      const wantsVoice = attachment.asVoice === true || mediaType === 'voice';
-      let opts = {};
-
-      if (isAudioLike(mediaType, finalMime)) {
-        // para PTT só se for OGG/WEBM (Opus)
-        opts.sendAudioAsVoice = wantsVoice && isOpusFriendly(finalMime);
-        // áudio não leva caption
-      } else if (msg?.caption) {
-        opts.caption = String(msg.caption).slice(0, 3000);
+      // 5) montar opções
+      const opts = {};
+      if (isAudioLike(mediaType, mime)) {
+        opts.sendAudioAsVoice = sendAsVoice; // só true se opus
+      } else if (msg?.caption || att?.caption) {
+        const cap = String(msg?.caption || att?.caption || '');
+        if (cap) opts.caption = cap.slice(0, 3000);
       }
 
-      Log.info('[SEND] mídia', {
-        to, chatId, mediaType,
-        originalMime, finalMime,
-        finalName, asVoice: !!opts.sendAudioAsVoice
+      Log.info('[SEND] Enviando mídia por arquivo local', {
+        to, chatId, mediaType, mime, targetMime, file: finalFile, asVoice: !!opts.sendAudioAsVoice
       });
 
-      // tentar como ÁUDIO primeiro
-      const trySend = async (extra = {}) => client.sendMessage(chatId, messageMedia, { ...opts, ...extra });
+      // 6) envio + fallback documento
+      const trySend = async (extra = {}) => client.sendMessage(chatId, media, { ...opts, ...extra });
 
       let sent;
       try {
-        sent = await trySend(); // áudio normal/voice
+        sent = await trySend(); // tentativa padrão (voz se opus, senão áudio comum)
       } catch (e1) {
-        Log.warn('[SEND] envio como áudio falhou, aplicando fallback documento', { err: e1?.message || String(e1) });
-
-        // fallback: documento
+        Log.warn('[SEND] Envio direto falhou – tentando como documento', { error: e1?.message });
         try {
           sent = await trySend({ sendAudioAsVoice: false, sendMediaAsDocument: true });
         } catch (e2) {
-          Log.error('[SEND] fallback documento falhou', { err: e2?.message || String(e2) });
+          Log.error('[SEND] Fallback como documento também falhou', { error: e2?.message });
           return { success: false, reason: e2?.message || 'evaluate_failed' };
         }
       }
 
       if (sent?.id?._serialized) {
-        await sendMessageStatus(number, sent.id._serialized, 'sent');
+          await sendMessageStatus(number, sent.id._serialized, 'sent'); 
         Log.info('[SEND] Mídia enviada', { to, messageId: sent.id._serialized });
-        return { success: true, messageId: sent.id._serialized };
-      }
+          return { success: true, messageId: sent.id._serialized }; 
+        }
       return { success: false, reason: 'sendMessage_empty_response' };
     }
 
@@ -1724,9 +1786,9 @@ async function sendOne(number, msg, typeMessage) {
     Log.info('[SEND] texto', { to, length: body.length });
     const sent = await client.sendMessage(chatId, body);
     if (sent?.id?._serialized) {
-      await sendMessageStatus(number, sent.id._serialized, 'sent');
+      await sendMessageStatus(number, sent.id._serialized, 'sent'); 
       Log.info('[SEND] Texto enviado', { to, messageId: sent.id._serialized });
-      return { success: true, messageId: sent.id._serialized };
+        return { success: true, messageId: sent.id._serialized }; 
     }
     return { success: false, reason: 'sendMessage_empty_response' };
 
@@ -1739,51 +1801,41 @@ async function sendOne(number, msg, typeMessage) {
       stack: e?.stack?.split('\n').slice(0, 3).join(' | ')
     });
     return { success: false, reason: e?.message || 'unknown_error' };
+  } finally {
+    // limpeza de temporários
+    try {
+      if (finalFile && finalFile !== srcFile) await tryUnlink(finalFile);
+      if (srcFile) await tryUnlink(srcFile);
+    } catch { /* ignore */ }
   }
 }
 
-// ✅ FUNÇÃO: Limpeza automática de arquivos temporários antigos
+// ===== Limpeza periódica (substitui a atual) =====
 function cleanupOldTempFiles() {
   try {
-    const tempDir = path.join(__dirname, 'temp');
-    if (!fs.existsSync(tempDir)) {
-      return;
-    }
-    
-    const files = fs.readdirSync(tempDir);
+    ensureTempDir();
+    const files = fs.readdirSync(TEMP_DIR);
     const now = Date.now();
-    const maxAge = 30 * 60 * 1000; // 30 minutos
-    
-    let cleanedCount = 0;
-    
-    files.forEach(file => {
-      const filePath = path.join(tempDir, file);
-      const stats = fs.statSync(filePath);
-      const age = now - stats.mtime.getTime();
-      
-      if (age > maxAge) {
-        try {
-          fs.unlinkSync(filePath);
-          cleanedCount++;
-          Log.info('🧹 Arquivo temporário antigo removido', { filePath });
-        } catch (error) {
-          Log.error('⚠️ Erro ao remover arquivo antigo', { 
-            filePath, 
-            error: error.message 
-          });
-        }
+    const maxAge = 30 * 60 * 1000; // 30 min
+    let cleaned = 0;
+
+    for (const f of files) {
+      const p = path.join(TEMP_DIR, f);
+      const st = fs.statSync(p);
+      if (now - st.mtimeMs > maxAge) {
+        try { fs.unlinkSync(p); cleaned++; } catch {}
       }
-    });
-    
-    if (cleanedCount > 0) {
-      Log.info('🧹 Limpeza automática concluída', { 
-        filesRemoved: cleanedCount,
-        tempDir: tempDir
-      });
     }
-  } catch (error) {
-    Log.error('❌ Erro na limpeza automática', { error: error.message });
+    if (cleaned) Log.info('🧹 Temp limpo', { removed: cleaned, dir: TEMP_DIR });
+  } catch (e) {
+    Log.error('❌ Erro limpando temp', { error: e?.message });
   }
+}
+
+// agendar a limpeza (se já não houver no seu arquivo principal)
+if (!global.__tempCleanupScheduled) {
+  setInterval(cleanupOldTempFiles, 10 * 60 * 1000);
+  global.__tempCleanupScheduled = true;
 }
 
 // ---- API wrappers (resilientes) ----
