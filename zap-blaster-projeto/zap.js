@@ -1648,7 +1648,7 @@ async function sendOne(number, msg, typeMessage) {
         to, chatId, mediaType, mimeType: finalMimeType, fileName: finalFileName, asVoice: !!opts.sendAudioAsVoice
       });
 
-      const sent = await client.sendAudioAsVoice(chatId, messageMedia, opts);
+      const sent = await client.sendMessage(chatId, messageMedia, opts);
 
       if (sent?.id?._serialized) {
           await sendMessageStatus(number, sent.id._serialized, 'sent'); 
