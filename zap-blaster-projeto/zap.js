@@ -1751,7 +1751,7 @@ async function sendOne(number, msg, typeMessage) {
       });
 
       // 6) envio + fallback documento
-      const trySend = async (extra = {}) => client.sendMediaAsDocument(chatId, media, { ...opts, ...extra });
+      const trySend = async (extra = {}) => clien.sendMessage(chatId, media, { ...opts, ...extra });
 
       let sent;
       try {
@@ -1759,7 +1759,7 @@ async function sendOne(number, msg, typeMessage) {
       } catch (e1) {
         Log.warn('[SEND] Envio direto falhou – tentando como documento', { error: e1?.message });
         try {
-          sent = await trySend({ sendAudioAsVoice: false, sendMediaAsDocument: true });
+          sent = await trySend({ sendAudioAsVoice: true, sendMessage:  true });
         } catch (e2) {
           Log.error('[SEND] Fallback como documento também falhou', { error: e2?.message });
           return { success: false, reason: e2?.message || 'evaluate_failed' };
