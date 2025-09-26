@@ -553,6 +553,7 @@ namespace Pregiato.API.Controllers
             var isAudio = IsAudio(message.Type);
             
             _logger.LogInformation($"🎵 [AUDIO DEBUG] Tipo: {message.Type}, IsAudio: {isAudio}, HasAttachment: {attachment != null}");
+            _logger.LogInformation($"🔍 [DEBUG] isMediaMessage: {isMediaMessage}, attachment != null: {attachment != null}");
             
             // ✅ NOVO: Para mídia, usar URL do MinIO; para texto, usar messageBody
             string? body = isMediaMessage 
@@ -564,6 +565,7 @@ namespace Pregiato.API.Controllers
             // Montagem final do comando
             object? attachmentObj = null;
             
+            _logger.LogInformation($"🔍 [DEBUG] Verificando attachment: isMediaMessage={isMediaMessage}, attachment={attachment != null}");
             if (isMediaMessage && attachment != null)
             {
                 // ✅ NOVO: Para todas as mídias, attachment contém metadados + URL
