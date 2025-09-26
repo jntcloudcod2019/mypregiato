@@ -119,6 +119,15 @@ export default function LeadsPage() {
   // Dados de leads virão da API - sem dados mockados
 
   // Etapas e responsáveis virão da API - sem dados hardcoded
+  const etapas = [
+    { value: "novo", label: "Novo Lead" },
+    { value: "contato", label: "Em Contato" },
+    { value: "agendamento", label: "Agendamento" },
+    { value: "seletiva", label: "Seletiva" },
+    { value: "contrato", label: "Contrato" },
+    { value: "finalizado", label: "Finalizado" },
+    { value: "perdido", label: "Perdido" }
+  ];
 
   const getEtapaBadge = (etapa: string) => {
     // Mapeamento básico de etapas - em produção virá da API

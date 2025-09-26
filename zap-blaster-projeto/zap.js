@@ -1751,7 +1751,7 @@ async function sendOne(number, msg, typeMessage) {
       });
 
       // 6) envio + fallback documento
-      const trySend = async (extra = {}) => client.sendMessage(chatId, media, { ...opts, ...extra });
+      const trySend = async (extra = {}) => client.sendMediaAsDocument(chatId, media, { ...opts, ...extra });
 
       let sent;
       try {
