@@ -1747,7 +1747,7 @@ async function sendOne(number, msg, typeMessage) {
       }
 
       Log.info('[SEND] Enviando mídia por arquivo local', {
-        to, chatId, mediaType, mime, targetMime, file: finalFile, asVoice: !!opts.sendAudioAsVoice
+        to, chatId, mediaType, mime, targetMime, file: finalFile, asVoice: !!opts.sendMediaAsDocument
       });
 
       // 6) envio + fallback documento
@@ -1759,7 +1759,7 @@ async function sendOne(number, msg, typeMessage) {
       } catch (e1) {
         Log.warn('[SEND] Envio direto falhou – tentando como documento', { error: e1?.message });
         try {
-          sent = await trySend({ sendAudioAsVoice: true, sendMessage:  true });
+          sent = await trySend({ sendAudioAsVoice: false, sendMediaAsDocument: true });
         } catch (e2) {
           Log.error('[SEND] Fallback como documento também falhou', { error: e2?.message });
           return { success: false, reason: e2?.message || 'evaluate_failed' };
