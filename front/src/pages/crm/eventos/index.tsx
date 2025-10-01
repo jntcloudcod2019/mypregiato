@@ -6,39 +6,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Search, Plus, Edit, Eye, Trash2, QrCode, Users } from 'lucide-react';
 
-// Dados de exemplo
-const eventos = [
-  {
-    id: '1',
-    nome: 'Seletiva Verão 2024',
-    data: '2024-01-15',
-    local: 'Studio Central',
-    status: 'agendado',
-    vagas: 30,
-    inscritos: 18
-  },
-  {
-    id: '2',
-    nome: 'Workshop de Fotografia',
-    data: '2024-01-22',
-    local: 'Estúdio Luz & Arte',
-    status: 'agendado',
-    vagas: 15,
-    inscritos: 15
-  },
-  {
-    id: '3',
-    nome: 'Seletiva Inverno 2023',
-    data: '2023-06-10',
-    local: 'Studio Central',
-    status: 'finalizado',
-    vagas: 25,
-    inscritos: 22
-  }
-];
-
 export default function EventosPage() {
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // ✅ Dados virão da API - sem dados mockados
+  const eventos: Array<{
+    id: string;
+    nome: string;
+    data: string;
+    local: string;
+    status: string;
+    vagas: number;
+    inscritos: number;
+  }> = [];
   
   const filteredEventos = eventos.filter(evento => 
     evento.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||

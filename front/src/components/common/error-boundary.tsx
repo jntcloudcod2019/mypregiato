@@ -25,12 +25,30 @@ export class ErrorBoundary extends Component<Props, State> {
     
     // Verificar se é um erro CRÍTICO do Clerk (mais específico)
     const errorString = error.toString().toLowerCase();
+    const errorStack = error.stack?.toLowerCase() || '';
+    
     const isClerkCriticalError = (
       errorString.includes('clerk initialization failed') ||
       errorString.includes('clerk is not defined') ||
       errorString.includes('clerk provider not found') ||
       (errorString.includes('clerk') && errorString.includes('initialization'))
     );
+    
+    // ✅ NOVO: Detectar erros JavaScript comuns que NÃO são do Clerk
+    const isCommonJSError = (
+      errorString.includes('is not defined') ||
+      errorString.includes('cannot read property') ||
+      errorString.includes('undefined is not') ||
+      errorString.includes('null is not')
+    );
+    
+    // ✅ NOVO: Não marcar como falha do Clerk se for erro JS comum
+    if (isCommonJSError && !errorStack.includes('clerk')) {
+      console.error('⚠️ JavaScript error detected (not Clerk-related):', error.toString());
+      console.error('Stack:', errorInfo.componentStack);
+      // Não marcar clerk_failed para erros JS comuns
+      return;
+    }
     
     if (isClerkCriticalError) {
       console.log('Clerk CRITICAL error detected, disabling Clerk for this session');

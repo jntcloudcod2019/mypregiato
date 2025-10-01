@@ -123,6 +123,11 @@ export const useWhatsAppConnection = () => {
         connectedNumber: statusData.connectedNumber
       });
 
+      // ✅ CRÍTICO: Resetar isGeneratingQR quando status mudar para conectado
+      if (isActuallyConnected) {
+        setIsGeneratingQR(false);
+      }
+
       // ✅ NOVO: Armazenar no cache global quando receber via SignalR
       if (statusData.connectedNumber) {
         globalCache.setConnectedNumber(statusData.connectedNumber);
@@ -141,13 +146,18 @@ export const useWhatsAppConnection = () => {
         lastActivity: statusData.lastActivity,
         error: undefined, // Limpar erro quando status for atualizado
         canGenerateQR: !isActuallyConnected,
-        connectedNumber: statusData.connectedNumber || prev.connectedNumber
+        connectedNumber: statusData.connectedNumber || prev.connectedNumber,
+        hasQRCode: false, // Limpar QR quando status atualizar
+        qrCode: undefined
       }));
     };
 
     // 🎉 NOVO: Listener para evento específico de autenticação concluída
     const handleSessionAuthenticated = (data: { connectedNumber?: string; connectedUserName?: string; isFullyValidated?: boolean; timestamp?: string }) => {
       console.log('🎉 [useWhatsAppConnection] Evento session.authenticated recebido:', data);
+      
+      // ✅ CRÍTICO: Resetar isGeneratingQR
+      setIsGeneratingQR(false);
       
       // ✅ NOVO: Armazenar no cache global quando autenticado
       if (data.connectedNumber) {

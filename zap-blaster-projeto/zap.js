@@ -1928,24 +1928,23 @@ async function sendOne(number, msg, typeMessage) {
       // 5) Montar opções de envio
       const opts = {};
       
-      // Para áudio, verificar se deve enviar como voz (PTT)
+      // ✅ CORREÇÃO CRÍTICA: Para áudio Opus/OGG, NÃO usar sendAudioAsVoice
+      // O WhatsApp detecta automaticamente PTT pelo mimetype 'audio/ogg; codecs=opus'
       if (isAudioLike(mediaType, finalMime)) {
-        const sendAsVoice = isOpusMime(finalMime);
-        opts.sendAudioAsVoice = sendAsVoice;
-        
-        // ✅ ADICIONAL: Opções específicas para PTT
-        if (sendAsVoice) {
-          opts.ptt = true; // Marcar explicitamente como Push-to-Talk
-        }
-        
         Log.info('[SEND] 🎵 Áudio configurado para envio', {
           mediaType,
           mimeType: finalMime,
-          sendAsVoice,
-          ptt: opts.ptt,
           isOpus: isOpusMime(finalMime),
-          wasConverted: finalMime !== mime
+          wasConverted: finalMime !== mime,
+          note: 'PTT detectado automaticamente pelo mimetype'
         });
+        
+        // ❌ NÃO usar sendAudioAsVoice - causa problemas
+        // O WhatsApp detecta PTT automaticamente quando:
+        // - mimetype = 'audio/ogg; codecs=opus'
+        // - filesize está presente
+        // - duration está presente
+        
       } else if (msg?.caption || att?.caption) {
         const cap = String(msg?.caption || att?.caption || '');
         if (cap) opts.caption = cap.slice(0, 3000);

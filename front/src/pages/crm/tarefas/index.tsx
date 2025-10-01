@@ -40,59 +40,21 @@ export default function TarefasPage() {
   const [filterResponsavel, setFilterResponsavel] = useState("todos")
   const { toast } = useToast()
 
-  // Mock data - em uma aplicação real, viria do backend
-  const tarefas = [
-    {
-      id: 1,
-      titulo: "Ligar para João Silva",
-      descricao: "Follow-up da proposta enviada",
-      leadNome: "João Silva",
-      leadId: 1,
-      responsavel: "Maria Santos",
-      dataVencimento: "2024-01-02",
-      status: "pendente",
-      prioridade: "alta",
-      dataCriacao: "2023-12-30"
-    },
-    {
-      id: 2,
-      titulo: "Enviar proposta comercial",
-      descricao: "Elaborar e enviar proposta para Ana Costa",
-      leadNome: "Ana Costa",
-      leadId: 2,
-      responsavel: "Pedro Lima",
-      dataVencimento: "2024-01-03",
-      status: "pendente",
-      prioridade: "media",
-      dataCriacao: "2024-01-01"
-    },
-    {
-      id: 3,
-      titulo: "Reunião de apresentação",
-      descricao: "Apresentar solução para Carlos Santos",
-      leadNome: "Carlos Santos",
-      leadId: 3,
-      responsavel: "Maria Santos",
-      dataVencimento: "2024-01-01",
-      status: "concluida",
-      prioridade: "alta",
-      dataCriacao: "2023-12-28"
-    },
-    {
-      id: 4,
-      titulo: "Preparar documentação",
-      descricao: "Documentos para fechamento do contrato",
-      leadNome: "Fernanda Oliveira",
-      leadId: 4,
-      responsavel: "Pedro Lima",
-      dataVencimento: "2024-01-04",
-      status: "pendente",
-      prioridade: "baixa",
-      dataCriacao: "2024-01-02"
-    }
-  ]
+  // ✅ Dados virão da API - sem dados mockados
+  const tarefas: Array<{
+    id: number;
+    titulo: string;
+    descricao: string;
+    leadNome: string;
+    leadId: number;
+    responsavel: string;
+    dataVencimento: string;
+    status: string;
+    prioridade: string;
+    dataCriacao: string;
+  }> = [];
 
-  const responsaveis = ["Maria Santos", "Pedro Lima", "Ana Silva"]
+  const responsaveis: string[] = [];
 
   const getStatusBadge = (status: string) => {
     switch (status) {

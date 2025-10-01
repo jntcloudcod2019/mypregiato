@@ -3,7 +3,6 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
-  LayoutDashboard,
   Users,
   Calendar,
   FileText,
@@ -44,7 +43,6 @@ export default function CRMWorkspace() {
   }, [activeItem]);
   
   const navItems: NavItem[] = [
-    { label: 'Dashboard', icon: <LayoutDashboard className="h-5 w-5" />, path: '/crm' },
     { label: 'Tarefas', icon: <ListTodo className="h-5 w-5" />, path: '/crm/tarefas' },
     { label: 'Leads (lista)', icon: <Users className="h-5 w-5" />, path: '/crm/leads' },
     { label: 'Leads (Kanban)', icon: <Kanban className="h-5 w-5" />, path: '/crm/leads/kanban' },
