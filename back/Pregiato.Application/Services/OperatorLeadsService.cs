@@ -310,5 +310,120 @@ namespace Pregiato.Application.Services
                 throw;
             }
         }
+        
+        // ============================================================================
+        // SCHEDULING FEATURE - SERVICE METHODS
+        // ============================================================================
+        
+        /// <summary>
+        /// Gets Kanban board data for an operator
+        /// Business logic: Categorizes leads and prepares data for frontend
+        /// </summary>
+        public async Task<KanbanDataDto> GetKanbanDataAsync(string emailOperator)
+        {
+            try
+            {
+                Console.WriteLine($"[SCHEDULING] GetKanbanDataAsync - EmailOperator: {emailOperator}");
+                
+                // Get grouped data from repository
+                var groupedLeads = await _repository.GetKanbanDataAsync(emailOperator);
+                
+                // Transform to DTOs with business logic
+                var columns = new List<KanbanColumnDto>();
+                
+                // Define column order and labels
+                var columnDefinitions = new[]
+                {
+                    new { Status = "new", Label = "Novo" },
+                    new { Status = "scheduled", Label = "Agendado" },
+                    new { Status = "pending", Label = "Pendente" }
+                };
+                
+                int totalLeads = 0;
+                
+                foreach (var columnDef in columnDefinitions)
+                {
+                    var leadsInColumn = groupedLeads.ContainsKey(columnDef.Status) 
+                        ? groupedLeads[columnDef.Status] 
+                        : new List<OperatorLeads>();
+                    
+                    var leadDtos = leadsInColumn.Select(lead => new OperatorLeadKanbanDto
+                    {
+                        Id = lead.Id,
+                        NameLead = lead.NameLead,
+                        PhoneLead = lead.PhoneLead,
+                        Responsible = lead.Responsible,
+                        Age = lead.Age,
+                        PublicADS = lead.PublicADS,
+                        CreatedAt = lead.CreatedAt,
+                        StatusContact = lead.StatusContact,
+                        DateContact = lead.DateContact,
+                        StatusSeletiva = lead.StatusSeletiva,
+                        SeletivaInfo = lead.SeletivaInfo,
+                        StatusContactLabel = lead.StatusContact ? "Lead Scheduled" : "Lead Pending",
+                        KanbanStatus = columnDef.Status
+                    }).ToList();
+                    
+                    columns.Add(new KanbanColumnDto
+                    {
+                        Status = columnDef.Status,
+                        Label = columnDef.Label,
+                        Count = leadDtos.Count,
+                        Leads = leadDtos  // Already in descending order from repository
+                    });
+                    
+                    totalLeads += leadDtos.Count;
+                }
+                
+                Console.WriteLine($"[SCHEDULING] Kanban data prepared - Total: {totalLeads}, New: {columns[0].Count}, Scheduled: {columns[1].Count}, Pending: {columns[2].Count}");
+                
+                return new KanbanDataDto
+                {
+                    Columns = columns,
+                    TotalLeads = totalLeads
+                };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[SCHEDULING] Error getting Kanban data: {ex.Message}");
+                throw;
+            }
+        }
+        
+        /// <summary>
+        /// Gets dashboard metrics for an operator
+        /// </summary>
+        public async Task<OperatorDashboardDto> GetDashboardMetricsAsync(string emailOperator)
+        {
+            try
+            {
+                Console.WriteLine($"[SCHEDULING] GetDashboardMetricsAsync - EmailOperator: {emailOperator}");
+                
+                var metrics = await _repository.GetDashboardMetricsAsync(emailOperator);
+                
+                var dashboard = new OperatorDashboardDto
+                {
+                    ScheduledToday = metrics.scheduledToday,
+                    ScheduledWeek = metrics.scheduledWeek,
+                    ScheduledMonth = metrics.scheduledMonth,
+                    PendingToday = metrics.pendingToday,
+                    PendingWeek = metrics.pendingWeek,
+                    PendingMonth = metrics.pendingMonth,
+                    TotalLeads = metrics.totalNew + metrics.totalScheduled + metrics.totalPending,
+                    TotalNew = metrics.totalNew,
+                    TotalScheduled = metrics.totalScheduled,
+                    TotalPending = metrics.totalPending
+                };
+                
+                Console.WriteLine($"[SCHEDULING] Dashboard metrics prepared - Total leads: {dashboard.TotalLeads}");
+                
+                return dashboard;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[SCHEDULING] Error getting dashboard metrics: {ex.Message}");
+                throw;
+            }
+        }
     }
 }

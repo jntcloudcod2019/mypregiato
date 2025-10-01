@@ -14,5 +14,16 @@ namespace Pregiato.Application.Interfaces
         
         // Método unificado para atualizar rastreamento
         Task<OperatorLeadWithTrackingDto> UpdateLeadTrackingAsync(UpdateLeadTrackingDto updateDto);
+        
+        // ✅ NEW METHODS FOR SCHEDULING FEATURE
+        /// <summary>
+        /// Gets Kanban board data for an operator (leads grouped by status)
+        /// </summary>
+        Task<KanbanDataDto> GetKanbanDataAsync(string emailOperator);
+        
+        /// <summary>
+        /// Gets dashboard metrics for an operator
+        /// </summary>
+        Task<OperatorDashboardDto> GetDashboardMetricsAsync(string emailOperator);
     }
 }

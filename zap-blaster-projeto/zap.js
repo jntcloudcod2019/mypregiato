@@ -1726,59 +1726,128 @@ async function sendOne(number, msg, typeMessage) {
         isBuffer: Buffer.isBuffer(buffer)
       });
 
-      // 2) Se for áudio não-Opus, converter para Opus (para enviar como voz)
+      // 2) Se for áudio, OBRIGATORIAMENTE converter para Opus/OGG (WhatsApp PTT requirement)
       let finalBuffer = buffer;
       let finalMime = mime;
       let finalFileName = originalName;
       
-      if (isAudioLike(mediaType, mime) && !isOpusMime(mime)) {
-        Log.info('[SEND] 🔄 Áudio não-Opus detectado, tentando converter para Opus', {
+      if (isAudioLike(mediaType, mime)) {
+        Log.info('[SEND] 🎵 Áudio detectado - conversão OBRIGATÓRIA para OGG/Opus (WhatsApp PTT)', {
           originalMime: mime,
-          originalSize: buffer.length
+          originalSize: buffer.length,
+          isAlreadyOpus: isOpusMime(mime)
         });
         
+        // SEMPRE converter, mesmo se já for Opus (garantir compatibilidade)
         try {
-          // Salvar buffer temporariamente para conversão
-          const tempInputPath = await writeTempFile(buffer, originalName, mime);
-          const tempOutputPath = tempInputPath.replace(/\.[a-z0-9]+$/i, '') + '.ogg';
+          ensureTempDir();
+          const timestamp = Date.now();
           
-          // Tentar converter usando AudioProcessor
-          if (AudioProcessor && typeof AudioProcessor.convertToOpus === 'function') {
-            Log.info('[SEND] 🎵 Convertendo para OGG/Opus com AudioProcessor');
-            const converted = await AudioProcessor.convertToOpus(tempInputPath, tempOutputPath, {
-              ar: 16000,  // Sample rate: 16kHz (otimizado para voz)
-              ac: 1,      // Mono
-              bitrate: '24k' // Bitrate adequado para voz
+          // Determinar extensão de entrada
+          const inputExt = mime.includes('mp3') || mime.includes('mpeg') ? '.mp3' : 
+                           mime.includes('webm') ? '.webm' : 
+                           mime.includes('ogg') ? '.ogg' : 
+                           mime.includes('wav') ? '.wav' : '.bin';
+          
+          const tempInputPath = path.join(TEMP_DIR, `voice_input_${timestamp}${inputExt}`);
+          const tempOutputPath = path.join(TEMP_DIR, `voice_output_${timestamp}.ogg`);
+          
+          // Salvar buffer de entrada
+          await fsp.writeFile(tempInputPath, buffer);
+          Log.info('[SEND] 📁 Arquivo temporário criado', { 
+            input: tempInputPath,
+            size: buffer.length 
+          });
+          
+          // Converter usando FFmpeg com configurações WhatsApp-compatíveis
+          const { spawn } = require('child_process');
+          const ffmpegPath = process.env.FFMPEG_PATH || 'ffmpeg';
+          
+          await new Promise((resolve, reject) => {
+            const ffmpegArgs = [
+              '-i', tempInputPath,           // Input file
+              '-c:a', 'libopus',             // Codec: Opus (REQUIRED by WhatsApp)
+              '-b:a', '16k',                 // Bitrate: 16kbps (WhatsApp voice optimal)
+              '-ar', '16000',                // Sample rate: 16kHz (WhatsApp standard)
+              '-ac', '1',                    // Channels: mono (WhatsApp voice)
+              '-application', 'voip',        // Application: VOIP optimization
+              '-vbr', 'on',                  // Variable bitrate ON
+              '-compression_level', '10',    // Max compression
+              '-frame_duration', '20',       // Frame duration 20ms (WhatsApp default)
+              '-vn',                         // No video
+              '-f', 'ogg',                   // Format: OGG container
+              '-y',                          // Overwrite output
+              tempOutputPath
+            ];
+            
+            Log.info('[SEND] 🔧 Executando FFmpeg para conversão PTT', { 
+              command: `${ffmpegPath} ${ffmpegArgs.join(' ')}`
             });
             
-            if (converted && fs.existsSync(tempOutputPath)) {
-              // Ler arquivo convertido
-              finalBuffer = await fsp.readFile(tempOutputPath);
-              finalMime = 'audio/ogg; codecs=opus';
-              finalFileName = originalName.replace(/\.[a-z0-9]+$/i, '.ogg');
-              
-              Log.info('[SEND] ✅ Áudio convertido para Opus com sucesso', {
-                originalSize: buffer.length,
-                convertedSize: finalBuffer.length,
-                newMime: finalMime,
-                newFileName: finalFileName
+            const ffmpegProcess = spawn(ffmpegPath, ffmpegArgs);
+            let stderrOutput = '';
+            
+            ffmpegProcess.stderr.on('data', (data) => {
+              stderrOutput += data.toString();
+            });
+            
+            ffmpegProcess.on('close', (exitCode) => {
+              if (exitCode === 0 && fs.existsSync(tempOutputPath)) {
+                Log.info('[SEND] ✅ FFmpeg conversão bem-sucedida', { exitCode });
+                resolve(true);
+              } else {
+                const errorMsg = `FFmpeg failed with exit code ${exitCode}`;
+                Log.error('[SEND] ❌ FFmpeg conversão falhou', { 
+                  exitCode,
+                  stderr: stderrOutput.slice(-300)
+                });
+                reject(new Error(errorMsg));
+              }
+            });
+            
+            ffmpegProcess.on('error', (err) => {
+              Log.error('[SEND] ❌ Erro ao executar FFmpeg', { 
+                error: err.message,
+                path: ffmpegPath
               });
-              
-              // Limpar arquivos temporários
-              await tryUnlink(tempInputPath);
-              await tryUnlink(tempOutputPath);
-            } else {
-              Log.warn('[SEND] ⚠️ Conversão não retornou arquivo válido, usando áudio original');
-              await tryUnlink(tempInputPath);
-            }
-          } else {
-            Log.warn('[SEND] ⚠️ AudioProcessor não disponível, usando áudio original (será enviado como arquivo)');
-            await tryUnlink(tempInputPath);
-          }
-        } catch (conversionError) {
-          Log.warn('[SEND] ⚠️ Erro na conversão para Opus, usando áudio original', {
-            error: conversionError?.message
+              reject(err);
+            });
           });
+          
+          // Ler arquivo convertido
+          if (fs.existsSync(tempOutputPath)) {
+            finalBuffer = await fsp.readFile(tempOutputPath);
+            finalMime = 'audio/ogg; codecs=opus';
+            finalFileName = originalName.replace(/\.[^.]+$/, '.ogg');
+            
+            const compressionRate = ((1 - finalBuffer.length / buffer.length) * 100).toFixed(1);
+            
+            Log.info('[SEND] 🎉 Áudio convertido para Opus/OGG WhatsApp-compatível', {
+              originalSize: buffer.length,
+              opusSize: finalBuffer.length,
+              compression: `${compressionRate}%`,
+              finalMime,
+              finalFileName
+            });
+            
+            // Limpar arquivos temporários
+            await tryUnlink(tempInputPath);
+            await tryUnlink(tempOutputPath);
+          } else {
+            throw new Error('FFmpeg output file not created');
+          }
+          
+        } catch (conversionError) {
+          Log.error('[SEND] ❌ ERRO CRÍTICO: Conversão para Opus falhou - impossível enviar como voz', {
+            error: conversionError?.message,
+            stack: conversionError?.stack?.split('\n').slice(0, 3).join(' | ')
+          });
+          
+          // ❌ FALHAR o envio - WhatsApp não reproduz áudio que não seja Opus/OGG
+          return { 
+            success: false, 
+            reason: `audio_conversion_required_failed: ${conversionError?.message}` 
+          };
         }
       }
 

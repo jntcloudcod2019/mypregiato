@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '@/config/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   Search, 
   Plus, 
-  Download, 
+  Calendar, 
   RefreshCw, 
   User, 
   Phone, 
@@ -30,6 +31,7 @@ interface LeadsContainerProps {
 export const LeadsContainer: React.FC<LeadsContainerProps> = ({ existingChats = [] }) => {
   console.log('🔍 LeadsContainer renderizando...');
   
+  const navigate = useNavigate();
   const { user } = useUser();
   const { leads: cachedLeads, isLoading, error: cacheError, refreshCache } = useUserCache();
   console.log('👤 Usuário:', user);
@@ -219,14 +221,9 @@ export const LeadsContainer: React.FC<LeadsContainerProps> = ({ existingChats = 
     });
   };
 
-  const handleExport = () => {
-    // TODO: Implementar exportação dos leads
-    console.log('Exportando leads');
-    toast({
-      title: "Funcionalidade em desenvolvimento",
-      description: "Exportação de leads será implementada em breve",
-      variant: "default"
-    });
+  const handleScheduling = () => {
+    console.log('📅 Navegando para página de Agendamentos');
+    navigate('/scheduling');
   };
 
   return (
@@ -269,11 +266,11 @@ export const LeadsContainer: React.FC<LeadsContainerProps> = ({ existingChats = 
             <Button
               variant="outline"
               size="sm"
-              onClick={handleExport}
-              className="flex items-center gap-2"
+              onClick={handleScheduling}
+              className="flex items-center gap-2 bg-blue-50 hover:bg-blue-100 border-blue-200"
             >
-              <Download className="h-4 w-4" />
-              Exportar
+              <Calendar className="h-4 w-4" />
+              Agendamentos
             </Button>
             
             <Button

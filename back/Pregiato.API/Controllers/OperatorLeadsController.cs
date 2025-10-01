@@ -221,5 +221,79 @@ namespace Pregiato.API.Controllers
                 return StatusCode(500, new { success = false, message = "Erro interno do servidor", details = ex.Message });
             }
         }
+        
+        // ============================================================================
+        // SCHEDULING FEATURE - API ENDPOINTS
+        // ============================================================================
+        
+        /// <summary>
+        /// Gets Kanban board data for scheduling page
+        /// Returns leads grouped by status: new, scheduled, pending (descending order)
+        /// </summary>
+        /// <param name="emailOperator">Operator email for data filtering</param>
+        [HttpGet("kanban/{emailOperator}")]
+        public async Task<IActionResult> GetKanbanData(string emailOperator)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(emailOperator))
+                {
+                    return BadRequest(new { success = false, message = "Email do operador é obrigatório" });
+                }
+                
+                Console.WriteLine($"[SCHEDULING] GET kanban/{emailOperator} - Fetching Kanban data");
+                
+                var kanbanData = await _operatorLeadsService.GetKanbanDataAsync(emailOperator);
+                
+                Console.WriteLine($"[SCHEDULING] Kanban data retrieved successfully - {kanbanData.TotalLeads} leads");
+                
+                return Ok(new
+                {
+                    success = true,
+                    data = kanbanData,
+                    message = $"Kanban data retrieved for {emailOperator}"
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[SCHEDULING] Error in GetKanbanData: {ex.Message}");
+                return StatusCode(500, new { success = false, message = "Erro ao obter dados do Kanban", details = ex.Message });
+            }
+        }
+        
+        /// <summary>
+        /// Gets dashboard metrics for scheduling page
+        /// Returns scheduled and pending counts by period (day, week, month)
+        /// </summary>
+        /// <param name="emailOperator">Operator email for metrics calculation</param>
+        [HttpGet("dashboard/{emailOperator}")]
+        public async Task<IActionResult> GetDashboard(string emailOperator)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(emailOperator))
+                {
+                    return BadRequest(new { success = false, message = "Email do operador é obrigatório" });
+                }
+                
+                Console.WriteLine($"[SCHEDULING] GET dashboard/{emailOperator} - Fetching dashboard metrics");
+                
+                var dashboard = await _operatorLeadsService.GetDashboardMetricsAsync(emailOperator);
+                
+                Console.WriteLine($"[SCHEDULING] Dashboard metrics retrieved - Scheduled today: {dashboard.ScheduledToday}, Pending today: {dashboard.PendingToday}");
+                
+                return Ok(new
+                {
+                    success = true,
+                    data = dashboard,
+                    message = $"Dashboard metrics retrieved for {emailOperator}"
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[SCHEDULING] Error in GetDashboard: {ex.Message}");
+                return StatusCode(500, new { success = false, message = "Erro ao obter métricas do dashboard", details = ex.Message });
+            }
+        }
     }
 }

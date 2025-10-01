@@ -22,6 +22,7 @@ import RelatoriosPage from "./pages/crm/relatorios";
 import ConfiguracoesPage from "./pages/crm/configuracoes";
 import AtendimentoPage from "./pages/atendimento";
 import HistoricoChatsPage from "./pages/atendimento/historico";
+import SchedulingPage from "./pages/scheduling";
 import Contratos from "./pages/contratos";
 import ContratosAgenciamento from "./pages/contratos/agenciamento";
 import NovoContratoAgenciamento from "./pages/contratos/agenciamento/novo";
@@ -205,6 +206,15 @@ const App = () => (
           <ProtectedRoute>
             <MainLayout>
               <HistoricoChatsPage />
+            </MainLayout>
+          </ProtectedRoute>
+        } />
+        
+        {/* Rota de Agendamentos (Scheduling) */}
+        <Route path="/scheduling" element={
+          <ProtectedRoute>
+            <MainLayout>
+              <SchedulingPage />
             </MainLayout>
           </ProtectedRoute>
         } />

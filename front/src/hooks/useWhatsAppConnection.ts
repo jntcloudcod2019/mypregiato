@@ -5,6 +5,8 @@ import { qrCodeQueueService } from '@/services/qr-code-queue-service';
 import { toast } from '@/components/ui/sonner';
 import { globalCache } from '@/services/global-cache';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://pregiato-api-production.up.railway.app/api';
+
 // Interface para o status do bot
 interface BotStatusUpdate {
   sessionConnected: boolean;
@@ -45,104 +47,21 @@ export const useWhatsAppConnection = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isGeneratingQR, setIsGeneratingQR] = useState(false);
 
-  // ✅ ROBUSTO: Verificação inicial do status com cache persistente
+  // ✅ CORREÇÃO: Verificação inicial SEMPRE consulta o servidor (status único para todos)
   useEffect(() => {
     const checkInitialStatus = async () => {
       try {
-        console.log('🔍 [useWhatsAppConnection] Verificando status inicial...');
+        console.log('🔍 [useWhatsAppConnection] Verificando status inicial (sempre do servidor)...');
         
-        // ✅ NOVO: Verificar se houve deploy antes de usar cache
-        const deployDetected = await globalCache.detectServerRestart();
-        if (deployDetected) {
-          console.log('🚀 [useWhatsAppConnection] Deploy detectado - cache limpo, verificando status atual...');
-          // Continuar para verificar status atual do servidor
-        } else {
-          // ✅ NOVO: Primeiro, tentar usar cache persistente
-          const cachedStatus = globalCache.getPersistentSessionStatus();
-          console.log('🔍 [useWhatsAppConnection] Cache persistente verificado:', cachedStatus);
-        
-          if (cachedStatus && cachedStatus.sessionConnected && cachedStatus.connectedNumber) {
-          console.log('💾 [useWhatsAppConnection] Usando status do cache persistente:', cachedStatus);
-          
-          setConnectionState(prev => ({
-            ...prev,
-            status: ConnectionStatus.connected,
-            isConnected: true,
-            lastActivity: cachedStatus.lastActivity,
-            error: undefined,
-            canGenerateQR: false,
-            connectedNumber: cachedStatus.connectedNumber,
-            isFullyValidated: cachedStatus.isFullyValidated
-          }));
-          
-          // ✅ NOVO: Verificar se o status ainda é válido no servidor (em background)
-          setTimeout(async () => {
-            try {
-              console.log('🔄 [useWhatsAppConnection] Verificando status do servidor em background...');
-              const response = await fetch(`${API_BASE_URL}/api/whatsapp/status`);
-              if (response.ok) {
-                const statusData = await response.json();
-                console.log('🔄 [useWhatsAppConnection] Status do servidor verificado:', statusData);
-                
-                // Atualizar cache se necessário
-                if (statusData.connectedNumber) {
-                  globalCache.setConnectedNumber(statusData.connectedNumber);
-                }
-                globalCache.setSessionStatus({
-                  sessionConnected: statusData.sessionConnected,
-                  isFullyValidated: statusData.isFullyValidated,
-                  connectedNumber: statusData.connectedNumber,
-                  lastActivity: statusData.lastActivity
-                });
-                
-                // Atualizar estado se houver mudança
-                const isActuallyConnected = Boolean(statusData.sessionConnected);
-                if (isActuallyConnected !== cachedStatus.sessionConnected) {
-                  console.log('🔄 [useWhatsAppConnection] Status mudou, atualizando estado');
-                  setConnectionState(prev => ({
-                    ...prev,
-                    status: isActuallyConnected ? ConnectionStatus.connected : ConnectionStatus.disconnected,
-                    isConnected: isActuallyConnected,
-                    lastActivity: statusData.lastActivity,
-                    error: undefined,
-                    canGenerateQR: !isActuallyConnected,
-                    connectedNumber: statusData.connectedNumber || prev.connectedNumber,
-                    isFullyValidated: statusData.isFullyValidated
-                  }));
-                } else {
-                  console.log('✅ [useWhatsAppConnection] Status do servidor confirma cache - sem mudanças');
-                }
-              } else {
-                console.warn('⚠️ [useWhatsAppConnection] Erro na resposta do servidor:', response.status);
-              }
-            } catch (error) {
-              console.warn('⚠️ [useWhatsAppConnection] Erro ao verificar status do servidor:', error);
-            }
-          }, 1000);
-          
-          return; // Usar cache, não fazer fetch imediato
-          } else {
-            console.log('❌ [useWhatsAppConnection] Cache não disponível ou inválido:', {
-              hasCache: !!cachedStatus,
-              sessionConnected: cachedStatus?.sessionConnected,
-              connectedNumber: cachedStatus?.connectedNumber
-            });
-          }
-        }
-        
-        // ✅ FALLBACK: Se não há cache válido ou deploy detectado, fazer fetch do servidor
-        console.log('🌐 [useWhatsAppConnection] Cache não disponível, consultando servidor...');
         const response = await fetch(`${API_BASE_URL}/api/whatsapp/status`);
         if (response.ok) {
           const statusData = await response.json();
-          console.log('📊 [useWhatsAppConnection] Status inicial recebido do servidor:', statusData);
+          console.log('📊 [useWhatsAppConnection] Status recebido do servidor:', statusData);
           
           const isActuallyConnected = Boolean(statusData.sessionConnected);
-      const nextStatus = isActuallyConnected
-        ? ConnectionStatus.connected
-            : ConnectionStatus.disconnected;
+          const nextStatus = isActuallyConnected ? ConnectionStatus.connected : ConnectionStatus.disconnected;
 
-          // ✅ NOVO: Armazenar no cache global
+          // ✅ Atualizar cache local (apenas para otimização de reconexões)
           if (statusData.connectedNumber) {
             globalCache.setConnectedNumber(statusData.connectedNumber);
           }
@@ -153,35 +72,39 @@ export const useWhatsAppConnection = () => {
             lastActivity: statusData.lastActivity
           });
 
-      setConnectionState(prev => ({
-        ...prev,
-        status: nextStatus,
-        isConnected: isActuallyConnected,
+          setConnectionState(prev => ({
+            ...prev,
+            status: nextStatus,
+            isConnected: isActuallyConnected,
             lastActivity: statusData.lastActivity,
             error: undefined,
-        canGenerateQR: !isActuallyConnected,
-            connectedNumber: statusData.connectedNumber || prev.connectedNumber,
+            canGenerateQR: !isActuallyConnected,
+            connectedNumber: statusData.connectedNumber,
             isFullyValidated: statusData.isFullyValidated
-      }));
+          }));
+          
+          console.log('✅ [useWhatsAppConnection] Status inicial configurado:', {
+            status: nextStatus,
+            isConnected: isActuallyConnected,
+            connectedNumber: statusData.connectedNumber
+          });
+        } else {
+          console.error('❌ [useWhatsAppConnection] Erro ao obter status do servidor:', response.status);
+          setConnectionState(prev => ({
+            ...prev,
+            status: ConnectionStatus.disconnected,
+            isConnected: false,
+            error: 'Erro ao conectar com o servidor'
+          }));
         }
-    } catch (error) {
-        console.warn('⚠️ [useWhatsAppConnection] Erro ao verificar status inicial:', error);
-        
-        // ✅ FALLBACK: Tentar usar cache mesmo se expirado
-        const fallbackStatus = globalCache.getSessionStatus();
-        if (fallbackStatus) {
-          console.log('🔄 [useWhatsAppConnection] Usando cache como fallback:', fallbackStatus);
-      setConnectionState(prev => ({
-        ...prev,
-            status: fallbackStatus.sessionConnected ? ConnectionStatus.connected : ConnectionStatus.disconnected,
-            isConnected: fallbackStatus.sessionConnected,
-            lastActivity: fallbackStatus.lastActivity,
-            error: undefined,
-            canGenerateQR: !fallbackStatus.sessionConnected,
-            connectedNumber: fallbackStatus.connectedNumber || prev.connectedNumber,
-            isFullyValidated: fallbackStatus.isFullyValidated
-      }));
-    }
+      } catch (error) {
+        console.error('❌ [useWhatsAppConnection] Erro na verificação inicial:', error);
+        setConnectionState(prev => ({
+          ...prev,
+          status: ConnectionStatus.disconnected,
+          isConnected: false,
+          error: 'Erro de conexão'
+        }));
       }
     };
 

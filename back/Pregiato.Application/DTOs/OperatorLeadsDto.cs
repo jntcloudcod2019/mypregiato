@@ -153,4 +153,93 @@ namespace Pregiato.Application.DTOs
         public bool StatusSeletiva { get; set; }
         public SeletivaInfo? SeletivaInfo { get; set; }
     }
+    
+    // ============================================================================
+    // SCHEDULING FEATURE DTOs (Kanban Board)
+    // ============================================================================
+    
+    /// <summary>
+    /// DTO for a single lead card in the Kanban board
+    /// </summary>
+    public class OperatorLeadKanbanDto
+    {
+        public Guid Id { get; set; }
+        public string NameLead { get; set; } = string.Empty;
+        public string PhoneLead { get; set; } = string.Empty;
+        public string? Responsible { get; set; }
+        public int? Age { get; set; }
+        public string? PublicADS { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public bool StatusContact { get; set; }
+        public DateTime? DateContact { get; set; }
+        public bool StatusSeletiva { get; set; }
+        public SeletivaInfo? SeletivaInfo { get; set; }
+        
+        /// <summary>
+        /// Label for contact status: "Lead Scheduled" or "Lead Pending"
+        /// </summary>
+        public string StatusContactLabel { get; set; } = string.Empty;
+        
+        /// <summary>
+        /// Kanban column status: "new", "scheduled", "pending"
+        /// </summary>
+        public string KanbanStatus { get; set; } = string.Empty;
+    }
+    
+    /// <summary>
+    /// DTO for a single Kanban column
+    /// </summary>
+    public class KanbanColumnDto
+    {
+        /// <summary>
+        /// Column status: "new", "scheduled", "pending"
+        /// </summary>
+        public string Status { get; set; } = string.Empty;
+        
+        /// <summary>
+        /// Display label for the column
+        /// </summary>
+        public string Label { get; set; } = string.Empty;
+        
+        /// <summary>
+        /// Number of leads in this column
+        /// </summary>
+        public int Count { get; set; }
+        
+        /// <summary>
+        /// List of leads in this column (descending order by CreatedAt)
+        /// </summary>
+        public List<OperatorLeadKanbanDto> Leads { get; set; } = new List<OperatorLeadKanbanDto>();
+    }
+    
+    /// <summary>
+    /// DTO containing all Kanban data
+    /// </summary>
+    public class KanbanDataDto
+    {
+        public List<KanbanColumnDto> Columns { get; set; } = new List<KanbanColumnDto>();
+        public int TotalLeads { get; set; }
+    }
+    
+    /// <summary>
+    /// DTO for operator dashboard metrics
+    /// </summary>
+    public class OperatorDashboardDto
+    {
+        // Scheduled metrics
+        public int ScheduledToday { get; set; }
+        public int ScheduledWeek { get; set; }
+        public int ScheduledMonth { get; set; }
+        
+        // Pending metrics
+        public int PendingToday { get; set; }
+        public int PendingWeek { get; set; }
+        public int PendingMonth { get; set; }
+        
+        // Overall totals
+        public int TotalLeads { get; set; }
+        public int TotalNew { get; set; }
+        public int TotalScheduled { get; set; }
+        public int TotalPending { get; set; }
+    }
 }

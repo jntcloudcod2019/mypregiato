@@ -15,5 +15,16 @@ namespace Pregiato.Core.Interfaces
         Task<int> GetLeadsCountByOperatorAsync(string operatorId);
         Task<int> GetLeadsCountByEmailOperatorAsync(string emailOperator);
         Task<OperatorLeads> UpdateTrackingAsync(string emailOperator, string phoneLead, bool statusContact, DateTime? dateContact, bool statusSeletiva, SeletivaInfo? seletivaInfo);
+        
+        // ✅ NEW METHODS FOR SCHEDULING FEATURE
+        /// <summary>
+        /// Gets all leads for an operator grouped by Kanban status (descending order by CreatedAt)
+        /// </summary>
+        Task<Dictionary<string, List<OperatorLeads>>> GetKanbanDataAsync(string emailOperator);
+        
+        /// <summary>
+        /// Gets dashboard metrics for an operator (scheduled and pending counts)
+        /// </summary>
+        Task<(int scheduledToday, int scheduledWeek, int scheduledMonth, int pendingToday, int pendingWeek, int pendingMonth, int totalNew, int totalScheduled, int totalPending)> GetDashboardMetricsAsync(string emailOperator);
     }
 }

@@ -137,5 +137,118 @@ namespace Pregiato.Infrastructure.Repositories
             await _context.SaveChangesAsync();
             return operatorLead;
         }
+        
+        // ============================================================================
+        // SCHEDULING FEATURE - REPOSITORY METHODS
+        // ============================================================================
+        
+        /// <summary>
+        /// Gets all leads for an operator grouped by Kanban status
+        /// Returns leads in descending order by CreatedAt (newest first)
+        /// </summary>
+        public async Task<Dictionary<string, List<OperatorLeads>>> GetKanbanDataAsync(string emailOperator)
+        {
+            var allLeads = await _context.OperatorLeads
+                .Where(ol => ol.EmailOperator == emailOperator)
+                .OrderByDescending(ol => ol.CreatedAt)  // ✅ Descending order
+                .ToListAsync();
+            
+            var grouped = new Dictionary<string, List<OperatorLeads>>
+            {
+                ["new"] = new List<OperatorLeads>(),
+                ["scheduled"] = new List<OperatorLeads>(),
+                ["pending"] = new List<OperatorLeads>()
+            };
+            
+            var now = DateTime.UtcNow;
+            
+            foreach (var lead in allLeads)
+            {
+                // Determine Kanban status based on business rules
+                var status = DetermineKanbanStatus(lead, now);
+                grouped[status].Add(lead);
+            }
+            
+            return grouped;
+        }
+        
+        /// <summary>
+        /// Gets dashboard metrics for an operator
+        /// </summary>
+        public async Task<(int scheduledToday, int scheduledWeek, int scheduledMonth, int pendingToday, int pendingWeek, int pendingMonth, int totalNew, int totalScheduled, int totalPending)> GetDashboardMetricsAsync(string emailOperator)
+        {
+            var allLeads = await _context.OperatorLeads
+                .Where(ol => ol.EmailOperator == emailOperator)
+                .ToListAsync();
+            
+            var now = DateTime.UtcNow;
+            var today = now.Date;
+            var weekStart = today.AddDays(-(int)today.DayOfWeek);
+            var monthStart = new DateTime(today.Year, today.Month, 1);
+            
+            // Initialize counters
+            int scheduledToday = 0, scheduledWeek = 0, scheduledMonth = 0;
+            int pendingToday = 0, pendingWeek = 0, pendingMonth = 0;
+            int totalNew = 0, totalScheduled = 0, totalPending = 0;
+            
+            foreach (var lead in allLeads)
+            {
+                var kanbanStatus = DetermineKanbanStatus(lead, now);
+                
+                // Count totals by Kanban status
+                switch (kanbanStatus)
+                {
+                    case "new":
+                        totalNew++;
+                        break;
+                    case "scheduled":
+                        totalScheduled++;
+                        
+                        // Count scheduled by period (using DateContact or CreatedAt)
+                        var scheduleDate = lead.DateContact ?? lead.CreatedAt;
+                        if (scheduleDate.Date == today)
+                            scheduledToday++;
+                        if (scheduleDate.Date >= weekStart)
+                            scheduledWeek++;
+                        if (scheduleDate.Date >= monthStart)
+                            scheduledMonth++;
+                        break;
+                    case "pending":
+                        totalPending++;
+                        
+                        // Count pending by period (using CreatedAt)
+                        if (lead.CreatedAt.Date == today)
+                            pendingToday++;
+                        if (lead.CreatedAt.Date >= weekStart)
+                            pendingWeek++;
+                        if (lead.CreatedAt.Date >= monthStart)
+                            pendingMonth++;
+                        break;
+                }
+            }
+            
+            return (scheduledToday, scheduledWeek, scheduledMonth, pendingToday, pendingWeek, pendingMonth, totalNew, totalScheduled, totalPending);
+        }
+        
+        /// <summary>
+        /// Determines the Kanban status for a lead based on business rules
+        /// </summary>
+        private string DetermineKanbanStatus(OperatorLeads lead, DateTime now)
+        {
+            // Rule 1: If StatusSeletiva = 1 → "scheduled"
+            if (lead.StatusSeletiva)
+                return "scheduled";
+            
+            // Rule 2: If StatusContact = 0 AND > 24h from creation → "pending"
+            if (!lead.StatusContact)
+            {
+                var hoursSinceCreation = (now - lead.CreatedAt).TotalHours;
+                if (hoursSinceCreation > 24)
+                    return "pending";
+            }
+            
+            // Rule 3: All other cases → "new"
+            return "new";
+        }
     }
 }
