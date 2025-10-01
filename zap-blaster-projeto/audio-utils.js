@@ -108,6 +108,84 @@ class AudioProcessor {
   }
 
   /**
+   * Converte áudio para formato Opus OGG usando FFmpeg
+   * @param {string} inputPath - Caminho do arquivo de entrada
+   * @param {string} outputPath - Caminho do arquivo de saída (.ogg)
+   * @param {object} options - Opções de conversão { ar, ac, bitrate }
+   * @returns {Promise<boolean>} - true se conversão bem-sucedida
+   */
+  static async convertToOpus(inputPath, outputPath, options = {}) {
+    const { spawn } = require('child_process');
+    const fs = require('fs');
+    
+    // Opções padrão otimizadas para mensagens de voz
+    const sampleRate = options.ar || 16000;  // 16kHz (qualidade voz)
+    const channels = options.ac || 1;        // Mono
+    const bitrate = options.bitrate || '24k'; // 24kbps (adequado para voz)
+    
+    // Validar se FFmpeg está disponível
+    const ffmpegPath = process.env.FFMPEG_PATH || 'ffmpeg';
+    
+    return new Promise((resolve, reject) => {
+      console.log('🎵 [AUDIO] Iniciando conversão para Opus', {
+        input: inputPath,
+        output: outputPath,
+        sampleRate,
+        channels,
+        bitrate,
+        ffmpegPath
+      });
+      
+      // Comando FFmpeg para converter para OGG/Opus
+      const args = [
+        '-i', inputPath,           // Input
+        '-c:a', 'libopus',         // Codec Opus
+        '-ar', sampleRate.toString(), // Sample rate
+        '-ac', channels.toString(),   // Canais (mono)
+        '-b:a', bitrate,           // Bitrate
+        '-vbr', 'on',              // Variable bitrate
+        '-compression_level', '10', // Máxima compressão
+        '-application', 'voip',    // Otimizado para voz
+        '-y',                      // Sobrescrever arquivo existente
+        outputPath                 // Output
+      ];
+      
+      const ffmpeg = spawn(ffmpegPath, args);
+      
+      let stderr = '';
+      
+      ffmpeg.stderr.on('data', (data) => {
+        stderr += data.toString();
+      });
+      
+      ffmpeg.on('close', (code) => {
+        if (code === 0 && fs.existsSync(outputPath)) {
+          const stats = fs.statSync(outputPath);
+          console.log('✅ [AUDIO] Conversão para Opus concluída', {
+            outputSize: stats.size,
+            outputPath
+          });
+          resolve(true);
+        } else {
+          console.error('❌ [AUDIO] Conversão para Opus falhou', {
+            code,
+            stderr: stderr.substring(0, 500)
+          });
+          resolve(false);
+        }
+      });
+      
+      ffmpeg.on('error', (error) => {
+        console.error('❌ [AUDIO] Erro ao executar FFmpeg', {
+          error: error.message,
+          ffmpegPath
+        });
+        resolve(false);
+      });
+    });
+  }
+
+  /**
    * Processa mensagem de áudio do WhatsApp Web.js
    */
   static async processWhatsAppAudio(message) {

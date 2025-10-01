@@ -1683,7 +1683,7 @@ async function ensureOpusIfAudio(localPath, mime, fileName) {
   return result;
 }
 
-// ===== Envio principal (substitui sendOne atual) =====
+// ===== Envio principal (refatorado para usar base64 diretamente) =====
 async function sendOne(number, msg, typeMessage) {
   if (!client) return { success: false, reason: 'client_not_ready' };
 
@@ -1692,12 +1692,9 @@ async function sendOne(number, msg, typeMessage) {
 
   const chatId = `${to}@c.us`;
 
-  let srcFile = null;
-  let finalFile = null;
-
   try {
     // =========================
-    // MÍDIA (upload por caminho local)
+    // MÍDIA (base64 direto do MinIO)
     // =========================
     if (typeMessage && typeMessage !== 'text') {
       const att = msg?.attachment;
@@ -1706,71 +1703,188 @@ async function sendOne(number, msg, typeMessage) {
       }
 
       const mediaType = String(att.mediaType || typeMessage || '').toLowerCase();
-      const mime      = String(att.mimeType || att.attachmentMime || 'application/octet-stream').toLowerCase();
+      const mime = String(att.mimeType || att.attachmentMime || 'application/octet-stream').toLowerCase();
       const originalName = safeBasename(att.fileName) || `media-${Date.now()}`;
 
-      // 1) baixar buffer do MinIO
+      Log.info('[SEND] 📥 Baixando mídia do MinIO', {
+        mediaUrl: att.mediaUrl,
+        fileName: originalName,
+        mediaType,
+        mimeType: mime
+      });
+
+      // 1) Baixar buffer do MinIO
       const buffer = await downloadMediaFromMinIO(att.mediaUrl, att.fileName);
-      if (!buffer?.length) return { success: false, reason: 'empty_buffer_from_minio' };
-
-      // 2) escrever em arquivo temporário
-      srcFile = await writeTempFile(buffer, originalName, mime);
-
-      // 3) se for áudio e não-Opus, tenta converter para OGG/Opus
-      let sendAsVoice = false;
-      let targetMime  = mime;
-      finalFile = srcFile;
-
-      if (isAudioLike(mediaType, mime)) {
-        const ensured = await ensureOpusIfAudio(srcFile, mime, originalName);
-        finalFile = ensured.path;
-        targetMime = ensured.mime || mime;
-        sendAsVoice = isOpusMime(targetMime); // voice/PTT só quando Opus
+      if (!buffer || !buffer.length) {
+        Log.error('[SEND] ❌ Buffer vazio recebido do MinIO');
+        return { success: false, reason: 'empty_buffer_from_minio' };
       }
 
-      // 4) criar MessageMedia via caminho local
+      Log.info('[SEND] ✅ Buffer baixado com sucesso', {
+        bufferSize: buffer.length,
+        bufferType: typeof buffer,
+        isBuffer: Buffer.isBuffer(buffer)
+      });
+
+      // 2) Se for áudio não-Opus, converter para Opus (para enviar como voz)
+      let finalBuffer = buffer;
+      let finalMime = mime;
+      let finalFileName = originalName;
+      
+      if (isAudioLike(mediaType, mime) && !isOpusMime(mime)) {
+        Log.info('[SEND] 🔄 Áudio não-Opus detectado, tentando converter para Opus', {
+          originalMime: mime,
+          originalSize: buffer.length
+        });
+        
+        try {
+          // Salvar buffer temporariamente para conversão
+          const tempInputPath = await writeTempFile(buffer, originalName, mime);
+          const tempOutputPath = tempInputPath.replace(/\.[a-z0-9]+$/i, '') + '.ogg';
+          
+          // Tentar converter usando AudioProcessor
+          if (AudioProcessor && typeof AudioProcessor.convertToOpus === 'function') {
+            Log.info('[SEND] 🎵 Convertendo para OGG/Opus com AudioProcessor');
+            const converted = await AudioProcessor.convertToOpus(tempInputPath, tempOutputPath, {
+              ar: 16000,  // Sample rate: 16kHz (otimizado para voz)
+              ac: 1,      // Mono
+              bitrate: '24k' // Bitrate adequado para voz
+            });
+            
+            if (converted && fs.existsSync(tempOutputPath)) {
+              // Ler arquivo convertido
+              finalBuffer = await fsp.readFile(tempOutputPath);
+              finalMime = 'audio/ogg; codecs=opus';
+              finalFileName = originalName.replace(/\.[a-z0-9]+$/i, '.ogg');
+              
+              Log.info('[SEND] ✅ Áudio convertido para Opus com sucesso', {
+                originalSize: buffer.length,
+                convertedSize: finalBuffer.length,
+                newMime: finalMime,
+                newFileName: finalFileName
+              });
+              
+              // Limpar arquivos temporários
+              await tryUnlink(tempInputPath);
+              await tryUnlink(tempOutputPath);
+            } else {
+              Log.warn('[SEND] ⚠️ Conversão não retornou arquivo válido, usando áudio original');
+              await tryUnlink(tempInputPath);
+            }
+          } else {
+            Log.warn('[SEND] ⚠️ AudioProcessor não disponível, usando áudio original (será enviado como arquivo)');
+            await tryUnlink(tempInputPath);
+          }
+        } catch (conversionError) {
+          Log.warn('[SEND] ⚠️ Erro na conversão para Opus, usando áudio original', {
+            error: conversionError?.message
+          });
+        }
+      }
+
+      // 3) Converter buffer final para base64
+      const base64Data = finalBuffer.toString('base64');
+      
+      Log.info('[SEND] 🔄 Buffer convertido para base64', {
+        base64Length: base64Data.length,
+        mediaType,
+        mimeType: finalMime
+      });
+
+      // 4) Criar MessageMedia diretamente do base64
       let media;
       try {
-        media = await MessageMedia.fromFilePath(finalFile);
+        media = new MessageMedia(finalMime, base64Data, finalFileName);
+        Log.info('[SEND] ✅ MessageMedia criado com sucesso', {
+          mimetype: media.mimetype,
+          filename: media.filename,
+          dataLength: media.data?.length || 0
+        });
       } catch (err) {
-        Log.error('[SEND] Falha ao criar MessageMedia.fromFilePath', { file: finalFile, err: err?.message });
+        Log.error('[SEND] ❌ Falha ao criar MessageMedia', { 
+          error: err?.message,
+          mime: finalMime,
+          base64Length: base64Data.length,
+          fileName: finalFileName
+        });
         return { success: false, reason: 'message_media_build_failed' };
       }
 
-      // 5) montar opções
+      // 5) Montar opções de envio
       const opts = {};
-      if (isAudioLike(mediaType, mime)) {
-        opts.sendAudioAsVoice = sendAsVoice; // só true se opus
+      
+      // Para áudio, verificar se deve enviar como voz (PTT)
+      if (isAudioLike(mediaType, finalMime)) {
+        const sendAsVoice = isOpusMime(finalMime);
+        opts.sendAudioAsVoice = sendAsVoice;
+        
+        Log.info('[SEND] 🎵 Áudio configurado para envio', {
+          mediaType,
+          mimeType: finalMime,
+          sendAsVoice,
+          isOpus: isOpusMime(finalMime),
+          wasConverted: finalMime !== mime
+        });
       } else if (msg?.caption || att?.caption) {
         const cap = String(msg?.caption || att?.caption || '');
         if (cap) opts.caption = cap.slice(0, 3000);
       }
 
-      Log.info('[SEND] Enviando mídia por arquivo local', {
-        to, chatId, mediaType, mime, targetMime, file: finalFile, asVoice: !!opts.sendMediaAsDocument
+      Log.info('[SEND] 📤 Enviando mídia via WhatsApp', {
+        to,
+        chatId,
+        mediaType,
+        mimeType: finalMime,
+        fileName: finalFileName,
+        options: opts
       });
 
-      // 6) envio + fallback documento
-      const trySend = async (extra = {}) => clien.sendMessage(chatId, media, { ...opts, ...extra });
-
+      // 6) Envio com fallback
       let sent;
       try {
-        sent = await trySend(); // tentativa padrão (voz se opus, senão áudio comum)
+        // Tentativa 1: Envio direto
+        sent = await client.sendMessage(chatId, media, opts);
+        Log.info('[SEND] ✅ Mídia enviada na primeira tentativa', {
+          messageId: sent?.id?._serialized
+        });
       } catch (e1) {
-        Log.warn('[SEND] Envio direto falhou – tentando como documento', { error: e1?.message });
+        Log.warn('[SEND] ⚠️ Envio direto falhou, tentando como documento', { 
+          error: e1?.message,
+          errorName: e1?.name
+        });
+        
         try {
-          sent = await trySend({ sendAudioAsVoice: false, sendMediaAsDocument: true });
+          // Tentativa 2: Como documento
+          sent = await client.sendMessage(chatId, media, { 
+            ...opts, 
+            sendAudioAsVoice: false, 
+            sendMediaAsDocument: true 
+          });
+          Log.info('[SEND] ✅ Mídia enviada como documento (fallback)', {
+            messageId: sent?.id?._serialized
+          });
         } catch (e2) {
-          Log.error('[SEND] Fallback como documento também falhou', { error: e2?.message });
-          return { success: false, reason: e2?.message || 'evaluate_failed' };
+          Log.error('[SEND] ❌ Fallback como documento também falhou', { 
+            error: e2?.message,
+            errorName: e2?.name,
+            stack: e2?.stack?.split('\n').slice(0, 5).join(' | ')
+          });
+          return { success: false, reason: e2?.message || 'send_media_failed' };
         }
       }
 
       if (sent?.id?._serialized) {
-          await sendMessageStatus(number, sent.id._serialized, 'sent'); 
-        Log.info('[SEND] Mídia enviada', { to, messageId: sent.id._serialized });
-          return { success: true, messageId: sent.id._serialized }; 
-        }
+        await sendMessageStatus(number, sent.id._serialized, 'sent');
+        Log.info('[SEND] ✅ Mídia enviada com sucesso', { 
+          to, 
+          messageId: sent.id._serialized,
+          mediaType,
+          mimeType: mime
+        });
+        return { success: true, messageId: sent.id._serialized };
+      }
+      
+      Log.error('[SEND] ❌ Resposta vazia do sendMessage');
       return { success: false, reason: 'sendMessage_empty_response' };
     }
 
@@ -1780,30 +1894,26 @@ async function sendOne(number, msg, typeMessage) {
     const body = String(msg?.body || msg?.message || '').trim();
     if (!body) return { success: false, reason: 'empty_text' };
 
-    Log.info('[SEND] texto', { to, length: body.length });
+    Log.info('[SEND] 📝 Enviando texto', { to, length: body.length });
     const sent = await client.sendMessage(chatId, body);
+    
     if (sent?.id?._serialized) {
-      await sendMessageStatus(number, sent.id._serialized, 'sent'); 
-      Log.info('[SEND] Texto enviado', { to, messageId: sent.id._serialized });
-        return { success: true, messageId: sent.id._serialized }; 
+      await sendMessageStatus(number, sent.id._serialized, 'sent');
+      Log.info('[SEND] ✅ Texto enviado', { to, messageId: sent.id._serialized });
+      return { success: true, messageId: sent.id._serialized };
     }
+    
     return { success: false, reason: 'sendMessage_empty_response' };
 
   } catch (e) {
-    Log.error('[SEND] erro', {
+    Log.error('[SEND] ❌ Erro crítico no envio', {
       to,
       typeMessage,
       error: e?.message,
       name: e?.name,
-      stack: e?.stack?.split('\n').slice(0, 3).join(' | ')
+      stack: e?.stack?.split('\n').slice(0, 5).join(' | ')
     });
     return { success: false, reason: e?.message || 'unknown_error' };
-  } finally {
-    // limpeza de temporários
-    try {
-      if (finalFile && finalFile !== srcFile) await tryUnlink(finalFile);
-      if (srcFile) await tryUnlink(srcFile);
-    } catch { /* ignore */ }
   }
 }
 

@@ -817,9 +817,17 @@ export default function AtendimentoPage() {
         throw new Error('Número do telefone do lead não encontrado para envio de áudio');
       }
       
-      const base64Data = dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl;
-      const audioBody = `data:audio/${base64Data}`;
-      await chatsApi.send(phoneNumber, audioBody, clientMessageId, leadName,  { dataUrl, mimeType, fileName, mediaType: 'audio' });
+      // ✅ CORREÇÃO: Para áudio, o texto deve estar vazio e o attachment deve conter o dataUrl completo
+      console.log('🎵 [DEBUG] Enviando áudio:', {
+        phoneNumber,
+        clientMessageId,
+        leadName,
+        dataUrlLength: dataUrl.length,
+        mimeType,
+        fileName
+      });
+      
+      await chatsApi.send(phoneNumber, '', clientMessageId, leadName, { dataUrl, mimeType, fileName, mediaType: 'audio' });
       console.log('🎵 [DEBUG] Áudio enviado com sucesso via API');
     } catch (error) {
       console.error('🎵 [DEBUG] Erro ao enviar áudio:', error);

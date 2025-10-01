@@ -90,10 +90,10 @@ namespace Pregiato.Infrastructure.Adapters
         {
             try
             {
-                 await EnsureInitializedAsync();
+                await EnsureInitializedAsync();
 
-        var base64Content = ExtractBase64Content(base64Data);
-        var bytes = Convert.FromBase64String(base64Content);
+                var base64Content = ExtractBase64Content(base64Data);
+                var bytes = Convert.FromBase64String(base64Content);
 
         if (bytes.Length == 0)
             throw new InvalidOperationException("Arquivo vazio não pode ser enviado.");
@@ -102,21 +102,21 @@ namespace Pregiato.Infrastructure.Adapters
         var extension = GetFileExtension(mimeType); // ex: ".mp3" para audio/mpeg
         var finalMimeType = mimeType ?? "application/octet-stream";
 
-        var timestamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
-
+                var timestamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
+                
         var descriptiveFileName = $"_{contactNumber}_{timestamp}{extension}";
-        var objectName = $"media/{descriptiveFileName}";
+                var objectName = $"media/{descriptiveFileName}";
 
-        using var stream = new MemoryStream(bytes);
+                using var stream = new MemoryStream(bytes);
 
-        var putObjectArgs = new PutObjectArgs()
-            .WithBucket(_options.BucketName)
-            .WithObject(objectName)
-            .WithStreamData(stream)
-            .WithObjectSize(stream.Length)
+                var putObjectArgs = new PutObjectArgs()
+                    .WithBucket(_options.BucketName)
+                    .WithObject(objectName)
+                    .WithStreamData(stream)
+                    .WithObjectSize(stream.Length)
             .WithContentType(finalMimeType);
 
-        await _minioClient.PutObjectAsync(putObjectArgs);
+                await _minioClient.PutObjectAsync(putObjectArgs);
 
         // ✅ CORREÇÃO: Construir URL completa com protocolo HTTPS
         var protocol = _options.UseSSL ? "https" : "http";
@@ -129,17 +129,17 @@ namespace Pregiato.Infrastructure.Adapters
 
         _logger.LogInformation("✅ Upload concluído: {Url}", mediaUrl);
         return result;
-    }
-    catch (MinioException ex)
-    {
+            }
+            catch (MinioException ex)
+            {
         _logger.LogError(ex, "❌ Erro do MinIO ao fazer upload");
-        throw;
-    }
-    catch (Exception ex)
-    {
+                throw;
+            }
+            catch (Exception ex)
+            {
         _logger.LogError(ex, "❌ Erro inesperado ao fazer upload");
-        throw;
-    }
+                throw;
+            }
         }
 
         public async Task<byte[]> GetMediaAsync(string mediaUrl)
@@ -184,7 +184,7 @@ namespace Pregiato.Infrastructure.Adapters
             }
         }
 
-        
+
         // ✅ Método de interface renomeado e ajustado
         public Task<string> GetPublicUrlAsync(string mediaUrl)
         {
