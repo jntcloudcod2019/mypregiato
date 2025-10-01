@@ -1223,13 +1223,48 @@ export default function AtendimentoPage() {
         });
 
         connection.on('message.status', (evt: MessageStatusEvent) => {
+          console.log('📬 [MESSAGE STATUS] Evento recebido:', evt);
+          
           const currentSelected = selectedChatIdRef.current;
-          if (evt?.chatId !== currentSelected) return;
+          console.log('📬 [MESSAGE STATUS] Chat selecionado:', currentSelected);
+          
+          if (evt?.chatId !== currentSelected) {
+            console.log('📬 [MESSAGE STATUS] Ignorando - chat diferente:', { 
+              eventChatId: evt?.chatId, 
+              currentChatId: currentSelected 
+            });
+            return;
+          }
+          
           const { messageId, status } = evt || {};
-          if (!messageId || !status) return;
+          if (!messageId || !status) {
+            console.log('📬 [MESSAGE STATUS] Evento inválido - faltam dados:', { messageId, status });
+            return;
+          }
+          
           const validStatuses = new Set(['pending', 'sent', 'delivered', 'read', 'failed']);
           const s = validStatuses.has(status as string) ? status : 'sent';
-          setMessages(prev => prev.map(m => m.id === messageId ? { ...m, status: s as ChatMessageDto['status'] } : m));
+          
+          console.log('📬 [MESSAGE STATUS] Atualizando status da mensagem:', {
+            messageId,
+            oldStatus: '?',
+            newStatus: s
+          });
+          
+          setMessages(prev => {
+            const updated = prev.map(m => {
+              if (m.id === messageId) {
+                console.log('📬 [MESSAGE STATUS] Mensagem encontrada e atualizada:', {
+                  messageId: m.id,
+                  oldStatus: m.status,
+                  newStatus: s
+                });
+                return { ...m, status: s as ChatMessageDto['status'] };
+              }
+              return m;
+            });
+            return updated;
+          });
         });
 
         connection.on('presence.typing', (evt: TypingEvent) => {

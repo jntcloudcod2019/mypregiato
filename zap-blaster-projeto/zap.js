@@ -1726,19 +1726,40 @@ async function sendOne(number, msg, typeMessage) {
         isBuffer: Buffer.isBuffer(buffer)
       });
 
-      // 2) Se for áudio, OBRIGATORIAMENTE converter para Opus/OGG (WhatsApp PTT requirement)
+      // 2) Se for áudio, verificar se precisa converter para Opus/OGG
       let finalBuffer = buffer;
       let finalMime = mime;
       let finalFileName = originalName;
       
       if (isAudioLike(mediaType, mime)) {
-        Log.info('[SEND] 🎵 Áudio detectado - conversão OBRIGATÓRIA para OGG/Opus (WhatsApp PTT)', {
+        Log.info('[SEND] 🎵 Áudio detectado - verificando formato', {
           originalMime: mime,
           originalSize: buffer.length,
           isAlreadyOpus: isOpusMime(mime)
         });
         
-        // SEMPRE converter, mesmo se já for Opus (garantir compatibilidade)
+        // ✅ CORREÇÃO CRÍTICA: Se JÁ é Opus (WebM ou OGG), NÃO converter
+        if (isOpusMime(mime)) {
+          Log.info('[SEND] ✅ Áudio JÁ está em formato Opus - pulando conversão', {
+            mime,
+            size: buffer.length
+          });
+          
+          // ✅ Se for WebM/Opus, converter apenas o container para OGG
+          if (mime.includes('webm')) {
+            Log.info('[SEND] 🔄 Convertendo container WebM → OGG (mantendo codec Opus)');
+            finalMime = 'audio/ogg; codecs=opus';
+            finalFileName = originalName.replace(/\.webm$/i, '.ogg');
+          }
+          
+          // Não precisa reconverter - já é Opus
+        } else {
+          // ✅ Áudio NÃO é Opus - precisa converter
+          Log.info('[SEND] 🔄 Áudio não é Opus - conversão necessária', {
+            from: mime,
+            to: 'audio/ogg; codecs=opus'
+          });
+          
         try {
           ensureTempDir();
           const timestamp = Date.now();
@@ -1867,6 +1888,7 @@ async function sendOne(number, msg, typeMessage) {
             reason: `audio_conversion_required_failed: ${conversionError?.message}` 
           };
         }
+        } // ✅ Fechar bloco else (áudio não-Opus)
       }
 
       // 3) Converter buffer final para base64
@@ -1994,10 +2016,14 @@ async function sendOne(number, msg, typeMessage) {
       }
 
       if (sent?.id?._serialized) {
-        await sendMessageStatus(number, sent.id._serialized, 'sent');
+        // ✅ CRÍTICO: Enviar status com clientMessageId para rastreamento no frontend
+        const clientMessageId = msg?.clientMessageId || att?.clientMessageId || null;
+        await sendMessageStatus(number, sent.id._serialized, 'sent', clientMessageId);
+        
         Log.info('[SEND] ✅ Mídia enviada com sucesso', { 
           to, 
           messageId: sent.id._serialized,
+          clientMessageId,
           mediaType,
           mimeType: mime
         });
@@ -2018,8 +2044,13 @@ async function sendOne(number, msg, typeMessage) {
     const sent = await client.sendMessage(chatId, body);
     
     if (sent?.id?._serialized) {
-      await sendMessageStatus(number, sent.id._serialized, 'sent');
-      Log.info('[SEND] ✅ Texto enviado', { to, messageId: sent.id._serialized });
+      const clientMessageId = msg?.clientMessageId || null;
+      await sendMessageStatus(number, sent.id._serialized, 'sent', clientMessageId);
+      Log.info('[SEND] ✅ Texto enviado', { 
+        to, 
+        messageId: sent.id._serialized,
+        clientMessageId
+      });
       return { success: true, messageId: sent.id._serialized };
     }
     
@@ -2105,9 +2136,24 @@ async function sendSessionStatus() {
 }
 
 
-async function sendMessageStatus(phone, externalMessageId, status) {
+async function sendMessageStatus(phone, externalMessageId, status, clientMessageId = null) {
+  const normalizedPhone = phone?.replace('@c.us', '').replace(/\D/g, '');
+  
   await publish('whatsapp.message-status', {
-    phone, externalMessageId, status, ts: new Date().toISOString(), instanceId
+    phone: normalizedPhone,
+    chatId: normalizedPhone, // ✅ CRÍTICO: Frontend precisa do chatId para filtrar
+    messageId: externalMessageId, // ✅ messageId (não externalMessageId)
+    clientMessageId, // ✅ Adicionar clientMessageId para rastreamento
+    status, 
+    timestamp: new Date().toISOString(), 
+    instanceId
+  });
+  
+  Log.info('[MESSAGE STATUS] 📤 Status publicado na fila', {
+    phone: normalizedPhone,
+    messageId: externalMessageId,
+    clientMessageId,
+    status
   });
 }
 
