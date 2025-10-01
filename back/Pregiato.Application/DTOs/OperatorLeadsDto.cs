@@ -242,4 +242,61 @@ namespace Pregiato.Application.DTOs
         public int TotalScheduled { get; set; }
         public int TotalPending { get; set; }
     }
+    
+    // ============================================================================
+    // PAGINATION DTOs
+    // ============================================================================
+    
+    /// <summary>
+    /// Generic pagination request parameters
+    /// </summary>
+    public class PaginationRequest
+    {
+        /// <summary>
+        /// Page number (1-based)
+        /// </summary>
+        public int Page { get; set; } = 1;
+        
+        /// <summary>
+        /// Items per page
+        /// </summary>
+        public int PageSize { get; set; } = 20;
+        
+        /// <summary>
+        /// Validates and normalizes pagination parameters
+        /// </summary>
+        public void Validate()
+        {
+            if (Page < 1) Page = 1;
+            if (PageSize < 1) PageSize = 20;
+            if (PageSize > 100) PageSize = 100; // Max 100 items per page
+        }
+    }
+    
+    /// <summary>
+    /// Paginated Kanban column DTO
+    /// </summary>
+    public class PaginatedKanbanColumnDto
+    {
+        public string Status { get; set; } = string.Empty;
+        public string Label { get; set; } = string.Empty;
+        public int TotalCount { get; set; }
+        public List<OperatorLeadKanbanDto> Leads { get; set; } = new List<OperatorLeadKanbanDto>();
+        
+        // Pagination metadata
+        public int CurrentPage { get; set; }
+        public int PageSize { get; set; }
+        public int TotalPages { get; set; }
+        public bool HasNextPage { get; set; }
+        public bool HasPreviousPage { get; set; }
+    }
+    
+    /// <summary>
+    /// Paginated Kanban data DTO
+    /// </summary>
+    public class PaginatedKanbanDataDto
+    {
+        public List<PaginatedKanbanColumnDto> Columns { get; set; } = new List<PaginatedKanbanColumnDto>();
+        public int TotalLeads { get; set; }
+    }
 }

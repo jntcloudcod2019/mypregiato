@@ -6,9 +6,30 @@
 import React from 'react';
 import type { KanbanColumnProps } from '../../types/scheduling';
 import { KanbanCard } from './KanbanCard';
+import { ColumnPagination } from './ColumnPagination';
 import { Badge } from '../ui/badge';
 
-export const KanbanColumn: React.FC<KanbanColumnProps> = ({ column, onCardClick }) => {
+interface ExtendedKanbanColumnProps extends KanbanColumnProps {
+  totalCount?: number;
+  currentPage?: number;
+  pageSize?: number;
+  totalPages?: number;
+  hasNextPage?: boolean;
+  hasPreviousPage?: boolean;
+  onPageChange?: (page: number) => void;
+}
+
+export const KanbanColumn: React.FC<ExtendedKanbanColumnProps> = ({ 
+  column, 
+  onCardClick,
+  totalCount,
+  currentPage,
+  pageSize,
+  totalPages,
+  hasNextPage,
+  hasPreviousPage,
+  onPageChange
+}) => {
   const getColumnIcon = (): string => {
     switch (column.status) {
       case 'new':

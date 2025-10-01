@@ -1817,6 +1817,23 @@ async function sendOne(number, msg, typeMessage) {
           // Ler arquivo convertido
           if (fs.existsSync(tempOutputPath)) {
             finalBuffer = await fsp.readFile(tempOutputPath);
+            
+            // ✅ VALIDAÇÃO: Verificar se o arquivo OGG é válido
+            if (finalBuffer.length < 100) {
+              throw new Error(`Arquivo Opus muito pequeno: ${finalBuffer.length} bytes - conversão pode ter falhado`);
+            }
+            
+            // Verificar header OGG (deve começar com "OggS")
+            const header = finalBuffer.slice(0, 4).toString('ascii');
+            if (header !== 'OggS') {
+              Log.warn('[SEND] ⚠️ Arquivo não tem header OGG válido', { 
+                header,
+                firstBytes: finalBuffer.slice(0, 10).toString('hex')
+              });
+            } else {
+              Log.info('[SEND] ✅ Header OGG validado: "OggS"');
+            }
+            
             finalMime = 'audio/ogg; codecs=opus';
             finalFileName = originalName.replace(/\.[^.]+$/, '.ogg');
             
@@ -1827,7 +1844,8 @@ async function sendOne(number, msg, typeMessage) {
               opusSize: finalBuffer.length,
               compression: `${compressionRate}%`,
               finalMime,
-              finalFileName
+              finalFileName,
+              headerValid: header === 'OggS'
             });
             
             // Limpar arquivos temporários
@@ -1864,10 +1882,38 @@ async function sendOne(number, msg, typeMessage) {
       let media;
       try {
         media = new MessageMedia(finalMime, base64Data, finalFileName);
+        
+        // ✅ CRÍTICO: Adicionar metadados para áudio PTT (WhatsApp exige)
+        if (isAudioLike(mediaType, finalMime) && isOpusMime(finalMime)) {
+          // Metadados essenciais para mensagem de voz no WhatsApp
+          media.mimetype = 'audio/ogg; codecs=opus'; // Garantir mimetype exato
+          media.filename = finalFileName.replace(/\.[^.]+$/, '.ogg'); // Garantir extensão .ogg
+          
+          // Adicionar propriedades PTT se disponíveis
+          if (typeof media === 'object') {
+            // Tentar estimar duração do áudio (aproximação básica)
+            const audioSizeKB = finalBuffer.length / 1024;
+            const estimatedDuration = Math.ceil(audioSizeKB / 2); // ~2KB por segundo para Opus 16kbps
+            
+            // Propriedades opcionais que ajudam o WhatsApp a validar
+            media.filesize = finalBuffer.length;
+            media.duration = estimatedDuration;
+            
+            Log.info('[SEND] 🎤 Metadados PTT adicionados', {
+              mimetype: media.mimetype,
+              filename: media.filename,
+              filesize: media.filesize,
+              estimatedDuration: media.duration
+            });
+          }
+        }
+        
         Log.info('[SEND] ✅ MessageMedia criado com sucesso', {
           mimetype: media.mimetype,
           filename: media.filename,
-          dataLength: media.data?.length || 0
+          dataLength: media.data?.length || 0,
+          filesize: media.filesize,
+          duration: media.duration
         });
       } catch (err) {
         Log.error('[SEND] ❌ Falha ao criar MessageMedia', { 
@@ -1887,10 +1933,16 @@ async function sendOne(number, msg, typeMessage) {
         const sendAsVoice = isOpusMime(finalMime);
         opts.sendAudioAsVoice = sendAsVoice;
         
+        // ✅ ADICIONAL: Opções específicas para PTT
+        if (sendAsVoice) {
+          opts.ptt = true; // Marcar explicitamente como Push-to-Talk
+        }
+        
         Log.info('[SEND] 🎵 Áudio configurado para envio', {
           mediaType,
           mimeType: finalMime,
           sendAsVoice,
+          ptt: opts.ptt,
           isOpus: isOpusMime(finalMime),
           wasConverted: finalMime !== mime
         });

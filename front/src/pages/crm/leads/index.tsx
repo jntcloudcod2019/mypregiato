@@ -129,6 +129,14 @@ export default function LeadsPage() {
     { value: "perdido", label: "Perdido" }
   ];
 
+  // Lista de responsáveis - em produção virá da API
+  const responsaveis = [
+    "Maria Santos",
+    "Pedro Lima",
+    "Ana Silva",
+    "Carlos Oliveira"
+  ];
+
   const getEtapaBadge = (etapa: string) => {
     // Mapeamento básico de etapas - em produção virá da API
     const etapaMap: Record<string, { label: string; cor: string }> = {

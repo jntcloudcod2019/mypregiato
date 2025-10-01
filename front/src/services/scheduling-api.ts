@@ -8,8 +8,16 @@ import type {
   KanbanApiResponse, 
   DashboardApiResponse,
   KanbanData,
-  OperatorDashboard
+  OperatorDashboard,
+  PaginatedKanbanData,
+  ColumnPaginationState
 } from '../types/scheduling';
+
+interface PaginatedKanbanApiResponse {
+  success: boolean;
+  data: PaginatedKanbanData;
+  message: string;
+}
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://pregiato-api-production.up.railway.app/api';
 
@@ -88,6 +96,60 @@ export const getDashboardMetrics = async (emailOperator: string): Promise<Operat
 };
 
 /**
+ * Gets paginated Kanban board data for an operator
+ * Supports independent pagination for each column
+ * @param emailOperator - Operator's email
+ * @param columnPagination - Pagination state for each column
+ * @returns Paginated Kanban data
+ */
+export const getPaginatedKanbanData = async (
+  emailOperator: string,
+  columnPagination: ColumnPaginationState
+): Promise<PaginatedKanbanData> => {
+  try {
+    console.log(`📊 [Scheduling API] Fetching paginated Kanban data for: ${emailOperator}`, columnPagination);
+    
+    const params = {
+      newPage: columnPagination.new.page,
+      newPageSize: columnPagination.new.pageSize,
+      scheduledPage: columnPagination.scheduled.page,
+      scheduledPageSize: columnPagination.scheduled.pageSize,
+      pendingPage: columnPagination.pending.page,
+      pendingPageSize: columnPagination.pending.pageSize,
+    };
+    
+    const response = await schedulingApiClient.get<PaginatedKanbanApiResponse>(
+      `/kanban/paginated/${encodeURIComponent(emailOperator)}`,
+      { params }
+    );
+    
+    if (!response.data.success) {
+      throw new Error(response.data.message || 'Failed to fetch paginated Kanban data');
+    }
+    
+    console.log(`✅ [Scheduling API] Paginated Kanban data retrieved:`, {
+      totalLeads: response.data.data.totalLeads,
+      columns: response.data.data.columns.map(c => ({
+        status: c.status,
+        totalCount: c.totalCount,
+        currentPage: c.currentPage,
+        totalPages: c.totalPages
+      }))
+    });
+    
+    return response.data.data;
+  } catch (error) {
+    console.error('❌ [Scheduling API] Error fetching paginated Kanban data:', error);
+    
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || 'Network error fetching paginated Kanban data');
+    }
+    
+    throw error;
+  }
+};
+
+/**
  * Refreshes Kanban data (convenience wrapper)
  */
 export const refreshKanban = async (emailOperator: string): Promise<KanbanData> => {
@@ -98,6 +160,7 @@ export const refreshKanban = async (emailOperator: string): Promise<KanbanData> 
 export default {
   getKanbanData,
   getDashboardMetrics,
+  getPaginatedKanbanData,
   refreshKanban,
 };
 

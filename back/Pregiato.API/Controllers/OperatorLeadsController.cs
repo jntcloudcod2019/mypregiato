@@ -295,5 +295,61 @@ namespace Pregiato.API.Controllers
                 return StatusCode(500, new { success = false, message = "Erro ao obter métricas do dashboard", details = ex.Message });
             }
         }
+        
+        /// <summary>
+        /// Gets paginated Kanban board data for scheduling page
+        /// Supports independent pagination for each column
+        /// </summary>
+        /// <param name="emailOperator">Operator email for data filtering</param>
+        /// <param name="newPage">Page number for 'new' column (default: 1)</param>
+        /// <param name="newPageSize">Page size for 'new' column (default: 20)</param>
+        /// <param name="scheduledPage">Page number for 'scheduled' column (default: 1)</param>
+        /// <param name="scheduledPageSize">Page size for 'scheduled' column (default: 20)</param>
+        /// <param name="pendingPage">Page number for 'pending' column (default: 1)</param>
+        /// <param name="pendingPageSize">Page size for 'pending' column (default: 20)</param>
+        [HttpGet("kanban/paginated/{emailOperator}")]
+        public async Task<IActionResult> GetPaginatedKanbanData(
+            string emailOperator,
+            [FromQuery] int newPage = 1,
+            [FromQuery] int newPageSize = 20,
+            [FromQuery] int scheduledPage = 1,
+            [FromQuery] int scheduledPageSize = 20,
+            [FromQuery] int pendingPage = 1,
+            [FromQuery] int pendingPageSize = 20)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(emailOperator))
+                {
+                    return BadRequest(new { success = false, message = "Email do operador é obrigatório" });
+                }
+                
+                Console.WriteLine($"[SCHEDULING] GET kanban/paginated/{emailOperator} - Fetching paginated Kanban");
+                
+                // Build pagination dictionary for each column
+                var columnPagination = new Dictionary<string, PaginationRequest>
+                {
+                    ["new"] = new PaginationRequest { Page = newPage, PageSize = newPageSize },
+                    ["scheduled"] = new PaginationRequest { Page = scheduledPage, PageSize = scheduledPageSize },
+                    ["pending"] = new PaginationRequest { Page = pendingPage, PageSize = pendingPageSize }
+                };
+                
+                var paginatedKanban = await _operatorLeadsService.GetPaginatedKanbanDataAsync(emailOperator, columnPagination);
+                
+                Console.WriteLine($"[SCHEDULING] Paginated Kanban data retrieved successfully - {paginatedKanban.TotalLeads} total leads");
+                
+                return Ok(new
+                {
+                    success = true,
+                    data = paginatedKanban,
+                    message = $"Paginated Kanban data retrieved for {emailOperator}"
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[SCHEDULING] Error in GetPaginatedKanbanData: {ex.Message}");
+                return StatusCode(500, new { success = false, message = "Erro ao obter dados paginados do Kanban", details = ex.Message });
+            }
+        }
     }
 }

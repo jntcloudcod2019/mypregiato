@@ -425,5 +425,99 @@ namespace Pregiato.Application.Services
                 throw;
             }
         }
+        
+        /// <summary>
+        /// Gets paginated Kanban data for an operator
+        /// Each column can have its own pagination settings
+        /// </summary>
+        public async Task<PaginatedKanbanDataDto> GetPaginatedKanbanDataAsync(
+            string emailOperator, 
+            Dictionary<string, PaginationRequest> columnPagination)
+        {
+            try
+            {
+                Console.WriteLine($"[SCHEDULING] GetPaginatedKanbanDataAsync - EmailOperator: {emailOperator}");
+                
+                var columns = new List<PaginatedKanbanColumnDto>();
+                
+                // Define column order and labels
+                var columnDefinitions = new[]
+                {
+                    new { Status = "new", Label = "Novo" },
+                    new { Status = "scheduled", Label = "Agendado" },
+                    new { Status = "pending", Label = "Pendente" }
+                };
+                
+                int totalLeads = 0;
+                
+                foreach (var columnDef in columnDefinitions)
+                {
+                    // Get pagination for this column (default: page 1, size 20)
+                    var pagination = columnPagination.ContainsKey(columnDef.Status) 
+                        ? columnPagination[columnDef.Status] 
+                        : new PaginationRequest { Page = 1, PageSize = 20 };
+                    
+                    pagination.Validate();
+                    
+                    // Get paginated data from repository
+                    var (items, totalCount) = await _repository.GetPaginatedKanbanColumnAsync(
+                        emailOperator, 
+                        columnDef.Status, 
+                        pagination.Page, 
+                        pagination.PageSize);
+                    
+                    totalLeads += totalCount;
+                    
+                    // Transform to DTOs
+                    var leadDtos = items.Select(lead => new OperatorLeadKanbanDto
+                    {
+                        Id = lead.Id,
+                        NameLead = lead.NameLead,
+                        PhoneLead = lead.PhoneLead,
+                        Responsible = lead.Responsible,
+                        Age = lead.Age,
+                        PublicADS = lead.PublicADS,
+                        CreatedAt = lead.CreatedAt,
+                        StatusContact = lead.StatusContact,
+                        DateContact = lead.DateContact,
+                        StatusSeletiva = lead.StatusSeletiva,
+                        SeletivaInfo = lead.SeletivaInfo,
+                        StatusContactLabel = lead.StatusContact ? "Lead Scheduled" : "Lead Pending",
+                        KanbanStatus = columnDef.Status
+                    }).ToList();
+                    
+                    // Calculate pagination metadata
+                    var totalPages = (int)Math.Ceiling((double)totalCount / pagination.PageSize);
+                    
+                    columns.Add(new PaginatedKanbanColumnDto
+                    {
+                        Status = columnDef.Status,
+                        Label = columnDef.Label,
+                        TotalCount = totalCount,
+                        Leads = leadDtos,
+                        CurrentPage = pagination.Page,
+                        PageSize = pagination.PageSize,
+                        TotalPages = totalPages,
+                        HasNextPage = pagination.Page < totalPages,
+                        HasPreviousPage = pagination.Page > 1
+                    });
+                    
+                    Console.WriteLine($"[SCHEDULING] Column '{columnDef.Status}' - Page {pagination.Page}/{totalPages}, Total: {totalCount}, Current: {leadDtos.Count}");
+                }
+                
+                Console.WriteLine($"[SCHEDULING] Paginated Kanban data prepared - Total leads: {totalLeads}");
+                
+                return new PaginatedKanbanDataDto
+                {
+                    Columns = columns,
+                    TotalLeads = totalLeads
+                };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[SCHEDULING] Error getting paginated Kanban data: {ex.Message}");
+                throw;
+            }
+        }
     }
 }

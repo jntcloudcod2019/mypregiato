@@ -250,5 +250,39 @@ namespace Pregiato.Infrastructure.Repositories
             // Rule 3: All other cases → "new"
             return "new";
         }
+        
+        /// <summary>
+        /// Gets paginated leads for a specific Kanban column
+        /// Returns leads in descending order by CreatedAt with pagination
+        /// </summary>
+        public async Task<(List<OperatorLeads> items, int totalCount)> GetPaginatedKanbanColumnAsync(
+            string emailOperator, 
+            string columnStatus, 
+            int page, 
+            int pageSize)
+        {
+            var allLeads = await _context.OperatorLeads
+                .Where(ol => ol.EmailOperator == emailOperator)
+                .OrderByDescending(ol => ol.CreatedAt)
+                .ToListAsync();
+            
+            var now = DateTime.UtcNow;
+            
+            // Filter by Kanban status
+            var filteredLeads = allLeads
+                .Where(lead => DetermineKanbanStatus(lead, now) == columnStatus)
+                .ToList();
+            
+            var totalCount = filteredLeads.Count;
+            
+            // Apply pagination
+            var skip = (page - 1) * pageSize;
+            var paginatedLeads = filteredLeads
+                .Skip(skip)
+                .Take(pageSize)
+                .ToList();
+            
+            return (paginatedLeads, totalCount);
+        }
     }
 }

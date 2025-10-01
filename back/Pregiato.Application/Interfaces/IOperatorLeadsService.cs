@@ -25,5 +25,10 @@ namespace Pregiato.Application.Interfaces
         /// Gets dashboard metrics for an operator
         /// </summary>
         Task<OperatorDashboardDto> GetDashboardMetricsAsync(string emailOperator);
+        
+        /// <summary>
+        /// Gets paginated Kanban data for an operator
+        /// </summary>
+        Task<PaginatedKanbanDataDto> GetPaginatedKanbanDataAsync(string emailOperator, Dictionary<string, PaginationRequest> columnPagination);
     }
 }

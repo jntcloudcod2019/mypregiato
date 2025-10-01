@@ -39,6 +39,41 @@ export interface KanbanData {
   totalLeads: number;
 }
 
+// ============================================================================
+// PAGINATION TYPES
+// ============================================================================
+
+export interface PaginationMetadata {
+  currentPage: number;
+  pageSize: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
+export interface PaginatedKanbanColumn {
+  status: 'new' | 'scheduled' | 'pending';
+  label: string;
+  totalCount: number;
+  leads: OperatorLeadKanban[];
+  currentPage: number;
+  pageSize: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
+export interface PaginatedKanbanData {
+  columns: PaginatedKanbanColumn[];
+  totalLeads: number;
+}
+
+export interface ColumnPaginationState {
+  new: { page: number; pageSize: number };
+  scheduled: { page: number; pageSize: number };
+  pending: { page: number; pageSize: number };
+}
+
 export interface OperatorDashboard {
   scheduledToday: number;
   scheduledWeek: number;

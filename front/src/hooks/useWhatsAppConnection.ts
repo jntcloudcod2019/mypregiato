@@ -47,21 +47,17 @@ export const useWhatsAppConnection = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isGeneratingQR, setIsGeneratingQR] = useState(false);
 
-  // ✅ CORREÇÃO: Verificação inicial SEMPRE consulta o servidor (status único para todos)
+  // ✅ CORREÇÃO: Verificação inicial simplificada - sempre do servidor
   useEffect(() => {
     const checkInitialStatus = async () => {
       try {
         console.log('🔍 [useWhatsAppConnection] Verificando status inicial (sempre do servidor)...');
-        
         const response = await fetch(`${API_BASE_URL}/api/whatsapp/status`);
         if (response.ok) {
           const statusData = await response.json();
           console.log('📊 [useWhatsAppConnection] Status recebido do servidor:', statusData);
-          
           const isActuallyConnected = Boolean(statusData.sessionConnected);
           const nextStatus = isActuallyConnected ? ConnectionStatus.connected : ConnectionStatus.disconnected;
-
-          // ✅ Atualizar cache local (apenas para otimização de reconexões)
           if (statusData.connectedNumber) {
             globalCache.setConnectedNumber(statusData.connectedNumber);
           }
@@ -71,7 +67,6 @@ export const useWhatsAppConnection = () => {
             connectedNumber: statusData.connectedNumber,
             lastActivity: statusData.lastActivity
           });
-
           setConnectionState(prev => ({
             ...prev,
             status: nextStatus,
@@ -82,7 +77,6 @@ export const useWhatsAppConnection = () => {
             connectedNumber: statusData.connectedNumber,
             isFullyValidated: statusData.isFullyValidated
           }));
-          
           console.log('✅ [useWhatsAppConnection] Status inicial configurado:', {
             status: nextStatus,
             isConnected: isActuallyConnected,

@@ -26,5 +26,10 @@ namespace Pregiato.Core.Interfaces
         /// Gets dashboard metrics for an operator (scheduled and pending counts)
         /// </summary>
         Task<(int scheduledToday, int scheduledWeek, int scheduledMonth, int pendingToday, int pendingWeek, int pendingMonth, int totalNew, int totalScheduled, int totalPending)> GetDashboardMetricsAsync(string emailOperator);
+        
+        /// <summary>
+        /// Gets paginated leads for a specific Kanban column
+        /// </summary>
+        Task<(List<OperatorLeads> items, int totalCount)> GetPaginatedKanbanColumnAsync(string emailOperator, string columnStatus, int page, int pageSize);
     }
 }
