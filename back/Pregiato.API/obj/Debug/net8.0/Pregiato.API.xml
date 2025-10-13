@@ -76,6 +76,26 @@
             <param name="pendingPage">Page number for 'pending' column (default: 1)</param>
             <param name="pendingPageSize">Page size for 'pending' column (default: 20)</param>
         </member>
+        <member name="T:Pregiato.API.Controllers.TalentPhotosController">
+            <summary>
+            Controller para gerenciamento de fotos de talentos
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TalentPhotosController.GetTalentPhotos(System.Guid)">
+            <summary>
+            Listar todas as fotos de um talento
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TalentPhotosController.UploadPhoto(System.Guid,Pregiato.Application.DTOs.TalentPhotoUploadDto)">
+            <summary>
+            Upload de foto para um talento
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TalentPhotosController.DeletePhoto(System.Guid,System.Guid)">
+            <summary>
+            Deletar uma foto
+            </summary>
+        </member>
         <member name="M:Pregiato.API.Controllers.TalentsController.GetTalents(System.Int32,System.Int32,System.String,System.String,System.Boolean)">
             <summary>
             Obtém todos os talentos com paginação

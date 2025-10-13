@@ -28,4 +28,16 @@ public class CreateFileUploadDto
     public Guid? TalentId { get; set; }
     public Guid? ContractId { get; set; }
     public string? UploadedBy { get; set; }
+}
+
+/// <summary>
+/// DTO para upload de fotos de talento
+/// </summary>
+public class TalentPhotoUploadDto
+{
+    public string FileName { get; set; } = string.Empty;
+    public string Base64Data { get; set; } = string.Empty;
+    public string ContentType { get; set; } = string.Empty;
+    public long FileSize { get; set; }
+    public string? Description { get; set; }
 } 
