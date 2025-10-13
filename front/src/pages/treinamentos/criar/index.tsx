@@ -86,41 +86,51 @@ const CriarTreinamentoPage = () => {
     });
   };
 
-  const handleCreateCourse = async () => {
+
+  const removeLesson = (index: number) => {
+    const updatedLessons = lessons.filter((_, i) => i !== index);
+    setLessons(updatedLessons.map((lesson, i) => ({
+      ...lesson,
+      orderIndex: i + 1
+    })));
+    setCurrentLesson(prev => ({
+      ...prev,
+      orderIndex: updatedLessons.length + 1
+    }));
+  };
+
+  const handleCourseSubmit = async () => {
     if (!formData.title || !formData.description) {
+    toast({
+        title: "Campos obrigatórios",
+        description: "Preencha todos os campos obrigatórios.",
+        variant: "destructive"
+    });
+      return;
+    }
+
+    setActiveStep('lessons');
+  };
+
+  const handleCreateCourse = async () => {
+    if (!formData.title || !formData.description || lessons.length === 0) {
       toast({
         title: "Campos obrigatórios",
-        description: "Preencha o título e descrição do curso.",
+        description: "Preencha todos os campos e adicione pelo menos uma aula.",
         variant: "destructive"
       });
       return;
     }
 
-    if (lessons.length === 0) {
-      toast({
-        title: "Aulas obrigatórias",
-        description: "Adicione pelo menos uma aula ao curso.",
-        variant: "destructive"
-      });
-      return;
-    }
+    const courseData: CreateTrainingCourseDto = {
+      ...formData,
+      createdBy: 'current-user-id', // TODO: Pegar do contexto de autenticação
+      lessons: lessons
+    };
 
     setIsCreatingCourse(true);
 
     try {
-      // Preparar dados do curso
-      const courseData = {
-        ...formData,
-        createdBy: 'current-user-id', // TODO: Pegar do contexto de autenticação
-        lessons: lessons.map(lesson => ({
-          ...lesson,
-          // Garantir que os dados do vídeo estão presentes
-          videoUrl: lesson.videoUrl || '',
-          videoObjectName: lesson.videoObjectName || ''
-        }))
-      };
-
-      // Criar o curso (os vídeos serão enviados automaticamente pelo backend)
       const response = await createCourse(courseData);
       
       // Verificar se a resposta contém a mensagem personalizada
@@ -149,72 +159,6 @@ const CriarTreinamentoPage = () => {
       });
     } finally {
       setIsCreatingCourse(false);
-    }
-  };
-
-  const removeLesson = (index: number) => {
-    const updatedLessons = lessons.filter((_, i) => i !== index);
-    setLessons(updatedLessons.map((lesson, i) => ({
-      ...lesson,
-      orderIndex: i + 1
-    })));
-    setCurrentLesson(prev => ({
-      ...prev,
-      orderIndex: updatedLessons.length + 1
-    }));
-  };
-
-  const handleCourseSubmit = async () => {
-    if (!formData.title || !formData.description) {
-      toast({
-        title: "Campos obrigatórios",
-        description: "Preencha todos os campos obrigatórios.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setActiveStep('lessons');
-  };
-
-  const handleCreateCourse = async () => {
-    if (!formData.title || !formData.description || lessons.length === 0) {
-      toast({
-        title: "Campos obrigatórios",
-        description: "Preencha todos os campos e adicione pelo menos uma aula.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const courseData: CreateTrainingCourseDto = {
-      ...formData,
-      createdBy: 'current-user-id', // TODO: Pegar do contexto de autenticação
-      lessons: lessons
-    };
-
-    try {
-      const response = await createCourse(courseData);
-      
-      // Verificar se a resposta contém a mensagem personalizada
-      if (response && response.message) {
-        toast({
-          title: "Sucesso!",
-          description: response.message,
-          duration: 5000,
-        });
-      } else {
-        // Fallback para resposta sem mensagem personalizada
-        toast({
-          title: "Curso criado com sucesso!",
-          description: `ID do Curso: ${response?.id || 'N/A'}`,
-          duration: 5000,
-        });
-      }
-      
-      navigate('/treinamentos');
-    } catch (error) {
-      console.error('Erro ao criar curso:', error);
     }
   };
 
@@ -284,14 +228,14 @@ const CriarTreinamentoPage = () => {
 
       {/* Step 1: Course Information */}
       {activeStep === 'course' && (
-        <Card>
-          <CardHeader>
+          <Card>
+            <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Video className="h-5 w-5" />
               Informações do Curso
             </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+            </CardHeader>
+            <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="title">Título do Curso *</Label>
@@ -302,7 +246,7 @@ const CriarTreinamentoPage = () => {
                   onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="category">Categoria</Label>
                 <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
@@ -322,10 +266,10 @@ const CriarTreinamentoPage = () => {
 
             <div className="space-y-2">
               <Label htmlFor="description">Descrição *</Label>
-              <Textarea
+                <Textarea
                 id="description"
                 placeholder="Descreva o conteúdo e objetivos do curso..."
-                rows={4}
+                  rows={4}
                 value={formData.description}
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
               />
@@ -370,9 +314,9 @@ const CriarTreinamentoPage = () => {
                 Próximo: Adicionar Aulas
                 <ChevronRight className="h-4 w-4 ml-2" />
               </Button>
-            </div>
-          </CardContent>
-        </Card>
+              </div>
+            </CardContent>
+          </Card>
       )}
 
       {/* Step 2: Lessons */}
@@ -400,7 +344,7 @@ const CriarTreinamentoPage = () => {
                 
                 <div className="space-y-2">
                   <Label htmlFor="lessonOrder">Ordem</Label>
-                  <Input
+                <Input
                     id="lessonOrder"
                     type="number"
                     min="1"
@@ -424,7 +368,7 @@ const CriarTreinamentoPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="lessonDuration">Duração do Vídeo (segundos) *</Label>
-                  <Input
+                <Input
                     id="lessonDuration"
                     type="number"
                     min="1"
@@ -455,9 +399,9 @@ const CriarTreinamentoPage = () => {
 
               <div className="flex gap-2">
                 <Button onClick={addLesson}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Adicionar Aula
-                </Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Adicionar Aula
+              </Button>
                 {lessons.length > 0 && (
                   <Button 
                     variant="outline" 
@@ -473,11 +417,11 @@ const CriarTreinamentoPage = () => {
 
           {/* Lessons List */}
           {lessons.length > 0 && (
-            <Card>
-              <CardHeader>
+          <Card>
+            <CardHeader>
                 <CardTitle>Aulas do Curso ({lessons.length})</CardTitle>
-              </CardHeader>
-              <CardContent>
+            </CardHeader>
+            <CardContent>
                 <div className="space-y-3">
                   {lessons.map((lesson, index) => (
                     <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
@@ -498,22 +442,22 @@ const CriarTreinamentoPage = () => {
                               <span className="text-xs text-orange-600 font-medium">⚠ Vídeo pendente</span>
                             )}
                           </div>
-                        </div>
+                      </div>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Button
+                      <Button
                           variant="outline"
                           size="sm"
                           onClick={() => removeLesson(index)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                       </div>
                     </div>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
+            </CardContent>
+          </Card>
           )}
 
           {/* Navigation */}
@@ -533,10 +477,10 @@ const CriarTreinamentoPage = () => {
       {/* Step 3: Preview */}
       {activeStep === 'preview' && (
         <div className="space-y-6">
-          <Card>
-            <CardHeader>
+            <Card>
+              <CardHeader>
               <CardTitle>Revisão do Curso</CardTitle>
-            </CardHeader>
+              </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -574,9 +518,9 @@ const CriarTreinamentoPage = () => {
                     </div>
                   ))}
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+                </div>
+              </CardContent>
+            </Card>
 
           {/* Navigation */}
           <div className="flex justify-between">
@@ -584,7 +528,7 @@ const CriarTreinamentoPage = () => {
               <ChevronLeft className="h-4 w-4 mr-2" />
               Voltar para Aulas
             </Button>
-            <Button 
+            <Button
               onClick={handleCreateCourse} 
               disabled={isCreatingCourse}
               className="bg-green-600 hover:bg-green-700"
@@ -596,7 +540,7 @@ const CriarTreinamentoPage = () => {
                 </>
               ) : (
                 <>
-                  <Save className="h-4 w-4 mr-2" />
+              <Save className="h-4 w-4 mr-2" />
                   Salvar Curso ({lessons.length} aulas)
                 </>
               )}

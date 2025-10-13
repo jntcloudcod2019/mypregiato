@@ -1,32 +1,36 @@
 using Pregiato.Application.DTOs;
 using Pregiato.Application.Interfaces;
 using Pregiato.Core.Interfaces;
+using Microsoft.Extensions.Options;
+using Pregiato.Infrastructure.Adapters;
 
 namespace Pregiato.Application.Services
 {
     public class TrainingVideoService : ITrainingVideoService
     {
         private readonly IMediaStoragePort _mediaStorage;
+        private readonly MinIOOptions _minioOptions;
 
-        public TrainingVideoService(IMediaStoragePort mediaStorage)
+        public TrainingVideoService(IMediaStoragePort mediaStorage, IOptions<MinIOOptions> minioOptions)
         {
             _mediaStorage = mediaStorage;
+            _minioOptions = minioOptions.Value;
         }
 
         public async Task<VideoPresignedUrlDto> GeneratePresignedUrlAsync(TrainingVideoUploadDto uploadDto)
         {
             try
             {
-                // Gerar nome do objeto seguindo o padrão: courses/{course-id}/{lesson-id}/{filename}
+                // Gerar nome do objeto seguindo o padrão: Course/{courseId}_{courseName}/{courseId}_{lessonId}_{lessonTitle}.ext
                 var objectName = GenerateObjectName(uploadDto);
                 
-                // Por enquanto, retornar uma URL simples (implementação futura)
-                var videoUrl = await _mediaStorage.GetPublicUrlAsync(objectName);
+                // Gerar URL usando o protocolo correto
+                var videoUrl = GenerateVideoUrl(objectName);
 
                 return new VideoPresignedUrlDto
                 {
                     ObjectName = objectName,
-                    PresignedUrl = videoUrl, // Implementar presigned URL futuramente
+                    PresignedUrl = videoUrl, // Implementar presigned URL futuramente se necessário
                     ExpiresAt = DateTime.UtcNow.AddHours(1),
                     VideoUrl = videoUrl
                 };
@@ -41,6 +45,9 @@ namespace Pregiato.Application.Services
         {
             try
             {
+                // Gerar nome do objeto seguindo o padrão correto
+                var objectName = GenerateObjectName(uploadDto);
+                
                 // Converter bytes para base64
                 var base64Data = Convert.ToBase64String(videoData);
                 
@@ -48,15 +55,18 @@ namespace Pregiato.Application.Services
                 var result = await _mediaStorage.StoreMediaAsync(
                     base64Data,
                     uploadDto.MimeType,
-                    uploadDto.FileName, // contactNumber
+                    objectName, // Usar o objectName gerado com o padrão correto
                     null // senderName
                 );
+
+                // Gerar URL com protocolo correto
+                var videoUrl = GenerateVideoUrl(result.ObjectName);
 
                 return new VideoUploadResultDto
                 {
                     Success = true,
                     ObjectName = result.ObjectName,
-                    VideoUrl = result.MediaUrl,
+                    VideoUrl = videoUrl,
                     FileSize = uploadDto.FileSize,
                     MimeType = uploadDto.MimeType
                 };
@@ -153,13 +163,56 @@ namespace Pregiato.Application.Services
 
         private string GenerateObjectName(TrainingVideoUploadDto uploadDto)
         {
-            // Formato: courses/{course-id}/{lesson-id}/{filename}
-            var courseSlug = uploadDto.CourseId.ToString().ToLower().Replace(" ", "-");
-            var lessonSlug = uploadDto.LessonId.ToString().ToLower().Replace(" ", "-");
-            var fileName = Path.GetFileNameWithoutExtension(uploadDto.FileName);
+            // Formato: Course/{courseId}_{courseName}/{courseId}_{lessonId}_{lessonTitle}.ext
+            // A pasta "Course/" já existe no MinIO, só precisamos criar o restante
+            
+            // Limpar o nome do curso e da aula para usar em path
+            var courseNameSafe = SanitizeForPath(uploadDto.CourseTitle ?? "Untitled");
+            var lessonTitleSafe = SanitizeForPath(uploadDto.LessonTitle ?? "Untitled");
+            
+            // Obter extensão do arquivo
             var extension = Path.GetExtension(uploadDto.FileName);
             
-            return $"courses/{courseSlug}/{lessonSlug}/{fileName}{extension}";
+            // Formato: Course/{courseId}_{courseName}/{courseId}_{lessonId}_{lessonTitle}.ext
+            var folderPath = $"Course/{uploadDto.CourseId}_{courseNameSafe}";
+            var fileName = $"{uploadDto.CourseId}_{uploadDto.LessonId}_{lessonTitleSafe}{extension}";
+            
+            return $"{folderPath}/{fileName}";
+        }
+
+        private string SanitizeForPath(string input)
+        {
+            // Remove caracteres especiais e substitui espaços por underscores
+            var sanitized = input
+                .Replace(" ", "_")
+                .Replace("/", "_")
+                .Replace("\\", "_")
+                .Replace(":", "_")
+                .Replace("*", "_")
+                .Replace("?", "_")
+                .Replace("\"", "_")
+                .Replace("<", "_")
+                .Replace(">", "_")
+                .Replace("|", "_");
+            
+            // Limitar tamanho para evitar paths muito longos
+            if (sanitized.Length > 50)
+            {
+                sanitized = sanitized.Substring(0, 50);
+            }
+            
+            return sanitized;
+        }
+
+        private string GenerateVideoUrl(string objectName)
+        {
+            // Usar protocolo correto baseado em UseSSL
+            var protocol = _minioOptions.UseSSL ? "https" : "http";
+            var endpoint = _minioOptions.Endpoint;
+            var bucketName = _minioOptions.BucketName;
+            
+            // Gerar URL pública do vídeo
+            return $"{protocol}://{endpoint}/{bucketName}/{objectName}";
         }
     }
 }
