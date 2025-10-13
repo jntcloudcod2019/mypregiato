@@ -251,7 +251,7 @@ export function canAccessRoute(role: string | null, route: string): boolean {
   if (!role) return false;
   
   // ADMIN tem acesso TOTAL - bypass de todas as validações
-  if (role.toUpperCase() === "ADMIN" || role.toUpperCase() === UserRole.ADMIN) return true;
+  if (role.toUpperCase() === "ADMIN" || role.toUpperCase() === UserRole.ADMIN)  return true;
   
   // Encontrar a rota mais específica que corresponde
   const matchingRoute = Object.keys(ROUTE_PERMISSIONS)
