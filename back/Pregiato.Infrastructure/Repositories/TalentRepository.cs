@@ -23,7 +23,9 @@ public class TalentRepository : ITalentRepository
 
     public async Task<Talent?> GetByIdAsync(Guid id)
     {
-        return await _context.Talent.FindAsync(id);
+        return await _context.Talent
+            .Include(t => t.Files)
+            .FirstOrDefaultAsync(t => t.Id == id);
     }
 
     public async Task<Talent> CreateAsync(Talent talent)
