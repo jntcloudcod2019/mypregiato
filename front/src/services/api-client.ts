@@ -39,10 +39,13 @@ class ApiClient {
         return response;
       },
       (error) => {
+        // ⚠️ NÃO redirecionar automaticamente para /login em 401
+        // Isso causa loop infinito quando AuthPermissionsContext tenta buscar usuário
+        // Deixar cada componente lidar com erros 401 conforme necessário
         if (error.response?.status === 401) {
-          // Token expirado ou inválido
+          console.warn('[API] 401 Unauthorized - Token inválido ou expirado');
+          // Apenas remover token, não redirecionar
           localStorage.removeItem('clerk-token');
-          window.location.href = '/login';
         }
         return Promise.reject(error);
       }
