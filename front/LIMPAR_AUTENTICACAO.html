@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔧 Limpar Autenticação</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        .container {
+            background: #1e293b;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #38bdf8;
+            margin-bottom: 10px;
+        }
+        .status {
+            background: #334155;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        .status-item {
+            margin: 8px 0;
+            padding: 8px;
+            border-left: 3px solid #64748b;
+            padding-left: 12px;
+        }
+        .status-item.ok {
+            border-left-color: #22c55e;
+            background: rgba(34, 197, 94, 0.1);
+        }
+        .status-item.error {
+            border-left-color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
+        .status-item.warning {
+            border-left-color: #f59e0b;
+            background: rgba(245, 158, 11, 0.1);
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px 5px;
+            transition: all 0.2s;
+        }
+        button:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+        }
+        button.danger {
+            background: #ef4444;
+        }
+        button.danger:hover {
+            background: #dc2626;
+        }
+        button.success {
+            background: #22c55e;
+        }
+        button.success:hover {
+            background: #16a34a;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background: #334155;
+        }
+        .code {
+            background: #1e293b;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Ferramenta de Diagnóstico e Limpeza</h1>
+        <p>Use esta página para diagnosticar e resolver problemas de autenticação</p>
+
+        <div id="status" class="status">
+            <h3>📊 Status Atual:</h3>
+            <div id="statusContent">Carregando...</div>
+        </div>
+
+        <div style="margin: 20px 0;">
+            <button onclick="checkStatus()">🔍 Verificar Status</button>
+            <button onclick="clearAll()" class="danger">🗑️ Limpar Tudo</button>
+            <button onclick="fixAndReload()" class="success">✨ Corrigir e Recarregar</button>
+        </div>
+
+        <div id="result" class="result" style="display: none;">
+            <h3>📋 Resultado:</h3>
+            <div id="resultContent"></div>
+        </div>
+
+        <hr style="margin: 30px 0; border-color: #334155;">
+
+        <h3>📖 Instruções:</h3>
+        <ol style="line-height: 1.8;">
+            <li><strong>Verificar Status:</strong> Mostra o estado atual da autenticação</li>
+            <li><strong>Limpar Tudo:</strong> Remove todos os dados de autenticação (sessionStorage, localStorage, cookies do Clerk)</li>
+            <li><strong>Corrigir e Recarregar:</strong> Limpa tudo e recarrega a página para login</li>
+        </ol>
+    </div>
+
+    <script>
+        function checkStatus() {
+            const status = {
+                clerk_failed: sessionStorage.getItem('clerk_failed'),
+                server_restarted: sessionStorage.getItem('server_restarted'),
+                lastRoute: sessionStorage.getItem('lastRoute'),
+                server_checked: sessionStorage.getItem('server_checked'),
+                page_closing: sessionStorage.getItem('page_closing'),
+                clerkToken: localStorage.getItem('clerk-db-jwt') ? 'Presente' : 'Ausente',
+                totalSessionKeys: Object.keys(sessionStorage).length,
+                totalLocalKeys: Object.keys(localStorage).length
+            };
+
+            let html = '';
+            
+            // clerk_failed
+            html += `<div class="status-item ${status.clerk_failed === 'true' ? 'error' : 'ok'}">`;
+            html += `🔐 clerk_failed: ${status.clerk_failed || 'null'} ${status.clerk_failed === 'true' ? '❌ BLOQUEANDO ACESSO' : '✅'}`;
+            html += `</div>`;
+
+            // server_restarted
+            html += `<div class="status-item ${status.server_restarted === 'true' ? 'warning' : 'ok'}">`;
+            html += `🔄 server_restarted: ${status.server_restarted || 'null'}`;
+            html += `</div>`;
+
+            // lastRoute
+            html += `<div class="status-item">`;
+            html += `📍 lastRoute: ${status.lastRoute || 'null'}`;
+            html += `</div>`;
+
+            // Token
+            html += `<div class="status-item ${status.clerkToken === 'Ausente' ? 'warning' : 'ok'}">`;
+            html += `🎫 Clerk Token: ${status.clerkToken}`;
+            html += `</div>`;
+
+            // Totals
+            html += `<div class="status-item">`;
+            html += `📦 Total sessionStorage: ${status.totalSessionKeys} chaves`;
+            html += `</div>`;
+
+            html += `<div class="status-item">`;
+            html += `📦 Total localStorage: ${status.totalLocalKeys} chaves`;
+            html += `</div>`;
+
+            document.getElementById('statusContent').innerHTML = html;
+        }
+
+        function clearAll() {
+            const result = {
+                sessionCleared: [],
+                localCleared: [],
+                cookiesCleared: []
+            };
+
+            // Limpar sessionStorage
+            const sessionKeys = Object.keys(sessionStorage);
+            sessionKeys.forEach(key => {
+                result.sessionCleared.push(key);
+                sessionStorage.removeItem(key);
+            });
+
+            // Limpar localStorage (apenas chaves do Clerk)
+            const localKeys = Object.keys(localStorage);
+            localKeys.forEach(key => {
+                if (key.includes('clerk') || key.includes('$$clerk')) {
+                    result.localCleared.push(key);
+                    localStorage.removeItem(key);
+                }
+            });
+
+            // Limpar cookies do Clerk
+            const cookies = document.cookie.split(';');
+            cookies.forEach(cookie => {
+                const name = cookie.split('=')[0].trim();
+                if (name.includes('clerk') || name.includes('__clerk')) {
+                    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+                    result.cookiesCleared.push(name);
+                }
+            });
+
+            showResult(result);
+        }
+
+        function fixAndReload() {
+            clearAll();
+            
+            setTimeout(() => {
+                alert('✅ Limpeza concluída! A página será recarregada.');
+                window.location.href = '/login';
+            }, 500);
+        }
+
+        function showResult(result) {
+            let html = '<div class="code">';
+            html += `<strong>✅ Limpeza concluída!</strong><br><br>`;
+            html += `📦 sessionStorage limpo: ${result.sessionCleared.length} itens<br>`;
+            if (result.sessionCleared.length > 0) {
+                html += `   - ${result.sessionCleared.join(', ')}<br><br>`;
+            }
+            html += `📦 localStorage limpo: ${result.localCleared.length} itens<br>`;
+            if (result.localCleared.length > 0) {
+                html += `   - ${result.localCleared.join(', ')}<br><br>`;
+            }
+            html += `🍪 Cookies limpos: ${result.cookiesCleared.length} itens<br>`;
+            if (result.cookiesCleared.length > 0) {
+                html += `   - ${result.cookiesCleared.join(', ')}`;
+            }
+            html += '</div>';
+
+            document.getElementById('resultContent').innerHTML = html;
+            document.getElementById('result').style.display = 'block';
+        }
+
+        // Verificar status ao carregar
+        window.onload = checkStatus;
+    </script>
+</body>
+</html>
+
