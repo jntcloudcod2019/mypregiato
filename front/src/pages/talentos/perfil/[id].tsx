@@ -20,10 +20,10 @@ import { cn } from "../../../lib/utils"
 import { CompositeTemplates } from "../../../components/composite-templates"
 import { getTalentById, updateTalent } from "../../../lib/talent-service"
 import { getTalentDNA, createOrUpdateTalentDNA } from "../../../lib/dna-service"
-import { uploadPhoto, getTalentPhotos, deletePhoto } from "../../../lib/file-service"
+import { talentPhotosService } from "../../../services/talent-photos-service"
 import { TalentData } from "../../../types/talent"
 import { useToast } from "../../../hooks/use-toast"
-import { compressImage, validateImageFile, fileToBase64 } from "../../../utils/image-compression"
+import { compressImage, validateImageFile } from "../../../utils/image-compression"
 
 export default function TalentProfile() {
   const { id } = useParams()
@@ -188,14 +188,19 @@ export default function TalentProfile() {
       setUploadingPhoto(true)
       
       for (const file of Array.from(files)) {
+        console.log('📝 [Upload] Processando:', file.name, file.size, 'bytes')
+        
         // Validate file
         validateImageFile(file)
+        console.log('✅ [Upload] Arquivo validado')
         
         // Compress image
         const compressedFile = await compressImage(file)
+        console.log('✅ [Upload] Imagem comprimida:', compressedFile.size, 'bytes')
         
-        // Upload photo
-        await uploadPhoto(id, compressedFile)
+        // ✅ Upload usando API REAL (MinIO + FileUpload table)
+        await talentPhotosService.uploadPhoto(id, compressedFile)
+        console.log('✅ [Upload] Foto enviada para API')
       }
       
       // Refresh talent data to show new photos
@@ -225,12 +230,17 @@ export default function TalentProfile() {
     event.target.value = ''
   }
 
-  // Handle photo deletion
+  // Handle photo deletion - USA API REAL
   const handlePhotoDelete = async (photoId: string) => {
     if (!id) return
     
     try {
-      await deletePhoto(photoId)
+      console.log('🗑️ [Delete] Deletando foto:', photoId)
+      
+      // ✅ Deletar usando API REAL (MinIO + FileUpload table)
+      await talentPhotosService.deletePhoto(id, photoId)
+      
+      console.log('✅ [Delete] Foto deletada da API')
       
       // Refresh talent data
       const updatedTalent = await getTalentById(id)
@@ -243,7 +253,7 @@ export default function TalentProfile() {
         description: "Foto excluída com sucesso",
       })
     } catch (error) {
-      console.error('Erro ao deletar foto:', error)
+      console.error('❌ [Delete] Erro ao deletar foto:', error)
       toast({
         title: "Erro",
         description: "Erro ao excluir foto",
@@ -351,10 +361,10 @@ export default function TalentProfile() {
             <CardContent className="space-y-6">
               {/* Profile Image */}
               <div className="flex flex-col items-center space-y-4">
-                <div className="relative group">
+                  <div className="relative group">
                   <div className="w-32 h-32 rounded-xl overflow-hidden border-4 border-primary/20 shadow-lg">
                     <img
-                      src={talent.files?.[0]?.url || "/placeholder.svg"}
+                      src={talent.files?.[0]?.filePath || "/placeholder.svg"}
                       alt={talent.fullName}
                       className="w-full h-full object-cover"
                     />
@@ -645,11 +655,11 @@ export default function TalentProfile() {
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      {talent.files?.filter(file => file.type === 'PHOTO').map((file, index) => (
+                      {talent.files?.filter(file => file.tags === 'PHOTO').map((file, index) => (
                         <div key={file.id} className="relative group">
                           <div className="aspect-square rounded-lg overflow-hidden bg-muted shadow-md">
                             <img
-                              src={file.url}
+                              src={file.filePath}
                               alt={`Foto ${index + 1}`}
                               className="w-full h-full object-cover transition-transform group-hover:scale-105"
                             />
@@ -686,7 +696,7 @@ export default function TalentProfile() {
                 <CardContent>
                   <CompositeTemplates 
                     talent={talent} 
-                    photos={talent.files?.filter(file => file.type === 'PHOTO').map(file => file.url) || []} 
+                    photos={talent.files?.filter(file => file.tags === 'PHOTO').map(file => file.filePath) || []} 
                   />
                 </CardContent>
               </Card>

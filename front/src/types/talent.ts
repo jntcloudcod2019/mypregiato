@@ -68,13 +68,17 @@ export interface TalentDNAData {
 
 export interface FileData {
   id: string
-  url: string
-  type: 'PHOTO' | 'VIDEO' | 'DOCUMENT' | 'COMPOSITE'
+  fileName: string
+  filePath: string  // URL do MinIO
+  contentType: string
+  fileSize: number
+  originalFileName?: string | null
+  description?: string | null
+  tags?: string | null  // "PHOTO", "VIDEO", "DOCUMENT"
   talentId?: string | null
-  projectId?: string | null
+  contractId?: string | null
   uploadedAt: Date
-  fileName?: string | null
-  mimeType?: string | null
+  uploadedBy?: string | null
 }
 
 export interface ProducerData {

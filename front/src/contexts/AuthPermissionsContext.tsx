@@ -71,12 +71,8 @@ export const AuthPermissionsProvider: React.FC<AuthPermissionsProviderProps> = (
         return;
       }
 
-      console.log('[AuthPermissions] Buscando dados do usuário:', email);
-
       // Buscar usuário no banco de dados
       const response = await apiClient.get<UserData>(`/api/Users/by-email/${encodeURIComponent(email)}`);
-      
-      console.log('[AuthPermissions] Dados do usuário:', response);
       
       setUser(response);
       setError(null); // Limpar qualquer erro anterior
@@ -101,20 +97,6 @@ export const AuthPermissionsProvider: React.FC<AuthPermissionsProviderProps> = (
 
   // A role vem da API como string (ex: "ADMIN", "MODEL", "INSTRUCTOR")
   const role = user?.role || null;
-
-  // DEBUG - Remover após confirmar funcionamento
-  useEffect(() => {
-    if (user) {
-      console.log('🔍 [AuthPermissions DEBUG]', {
-        userRole: user.role,
-        userRoleType: typeof user.role,
-        roleValue: role,
-        userEmail: user.email,
-        isAdmin: role === UserRole.ADMIN.toString(),
-        isModel: role === UserRole.MODEL.toString(),
-      });
-    }
-  }, [user, role]);
 
   // Funções de verificação de permissão
   const checkPermission = useCallback((permission: Permission): boolean => {

@@ -1,26 +1,36 @@
 import React, { useEffect } from 'react';
 import { SignedIn, SignedOut } from '@clerk/clerk-react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, useSearchParams } from 'react-router-dom';
 import CustomLogin from '../components/auth/custom-login';
 
 const LoginPage: React.FC = () => {
   const location = useLocation();
-  
-  // Tentar recuperar a última rota salva, senão usar a from do state, senão dashboard
-  const lastRoute = sessionStorage.getItem('lastRoute');
-  const from = location.state?.from?.pathname || lastRoute || '/dashboard';
+  const [params] = useSearchParams();
 
-  // Salvar a rota de destino
+  // 1️⃣ Origem via ProtectedRoute
+  const fromPath = (location.state as any)?.from?.pathname as string | undefined;
+
+  // 2️⃣ Via query param (?return_to=/treinamentos/criar)
+  const returnTo = params.get("return_to") || undefined;
+
+  // 3️⃣ Última rota válida salva
+  const lastRoute = sessionStorage.getItem("lastRoute") || undefined;
+
+  // ✅ Ordem de prioridade (NUNCA usar /dashboard como padrão)
+  const redirectTo = fromPath || returnTo || lastRoute || "/treinamentos";
+
+  // Logs para debug
   useEffect(() => {
-    if (location.state?.from?.pathname) {
-      sessionStorage.setItem('lastRoute', location.state.from.pathname);
-    }
-  }, [location.state]);
+    console.log("🔐 [Login] fromPath:", fromPath);
+    console.log("🔐 [Login] return_to:", returnTo);
+    console.log("🔐 [Login] lastRoute:", lastRoute);
+    console.log("🔐 [Login] redirectTo:", redirectTo);
+  }, [fromPath, returnTo, lastRoute, redirectTo]);
 
   return (
     <>
       <SignedIn>
-        <Navigate to={from} replace />
+        <Navigate to={redirectTo} replace />
       </SignedIn>
       <SignedOut>
         <CustomLogin />
