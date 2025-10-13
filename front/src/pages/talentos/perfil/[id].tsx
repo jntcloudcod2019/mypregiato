@@ -204,15 +204,9 @@ export default function TalentProfile() {
         const compressedFile = await compressImage(file)
         console.log('✅ [Upload] Imagem comprimida:', compressedFile.size, 'bytes')
         
-<<<<<<< HEAD
-        // Upload photo
-        const uploadedFile = await uploadPhoto(id, compressedFile)
-        console.log('✅ [Upload] Foto enviada:', uploadedFile)
-=======
         // ✅ Upload usando API REAL (MinIO + FileUpload table)
         await talentPhotosService.uploadPhoto(id, compressedFile)
         console.log('✅ [Upload] Foto enviada para API')
->>>>>>> 8c4a7f1 (vai)
       }
       
       // Refresh talent data to show new photos
@@ -220,12 +214,12 @@ export default function TalentProfile() {
       const updatedTalent = await getTalentById(id)
       console.log('📊 [Upload] Talento atualizado:', updatedTalent)
       
-      // TEMPORÁRIO: Buscar fotos do mock storage pois API ainda não retorna files
-      const photos = await getTalentPhotos(id)
-      console.log('🖼️ [Upload] Fotos do mock storage:', photos.length)
+      // Buscar fotos do talent via API
+      const photos = await talentPhotosService.getTalentPhotos(id)
+      console.log('🖼️ [Upload] Fotos carregadas:', photos.length)
       
       if (updatedTalent) {
-        // Adicionar as fotos do mock storage ao talent
+        // Adicionar as fotos carregadas ao talent
         setTalent({
           ...updatedTalent,
           files: photos

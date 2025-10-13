@@ -19,15 +19,12 @@ const LoginPage: React.FC = () => {
   // ✅ Ordem de prioridade (NUNCA usar /dashboard como padrão)
   const redirectTo = fromPath || returnTo || lastRoute || "/treinamentos";
 
-  // Salvar a rota de destino
+  // Salvar a rota de destino e logs para debug
   useEffect(() => {
     if (fromPath) {
       sessionStorage.setItem('lastRoute', fromPath);
     }
-  }, [fromPath]);
-
-  // Logs para debug
-  useEffect(() => {
+    
     console.log("🔐 [Login] fromPath:", fromPath);
     console.log("🔐 [Login] return_to:", returnTo);
     console.log("🔐 [Login] lastRoute:", lastRoute);
