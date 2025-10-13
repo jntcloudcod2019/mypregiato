@@ -113,7 +113,7 @@
         </member>
         <member name="M:Pregiato.API.Controllers.TrainingCertificatesController.GenerateCertificate(Pregiato.API.Controllers.GenerateCertificateRequest)">
             <summary>
-            Gerar certificado para um usuário e curso
+            Gerar certificado para um usuário e curso e retornar PDF para download
             </summary>
         </member>
         <member name="M:Pregiato.API.Controllers.TrainingCertificatesController.GetById(System.Guid)">

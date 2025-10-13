@@ -142,8 +142,8 @@ const CriarTreinamentoPage = () => {
         });
       } else if (response && typeof response === 'object' && 'id' in response) {
         // Fallback para resposta sem mensagem personalizada
-        toast({
-          title: "Curso criado com sucesso!",
+    toast({
+      title: "Curso criado com sucesso!",
           description: `ID do Curso: ${response.id || 'N/A'}`,
           duration: 5000,
         });

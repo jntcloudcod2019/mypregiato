@@ -48,11 +48,14 @@ const PerfilPage = () => {
         
         console.log('[Perfil] Verificando se talent existe para email:', user.email);
         
-        // Buscar talent por email
-        const response = await apiClient.get<TalentData[]>(`/api/Talents?email=${encodeURIComponent(user.email)}`);
+        // Buscar talents e filtrar por email localmente
+        // A API retorna paginado, então buscamos a primeira página com search
+        const response = await apiClient.get<{ data: TalentData[]; total: number }>(`/api/Talents?search=${encodeURIComponent(user.email)}&pageSize=10`);
         
-        if (response.data && response.data.length > 0) {
-          const talent = response.data[0];
+        // Filtrar talent que tem exatamente o email do usuário
+        const talent = response.data?.find(t => t.email?.toLowerCase() === user.email.toLowerCase());
+        
+        if (talent) {
           console.log('[Perfil] Talento encontrado:', talent);
           setProfileStatus({
             exists: true,
@@ -66,12 +69,13 @@ const PerfilPage = () => {
             loading: false
           });
         }
-      } catch (error: any) {
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Erro ao verificar perfil';
         console.error('[Perfil] Erro ao verificar talent:', error);
         setProfileStatus({
           exists: false,
           loading: false,
-          error: error.message || 'Erro ao verificar perfil'
+          error: errorMessage
         });
       }
     };

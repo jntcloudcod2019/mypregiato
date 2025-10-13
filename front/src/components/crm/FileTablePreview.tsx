@@ -5,7 +5,7 @@ import { Trash2, Eye } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface FileTablePreviewProps {
-  data?: any[];
+  data?: Record<string, string | number | boolean | null>[];
   headers?: string[];
   onClear?: () => void;
 }

@@ -3,6 +3,7 @@ import {
   TrainingCourse,
   TrainingLesson,
   TrainingEnrollment,
+  TrainingCertificate,
   TrainingProgressSummaryDto,
   TrainingRatingSummaryDto,
   TrainingCourseStats,
@@ -172,22 +173,31 @@ export class TrainingService {
   }
 
   // === CERTIFICATES ===
-  async generateCertificate(request: { userEmail: string; courseId: string; completionDate: Date }): Promise<any> {
-    return await apiClient.post<any>(`${this.baseUrl}/TrainingCertificates`, {
-      userEmail: request.userEmail,
-      courseId: request.courseId,
-      completionDate: request.completionDate
+  async generateCertificate(request: { userEmail: string; courseId: string; completionDate: Date }): Promise<Blob> {
+    // Endpoint retorna PDF diretamente como arquivo
+    const response = await fetch(`${window.location.origin}${this.baseUrl}/TrainingCertificates`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userEmail: request.userEmail,
+        courseId: request.courseId,
+        completionDate: request.completionDate
+      })
     });
+
+    if (!response.ok) {
+      throw new Error(`Erro ao gerar certificado: ${response.statusText}`);
+    }
+
+    return await response.blob();
   }
 
   async validateCertificate(validationCode: string): Promise<CertificateValidationResultDto> {
     return await apiClient.post<CertificateValidationResultDto>(`${this.baseUrl}/TrainingCertificates/validate`, {
       validationCode
     });
-  }
-
-  async getMyCertificates(): Promise<any[]> {
-    return await apiClient.get<any[]>(`${this.baseUrl}/TrainingCertificates/my-certificates`);
   }
 
   async getCertificateDownloadUrl(certificateId: string): Promise<{ downloadUrl: string }> {
@@ -198,16 +208,7 @@ export class TrainingService {
     return await apiClient.get<{ exists: boolean }>(`${this.baseUrl}/TrainingCertificates/enrollment/${enrollmentId}/exists`);
   }
 
-  // === UTILITY METHODS ===
-  async checkApiHealth(): Promise<boolean> {
-    try {
-      await apiClient.get('/health');
-      return true;
-    } catch (error) {
-      console.error('API Health check failed:', error);
-      return false;
-    }
-  }
+  
 
   // Método para obter estatísticas gerais
   async getGeneralStats(): Promise<{

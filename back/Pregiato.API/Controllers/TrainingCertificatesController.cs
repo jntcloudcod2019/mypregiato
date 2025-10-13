@@ -71,15 +71,15 @@ public class TrainingCertificatesController : ControllerBase
                 userFullName, user.Id, course.Title);
 
             // Gerar certificado com os dados do usuário e curso
-            var (certificate, pdfBytes) = await _certificateService.GenerateCertificateAsync(
+            var result = await _certificateService.GenerateCertificateAsync(
                 user.Id, 
                 userFullName, 
                 course.Title, 
                 request.CompletionDate);
 
             // Retornar PDF como arquivo para download
-            var fileName = $"Certificado_{certificate.CertificateNumber}_{userFullName.Replace(" ", "_")}.pdf";
-            return File(pdfBytes, "application/pdf", fileName);
+            var fileName = $"Certificado_{result.certificate.CertificateNumber}_{userFullName.Replace(" ", "_")}.pdf";
+            return File(result.pdfBytes, "application/pdf", fileName);
         }
         catch (ArgumentException ex)
         {

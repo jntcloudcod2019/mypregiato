@@ -20,7 +20,7 @@ import { CustomDatePicker } from "../../../components/ui/custom-date-picker"
 import { createTalent, checkTalentExists } from "../../../lib/talent-service"
 import { getProducers } from "../../../lib/user-service"
 import { sendClerkInvite } from "../../../lib/clerk-service"
-import { ProducerData } from "../../../types/talent"
+import { ProducerData, CreateTalentData } from "../../../types/talent"
 import { useToast } from "../../../hooks/use-toast"
 
 // CEP validation
@@ -139,7 +139,7 @@ export default function NovoTalento() {
   const [loadingProducers, setLoadingProducers] = useState(true)
   
   // Verificar se é criação de perfil próprio (MODEL)
-  const isModelProfile = searchParams.get('isModelProfile') === 'true'
+  const isModelProfile = searchParams.get('isModelProfile') === 'false'
   const modelEmail = searchParams.get('email')
   const modelFirstName = searchParams.get('firstName')
   const modelLastName = searchParams.get('lastName')
@@ -191,7 +191,7 @@ export default function NovoTalento() {
       }
     }
     loadProducers()
-  }, [])
+  }, [toast])
 
   // Format CPF/CNPJ
   const formatDocument = (value: string) => {
@@ -425,13 +425,13 @@ export default function NovoTalento() {
                              <SelectValue placeholder={loadingProducers ? "Carregando..." : "Selecione o produtor (opcional)"} />
                            </SelectTrigger>
                          </FormControl>
-                         <SelectContent>
-                           <SelectItem value="">Sistema gerará produtor interno</SelectItem>
-                           {producers.map((producer, index) => (
-                             <SelectItem key={producer.id} value={producer.id}>
-                               {producer.firstName} {producer.lastName} - {String(index + 1).padStart(2, '0')}
-                             </SelectItem>
-                           ))}
+                        <SelectContent>
+                          <SelectItem value="interno">Sistema gerará produtor interno</SelectItem>
+                          {producers.map((producer, index) => (
+                            <SelectItem key={producer.id} value={producer.id}>
+                              {producer.firstName} {producer.lastName} - {String(index + 1).padStart(2, '0')}
+                            </SelectItem>
+                          ))}
                          </SelectContent>
                        </Select>
                        <FormDescription>

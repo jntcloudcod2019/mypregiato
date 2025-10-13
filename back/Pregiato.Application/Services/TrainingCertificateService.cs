@@ -37,7 +37,7 @@ public class TrainingCertificateService : ITrainingCertificateService
         _logger = logger;
     }
 
-    public async Task<TrainingCertificateDto> GenerateCertificateAsync(string userId, string userFullName, string courseName, DateTime completionDate)
+    public async Task<(TrainingCertificateDto certificate, byte[] pdfBytes)> GenerateCertificateAsync(string userId, string userFullName, string courseName, DateTime completionDate)
     {
         try
         {
@@ -71,7 +71,9 @@ public class TrainingCertificateService : ITrainingCertificateService
 
             _logger.LogInformation("Certificado gerado com sucesso: {CertificateId}", savedCertificate.Id);
 
-            return _mapper.Map<TrainingCertificateDto>(savedCertificate);
+            var certificateDto = _mapper.Map<TrainingCertificateDto>(savedCertificate);
+            
+            return (certificateDto, pdfBytes);
         }
         catch (Exception ex)
         {

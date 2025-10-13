@@ -21,46 +21,44 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    console.error('Error caught by ErrorBoundary:', error, errorInfo);
+    console.error('❌ Error caught by ErrorBoundary:', error, errorInfo);
     
-    // Verificar se é um erro CRÍTICO do Clerk (mais específico)
     const errorString = error.toString().toLowerCase();
     const errorStack = error.stack?.toLowerCase() || '';
     
+    // ✅ CRÍTICO: Apenas marcar como falha do Clerk se for REALMENTE um erro crítico de inicialização
     const isClerkCriticalError = (
       errorString.includes('clerk initialization failed') ||
-      errorString.includes('clerk is not defined') ||
       errorString.includes('clerk provider not found') ||
-      (errorString.includes('clerk') && errorString.includes('initialization'))
+      errorString.includes('clerk context is undefined')
     );
     
-    // ✅ NOVO: Detectar erros JavaScript comuns que NÃO são do Clerk
+    // ✅ Detectar erros JavaScript comuns que NÃO são do Clerk
     const isCommonJSError = (
       errorString.includes('is not defined') ||
       errorString.includes('cannot read property') ||
+      errorString.includes('cannot read properties of') ||
       errorString.includes('undefined is not') ||
-      errorString.includes('null is not')
+      errorString.includes('null is not') ||
+      errorString.includes('is not a function')
     );
     
-    // ✅ NOVO: Não marcar como falha do Clerk se for erro JS comum
-    if (isCommonJSError && !errorStack.includes('clerk')) {
-      console.error('⚠️ JavaScript error detected (not Clerk-related):', error.toString());
-      console.error('Stack:', errorInfo.componentStack);
-      // Não marcar clerk_failed para erros JS comuns
+    // ✅ NÃO marcar clerk_failed para erros comuns de JavaScript
+    if (isCommonJSError && !isClerkCriticalError) {
+      console.warn('⚠️ JavaScript error (não relacionado ao Clerk):', error.toString());
+      console.error('📍 Component Stack:', errorInfo.componentStack);
+      // NÃO marcar clerk_failed
       return;
     }
     
     if (isClerkCriticalError) {
-      console.log('Clerk CRITICAL error detected, disabling Clerk for this session');
+      console.error('🔴 CLERK CRITICAL ERROR - Desabilitando Clerk');
       try {
-        // Marca o erro do Clerk para esta sessão
         sessionStorage.setItem('clerk_failed', 'true');
+        sessionStorage.setItem('clerk_last_failure', Date.now().toString());
       } catch (e) {
         console.error('Failed to update sessionStorage:', e);
       }
-    } else if (errorString.includes('authentication')) {
-      // Para erros de autenticação genéricos, apenas logar sem marcar como falha do Clerk
-      console.log('Authentication error (não crítico do Clerk):', error.toString());
     }
   }
 
