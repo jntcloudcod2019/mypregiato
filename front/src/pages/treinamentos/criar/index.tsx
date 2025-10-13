@@ -125,11 +125,12 @@ const CriarTreinamentoPage = () => {
     }
 
     // ✅ Validar autenticação
-    if (!user?.id ) {
+    if (!user?.id) {
       toast({
-        user.id
+        title: "Erro de autenticação",
+        description: "Usuário não autenticado. Faça login novamente.",
+        variant: "destructive"
       });
-
       return;
     }
 

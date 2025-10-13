@@ -1,54 +1,26 @@
-import React, { useEffect } from 'react';
-import { SignedIn, SignedOut, useUser } from '@clerk/clerk-react';
-import { Navigate, useLocation } from 'react-router-dom';
-import { LoadingFallback } from '../ui/loading-fallback';
-import { forceImmediateLogout } from '@/utils/auth-cleanup';
+import { Navigate, useLocation } from "react-router-dom";
+import { useUser } from "@clerk/clerk-react";
+import React from "react";
 
-interface ProtectedRouteProps {
-  children: React.ReactNode;
-  fallback?: React.ReactNode;
-  requireAuth?: boolean;
-}
-
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
-  children,
-  fallback,
-  requireAuth = true
-}) => {
-  const { isLoaded, isSignedIn } = useUser();
+export const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
+  const { isSignedIn, isLoaded } = useUser();
 
-  // Verificar se o Clerk falhou
-  const clerkFailed = sessionStorage.getItem('clerk_failed') === 'true';
-
-  // Se não requer autenticação, renderizar normalmente
-  if (!requireAuth) {
-    return <>{children}</>;
-  }
-
-  // Se o Clerk falhou, permitir acesso (modo de emergência)
-  if (clerkFailed) {
-    console.log('Clerk falhou, permitindo acesso em modo de emergência');
-    return <>{children}</>;
-  }
-
-  // Se ainda está carregando, mostrar loading
+  // Aguarda carregamento do Clerk
   if (!isLoaded) {
-    return fallback || <LoadingFallback />;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
-  // Se não está autenticado, redirecionar para login SEMPRE
   if (!isSignedIn) {
-    // Limpar qualquer status de falha do Clerk para forçar nova tentativa
-    try {
-      sessionStorage.removeItem('clerk_failed');
-    } catch (e) {
-      console.error('Erro ao limpar status de falha:', e);
-    }
-    
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    // 🔑 Preserva a rota de origem
+    console.log('🔐 [ProtectedRoute] Usuário não autenticado, redirecionando para login');
+    console.log('🔐 [ProtectedRoute] Rota de origem:', location.pathname);
+    return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  // Se está autenticado, mostrar o conteúdo
   return <>{children}</>;
 };

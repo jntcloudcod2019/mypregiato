@@ -47,6 +47,7 @@ import NotFound from "./pages/NotFound";
 import ModulePage from "./pages/modules/slug";
 import FichaDigitalPage from "./pages/events/ficha/token";
 import { WhatsAppProvider } from "./providers/whatsapp-provider";
+import { RouteTracker } from "./components/common/route-tracker";
 
 // Componente para redirecionamento da raiz - sempre para login
 const RootRedirect = () => {
@@ -55,6 +56,7 @@ const RootRedirect = () => {
 
 const App = () => (
   <BrowserRouter>
+    <RouteTracker />
     <AuthInitializer>
       <AutoLogout>
         <AuthGuard>
