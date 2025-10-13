@@ -21,10 +21,18 @@ class ApiClient {
   private setupInterceptors() {
     // Request interceptor para adicionar token de autenticação
     this.client.interceptors.request.use(
-      (config) => {
-        const token = localStorage.getItem('clerk-token');
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
+      async (config) => {
+        try {
+          // ✅ Obter token do Clerk corretamente
+          const clerk = (window as any).Clerk;
+          if (clerk?.session) {
+            const token = await clerk.session.getToken();
+            if (token) {
+              config.headers.Authorization = `Bearer ${token}`;
+            }
+          }
+        } catch (error) {
+          console.warn('[API] Erro ao obter token do Clerk:', error);
         }
         return config;
       },
@@ -44,8 +52,7 @@ class ApiClient {
         // Deixar cada componente lidar com erros 401 conforme necessário
         if (error.response?.status === 401) {
           console.warn('[API] 401 Unauthorized - Token inválido ou expirado');
-          // Apenas remover token, não redirecionar
-          localStorage.removeItem('clerk-token');
+          // Token do Clerk é gerenciado pelo próprio Clerk, não precisa remover manualmente
         }
         return Promise.reject(error);
       }
