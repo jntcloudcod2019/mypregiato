@@ -6,21 +6,44 @@ import CustomLogin from '../components/auth/custom-login';
 const LoginPage: React.FC = () => {
   const location = useLocation();
   
-  // Tentar recuperar a última rota salva, senão usar a from do state, senão dashboard
+  // Recuperar a rota de origem
+  const fromPath = location.state?.from?.pathname;
   const lastRoute = sessionStorage.getItem('lastRoute');
-  const from = location.state?.from?.pathname || lastRoute || '/dashboard';
+  
+  // Determinar para onde redirecionar após login
+  let redirectTo = '/treinamentos'; // Padrão
+  
+  // Se veio de uma rota específica, manter
+  if (fromPath) {
+    redirectTo = fromPath;
+  } 
+  // Se tem lastRoute salvo, usar
+  else if (lastRoute) {
+    redirectTo = lastRoute;
+  }
+  
+  // IMPORTANTE: Preservar rotas de treinamento
+  // Se o usuário estava em /treinamentos/criar ou /treinamentos/gerenciar, mantém
+  const preservedRoutes = ['/treinamentos/criar', '/treinamentos/gerenciar'];
+  if (preservedRoutes.includes(fromPath || '') || preservedRoutes.includes(lastRoute || '')) {
+    redirectTo = fromPath || lastRoute || '/treinamentos';
+  }
 
   // Salvar a rota de destino
   useEffect(() => {
-    if (location.state?.from?.pathname) {
-      sessionStorage.setItem('lastRoute', location.state.from.pathname);
+    if (fromPath) {
+      sessionStorage.setItem('lastRoute', fromPath);
     }
-  }, [location.state]);
+  }, [fromPath]);
+
+  console.log('🔐 [Login] Origem:', fromPath);
+  console.log('🔐 [Login] Última rota salva:', lastRoute);
+  console.log('🔐 [Login] Redirecionando para:', redirectTo);
 
   return (
     <>
       <SignedIn>
-        <Navigate to={from} replace />
+        <Navigate to={redirectTo} replace />
       </SignedIn>
       <SignedOut>
         <CustomLogin />
