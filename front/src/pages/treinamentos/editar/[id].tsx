@@ -200,8 +200,7 @@ export default function EditarTreinamentoPage() {
   }
 
   const categories = [
-    'Tecnologia',
-    'Negócios',
+    
     'Marketing',
     'Design',
     'Desenvolvimento Pessoal',
