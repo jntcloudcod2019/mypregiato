@@ -26,7 +26,7 @@ export default function EditarTreinamentoPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  const { courses, isLoading, updateCourse } = useTrainingCourses({});
+  const { courses, isLoading, updateCourse, isUpdating } = useTrainingCourses({});
   const course = courses?.find(c => c.id === id);
 
   const [formData, setFormData] = useState({
@@ -149,12 +149,9 @@ export default function EditarTreinamentoPage() {
     }
 
     try {
-      await updateCourse.mutateAsync({
+      await updateCourse({
         id,
-        course: {
-          ...formData,
-          lessons
-        }
+        course: formData
       });
 
       toast({
@@ -235,8 +232,8 @@ export default function EditarTreinamentoPage() {
             Atualize as informações do curso e gerencie as aulas
           </p>
         </div>
-        <Button size="lg" onClick={handleSubmit} disabled={updateCourse.isPending}>
-          {updateCourse.isPending ? (
+        <Button size="lg" onClick={handleSubmit} disabled={isUpdating}>
+          {isUpdating ? (
             <>
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
               Salvando...
@@ -407,8 +404,8 @@ export default function EditarTreinamentoPage() {
                     onUploadComplete={(result) => {
                       setCurrentLesson(prev => ({
                         ...prev,
-                        videoUrl: result.videoUrl,
-                        videoObjectName: result.videoObjectName
+                        videoUrl: result.videoUrl || '',
+                        videoObjectName: result.objectName || ''
                       }));
                     }}
                     onUploadError={(error) => {
