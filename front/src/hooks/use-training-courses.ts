@@ -94,12 +94,18 @@ export const useTrainingCourses = (filters?: TrainingCourseFilters) => {
     isLoading,
     error,
     refetch,
-    createCourse: createCourseMutation.mutate,
-    updateCourse: updateCourseMutation.mutate,
-    deleteCourse: deleteCourseMutation.mutate,
+    // Funções async que retornam promises
+    createCourse: createCourseMutation.mutateAsync,
+    updateCourse: updateCourseMutation.mutateAsync,
+    deleteCourse: deleteCourseMutation.mutateAsync,
+    // Estados de loading
     isCreating: createCourseMutation.isPending,
     isUpdating: updateCourseMutation.isPending,
     isDeleting: deleteCourseMutation.isPending,
+    // Mutations originais (para acesso a outros estados se necessário)
+    createCourseMutation,
+    updateCourseMutation,
+    deleteCourseMutation,
   };
 };
 

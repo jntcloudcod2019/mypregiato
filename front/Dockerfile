@@ -1,7 +1,7 @@
 # ---------------------------------------
-# Etapa 1: Build
+# Etapa 1: Build com Bun (MUITO MAIS RÁPIDO!)
 # ---------------------------------------
-FROM node:18-alpine AS build
+FROM oven/bun:1-alpine AS build
 
 # Instalar dependências do sistema
 RUN apk add --no-cache libc6-compat
@@ -11,22 +11,23 @@ WORKDIR /app
 
 # Copiar arquivos de dependências
 COPY package*.json ./
+COPY bun.lock* ./
 COPY prisma ./prisma/
 
-# Instalar todas as dependências (incluindo devDependencies para o build)
-RUN npm ci
+# Instalar dependências com Bun (10-20x mais rápido que npm)
+RUN bun install --frozen-lockfile
 
 # Gerar cliente Prisma
-RUN npx prisma generate
+RUN bunx prisma generate
 
 # Copiar código fonte
 COPY . .
 
-# Build da aplicação
-RUN npm run build
+# Build da aplicação com Bun
+RUN bun run build
 
 # ---------------------------------------
-# Etapa 2: Production - Express Server
+# Etapa 2: Production - Servidor Node
 # ---------------------------------------
 FROM node:18-alpine AS production
 
@@ -44,7 +45,7 @@ WORKDIR /app
 COPY package*.json ./
 COPY prisma ./prisma/
 
-# Instalar apenas dependências de produção
+# Instalar apenas dependências de produção (npm ainda é usado aqui por ser menor)
 RUN npm ci --omit=dev && \
     npx prisma generate && \
     npm cache clean --force
@@ -67,7 +68,6 @@ EXPOSE 8080
 # Variáveis de ambiente
 ENV NODE_ENV=production
 ENV PORT=8080
-
 
 # Comando para servir a aplicação
 CMD ["node", "server/index.cjs"]

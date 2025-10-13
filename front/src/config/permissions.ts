@@ -65,6 +65,11 @@ export enum Permission {
   // Configurações
   VIEW_SETTINGS = 'view_settings',
   MANAGE_SETTINGS = 'manage_settings',
+  
+  // Perfil
+  VIEW_PROFILE = 'view_profile',
+  CREATE_PROFILE = 'create_profile',
+  EDIT_PROFILE = 'edit_profile',
 }
 
 /**
@@ -154,9 +159,12 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   ],
 
   [UserRole.MODEL]: [
-    // Model só pode ver treinamentos
+    // Model só pode ver treinamentos e gerenciar perfil
     Permission.VIEW_TRAININGS,
     Permission.ENROLL_TRAINING,
+    Permission.VIEW_PROFILE,
+    Permission.CREATE_PROFILE,
+    Permission.EDIT_PROFILE,
   ],
 
   [UserRole.STUDENT]: [
@@ -216,6 +224,7 @@ export const ROUTE_PERMISSIONS: Record<string, Permission[]> = {
   '/usuarios': [Permission.VIEW_USERS],
   '/ponto': [Permission.VIEW_TIMESHEET],
   '/configuracoes': [Permission.VIEW_SETTINGS],
+  '/perfil': [Permission.VIEW_PROFILE],
 };
 
 /**

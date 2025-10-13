@@ -47,6 +47,12 @@ namespace Pregiato.Application.DTOs
         public string? VideoMimeType { get; set; }
         public string? AttachmentsJson { get; set; }
         public bool IsActive { get; set; } = true;
+        
+        // Campos para upload de vídeo
+        public string? VideoBase64Data { get; set; }
+        public string? VideoFileName { get; set; }
+        public long? VideoFileSize { get; set; }
+        public int DurationSeconds { get; set; }
     }
 
     public class UpdateTrainingLessonDto

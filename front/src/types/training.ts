@@ -135,6 +135,7 @@ export interface CreateTrainingLessonDto {
   videoObjectName?: string;
   videoSize?: number;
   videoDurationSeconds?: number;
+  durationSeconds?: number; // Adicionado para compatibilidade
   videoMimeType?: string;
   attachmentsJson?: string;
   isActive?: boolean;

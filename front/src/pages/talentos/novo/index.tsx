@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useSearchParams } from "react-router-dom"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -75,7 +75,7 @@ const formSchema = z.object({
   neighborhood: z.string().min(1, "Bairro é obrigatório"),
   numberAddress: z.string().min(1, "Número é obrigatório"),
   complement: z.string().optional(),
-  producerId: z.string().min(1, "Produtor é obrigatório"),
+  producerId: z.string().optional(),
 })
 
 type FormData = z.infer<typeof formSchema>
@@ -131,11 +131,18 @@ const AlertMessage = ({
 
 export default function NovoTalento() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { toast } = useToast()
   const [isLoadingCEP, setIsLoadingCEP] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [producers, setProducers] = useState<ProducerData[]>([])
   const [loadingProducers, setLoadingProducers] = useState(true)
+  
+  // Verificar se é criação de perfil próprio (MODEL)
+  const isModelProfile = searchParams.get('isModelProfile') === 'true'
+  const modelEmail = searchParams.get('email')
+  const modelFirstName = searchParams.get('firstName')
+  const modelLastName = searchParams.get('lastName')
   const [alert, setAlert] = useState<{
     type: 'success' | 'warning' | 'error'
     message: string
@@ -149,9 +156,9 @@ export default function NovoTalento() {
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      fullName: "",
+      fullName: isModelProfile && modelFirstName && modelLastName ? `${modelFirstName} ${modelLastName}` : "",
       document: "",
-      email: "",
+      email: isModelProfile && modelEmail ? modelEmail : "",
       phone: "",
       age: undefined,
       gender: "",
@@ -277,7 +284,7 @@ export default function NovoTalento() {
 
       // Create talent data - apenas campos que o backend espera
       const talentData: CreateTalentData = {
-        producerId: data.producerId,
+        producerId: data.producerId || undefined, // Opcional para perfis de MODEL
         fullName: data.fullName,
         email: data.email || undefined,
         phone: data.phone,
@@ -325,8 +332,12 @@ export default function NovoTalento() {
         })
       }
 
-      // Navigate to talent profile
-      navigate(`/talentos/perfil/${newTalent.id}`)
+      // Navigate based on context
+      if (isModelProfile) {
+        navigate('/perfil') // Voltar para página de perfil
+      } else {
+        navigate(`/talentos/perfil/${newTalent.id}`) // Página de perfil do talento
+      }
 
     } catch (error: unknown) {
       console.error('Erro ao criar talento:', error)
@@ -351,8 +362,13 @@ export default function NovoTalento() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold text-gradient-primary">
-            Novo Talento
+            {isModelProfile ? 'Criar Meu Perfil' : 'Novo Talento'}
           </h1>
+          {isModelProfile && (
+            <p className="text-muted-foreground mt-1">
+              Complete suas informações para criar seu perfil de talento
+            </p>
+          )}
         </div>
         <Button
           variant="outline"
@@ -396,20 +412,21 @@ export default function NovoTalento() {
                   )}
                 />
 
-                 {/* Produtor */}
+                 {/* Produtor - Opcional (sistema gera produtor interno) */}
                  <FormField
                    control={form.control}
                    name="producerId"
                    render={({ field }) => (
                      <FormItem>
-                       <FormLabel>Produtor Responsável *</FormLabel>
+                       <FormLabel>Produtor Responsável</FormLabel>
                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={loadingProducers}>
                          <FormControl>
                            <SelectTrigger>
-                             <SelectValue placeholder={loadingProducers ? "Carregando..." : "Selecione o produtor"} />
+                             <SelectValue placeholder={loadingProducers ? "Carregando..." : "Selecione o produtor (opcional)"} />
                            </SelectTrigger>
                          </FormControl>
                          <SelectContent>
+                           <SelectItem value="">Sistema gerará produtor interno</SelectItem>
                            {producers.map((producer, index) => (
                              <SelectItem key={producer.id} value={producer.id}>
                                {producer.firstName} {producer.lastName} - {String(index + 1).padStart(2, '0')}
@@ -417,6 +434,12 @@ export default function NovoTalento() {
                            ))}
                          </SelectContent>
                        </Select>
+                       <FormDescription>
+                         {isModelProfile 
+                           ? "Deixe vazio para que o sistema gere automaticamente um produtor interno para seu perfil."
+                           : "Se não selecionar, o sistema gerará automaticamente um produtor interno."
+                         }
+                       </FormDescription>
                        <FormMessage />
                      </FormItem>
                    )}
@@ -685,7 +708,7 @@ export default function NovoTalento() {
                 <Button 
                   type="button" 
                   variant="outline" 
-                  onClick={() => navigate('/talentos')}
+                  onClick={() => navigate(isModelProfile ? '/perfil' : '/talentos')}
                   className="bg-secondary/20 backdrop-blur-sm border border-secondary/30 text-secondary-foreground hover:bg-secondary hover:text-secondary-foreground shadow-elegant hover:shadow-glow transition-all duration-300"
                 >
                   Cancelar

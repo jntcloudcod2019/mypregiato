@@ -134,17 +134,23 @@ const CriarTreinamentoPage = () => {
       const response = await createCourse(courseData);
       
       // Verificar se a resposta contém a mensagem personalizada
-      if (response && response.message) {
+      if (response && typeof response === 'object' && 'message' in response) {
         toast({
           title: "Sucesso!",
-          description: response.message,
+          description: String(response.message),
           duration: 5000,
         });
-      } else {
+      } else if (response && typeof response === 'object' && 'id' in response) {
         // Fallback para resposta sem mensagem personalizada
         toast({
           title: "Curso criado com sucesso!",
-          description: `ID do Curso: ${response?.id || 'N/A'}`,
+          description: `ID do Curso: ${response.id || 'N/A'}`,
+          duration: 5000,
+        });
+      } else {
+        toast({
+          title: "Curso criado!",
+          description: "O curso foi criado com sucesso.",
           duration: 5000,
         });
       }
@@ -163,12 +169,10 @@ const CriarTreinamentoPage = () => {
   };
 
   const categories = [
-    'Tecnologia',
-    'Negócios',
+
     'Marketing',
     'Design',
-    'Desenvolvimento',
-    'Vendas',
+    'Desenvolvimento Pessoal',
     'Liderança',
     'Produtividade',
     'Comunicação',
@@ -386,8 +390,8 @@ const CriarTreinamentoPage = () => {
                     onUploadComplete={(result) => {
                       setCurrentLesson(prev => ({
                         ...prev,
-                        videoUrl: result.videoUrl,
-                        videoObjectName: result.videoObjectName
+                        videoUrl: result.videoUrl || '',
+                        videoObjectName: result.objectName || ''
                       }));
                     }}
                     onUploadError={(error) => {

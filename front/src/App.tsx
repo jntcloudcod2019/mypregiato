@@ -42,6 +42,7 @@ import GerenciarTreinamentosPage from "./pages/treinamentos/gerenciar";
 import EditarTreinamentoPage from "./pages/treinamentos/editar/[id]";
 import CursoPage from "./pages/treinamentos/curso/[id]";
 import PontoEletronicoPage from "./pages/ponto";
+import PerfilPage from "./pages/perfil";
 import NotFound from "./pages/NotFound";
 import ModulePage from "./pages/modules/slug";
 import FichaDigitalPage from "./pages/events/ficha/token";
@@ -260,6 +261,15 @@ const App = () => (
           <ProtectedRoute>
             <MainLayout>
               <CursoPage />
+            </MainLayout>
+          </ProtectedRoute>
+        } />
+
+        {/* Rota de perfil para usuários MODEL */}
+        <Route path="/perfil" element={
+          <ProtectedRoute>
+            <MainLayout>
+              <PerfilPage />
             </MainLayout>
           </ProtectedRoute>
         } />
