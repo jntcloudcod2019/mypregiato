@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Pregiato.API.Attributes;
 using Pregiato.Application.DTOs;
 using Pregiato.Application.Interfaces;
+using Pregiato.Infrastructure.Data;
 
 namespace Pregiato.API.Controllers
 {
@@ -12,13 +14,16 @@ namespace Pregiato.API.Controllers
     {
         private readonly ITrainingCourseService _courseService;
         private readonly ILogger<TrainingCoursesController> _logger;
+        private readonly PregiatoDbContext _context;
 
         public TrainingCoursesController(
             ITrainingCourseService courseService,
-            ILogger<TrainingCoursesController> logger)
+            ILogger<TrainingCoursesController> logger,
+            PregiatoDbContext context)
         {
             _courseService = courseService;
             _logger = logger;
+            _context = context;
         }
 
         [HttpGet]
@@ -229,19 +234,35 @@ namespace Pregiato.API.Controllers
         [HttpPost("{id}/rating")]
         public async Task<ActionResult<TrainingCourseDto>> AddRating(
             Guid id,
-            [FromBody] CreateTrainingRatingDto ratingDto)
+            [FromBody] CreateTrainingRatingDto ratingDto,
+            [FromQuery] string userEmail)
         {
             try
             {
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
 
-                // TODO: Obter userId do token JWT do Clerk
-                var userId = "temp-user-id"; // Substituir pela autenticação real
+                if (string.IsNullOrEmpty(userEmail))
+                    return BadRequest("Email do usuário é obrigatório");
+
+                // Buscar usuário pelo email
+                var decodedEmail = Uri.UnescapeDataString(userEmail);
+                _logger.LogInformation($"Buscando usuário com email: {decodedEmail}");
+                
+                var user = await _context.Users
+                    .FirstOrDefaultAsync(u => u.Email.ToLower() == decodedEmail.ToLower());
+
+                if (user == null)
+                {
+                    _logger.LogWarning($"Usuário com email {decodedEmail} não encontrado");
+                    return NotFound($"Usuário com email {decodedEmail} não encontrado");
+                }
+
+                _logger.LogInformation($"Usuário encontrado: {user.FirstName} {user.LastName} (ID: {user.Id})");
 
                 var course = await _courseService.AddRatingAsync(
                     id, 
-                    userId, 
+                    user.Id.ToString(), 
                     ratingDto.RatingType, 
                     ratingDto.Stars, 
                     ratingDto.Comment);
@@ -254,7 +275,7 @@ namespace Pregiato.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erro ao adicionar avaliação ao curso {CourseId}", id);
-                return StatusCode(500, "Erro interno do servidor");
+                return StatusCode(500, $"Erro interno do servidor: {ex.Message}");
             }
         }
     }

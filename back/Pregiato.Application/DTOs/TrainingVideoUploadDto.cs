@@ -22,6 +22,10 @@ namespace Pregiato.Application.DTOs
         public string? ChunkId { get; set; }
         public int? ChunkIndex { get; set; }
         public int? TotalChunks { get; set; }
+        
+        // Campos adicionais para gerar o path correto
+        public string? CourseTitle { get; set; }
+        public string? LessonTitle { get; set; }
     }
 
     public class VideoUploadResultDto
