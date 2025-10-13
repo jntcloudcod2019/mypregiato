@@ -16,8 +16,8 @@ const LoginPage: React.FC = () => {
   // 3️⃣ Última rota válida salva
   const lastRoute = sessionStorage.getItem("lastRoute") || undefined;
 
-  // ✅ Ordem de prioridade (NUNCA usar /dashboard como padrão)
-  const redirectTo = fromPath || returnTo ;
+  // ✅ Ordem de prioridade: fromPath > returnTo > lastRoute > /treinamentos (NUNCA /dashboard)
+  const redirectTo = fromPath || returnTo || lastRoute || "/treinamentos";
 
   // Salvar a rota de destino e logs para debug
   useEffect(() => {
