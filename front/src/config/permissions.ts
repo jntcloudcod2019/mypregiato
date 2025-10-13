@@ -183,24 +183,30 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
 
 /**
  * Verifica se uma role tem uma permissão específica
+ * @param role - String da role (ex: "ADMIN", "MODEL")
  */
-export function hasPermission(role: UserRole | string, permission: Permission): boolean {
-  const userRole = role as UserRole;
-  const permissions = ROLE_PERMISSIONS[userRole] || [];
+export function hasPermission(role: string | null, permission: Permission): boolean {
+  if (!role) return false;
+  
+  // Normalizar a role para o enum (API retorna strings)
+  const normalizedRole = role.toUpperCase() as UserRole;
+  const permissions = ROLE_PERMISSIONS[normalizedRole] || [];
   return permissions.includes(permission);
 }
 
 /**
  * Verifica se uma role tem todas as permissões especificadas
  */
-export function hasAllPermissions(role: UserRole | string, permissions: Permission[]): boolean {
+export function hasAllPermissions(role: string | null, permissions: Permission[]): boolean {
+  if (!role) return false;
   return permissions.every(permission => hasPermission(role, permission));
 }
 
 /**
  * Verifica se uma role tem pelo menos uma das permissões especificadas
  */
-export function hasAnyPermission(role: UserRole | string, permissions: Permission[]): boolean {
+export function hasAnyPermission(role: string | null, permissions: Permission[]): boolean {
+  if (!role) return false;
   return permissions.some(permission => hasPermission(role, permission));
 }
 
@@ -230,7 +236,9 @@ export const ROUTE_PERMISSIONS: Record<string, Permission[]> = {
 /**
  * Verifica se o usuário tem permissão para acessar uma rota
  */
-export function canAccessRoute(role: UserRole | string, route: string): boolean {
+export function canAccessRoute(role: string | null, route: string): boolean {
+  if (!role) return false;
+  
   // Encontrar a rota mais específica que corresponde
   const matchingRoute = Object.keys(ROUTE_PERMISSIONS)
     .filter(r => route.startsWith(r))
