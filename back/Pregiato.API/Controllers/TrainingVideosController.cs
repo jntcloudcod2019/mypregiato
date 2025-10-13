@@ -165,20 +165,18 @@ namespace Pregiato.API.Controllers
         }
 
         [HttpPost("upload-chunk")]
-        public async Task<ActionResult<VideoUploadResultDto>> UploadChunk(
-            [FromBody] TrainingVideoUploadDto uploadDto,
-            [FromBody] string chunkData)
+        public async Task<ActionResult<VideoUploadResultDto>> UploadChunk([FromBody] VideoChunkUploadRequest request)
         {
             try
             {
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
 
-                if (string.IsNullOrEmpty(chunkData))
+                if (string.IsNullOrEmpty(request.ChunkData))
                     return BadRequest("Dados do chunk são obrigatórios");
 
-                var chunkBytes = Convert.FromBase64String(chunkData);
-                var result = await _videoService.UploadVideoAsync(uploadDto, chunkBytes);
+                var chunkBytes = Convert.FromBase64String(request.ChunkData);
+                var result = await _videoService.UploadVideoAsync(request.UploadDto, chunkBytes);
                 return Ok(result);
             }
             catch (FormatException)
@@ -191,5 +189,12 @@ namespace Pregiato.API.Controllers
                 return StatusCode(500, "Erro interno do servidor");
             }
         }
+    }
+
+    // DTO auxiliar para upload de chunk
+    public class VideoChunkUploadRequest
+    {
+        public TrainingVideoUploadDto UploadDto { get; set; } = new();
+        public string ChunkData { get; set; } = string.Empty;
     }
 }

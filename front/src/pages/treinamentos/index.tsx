@@ -6,7 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Plus, Search, Play, Users, Clock, BookOpen, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useAuthUser } from '@/hooks/use-auth-user';
+import { useAuthPermissions } from '@/contexts/AuthPermissionsContext';
+import { Permission } from '@/config/permissions';
+import ProtectedFeature from '@/components/auth/protected-feature';
 
 interface Curso {
   id: string;
@@ -33,57 +35,12 @@ const TreinamentosPage = () => {
   const [cursos, setCursos] = useState<Curso[]>([]);
   const [busca, setBusca] = useState('');
   const [filtro, setFiltro] = useState<'todos' | 'andamento' | 'concluidos'>('todos');
-  const { user, isModel, loading: userLoading } = useAuthUser();
+  const { user, isModel, isLoading: userLoading } = useAuthPermissions();
 
   useEffect(() => {
-    const cursosStorage = localStorage.getItem('treinamentos_cursos');
-    if (cursosStorage) {
-      setCursos(JSON.parse(cursosStorage));
-    } else {
-      const cursosMock: Curso[] = [
-        {
-          id: '1',
-          nome: 'Fundamentos de Fotografia para Modelos',
-          descricao: 'Aprenda os conceitos básicos de fotografia focados em modelagem e poses.',
-          quantidadeAulas: 8,
-          aulas: [
-            {
-              id: '1-1',
-              nome: 'Introdução à Fotografia',
-              descricao: 'Conceitos básicos de fotografia e equipamentos',
-              linkVideo: 'https://drive.google.com/file/d/exemplo1',
-              assistida: true,
-              duracao: '15:30'
-            },
-            {
-              id: '1-2',
-              nome: 'Poses Básicas',
-              descricao: 'Como fazer poses naturais e expressivas',
-              linkVideo: 'https://drive.google.com/file/d/exemplo2',
-              assistida: true,
-              duracao: '22:15'
-            }
-          ],
-          progresso: 25,
-          concluido: false,
-          avaliacoes: { likes: 124, dislikes: 3 },
-          criadoEm: '2024-01-15'
-        },
-        {
-          id: '2',
-          nome: 'Marketing Digital para Modelos',
-          descricao: 'Como construir sua marca pessoal e presença digital.',
-          quantidadeAulas: 12,
-          aulas: [],
-          progresso: 100,
-          concluido: true,
-          avaliacoes: { likes: 89, dislikes: 1 },
-          criadoEm: '2024-01-10'
-        }
-      ];
-      setCursos(cursosMock);
-      localStorage.setItem('treinamentos_cursos', JSON.stringify(cursosMock));
-    }
+    // Carregar cursos da API quando disponível
+    // Por enquanto, manter lista vazia
+    setCursos([]);
   }, []);
 
   const cursosFiltrados = cursos.filter(curso => {
@@ -120,26 +77,26 @@ const TreinamentosPage = () => {
           <h1 className="text-3xl font-bold text-foreground">
             Treinamentos
           </h1>
-          <p className="text-muted-foreground mt-1">
-            Gerencie e participe de cursos online para desenvolvimento profissional
-          </p>
         </div>
-        {!isModel && (
-          <div className="flex gap-2">
+        <div className="flex gap-2">
+          <ProtectedFeature permission={Permission.CREATE_TRAINING} hideWhenDenied>
             <Link to="/treinamentos/criar">
               <Button size="lg" className="gap-2">
                 <Plus className="h-4 w-4" />
                 Criar Treinamento
               </Button>
             </Link>
+          </ProtectedFeature>
+          
+          <ProtectedFeature permission={Permission.MANAGE_TRAININGS} hideWhenDenied>
             <Link to="/treinamentos/gerenciar">
-              <Button size="lg" variant="outline" className="gap-2">
+              <Button size="lg" className="gap-2">
                 <BookOpen className="h-4 w-4" />
                 Gerenciar Treinamentos
               </Button>
             </Link>
-          </div>
-        )}
+          </ProtectedFeature>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Plus, Trash2, Play, Save, Eye, Upload, Video, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Play, Save, Eye, Upload, Video, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useTrainingCourses } from '@/hooks/use-training-courses';
 import VideoUpload from '@/components/training/VideoUpload';
@@ -36,8 +36,9 @@ const CriarTreinamentoPage = () => {
     videoObjectName: ''
   });
   
-  const [activeStep, setActiveStep] = useState<'course' | 'lessons' | 'preview'>('course');
+  const [activeStep, setActiveStep] = useState<'course' | 'lessons' | 'videos' | 'preview'>('course');
   const [showPreview, setShowPreview] = useState(false);
+  const [isCreatingCourse, setIsCreatingCourse] = useState(false);
 
   const addLesson = () => {
     if (!currentLesson.title) {
@@ -58,21 +59,18 @@ const CriarTreinamentoPage = () => {
       return;
     }
 
-    if (!currentLesson.videoUrl) {
-      toast({
-        title: "Campo obrigatório",
-        description: "O upload do vídeo é obrigatório.",
-        variant: "destructive"
-      });
-      return;
-    }
-
+    // Remover validação de videoUrl - o vídeo será enviado ao salvar o curso
     const newLesson: CreateTrainingLessonDto = {
       ...currentLesson,
-      isActive: true
+      isActive: true,
+      // Manter dados do vídeo para envio posterior
+      videoUrl: currentLesson.videoUrl || '', // Pode estar vazio inicialmente
+      videoObjectName: currentLesson.videoObjectName || ''
     };
 
     setLessons([...lessons, newLesson]);
+    
+    // Limpar formulário para próxima aula
     setCurrentLesson({
       title: '',
       description: '',
@@ -84,8 +82,74 @@ const CriarTreinamentoPage = () => {
     
     toast({
       title: "Aula adicionada",
-      description: `"${newLesson.title}" foi adicionada ao curso.`
+      description: `"${newLesson.title}" foi adicionada ao curso. Você pode continuar adicionando mais aulas.`
     });
+  };
+
+  const handleCreateCourse = async () => {
+    if (!formData.title || !formData.description) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Preencha o título e descrição do curso.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (lessons.length === 0) {
+      toast({
+        title: "Aulas obrigatórias",
+        description: "Adicione pelo menos uma aula ao curso.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsCreatingCourse(true);
+
+    try {
+      // Preparar dados do curso
+      const courseData = {
+        ...formData,
+        createdBy: 'current-user-id', // TODO: Pegar do contexto de autenticação
+        lessons: lessons.map(lesson => ({
+          ...lesson,
+          // Garantir que os dados do vídeo estão presentes
+          videoUrl: lesson.videoUrl || '',
+          videoObjectName: lesson.videoObjectName || ''
+        }))
+      };
+
+      // Criar o curso (os vídeos serão enviados automaticamente pelo backend)
+      const response = await createCourse(courseData);
+      
+      // Verificar se a resposta contém a mensagem personalizada
+      if (response && response.message) {
+        toast({
+          title: "Sucesso!",
+          description: response.message,
+          duration: 5000,
+        });
+      } else {
+        // Fallback para resposta sem mensagem personalizada
+        toast({
+          title: "Curso criado com sucesso!",
+          description: `ID do Curso: ${response?.id || 'N/A'}`,
+          duration: 5000,
+        });
+      }
+      
+      navigate('/treinamentos');
+    } catch (error) {
+      console.error('Erro ao criar curso:', error);
+      toast({
+        title: "Erro ao criar curso",
+        description: "Não foi possível criar o curso. Tente novamente.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsCreatingCourse(false);
+    }
   };
 
   const removeLesson = (index: number) => {
@@ -394,10 +458,15 @@ const CriarTreinamentoPage = () => {
                   <Plus className="h-4 w-4 mr-2" />
                   Adicionar Aula
                 </Button>
-                <Button variant="outline" onClick={() => setActiveStep('preview')}>
-                  Revisar Curso
-                  <Eye className="h-4 w-4 ml-2" />
-                </Button>
+                {lessons.length > 0 && (
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setActiveStep('preview')}
+                  >
+                    Revisar Curso ({lessons.length} aulas)
+                    <Eye className="h-4 w-4 ml-2" />
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -423,8 +492,10 @@ const CriarTreinamentoPage = () => {
                             <span className="text-xs text-muted-foreground">
                               Duração: {lesson.durationSeconds ? `${Math.floor(lesson.durationSeconds / 60)}min ${lesson.durationSeconds % 60}s` : 'Não definida'}
                             </span>
-                            {lesson.videoUrl && (
-                              <span className="text-xs text-green-600">✓ Vídeo carregado</span>
+                            {lesson.videoUrl ? (
+                              <span className="text-xs text-green-600 font-medium">✓ Vídeo pronto</span>
+                            ) : (
+                              <span className="text-xs text-orange-600 font-medium">⚠ Vídeo pendente</span>
                             )}
                           </div>
                         </div>
@@ -513,16 +584,20 @@ const CriarTreinamentoPage = () => {
               <ChevronLeft className="h-4 w-4 mr-2" />
               Voltar para Aulas
             </Button>
-            <Button onClick={handleCreateCourse} disabled={isCreating}>
-              {isCreating ? (
+            <Button 
+              onClick={handleCreateCourse} 
+              disabled={isCreatingCourse}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {isCreatingCourse ? (
                 <>
-                  <Save className="h-4 w-4 mr-2 animate-spin" />
-                  Criando...
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Criando Curso...
                 </>
               ) : (
                 <>
                   <Save className="h-4 w-4 mr-2" />
-                  Criar Curso
+                  Salvar Curso ({lessons.length} aulas)
                 </>
               )}
             </Button>
