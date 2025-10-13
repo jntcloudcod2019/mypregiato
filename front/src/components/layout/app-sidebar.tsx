@@ -3,7 +3,7 @@ import { FileText, Home, Users, Settings, ChevronDown, Star, DollarSign, BarChar
 import { NavLink, useLocation } from "react-router-dom"
 import { ThemeToggle } from "../../components/theme-toggle"
 import { AuroraText } from "../../components/magicui/aurora-text"
-import { useAuthPermissions } from "../../contexts/AuthPermissionsContext"
+import { useAuthPermissions } from "../../hooks/use-auth-permissions"
 import ProtectedFeature from "../auth/protected-feature"
 import { Permission } from "../../config/permissions"
 

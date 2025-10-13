@@ -10,14 +10,14 @@ export interface UserData {
   firstName: string;
   lastName: string;
   imageUrl?: string | null;
-  role: UserRole;
+  role: string; // API retorna como string, não como enum
   createdAt: string;
   updatedAt: string;
 }
 
-interface AuthPermissionsContextType {
+export interface AuthPermissionsContextType {
   user: UserData | null;
-  role: UserRole | null;
+  role: string | null; // Role é string, não enum
   isLoading: boolean;
   error: string | null;
   
@@ -91,7 +91,22 @@ export const AuthPermissionsProvider: React.FC<AuthPermissionsProviderProps> = (
     }
   }, [isClerkLoaded, fetchUserData]);
 
-  const role = user?.role.toString() ? (user.role.toString() as UserRole) : null;
+  // A role vem da API como string (ex: "ADMIN", "MODEL", "INSTRUCTOR")
+  const role = user?.role || null;
+
+  // DEBUG - Remover após confirmar funcionamento
+  useEffect(() => {
+    if (user) {
+      console.log('🔍 [AuthPermissions DEBUG]', {
+        userRole: user.role,
+        userRoleType: typeof user.role,
+        roleValue: role,
+        userEmail: user.email,
+        isAdmin: role === UserRole.ADMIN.toString(),
+        isModel: role === UserRole.MODEL.toString(),
+      });
+    }
+  }, [user, role]);
 
   // Funções de verificação de permissão
   const checkPermission = useCallback((permission: Permission): boolean => {
@@ -109,14 +124,13 @@ export const AuthPermissionsProvider: React.FC<AuthPermissionsProviderProps> = (
     return hasAnyPermission(role, permissions);
   }, [role]);
 
-
-  // Helpers de role
-  const isAdmin = role === UserRole.ADMIN.toString();
-  const isInstructor = role === UserRole.INSTRUCTOR.toString();
+  // Helpers de role - comparação direta com enum
+  const isAdmin = role === UserRole.ADMIN;
+  const isInstructor = role === UserRole.INSTRUCTOR;
   const isOperator = role === UserRole.OPERATOR;
-  const isProducer = role === UserRole.PRODUCER.toString();
-  const isModel = role === UserRole.MODEL.toString();
-  const isStudent = role === UserRole.STUDENT.toString();
+  const isProducer = role === UserRole.PRODUCER;
+  const isModel = role === UserRole.MODEL;
+  const isStudent = role === UserRole.STUDENT;
 
   const value: AuthPermissionsContextType = {
     user,
@@ -140,14 +154,6 @@ export const AuthPermissionsProvider: React.FC<AuthPermissionsProviderProps> = (
       {children}
     </AuthPermissionsContext.Provider>
   );
-};
-
-export const useAuthPermissions = (): AuthPermissionsContextType => {
-  const context = useContext(AuthPermissionsContext);
-  if (context === undefined) {
-    throw new Error('useAuthPermissions must be used within an AuthPermissionsProvider');
-  }
-  return context;
 };
 
 export default AuthPermissionsContext;

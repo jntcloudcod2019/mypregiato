@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Plus, Search, Play, Users, Clock, BookOpen, Star } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuthPermissions } from '@/contexts/AuthPermissionsContext';
+import { useAuthPermissions } from '@/hooks/use-auth-permissions';
 import { Permission } from '@/config/permissions';
 import ProtectedFeature from '@/components/auth/protected-feature';
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAuthPermissions } from '@/contexts/AuthPermissionsContext';
+import { useAuthPermissions } from '@/hooks/use-auth-permissions';
 import { Permission, UserRole } from '@/config/permissions';
 
 interface ProtectedFeatureProps {
@@ -75,13 +75,13 @@ export const ProtectedFeature: React.FC<ProtectedFeatureProps> = ({
     return hideWhenDenied ? null : (fallback || null);
   }
 
-  // Verificar roles bloqueadas
-  if (blockedRoles && blockedRoles.includes(role)) {
+  // Verificar roles bloqueadas (comparar string com enum)
+  if (blockedRoles && blockedRoles.some(blockedRole => blockedRole === role.toUpperCase())) {
     return hideWhenDenied ? null : (fallback || null);
   }
 
-  // Verificar roles permitidas
-  if (allowedRoles && !allowedRoles.includes(role)) {
+  // Verificar roles permitidas (comparar string com enum)
+  if (allowedRoles && !allowedRoles.some(allowedRole => allowedRole === role.toUpperCase())) {
     return hideWhenDenied ? null : (fallback || null);
   }
 
@@ -103,41 +103,6 @@ export const ProtectedFeature: React.FC<ProtectedFeatureProps> = ({
 
   // Se passou por todas as verificações, renderizar children
   return <>{children}</>;
-};
-
-/**
- * Hook alternativo para verificação condicional inline
- */
-export const useFeatureAccess = () => {
-  const { role, hasPermission, hasAllPermissions, hasAnyPermission } = useAuthPermissions();
-
-  const canAccess = React.useCallback((options: Omit<ProtectedFeatureProps, 'children' | 'fallback' | 'hideWhenDenied'>) => {
-    if (!role) return false;
-
-    if (options.blockedRoles && options.blockedRoles.includes(role)) {
-      return false;
-    }
-
-    if (options.allowedRoles && !options.allowedRoles.includes(role)) {
-      return false;
-    }
-
-    if (options.permission && !hasPermission(options.permission)) {
-      return false;
-    }
-
-    if (options.permissions) {
-      const hasAccess = options.requireAll
-        ? hasAllPermissions(options.permissions)
-        : hasAnyPermission(options.permissions);
-      
-      if (!hasAccess) return false;
-    }
-
-    return true;
-  }, [role, hasPermission, hasAllPermissions, hasAnyPermission]);
-
-  return { canAccess };
 };
 
 export default ProtectedFeature;

@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, User, Plus, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { useAuthPermissions } from '@/contexts/AuthPermissionsContext';
+import { useAuthPermissions } from '@/hooks/use-auth-permissions';
 import { useToast } from '@/hooks/use-toast';
 import { TalentData } from '@/types/talent';
 import apiClient from '@/services/api-client';
