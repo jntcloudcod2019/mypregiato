@@ -23,5 +23,6 @@ namespace Pregiato.Core.Interfaces
         Task<IEnumerable<TrainingEnrollment>> GetRecentEnrollmentsAsync(int days = 7);
         Task<Dictionary<Guid, int>> GetEnrollmentStatsByCourseAsync();
         Task<IEnumerable<TrainingEnrollment>> GetEnrollmentsNeedingCertificatesAsync();
+        Task UpdateCertificateInfoAsync(Guid enrollmentId, string certificateUrl, string certificateObjectName, DateTime issuedAt);
     }
 }

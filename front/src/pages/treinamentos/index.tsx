@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Plus, Search, Play, Users, Clock, BookOpen, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuthUser } from '@/hooks/use-auth-user';
 
 interface Curso {
   id: string;
@@ -32,6 +33,7 @@ const TreinamentosPage = () => {
   const [cursos, setCursos] = useState<Curso[]>([]);
   const [busca, setBusca] = useState('');
   const [filtro, setFiltro] = useState<'todos' | 'andamento' | 'concluidos'>('todos');
+  const { user, isModel, loading: userLoading } = useAuthUser();
 
   useEffect(() => {
     const cursosStorage = localStorage.getItem('treinamentos_cursos');
@@ -122,12 +124,22 @@ const TreinamentosPage = () => {
             Gerencie e participe de cursos online para desenvolvimento profissional
           </p>
         </div>
-        <Link to="/treinamentos/criar">
-          <Button size="lg" className="gap-2">
-            <Plus className="h-4 w-4" />
-            Criar Treinamento
-          </Button>
-        </Link>
+        {!isModel && (
+          <div className="flex gap-2">
+            <Link to="/treinamentos/criar">
+              <Button size="lg" className="gap-2">
+                <Plus className="h-4 w-4" />
+                Criar Treinamento
+              </Button>
+            </Link>
+            <Link to="/treinamentos/gerenciar">
+              <Button size="lg" variant="outline" className="gap-2">
+                <BookOpen className="h-4 w-4" />
+                Gerenciar Treinamentos
+              </Button>
+            </Link>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -220,6 +232,11 @@ const TreinamentosPage = () => {
                   <p className="text-sm text-muted-foreground mt-2 line-clamp-3">
                     {curso.descricao}
                   </p>
+                  <div className="mt-2">
+                    <p className="text-xs text-muted-foreground">
+                      <strong>ID do Curso:</strong> {curso.id}
+                    </p>
+                  </div>
                 </div>
                 {curso.concluido && (
                   <Badge variant="secondary" className="ml-2">

@@ -195,5 +195,19 @@ namespace Pregiato.Infrastructure.Repositories
                            !e.Certificates.Any())
                 .ToListAsync();
         }
+
+        public async Task UpdateCertificateInfoAsync(Guid enrollmentId, string certificateUrl, string certificateObjectName, DateTime issuedAt)
+        {
+            var enrollment = await _context.TrainingEnrollments.FindAsync(enrollmentId);
+            if (enrollment != null)
+            {
+                enrollment.CertificateIssued = true;
+                enrollment.CertificateIssuedAt = issuedAt;
+                enrollment.CertificateUrl = certificateUrl;
+                enrollment.CertificateObjectName = certificateObjectName;
+                
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }

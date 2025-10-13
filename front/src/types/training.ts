@@ -131,6 +131,7 @@ export interface CreateTrainingLessonDto {
   title: string;
   description: string;
   orderIndex: number;
+  videoUrl?: string;
   videoObjectName?: string;
   videoSize?: number;
   videoDurationSeconds?: number;
@@ -143,6 +144,7 @@ export interface UpdateTrainingLessonDto {
   title: string;
   description: string;
   orderIndex: number;
+  videoUrl?: string;
   videoObjectName?: string;
   videoSize?: number;
   videoDurationSeconds?: number;

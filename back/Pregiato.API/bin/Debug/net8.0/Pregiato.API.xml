@@ -106,6 +106,66 @@
             Verifica se um talento existe por email ou documento
             </summary>
         </member>
+        <member name="T:Pregiato.API.Controllers.TrainingCertificatesController">
+            <summary>
+            Controller para gerenciamento de certificados de treinamento
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TrainingCertificatesController.GenerateCertificate(Pregiato.API.Controllers.GenerateCertificateRequest)">
+            <summary>
+            Gerar certificado para um usuário e curso
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TrainingCertificatesController.GetById(System.Guid)">
+            <summary>
+            Buscar certificado por ID
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TrainingCertificatesController.ValidateCertificate(Pregiato.API.Controllers.ValidateCertificateRequest)">
+            <summary>
+            Validar certificado por código
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TrainingCertificatesController.GetMyCertificates">
+            <summary>
+            Buscar certificados do usuário atual
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TrainingCertificatesController.GetByCourse(System.Guid)">
+            <summary>
+            Buscar certificados de um curso
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TrainingCertificatesController.DownloadCertificate(System.Guid)">
+            <summary>
+            Download direto do certificado em PDF
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TrainingCertificatesController.RegenerateCertificate(System.Guid)">
+            <summary>
+            Regenerar certificado
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TrainingCertificatesController.CheckCertificateExists(System.Guid)">
+            <summary>
+            Verificar se certificado existe para uma matrícula
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TrainingCertificatesController.GetStats">
+            <summary>
+            Obter estatísticas de certificados
+            </summary>
+        </member>
+        <member name="T:Pregiato.API.Controllers.GenerateCertificateRequest">
+            <summary>
+            Request para gerar certificado
+            </summary>
+        </member>
+        <member name="T:Pregiato.API.Controllers.ValidateCertificateRequest">
+            <summary>
+            Request para validar certificado
+            </summary>
+        </member>
         <member name="M:Pregiato.API.Controllers.WhatsAppController.BroadcastStatus(Pregiato.API.Controllers.WhatsAppController.BotStatusBroadcastRequest)">
             <summary>
             Endpoint para broadcast de status em tempo real via SignalR

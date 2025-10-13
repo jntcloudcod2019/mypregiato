@@ -30,7 +30,10 @@ const CriarTreinamentoPage = () => {
   const [currentLesson, setCurrentLesson] = useState({
     title: '',
     description: '',
-    orderIndex: 1
+    orderIndex: 1,
+    durationSeconds: 0,
+    videoUrl: '',
+    videoObjectName: ''
   });
   
   const [activeStep, setActiveStep] = useState<'course' | 'lessons' | 'preview'>('course');
@@ -46,6 +49,24 @@ const CriarTreinamentoPage = () => {
       return;
     }
 
+    if (!currentLesson.durationSeconds || currentLesson.durationSeconds <= 0) {
+      toast({
+        title: "Campo obrigatório",
+        description: "A duração do vídeo é obrigatória.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!currentLesson.videoUrl) {
+      toast({
+        title: "Campo obrigatório",
+        description: "O upload do vídeo é obrigatório.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const newLesson: CreateTrainingLessonDto = {
       ...currentLesson,
       isActive: true
@@ -55,7 +76,10 @@ const CriarTreinamentoPage = () => {
     setCurrentLesson({
       title: '',
       description: '',
-      orderIndex: lessons.length + 2
+      orderIndex: lessons.length + 2,
+      durationSeconds: 0,
+      videoUrl: '',
+      videoObjectName: ''
     });
     
     toast({
@@ -106,7 +130,24 @@ const CriarTreinamentoPage = () => {
     };
 
     try {
-      createCourse(courseData);
+      const response = await createCourse(courseData);
+      
+      // Verificar se a resposta contém a mensagem personalizada
+      if (response && response.message) {
+        toast({
+          title: "Sucesso!",
+          description: response.message,
+          duration: 5000,
+        });
+      } else {
+        // Fallback para resposta sem mensagem personalizada
+        toast({
+          title: "Curso criado com sucesso!",
+          description: `ID do Curso: ${response?.id || 'N/A'}`,
+          duration: 5000,
+        });
+      }
+      
       navigate('/treinamentos');
     } catch (error) {
       console.error('Erro ao criar curso:', error);
@@ -316,6 +357,38 @@ const CriarTreinamentoPage = () => {
                 />
               </div>
 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="lessonDuration">Duração do Vídeo (segundos) *</Label>
+                  <Input
+                    id="lessonDuration"
+                    type="number"
+                    min="1"
+                    placeholder="Ex: 1800 (30 minutos)"
+                    value={currentLesson.durationSeconds || ''}
+                    onChange={(e) => setCurrentLesson(prev => ({ ...prev, durationSeconds: parseInt(e.target.value) || 0 }))}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Upload do Vídeo *</Label>
+                  <VideoUpload
+                    courseId={formData.title || 'temp'} // Usar título como ID temporário
+                    lessonId={currentLesson.title || 'temp'} // Usar título como ID temporário
+                    onUploadComplete={(result) => {
+                      setCurrentLesson(prev => ({
+                        ...prev,
+                        videoUrl: result.videoUrl,
+                        videoObjectName: result.videoObjectName
+                      }));
+                    }}
+                    onUploadError={(error) => {
+                      console.error('Erro no upload:', error);
+                    }}
+                  />
+                </div>
+              </div>
+
               <div className="flex gap-2">
                 <Button onClick={addLesson}>
                   <Plus className="h-4 w-4 mr-2" />
@@ -346,6 +419,14 @@ const CriarTreinamentoPage = () => {
                           {lesson.description && (
                             <p className="text-sm text-muted-foreground">{lesson.description}</p>
                           )}
+                          <div className="flex items-center gap-4 mt-1">
+                            <span className="text-xs text-muted-foreground">
+                              Duração: {lesson.durationSeconds ? `${Math.floor(lesson.durationSeconds / 60)}min ${lesson.durationSeconds % 60}s` : 'Não definida'}
+                            </span>
+                            {lesson.videoUrl && (
+                              <span className="text-xs text-green-600">✓ Vídeo carregado</span>
+                            )}
+                          </div>
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">

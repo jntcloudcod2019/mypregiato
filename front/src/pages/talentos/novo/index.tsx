@@ -410,9 +410,9 @@ export default function NovoTalento() {
                            </SelectTrigger>
                          </FormControl>
                          <SelectContent>
-                           {producers.map((producer) => (
+                           {producers.map((producer, index) => (
                              <SelectItem key={producer.id} value={producer.id}>
-                               {producer.first_name} {producer.last_name} - {producer.code}
+                               {producer.firstName} {producer.lastName} - {String(index + 1).padStart(2, '0')}
                              </SelectItem>
                            ))}
                          </SelectContent>

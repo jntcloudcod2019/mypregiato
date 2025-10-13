@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificado - Pregiato Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos Globais e de Fundo */
+        body {
+            font-family: 'Montserrat', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Contêiner Principal do Certificado (Simulando uma folha A4 paisagem) */
+        .certificate-container {
+            width: 1000px; /* Largura para impressão (Ex: 28cm) */
+            height: 700px;  /* Altura para impressão (Ex: 20cm) */
+            background-color: #1a1a1a; /* Fundo preto/chumbo escuro */
+            color: #ffffff;
+            padding: 70px; /* Aumentei um pouco o padding */
+            box-sizing: border-box;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            border: 5px solid #333333; /* Borda sutil */
+        }
+
+        /* Estilo para a marca Pregiato */
+        .header-logo {
+            text-align: left;
+            margin-bottom: 40px;
+        }
+
+        /* NOTA: Certifique-se de que o logo PNG é branco ou transparente para o fundo escuro. */
+        .header-logo img {
+            max-width: 280px;
+            /* Se o seu logo for preto e precisar inverter: filter: brightness(0) invert(1); */
+        }
+        
+        /* Título Principal do Certificado */
+        .main-title {
+            font-size: 20px;
+            font-weight: 400;
+            letter-spacing: 5px;
+            border-bottom: 1px solid #ffffff;
+            padding-bottom: 10px;
+            margin-bottom: 50px;
+            text-transform: uppercase;
+        }
+
+        /* Conteúdo principal - Frase Certificamos que... */
+        .content {
+            flex-grow: 1; 
+            text-align: center;
+            padding-top: 30px;
+        }
+
+        .content em {
+            font-style: italic;
+            font-size: 26px;
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 400;
+        }
+
+        .content h1 {
+            font-size: 68px; /* Aumentado para mais impacto */
+            font-weight: 700;
+            margin: 0 0 15px 0;
+            color: #d4af37; /* Dourado para destaque */
+            text-transform: uppercase;
+        }
+        
+        .content p {
+            font-size: 24px;
+            line-height: 1.5;
+            margin-top: 15px;
+            max-width: 90%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Rodapé com Assinatura e Data */
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 50px;
+        }
+        
+        .footer .date-section {
+            text-align: left;
+        }
+
+        .footer .date-section p {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .footer .signature-line {
+            border-top: 1px solid #ffffff;
+            width: 250px;
+            margin-top: 40px;
+        }
+        
+        .footer .signature-text {
+            font-style: italic;
+            font-size: 16px;
+            margin-top: 5px;
+        }
+
+        /* Selo de Autenticação como Imagem */
+        .seal-authentication {
+            width: 150px; 
+            height: 150px; 
+            position: absolute;
+            bottom: 70px; /* Ajuste para alinhar com o padding do container */
+            right: 70px;
+        }
+
+        .seal-authentication img {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Código de validação */
+        .validation-code {
+            position: absolute;
+            bottom: 20px;
+            left: 70px;
+            font-size: 12px;
+            color: #888;
+            text-align: left;
+        }
+
+        .validation-code-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .validation-code-value {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #d4af37;
+            background: #333;
+            padding: 5px 10px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+
+        /* Responsividade para impressão */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .certificate-container {
+                box-shadow: none;
+                border: 2px solid #333;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="certificate-container">
+        
+        <div class="header-logo">
+            <img src="./assets/logo.svg" alt="Pregiato Management Logo">
+        </div>
+
+        <div class="main-title">
+            CERTIFICADO DE CONCLUSÃO
+        </div>
+
+        <div class="content">
+            <em>Certificamos que:</em>
+            
+            <h1>{{STUDENT_NAME}}</h1>
+            
+            <p>concluiu com sucesso o treinamento **"{{COURSE_NAME}}"** em sua totalidade, demonstrando proficiência nos tópicos abordados.</p>
+        </div>
+
+        <div class="footer">
+            
+            <div class="date-section">
+                <p>Data de Conclusão:</p>
+                <p><strong>{{COMPLETION_DATE}}</strong></p>
+            </div>
+            
+            <div>
+                <div class="signature-line"></div>
+                <div class="signature-text">Assinatura do Diretor</div>
+            </div>
+
+        </div>
+        
+        <div class="seal-authentication">
+            <img src="./assets/seal.svg" alt="Selo de Autenticação Pregiato">
+        </div>
+
+        <!-- Código de validação -->
+        <div class="validation-code">
+            <div class="validation-code-title">Código de Validação:</div>
+            <div class="validation-code-value">{{VALIDATION_CODE}}</div>
+        </div>
+    </div>
+
+</body>
+</html>

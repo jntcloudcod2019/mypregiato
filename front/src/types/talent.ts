@@ -79,10 +79,14 @@ export interface FileData {
 
 export interface ProducerData {
   id: string
-  first_name: string
-  last_name: string
+  firstName: string
+  lastName: string
   email: string
-  code: string
+  clerkId: string
+  imageUrl?: string | null
+  role: string
+  createdAt: string
+  updatedAt: string
 }
 
 // Simplificado para corresponder exatamente ao CreateTalentDto do backend
