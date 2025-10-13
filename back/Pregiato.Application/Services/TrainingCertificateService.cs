@@ -66,10 +66,6 @@ public class TrainingCertificateService : ITrainingCertificateService
             // Gerar PDF (sem upload para MinIO)
             var pdfBytes = await GeneratePdfFromHtmlAsync(certificate.HtmlContent);
             
-            // Converter PDF para base64 para armazenar no banco (opcional)
-            certificate.PdfUrl = null; // Não vamos usar URL do MinIO
-            certificate.PdfObjectName = null; // Não vamos armazenar no MinIO
-
             // Salvar no banco
             var savedCertificate = await _certificateRepository.CreateAsync(certificate);
 

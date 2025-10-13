@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Plus, Search, Play, Users, Clock, BookOpen, Star } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuthPermissions } from '@/contexts/AuthPermissionsContext';
 import { Permission } from '@/config/permissions';
 import ProtectedFeature from '@/components/auth/protected-feature';
@@ -32,6 +32,7 @@ interface Aula {
 }
 
 const TreinamentosPage = () => {
+  const navigate = useNavigate();
   const [cursos, setCursos] = useState<Curso[]>([]);
   const [busca, setBusca] = useState('');
   const [filtro, setFiltro] = useState<'todos' | 'andamento' | 'concluidos'>('todos');
@@ -80,21 +81,31 @@ const TreinamentosPage = () => {
         </div>
         <div className="flex gap-2">
           <ProtectedFeature permission={Permission.CREATE_TRAINING} hideWhenDenied>
-            <Link to="/treinamentos/criar">
-              <Button size="lg" className="gap-2">
-                <Plus className="h-4 w-4" />
-                Criar Treinamento
-              </Button>
-            </Link>
+            <Button 
+              size="lg" 
+              className="gap-2"
+              onClick={() => {
+                console.log('✅ Navegando para /treinamentos/criar');
+                navigate('/treinamentos/criar');
+              }}
+            >
+              <Plus className="h-4 w-4" />
+              Criar Treinamento
+            </Button>
           </ProtectedFeature>
           
           <ProtectedFeature permission={Permission.MANAGE_TRAININGS} hideWhenDenied>
-            <Link to="/treinamentos/gerenciar">
-              <Button size="lg" className="gap-2">
-                <BookOpen className="h-4 w-4" />
-                Gerenciar Treinamentos
-              </Button>
-            </Link>
+            <Button 
+              size="lg" 
+              className="gap-2"
+              onClick={() => {
+                console.log('✅ Navegando para /treinamentos/gerenciar');
+                navigate('/treinamentos/gerenciar');
+              }}
+            >
+              <BookOpen className="h-4 w-4" />
+              Gerenciar Treinamentos
+            </Button>
           </ProtectedFeature>
         </div>
       </div>

@@ -1,8 +1,11 @@
 import { useState } from "react"
-import { FileText, Home, Users, Settings, ChevronDown, Star, DollarSign, BarChart3, Headphones, BookOpen, Clock } from "lucide-react"
+import { FileText, Home, Users, Settings, ChevronDown, Star, DollarSign, BarChart3, Headphones, BookOpen, Clock, User } from "lucide-react"
 import { NavLink, useLocation } from "react-router-dom"
 import { ThemeToggle } from "../../components/theme-toggle"
 import { AuroraText } from "../../components/magicui/aurora-text"
+import { useAuthPermissions } from "../../contexts/AuthPermissionsContext"
+import ProtectedFeature from "../auth/protected-feature"
+import { Permission } from "../../config/permissions"
 
 import {
   Sidebar,
@@ -18,22 +21,32 @@ import {
 } from "../ui/sidebar"
 
 const menuItems = [
-  { title: "Dashboard", url: "/dashboard", icon: Home },
-  { title: "CRM", url: "/crm", icon: BarChart3 },
-  { title: "Atendimento", url: "/atendimento", icon: Headphones },
-  { title: "Treinamentos", url: "/treinamentos", icon: BookOpen },
-  { title: "Ponto Eletrônico", url: "/ponto", icon: Clock },
-  { title: "Contratos", url: "/contratos", icon: FileText },
-  { title: "Talentos", url: "/talentos", icon: Users },
-  { title: "Finanças", url: "/financas", icon: DollarSign },
-  { title: "Usuários", url: "/usuarios", icon: Settings },
-  { title: "Configurações", url: "/configuracoes", icon: Star },
+  { title: "Dashboard", url: "/dashboard", icon: Home, permission: Permission.VIEW_DASHBOARD },
+  { title: "CRM", url: "/crm", icon: BarChart3, permission: Permission.VIEW_CRM },
+  { title: "Atendimento", url: "/atendimento", icon: Headphones, permission: Permission.VIEW_ATTENDANCE },
+  { title: "Treinamentos", url: "/treinamentos", icon: BookOpen, permission: Permission.VIEW_TRAININGS },
+  { title: "Ponto Eletrônico", url: "/ponto", icon: Clock, permission: Permission.VIEW_TIMESHEET },
+  { title: "Contratos", url: "/contratos", icon: FileText, permission: Permission.VIEW_CONTRACTS },
+  { title: "Talentos", url: "/talentos", icon: Users, permission: Permission.VIEW_TALENTS },
+  { title: "Finanças", url: "/financas", icon: DollarSign, permission: Permission.VIEW_FINANCES },
+  { title: "Usuários", url: "/usuarios", icon: Settings, permission: Permission.VIEW_USERS },
+  { title: "Configurações", url: "/configuracoes", icon: Star, permission: Permission.VIEW_SETTINGS },
+]
+
+// Menu items específicos para MODEL
+const modelMenuItems = [
+  { title: "Treinamentos", url: "/treinamentos", icon: BookOpen, permission: Permission.VIEW_TRAININGS },
+  { title: "Perfil", url: "/perfil", icon: User, permission: Permission.VIEW_PROFILE },
 ]
 
 export function AppSidebar() {
   const { state } = useSidebar()
   const location = useLocation()
   const currentPath = location.pathname
+  const { isModel } = useAuthPermissions()
+  
+  // Escolher quais itens do menu mostrar baseado na role
+  const itemsToShow = isModel ? modelMenuItems : menuItems
   const collapsed = state === "collapsed"
 
   const isActive = (path: string) => currentPath === path || currentPath.startsWith(path)
@@ -73,19 +86,21 @@ export function AppSidebar() {
 
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => (
+              {itemsToShow.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink 
-                      to={item.url} 
-                      className={({ isActive }) => 
-                        `flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-foreground hover:text-foreground ${getNavCls({ isActive })}`
-                      }
-                    >
-                      <item.icon className="h-5 w-5 flex-shrink-0" />
-                      {!collapsed && <span className="font-medium">{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
+                  <ProtectedFeature permission={item.permission} hideWhenDenied>
+                    <SidebarMenuButton asChild>
+                      <NavLink 
+                        to={item.url} 
+                        className={({ isActive }) => 
+                          `flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-foreground hover:text-foreground ${getNavCls({ isActive })}`
+                        }
+                      >
+                        <item.icon className="h-5 w-5 flex-shrink-0" />
+                        {!collapsed && <span className="font-medium">{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </ProtectedFeature>
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>

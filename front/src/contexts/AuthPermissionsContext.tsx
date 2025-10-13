@@ -25,7 +25,7 @@ interface AuthPermissionsContextType {
   hasPermission: (permission: Permission) => boolean;
   hasAllPermissions: (permissions: Permission[]) => boolean;
   hasAnyPermission: (permissions: Permission[]) => boolean;
-  canAccessRoute: (route: string) => boolean;
+ 
   
   // Helpers de role
   isAdmin: boolean;
@@ -70,42 +70,16 @@ export const AuthPermissionsProvider: React.FC<AuthPermissionsProviderProps> = (
 
       console.log('[AuthPermissions] Buscando dados do usuário:', email);
 
-      // Buscar ou criar usuário no banco de dados
+      // Buscar usuário no banco de dados
       const response = await apiClient.get<UserData>(`/api/Users/by-email/${encodeURIComponent(email)}`);
       
-      console.log('[AuthPermissions] Dados do usuário:', response.data);
+      console.log('[AuthPermissions] Dados do usuário:', response);
       
-      setUser(response.data);
-    } catch (err: any) {
-      console.error('[AuthPermissions] Erro ao buscar usuário:', err);
-      
-      // Se o usuário não existe, tentar criar
-      if (err.response?.status === 404 && clerkUser) {
-        try {
-          console.log('[AuthPermissions] Criando novo usuário no banco...');
-          
-          const email = clerkUser.primaryEmailAddress?.emailAddress;
-          const firstName = clerkUser.firstName || 'Usuário';
-          const lastName = clerkUser.lastName || '';
-          
-          const newUser = await apiClient.post<UserData>('/api/Users', {
-            email,
-            firstName,
-            lastName,
-            clerkId: clerkUser.id,
-            role: 'USER', // Role padrão
-            imageUrl: clerkUser.imageUrl
-          });
-          
-          console.log('[AuthPermissions] Usuário criado:', newUser.data);
-          setUser(newUser.data);
-        } catch (createError) {
-          console.error('[AuthPermissions] Erro ao criar usuário:', createError);
-          setError('Erro ao sincronizar usuário com o banco de dados');
-        }
-      } else {
-        setError(err.message || 'Erro ao carregar dados do usuário');
-      }
+      setUser(response);
+    } catch (err) {
+      const error = err as { response?: { status?: number }; message?: string };
+      console.error('[AuthPermissions] Erro ao buscar usuário:', error);
+      setError(error.message || 'Usuário não encontrado no sistema');
     } finally {
       setIsLoading(false);
     }
@@ -117,7 +91,7 @@ export const AuthPermissionsProvider: React.FC<AuthPermissionsProviderProps> = (
     }
   }, [isClerkLoaded, fetchUserData]);
 
-  const role = user?.role ? (user.role as UserRole) : null;
+  const role = user?.role.toString() ? (user.role.toString() as UserRole) : null;
 
   // Funções de verificação de permissão
   const checkPermission = useCallback((permission: Permission): boolean => {
@@ -135,18 +109,14 @@ export const AuthPermissionsProvider: React.FC<AuthPermissionsProviderProps> = (
     return hasAnyPermission(role, permissions);
   }, [role]);
 
-  const checkCanAccessRoute = useCallback((route: string): boolean => {
-    if (!role) return false;
-    return canAccessRoute(role, route);
-  }, [role]);
 
   // Helpers de role
-  const isAdmin = role === UserRole.ADMIN;
-  const isInstructor = role === UserRole.INSTRUCTOR;
+  const isAdmin = role === UserRole.ADMIN.toString();
+  const isInstructor = role === UserRole.INSTRUCTOR.toString();
   const isOperator = role === UserRole.OPERATOR;
-  const isProducer = role === UserRole.PRODUCER;
-  const isModel = role === UserRole.MODEL;
-  const isStudent = role === UserRole.STUDENT;
+  const isProducer = role === UserRole.PRODUCER.toString();
+  const isModel = role === UserRole.MODEL.toString();
+  const isStudent = role === UserRole.STUDENT.toString();
 
   const value: AuthPermissionsContextType = {
     user,
@@ -156,7 +126,6 @@ export const AuthPermissionsProvider: React.FC<AuthPermissionsProviderProps> = (
     hasPermission: checkPermission,
     hasAllPermissions: checkAllPermissions,
     hasAnyPermission: checkAnyPermission,
-    canAccessRoute: checkCanAccessRoute,
     isAdmin,
     isInstructor,
     isOperator,

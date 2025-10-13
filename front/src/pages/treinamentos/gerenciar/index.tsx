@@ -52,16 +52,17 @@ export default function GerenciarTreinamentosPage() {
     if (!courseToDelete) return;
 
     try {
-      await deleteCourse.mutateAsync(courseToDelete);
+      await deleteCourse(courseToDelete);
       toast({
         title: 'Curso deletado!',
         description: 'O curso foi removido com sucesso.',
       });
       setCourseToDelete(null);
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Não foi possível deletar o curso.';
       toast({
         title: 'Erro ao deletar curso',
-        description: error.message || 'Não foi possível deletar o curso.',
+        description: errorMessage,
         variant: 'destructive',
       });
     }

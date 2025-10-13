@@ -65,6 +65,11 @@ const navigationItems: NavigationItem[] = [
     label: 'Treinamentos',
     href: '/treinamentos',
     allowedRoles: ['ADMIN', 'INSTRUCTOR', 'STUDENT', 'MODEL']
+  },
+    {
+    label: 'Treinamentos',
+    href: '/treinamentos/criar',
+    allowedRoles: ['ADMIN', 'INSTRUCTOR', 'STUDENT', 'MODEL']
   }
 ];
 
