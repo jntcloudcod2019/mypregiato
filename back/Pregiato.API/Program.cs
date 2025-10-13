@@ -106,6 +106,12 @@ builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 builder.Services.AddScoped<IValidator<CreateTalentDto>, CreateTalentDtoValidator>();
 builder.Services.AddScoped<IValidator<UpdateTalentDto>, UpdateTalentDtoValidator>();
 
+// Training Validators
+builder.Services.AddScoped<IValidator<CreateTrainingCourseDto>, CreateTrainingCourseValidator>();
+builder.Services.AddScoped<IValidator<UpdateTrainingCourseDto>, UpdateTrainingCourseValidator>();
+builder.Services.AddScoped<IValidator<CreateTrainingLessonDto>, CreateTrainingLessonValidator>();
+builder.Services.AddScoped<IValidator<UpdateTrainingLessonDto>, UpdateTrainingLessonValidator>();
+
 // ✅ MINIO CONFIGURATION
 builder.Services.Configure<Pregiato.Infrastructure.Adapters.MinIOOptions>(
     builder.Configuration.GetSection("MinIO"));
@@ -121,6 +127,11 @@ builder.Services.AddScoped<ILeadService, LeadService>();
 builder.Services.AddScoped<ILeadRepository, LeadRepository>();
 builder.Services.AddScoped<IOperatorLeadsService, Pregiato.Application.Services.OperatorLeadsService>();
 
+// Training Services
+builder.Services.AddScoped<Pregiato.Application.Interfaces.ITrainingCourseService, TrainingCourseService>();
+builder.Services.AddScoped<Pregiato.Application.Interfaces.ITrainingEnrollmentService, TrainingEnrollmentService>();
+builder.Services.AddScoped<Pregiato.Application.Interfaces.ITrainingVideoService, TrainingVideoService>();
+
 // Serviços de resiliência
 builder.Services.AddScoped<IEmojiResilienceService, EmojiResilienceService>();
 builder.Services.AddSingleton<IResilienceService, ResilienceService>();
@@ -134,6 +145,10 @@ builder.Services.AddScoped<ITalentRepository, TalentRepository>();
 builder.Services.AddScoped<IImportedFileRepository, ImportedFileRepository>();
 builder.Services.AddScoped<IChatLogRepository, ChatLogRepository>();
 builder.Services.AddScoped<IOperatorLeadsRepository, OperatorLeadsRepository>();
+
+// Training Repositories
+builder.Services.AddScoped<ITrainingCourseRepository, TrainingCourseRepository>();
+builder.Services.AddScoped<ITrainingEnrollmentRepository, TrainingEnrollmentRepository>();
 
 // Chat services
 builder.Services.AddScoped<ChatLogService>();

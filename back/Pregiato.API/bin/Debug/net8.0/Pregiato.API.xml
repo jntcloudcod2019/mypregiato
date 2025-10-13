@@ -49,6 +49,33 @@
             Força a verificação de saúde de todos os serviços
             </summary>
         </member>
+        <member name="M:Pregiato.API.Controllers.OperatorLeadsController.GetKanbanData(System.String)">
+            <summary>
+            Gets Kanban board data for scheduling page
+            Returns leads grouped by status: new, scheduled, pending (descending order)
+            </summary>
+            <param name="emailOperator">Operator email for data filtering</param>
+        </member>
+        <member name="M:Pregiato.API.Controllers.OperatorLeadsController.GetDashboard(System.String)">
+            <summary>
+            Gets dashboard metrics for scheduling page
+            Returns scheduled and pending counts by period (day, week, month)
+            </summary>
+            <param name="emailOperator">Operator email for metrics calculation</param>
+        </member>
+        <member name="M:Pregiato.API.Controllers.OperatorLeadsController.GetPaginatedKanbanData(System.String,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Gets paginated Kanban board data for scheduling page
+            Supports independent pagination for each column
+            </summary>
+            <param name="emailOperator">Operator email for data filtering</param>
+            <param name="newPage">Page number for 'new' column (default: 1)</param>
+            <param name="newPageSize">Page size for 'new' column (default: 20)</param>
+            <param name="scheduledPage">Page number for 'scheduled' column (default: 1)</param>
+            <param name="scheduledPageSize">Page size for 'scheduled' column (default: 20)</param>
+            <param name="pendingPage">Page number for 'pending' column (default: 1)</param>
+            <param name="pendingPageSize">Page size for 'pending' column (default: 20)</param>
+        </member>
         <member name="M:Pregiato.API.Controllers.TalentsController.GetTalents(System.Int32,System.Int32,System.String,System.String,System.Boolean)">
             <summary>
             Obtém todos os talentos com paginação

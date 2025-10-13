@@ -6,69 +6,91 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Plus, Trash2, Play, Save, Eye } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ArrowLeft, Plus, Trash2, Play, Save, Eye, Upload, Video, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-
-interface Aula {
-  id: string;
-  nome: string;
-  descricao: string;
-  linkVideo: string;
-}
+import { useTrainingCourses } from '@/hooks/use-training-courses';
+import VideoUpload from '@/components/training/VideoUpload';
+import { CreateTrainingCourseDto, CreateTrainingLessonDto } from '@/types/training';
 
 const CriarTreinamentoPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { createCourse, isCreating } = useTrainingCourses();
   
   const [formData, setFormData] = useState({
-    nome: '',
-    descricao: '',
-    quantidadeAulas: 0
+    title: '',
+    description: '',
+    category: '',
+    difficulty: 'Iniciante',
+    isActive: true
   });
   
-  const [aulas, setAulas] = useState<Aula[]>([]);
-  const [aulaAtual, setAulaAtual] = useState({
-    nome: '',
-    descricao: '',
-    linkVideo: ''
+  const [lessons, setLessons] = useState<CreateTrainingLessonDto[]>([]);
+  const [currentLesson, setCurrentLesson] = useState({
+    title: '',
+    description: '',
+    orderIndex: 1
   });
   
+  const [activeStep, setActiveStep] = useState<'course' | 'lessons' | 'preview'>('course');
   const [showPreview, setShowPreview] = useState(false);
 
-  const adicionarAula = () => {
-    if (!aulaAtual.nome || !aulaAtual.linkVideo) {
+  const addLesson = () => {
+    if (!currentLesson.title) {
       toast({
-        title: "Campos obrigatórios",
-        description: "Nome da aula e link do vídeo são obrigatórios.",
+        title: "Campo obrigatório",
+        description: "O título da aula é obrigatório.",
         variant: "destructive"
       });
       return;
     }
 
-    const novaAula: Aula = {
-      id: Date.now().toString(),
-      ...aulaAtual
+    const newLesson: CreateTrainingLessonDto = {
+      ...currentLesson,
+      isActive: true
     };
 
-    setAulas([...aulas, novaAula]);
-    setAulaAtual({ nome: '', descricao: '', linkVideo: '' });
+    setLessons([...lessons, newLesson]);
+    setCurrentLesson({
+      title: '',
+      description: '',
+      orderIndex: lessons.length + 2
+    });
     
     toast({
       title: "Aula adicionada",
-      description: `"${novaAula.nome}" foi adicionada ao curso.`
+      description: `"${newLesson.title}" foi adicionada ao curso.`
     });
   };
 
-  const removerAula = (id: string) => {
-    setAulas(aulas.filter(aula => aula.id !== id));
-    toast({
-      title: "Aula removida",
-      description: "A aula foi removida do curso."
-    });
+  const removeLesson = (index: number) => {
+    const updatedLessons = lessons.filter((_, i) => i !== index);
+    setLessons(updatedLessons.map((lesson, i) => ({
+      ...lesson,
+      orderIndex: i + 1
+    })));
+    setCurrentLesson(prev => ({
+      ...prev,
+      orderIndex: updatedLessons.length + 1
+    }));
   };
 
-  const salvarCurso = () => {
-    if (!formData.nome || !formData.descricao || aulas.length === 0) {
+  const handleCourseSubmit = async () => {
+    if (!formData.title || !formData.description) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Preencha todos os campos obrigatórios.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setActiveStep('lessons');
+  };
+
+  const handleCreateCourse = async () => {
+    if (!formData.title || !formData.description || lessons.length === 0) {
       toast({
         title: "Campos obrigatórios",
         description: "Preencha todos os campos e adicione pelo menos uma aula.",
@@ -77,45 +99,38 @@ const CriarTreinamentoPage = () => {
       return;
     }
 
-    const novoCurso = {
-      id: Date.now().toString(),
-      nome: formData.nome,
-      descricao: formData.descricao,
-      quantidadeAulas: aulas.length,
-      aulas: aulas.map(aula => ({
-        ...aula,
-        assistida: false
-      })),
-      progresso: 0,
-      concluido: false,
-      avaliacoes: { likes: 0, dislikes: 0 },
-      criadoEm: new Date().toISOString().split('T')[0]
+    const courseData: CreateTrainingCourseDto = {
+      ...formData,
+      createdBy: 'current-user-id', // TODO: Pegar do contexto de autenticação
+      lessons: lessons
     };
 
-    // Salvar no localStorage
-    const cursosStorage = localStorage.getItem('treinamentos_cursos');
-    const cursosExistentes = cursosStorage ? JSON.parse(cursosStorage) : [];
-    cursosExistentes.push(novoCurso);
-    localStorage.setItem('treinamentos_cursos', JSON.stringify(cursosExistentes));
-
-    toast({
-      title: "Curso criado com sucesso!",
-      description: `"${formData.nome}" foi criado e está disponível.`
-    });
-
-    navigate('/treinamentos');
-  };
-
-  const formatarLinkGoogleDrive = (link: string) => {
-    // Converter link do Google Drive para formato de embed
-    if (link.includes('drive.google.com')) {
-      const fileId = link.match(/\/d\/([a-zA-Z0-9-_]+)/)?.[1];
-      if (fileId) {
-        return `https://drive.google.com/file/d/${fileId}/preview`;
-      }
+    try {
+      createCourse(courseData);
+      navigate('/treinamentos');
+    } catch (error) {
+      console.error('Erro ao criar curso:', error);
     }
-    return link;
   };
+
+  const categories = [
+    'Tecnologia',
+    'Negócios',
+    'Marketing',
+    'Design',
+    'Desenvolvimento',
+    'Vendas',
+    'Liderança',
+    'Produtividade',
+    'Comunicação',
+    'Outros'
+  ];
+
+  const difficulties = [
+    'Iniciante',
+    'Intermediário',
+    'Avançado'
+  ];
 
   return (
     <div className="p-6 space-y-6">
@@ -133,172 +148,306 @@ const CriarTreinamentoPage = () => {
             Criar Novo Treinamento
           </h1>
           <p className="text-muted-foreground">
-            Crie um curso online completo com vídeos e materiais
+            Crie um novo curso de treinamento para sua equipe
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Formulário Principal */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Informações do Curso */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Informações do Curso</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="nome">Nome do Treinamento *</Label>
-                <Input
-                  id="nome"
-                  placeholder="Ex: Fundamentos de Fotografia"
-                  value={formData.nome}
-                  onChange={(e) => setFormData({...formData, nome: e.target.value})}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="descricao">Descrição do Treinamento *</Label>
-                <Textarea
-                  id="descricao"
-                  placeholder="Descreva o que os alunos aprenderão neste curso..."
-                  rows={4}
-                  value={formData.descricao}
-                  onChange={(e) => setFormData({...formData, descricao: e.target.value})}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Adicionar Aula */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Adicionar Nova Aula</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="nomeAula">Nome da Aula *</Label>
-                <Input
-                  id="nomeAula"
-                  placeholder="Ex: Introdução à Iluminação"
-                  value={aulaAtual.nome}
-                  onChange={(e) => setAulaAtual({...aulaAtual, nome: e.target.value})}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="descricaoAula">Descrição da Aula</Label>
-                <Textarea
-                  id="descricaoAula"
-                  placeholder="Descreva o conteúdo desta aula..."
-                  rows={3}
-                  value={aulaAtual.descricao}
-                  onChange={(e) => setAulaAtual({...aulaAtual, descricao: e.target.value})}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="linkVideo">Link do Vídeo (Google Drive) *</Label>
-                <Input
-                  id="linkVideo"
-                  placeholder="https://drive.google.com/file/d/..."
-                  value={aulaAtual.linkVideo}
-                  onChange={(e) => setAulaAtual({...aulaAtual, linkVideo: e.target.value})}
-                />
-                <p className="text-sm text-muted-foreground mt-1">
-                  Cole o link completo do arquivo no Google Drive
-                </p>
-              </div>
-
-              <Button onClick={adicionarAula} className="w-full">
-                <Plus className="h-4 w-4 mr-2" />
-                Adicionar Aula
-              </Button>
-            </CardContent>
-          </Card>
+      {/* Progress Steps */}
+      <div className="flex items-center justify-center space-x-4 mb-8">
+        <div className={`flex items-center space-x-2 ${activeStep === 'course' ? 'text-primary' : 'text-muted-foreground'}`}>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${activeStep === 'course' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+            1
+          </div>
+          <span className="font-medium">Informações do Curso</span>
         </div>
+        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+        <div className={`flex items-center space-x-2 ${activeStep === 'lessons' ? 'text-primary' : 'text-muted-foreground'}`}>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${activeStep === 'lessons' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+            2
+          </div>
+          <span className="font-medium">Aulas</span>
+        </div>
+        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+        <div className={`flex items-center space-x-2 ${activeStep === 'preview' ? 'text-primary' : 'text-muted-foreground'}`}>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${activeStep === 'preview' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+            3
+          </div>
+          <span className="font-medium">Revisão</span>
+        </div>
+      </div>
 
-        {/* Playlist Lateral */}
+      {/* Step 1: Course Information */}
+      {activeStep === 'course' && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Video className="h-5 w-5" />
+              Informações do Curso
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="title">Título do Curso *</Label>
+                <Input
+                  id="title"
+                  placeholder="Ex: Introdução ao React"
+                  value={formData.title}
+                  onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="category">Categoria</Label>
+                <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description">Descrição *</Label>
+              <Textarea
+                id="description"
+                placeholder="Descreva o conteúdo e objetivos do curso..."
+                rows={4}
+                value={formData.description}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="difficulty">Nível de Dificuldade</Label>
+                <Select value={formData.difficulty} onValueChange={(value) => setFormData(prev => ({ ...prev, difficulty: value }))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {difficulties.map((difficulty) => (
+                      <SelectItem key={difficulty} value={difficulty}>
+                        {difficulty}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Status</Label>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="isActive"
+                    checked={formData.isActive}
+                    onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
+                    className="rounded"
+                  />
+                  <Label htmlFor="isActive" className="text-sm">
+                    Curso ativo
+                  </Label>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end">
+              <Button onClick={handleCourseSubmit}>
+                Próximo: Adicionar Aulas
+                <ChevronRight className="h-4 w-4 ml-2" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Step 2: Lessons */}
+      {activeStep === 'lessons' && (
         <div className="space-y-6">
+          {/* Add Lesson Form */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                Playlist do Curso
-                <Badge variant="outline">{aulas.length} aulas</Badge>
+              <CardTitle className="flex items-center gap-2">
+                <Plus className="h-5 w-5" />
+                Adicionar Nova Aula
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              {aulas.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Play className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">Nenhuma aula adicionada ainda</p>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="lessonTitle">Título da Aula *</Label>
+                  <Input
+                    id="lessonTitle"
+                    placeholder="Ex: Introdução aos Conceitos"
+                    value={currentLesson.title}
+                    onChange={(e) => setCurrentLesson(prev => ({ ...prev, title: e.target.value }))}
+                  />
                 </div>
-              ) : (
-                <div className="space-y-3">
-                  {aulas.map((aula, index) => (
-                    <div key={aula.id} className="flex items-start gap-3 p-3 border rounded-lg">
-                      <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-sm font-medium">
-                        {index + 1}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-sm line-clamp-2">
-                          {aula.nome}
-                        </h4>
-                        {aula.descricao && (
-                          <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
-                            {aula.descricao}
-                          </p>
-                        )}
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-destructive hover:text-destructive"
-                        onClick={() => removerAula(aula.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
+                
+                <div className="space-y-2">
+                  <Label htmlFor="lessonOrder">Ordem</Label>
+                  <Input
+                    id="lessonOrder"
+                    type="number"
+                    min="1"
+                    value={currentLesson.orderIndex}
+                    onChange={(e) => setCurrentLesson(prev => ({ ...prev, orderIndex: parseInt(e.target.value) || 1 }))}
+                  />
                 </div>
-              )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="lessonDescription">Descrição da Aula</Label>
+                <Textarea
+                  id="lessonDescription"
+                  placeholder="Descreva o conteúdo desta aula..."
+                  rows={3}
+                  value={currentLesson.description}
+                  onChange={(e) => setCurrentLesson(prev => ({ ...prev, description: e.target.value }))}
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <Button onClick={addLesson}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Adicionar Aula
+                </Button>
+                <Button variant="outline" onClick={() => setActiveStep('preview')}>
+                  Revisar Curso
+                  <Eye className="h-4 w-4 ml-2" />
+                </Button>
+              </div>
             </CardContent>
           </Card>
 
-          {/* Preview do Curso */}
-          {formData.nome && (
+          {/* Lessons List */}
+          {lessons.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Preview do Curso</CardTitle>
+                <CardTitle>Aulas do Curso ({lessons.length})</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <div>
-                  <h3 className="font-medium">{formData.nome}</h3>
-                  <p className="text-sm text-muted-foreground line-clamp-3">
-                    {formData.descricao}
-                  </p>
-                </div>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  <span>{aulas.length} aulas</span>
-                  <Badge variant="secondary">Novo</Badge>
+              <CardContent>
+                <div className="space-y-3">
+                  {lessons.map((lesson, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <Badge variant="outline">{lesson.orderIndex}</Badge>
+                        <div>
+                          <h4 className="font-medium">{lesson.title}</h4>
+                          {lesson.description && (
+                            <p className="text-sm text-muted-foreground">{lesson.description}</p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => removeLesson(index)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
           )}
 
-          {/* Botões de Ação */}
-          <div className="space-y-3">
-            <Button
-              onClick={salvarCurso}
-              className="w-full"
-              disabled={!formData.nome || !formData.descricao || aulas.length === 0}
-            >
-              <Save className="h-4 w-4 mr-2" />
-              Criar Curso
+          {/* Navigation */}
+          <div className="flex justify-between">
+            <Button variant="outline" onClick={() => setActiveStep('course')}>
+              <ChevronLeft className="h-4 w-4 mr-2" />
+              Voltar
+            </Button>
+            <Button onClick={() => setActiveStep('preview')}>
+              Revisar Curso
+              <Eye className="h-4 w-4 ml-2" />
             </Button>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Step 3: Preview */}
+      {activeStep === 'preview' && (
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Revisão do Curso</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Título</Label>
+                  <p className="text-lg font-semibold">{formData.title}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Categoria</Label>
+                  <p>{formData.category || 'Não especificada'}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Dificuldade</Label>
+                  <Badge variant="outline">{formData.difficulty}</Badge>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Status</Label>
+                  <Badge variant={formData.isActive ? 'default' : 'secondary'}>
+                    {formData.isActive ? 'Ativo' : 'Inativo'}
+                  </Badge>
+                </div>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground">Descrição</Label>
+                <p className="text-sm">{formData.description}</p>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground">Aulas ({lessons.length})</Label>
+                <div className="space-y-2 mt-2">
+                  {lessons.map((lesson, index) => (
+                    <div key={index} className="flex items-center space-x-3 p-2 border rounded">
+                      <Badge variant="outline">{lesson.orderIndex}</Badge>
+                      <span className="font-medium">{lesson.title}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Navigation */}
+          <div className="flex justify-between">
+            <Button variant="outline" onClick={() => setActiveStep('lessons')}>
+              <ChevronLeft className="h-4 w-4 mr-2" />
+              Voltar para Aulas
+            </Button>
+            <Button onClick={handleCreateCourse} disabled={isCreating}>
+              {isCreating ? (
+                <>
+                  <Save className="h-4 w-4 mr-2 animate-spin" />
+                  Criando...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Criar Curso
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

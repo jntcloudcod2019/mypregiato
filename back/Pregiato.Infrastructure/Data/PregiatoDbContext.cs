@@ -34,6 +34,14 @@ public class PregiatoDbContext : DbContext
         public DbSet<Campaign> Campaigns { get; set; }
         public DbSet<OperatorLeads> OperatorLeads { get; set; }
 
+        // Training Entities
+        public DbSet<TrainingCourse> TrainingCourses { get; set; }
+        public DbSet<TrainingLesson> TrainingLessons { get; set; }
+        public DbSet<TrainingEnrollment> TrainingEnrollments { get; set; }
+        public DbSet<TrainingLessonProgress> TrainingLessonProgress { get; set; }
+        public DbSet<TrainingRating> TrainingRatings { get; set; }
+        public DbSet<TrainingCertificate> TrainingCertificates { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -1056,6 +1064,264 @@ public class PregiatoDbContext : DbContext
                     v => v == null ? null : System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions)null),
                     v => v == null ? null : System.Text.Json.JsonSerializer.Deserialize<SeletivaInfo>(v, (System.Text.Json.JsonSerializerOptions)null)
                 );
+        });
+
+        // === CONFIGURAÇÃO DO MÓDULO DE TREINAMENTOS ===
+        
+        // TrainingCourse
+        modelBuilder.Entity<TrainingCourse>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasDefaultValueSql("(UUID())");
+            
+            entity.Property(e => e.Title)
+                .IsRequired()
+                .HasMaxLength(200);
+            
+            entity.Property(e => e.Description)
+                .IsRequired()
+                .HasColumnType("LONGTEXT");
+            
+            entity.Property(e => e.ThumbnailUrl)
+                .HasMaxLength(500);
+            
+            entity.Property(e => e.ThumbnailObjectName)
+                .HasMaxLength(500);
+            
+            entity.Property(e => e.Category)
+                .HasMaxLength(100);
+            
+            entity.Property(e => e.Difficulty)
+                .HasMaxLength(50);
+            
+            entity.Property(e => e.CreatedBy)
+                .IsRequired()
+                .HasMaxLength(100);
+            
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+            
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+            
+            entity.Property(e => e.DeletedAt)
+                .HasColumnType("datetime");
+            
+            entity.Property(e => e.AverageRating)
+                .HasColumnType("decimal(3,2)");
+            
+            entity.HasIndex(e => e.CreatedBy);
+            entity.HasIndex(e => e.Category);
+            entity.HasIndex(e => e.IsActive);
+        });
+        
+        // TrainingLesson
+        modelBuilder.Entity<TrainingLesson>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasDefaultValueSql("(UUID())");
+            
+            entity.Property(e => e.Title)
+                .IsRequired()
+                .HasMaxLength(200);
+            
+            entity.Property(e => e.Description)
+                .HasColumnType("LONGTEXT");
+            
+            entity.Property(e => e.VideoUrl)
+                .IsRequired()
+                .HasMaxLength(500);
+            
+            entity.Property(e => e.VideoObjectName)
+                .IsRequired()
+                .HasMaxLength(500);
+            
+            entity.Property(e => e.VideoMimeType)
+                .HasMaxLength(100);
+            
+            entity.Property(e => e.AttachmentsJson)
+                .HasColumnType("LONGTEXT");
+            
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+            
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+            
+            entity.HasOne(e => e.Course)
+                .WithMany(c => c.Lessons)
+                .HasForeignKey(e => e.CourseId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            entity.HasIndex(e => e.CourseId);
+            entity.HasIndex(e => e.OrderIndex);
+        });
+        
+        // TrainingEnrollment
+        modelBuilder.Entity<TrainingEnrollment>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasDefaultValueSql("(UUID())");
+            
+            entity.Property(e => e.UserId)
+                .IsRequired()
+                .HasMaxLength(100);
+            
+            entity.Property(e => e.ProgressPercentage)
+                .HasColumnType("decimal(5,2)");
+            
+            entity.Property(e => e.CertificateUrl)
+                .HasMaxLength(500);
+            
+            entity.Property(e => e.CertificateObjectName)
+                .HasMaxLength(500);
+            
+            entity.Property(e => e.EnrolledAt)
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+            
+            entity.Property(e => e.StartedAt)
+                .HasColumnType("datetime");
+            
+            entity.Property(e => e.CompletedAt)
+                .HasColumnType("datetime");
+            
+            entity.Property(e => e.LastAccessedAt)
+                .HasColumnType("datetime");
+            
+            entity.Property(e => e.CertificateIssuedAt)
+                .HasColumnType("datetime");
+            
+            entity.HasOne(e => e.Course)
+                .WithMany(c => c.Enrollments)
+                .HasForeignKey(e => e.CourseId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.CourseId);
+            entity.HasIndex(e => new { e.UserId, e.CourseId }).IsUnique();
+        });
+        
+        // TrainingLessonProgress
+        modelBuilder.Entity<TrainingLessonProgress>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasDefaultValueSql("(UUID())");
+            
+            entity.Property(e => e.CompletedAt)
+                .HasColumnType("datetime");
+            
+            entity.Property(e => e.StartedAt)
+                .HasColumnType("datetime");
+            
+            entity.Property(e => e.LastWatchedAt)
+                .HasColumnType("datetime");
+            
+            entity.HasOne(e => e.Enrollment)
+                .WithMany(en => en.LessonProgress)
+                .HasForeignKey(e => e.EnrollmentId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            entity.HasOne(e => e.Lesson)
+                .WithMany(l => l.ProgressRecords)
+                .HasForeignKey(e => e.LessonId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            entity.HasIndex(e => e.EnrollmentId);
+            entity.HasIndex(e => new { e.EnrollmentId, e.LessonId }).IsUnique();
+        });
+        
+        // TrainingRating
+        modelBuilder.Entity<TrainingRating>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasDefaultValueSql("(UUID())");
+            
+            entity.Property(e => e.UserId)
+                .IsRequired()
+                .HasMaxLength(100);
+            
+            entity.Property(e => e.RatingType)
+                .IsRequired()
+                .HasMaxLength(20);
+            
+            entity.Property(e => e.Comment)
+                .HasColumnType("LONGTEXT");
+            
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+            
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+            
+            entity.HasOne(e => e.Course)
+                .WithMany(c => c.Ratings)
+                .HasForeignKey(e => e.CourseId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            entity.HasIndex(e => e.CourseId);
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => new { e.UserId, e.CourseId }).IsUnique();
+        });
+        
+        // TrainingCertificate
+        modelBuilder.Entity<TrainingCertificate>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasDefaultValueSql("(UUID())");
+            
+            entity.Property(e => e.UserId)
+                .IsRequired()
+                .HasMaxLength(100);
+            
+            entity.Property(e => e.CertificateNumber)
+                .IsRequired()
+                .HasMaxLength(50);
+            
+            entity.Property(e => e.UserFullName)
+                .IsRequired()
+                .HasMaxLength(200);
+            
+            entity.Property(e => e.CourseName)
+                .IsRequired()
+                .HasMaxLength(200);
+            
+            entity.Property(e => e.TotalHours)
+                .HasColumnType("decimal(5,2)");
+            
+            entity.Property(e => e.PdfUrl)
+                .HasMaxLength(500);
+            
+            entity.Property(e => e.PdfObjectName)
+                .HasMaxLength(500);
+            
+            entity.Property(e => e.HtmlContent)
+                .HasColumnType("LONGTEXT");
+            
+            entity.Property(e => e.ValidationCode)
+                .IsRequired()
+                .HasMaxLength(100);
+            
+            entity.Property(e => e.CompletionDate)
+                .HasColumnType("datetime");
+            
+            entity.Property(e => e.IssuedAt)
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+            
+            entity.HasOne(e => e.Enrollment)
+                .WithMany()
+                .HasForeignKey(e => e.EnrollmentId);
+            
+            entity.HasIndex(e => e.CertificateNumber).IsUnique();
+            entity.HasIndex(e => e.ValidationCode).IsUnique();
+            entity.HasIndex(e => e.UserId);
         });
     }
 } 

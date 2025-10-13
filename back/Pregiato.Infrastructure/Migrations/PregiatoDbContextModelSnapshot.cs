@@ -1649,6 +1649,393 @@ namespace Pregiato.Infrastructure.Migrations
                     b.ToTable("TalentDNA");
                 });
 
+            modelBuilder.Entity("Pregiato.Core.Entities.TrainingCertificate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)")
+                        .HasDefaultValueSql("(UUID())");
+
+                    b.Property<string>("CertificateNumber")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime>("CompletionDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<Guid>("CourseId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("CourseName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<Guid>("EnrollmentId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("HtmlContent")
+                        .HasColumnType("LONGTEXT");
+
+                    b.Property<bool>("IsValid")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime>("IssuedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("PdfObjectName")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<string>("PdfUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<decimal>("TotalHours")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<Guid?>("TrainingEnrollmentId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("UserFullName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("ValidationCode")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CertificateNumber")
+                        .IsUnique();
+
+                    b.HasIndex("EnrollmentId");
+
+                    b.HasIndex("TrainingEnrollmentId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("ValidationCode")
+                        .IsUnique();
+
+                    b.ToTable("TrainingCertificates");
+                });
+
+            modelBuilder.Entity("Pregiato.Core.Entities.TrainingCourse", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)")
+                        .HasDefaultValueSql("(UUID())");
+
+                    b.Property<decimal>("AverageRating")
+                        .HasColumnType("decimal(3,2)");
+
+                    b.Property<string>("Category")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("LONGTEXT");
+
+                    b.Property<string>("Difficulty")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("ThumbnailObjectName")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<string>("ThumbnailUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<int>("TotalDislikes")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalDurationMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalLessons")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalLikes")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Category");
+
+                    b.HasIndex("CreatedBy");
+
+                    b.HasIndex("IsActive");
+
+                    b.ToTable("TrainingCourses");
+                });
+
+            modelBuilder.Entity("Pregiato.Core.Entities.TrainingEnrollment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)")
+                        .HasDefaultValueSql("(UUID())");
+
+                    b.Property<bool>("CertificateIssued")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime?>("CertificateIssuedAt")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("CertificateObjectName")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<string>("CertificateUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime");
+
+                    b.Property<int>("CompletedLessons")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("CourseId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("EnrolledAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<DateTime?>("LastAccessedAt")
+                        .HasColumnType("datetime");
+
+                    b.Property<decimal>("ProgressPercentage")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<DateTime?>("StartedAt")
+                        .HasColumnType("datetime");
+
+                    b.Property<int>("TotalTimeWatchedMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourseId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId", "CourseId")
+                        .IsUnique();
+
+                    b.ToTable("TrainingEnrollments");
+                });
+
+            modelBuilder.Entity("Pregiato.Core.Entities.TrainingLesson", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)")
+                        .HasDefaultValueSql("(UUID())");
+
+                    b.Property<string>("AttachmentsJson")
+                        .HasColumnType("LONGTEXT");
+
+                    b.Property<Guid>("CourseId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("LONGTEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+
+                    b.Property<int?>("VideoDurationSeconds")
+                        .HasColumnType("int");
+
+                    b.Property<string>("VideoMimeType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("VideoObjectName")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<long>("VideoSize")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("VideoUrl")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourseId");
+
+                    b.HasIndex("OrderIndex");
+
+                    b.ToTable("TrainingLessons");
+                });
+
+            modelBuilder.Entity("Pregiato.Core.Entities.TrainingLessonProgress", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)")
+                        .HasDefaultValueSql("(UUID())");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime");
+
+                    b.Property<Guid>("EnrollmentId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("LastPositionSeconds")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("LastWatchedAt")
+                        .HasColumnType("datetime");
+
+                    b.Property<Guid>("LessonId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("StartedAt")
+                        .HasColumnType("datetime");
+
+                    b.Property<int>("WatchCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("WatchedSeconds")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EnrollmentId");
+
+                    b.HasIndex("LessonId");
+
+                    b.HasIndex("EnrollmentId", "LessonId")
+                        .IsUnique();
+
+                    b.ToTable("TrainingLessonProgress");
+                });
+
+            modelBuilder.Entity("Pregiato.Core.Entities.TrainingRating", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)")
+                        .HasDefaultValueSql("(UUID())");
+
+                    b.Property<string>("Comment")
+                        .HasColumnType("LONGTEXT");
+
+                    b.Property<Guid>("CourseId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("RatingType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<int?>("Stars")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourseId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId", "CourseId")
+                        .IsUnique();
+
+                    b.ToTable("TrainingRatings");
+                });
+
             modelBuilder.Entity("Pregiato.Core.Entities.User", b =>
                 {
                     b.Property<string>("Id")
@@ -1835,6 +2222,73 @@ namespace Pregiato.Infrastructure.Migrations
                     b.Navigation("Talent");
                 });
 
+            modelBuilder.Entity("Pregiato.Core.Entities.TrainingCertificate", b =>
+                {
+                    b.HasOne("Pregiato.Core.Entities.TrainingEnrollment", "Enrollment")
+                        .WithMany()
+                        .HasForeignKey("EnrollmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Pregiato.Core.Entities.TrainingEnrollment", null)
+                        .WithMany("Certificates")
+                        .HasForeignKey("TrainingEnrollmentId");
+
+                    b.Navigation("Enrollment");
+                });
+
+            modelBuilder.Entity("Pregiato.Core.Entities.TrainingEnrollment", b =>
+                {
+                    b.HasOne("Pregiato.Core.Entities.TrainingCourse", "Course")
+                        .WithMany("Enrollments")
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+                });
+
+            modelBuilder.Entity("Pregiato.Core.Entities.TrainingLesson", b =>
+                {
+                    b.HasOne("Pregiato.Core.Entities.TrainingCourse", "Course")
+                        .WithMany("Lessons")
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+                });
+
+            modelBuilder.Entity("Pregiato.Core.Entities.TrainingLessonProgress", b =>
+                {
+                    b.HasOne("Pregiato.Core.Entities.TrainingEnrollment", "Enrollment")
+                        .WithMany("LessonProgress")
+                        .HasForeignKey("EnrollmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Pregiato.Core.Entities.TrainingLesson", "Lesson")
+                        .WithMany("ProgressRecords")
+                        .HasForeignKey("LessonId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Enrollment");
+
+                    b.Navigation("Lesson");
+                });
+
+            modelBuilder.Entity("Pregiato.Core.Entities.TrainingRating", b =>
+                {
+                    b.HasOne("Pregiato.Core.Entities.TrainingCourse", "Course")
+                        .WithMany("Ratings")
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+                });
+
             modelBuilder.Entity("Pregiato.Core.Entities.Campaign", b =>
                 {
                     b.Navigation("GeneratedLeads");
@@ -1871,6 +2325,27 @@ namespace Pregiato.Infrastructure.Migrations
             modelBuilder.Entity("Pregiato.Core.Entities.Talent", b =>
                 {
                     b.Navigation("Dna");
+                });
+
+            modelBuilder.Entity("Pregiato.Core.Entities.TrainingCourse", b =>
+                {
+                    b.Navigation("Enrollments");
+
+                    b.Navigation("Lessons");
+
+                    b.Navigation("Ratings");
+                });
+
+            modelBuilder.Entity("Pregiato.Core.Entities.TrainingEnrollment", b =>
+                {
+                    b.Navigation("Certificates");
+
+                    b.Navigation("LessonProgress");
+                });
+
+            modelBuilder.Entity("Pregiato.Core.Entities.TrainingLesson", b =>
+                {
+                    b.Navigation("ProgressRecords");
                 });
 #pragma warning restore 612, 618
         }
