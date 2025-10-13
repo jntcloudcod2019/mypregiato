@@ -182,24 +182,39 @@ export default function TalentProfile() {
   // Handle photo upload
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files
-    if (!files || files.length === 0 || !id) return
+    console.log('📸 [Upload] Arquivos selecionados:', files?.length, 'Talent ID:', id)
+    
+    if (!files || files.length === 0 || !id) {
+      console.warn('⚠️ [Upload] Sem arquivos ou ID inválido')
+      return
+    }
     
     try {
       setUploadingPhoto(true)
+      console.log('📤 [Upload] Iniciando upload de', files.length, 'arquivo(s)')
       
       for (const file of Array.from(files)) {
+        console.log('📝 [Upload] Processando:', file.name, file.size, 'bytes')
+        
         // Validate file
         validateImageFile(file)
+        console.log('✅ [Upload] Arquivo validado')
         
         // Compress image
         const compressedFile = await compressImage(file)
+        console.log('✅ [Upload] Imagem comprimida:', compressedFile.size, 'bytes')
         
         // Upload photo
-        await uploadPhoto(id, compressedFile)
+        const uploadedFile = await uploadPhoto(id, compressedFile)
+        console.log('✅ [Upload] Foto enviada:', uploadedFile)
       }
       
       // Refresh talent data to show new photos
+      console.log('🔄 [Upload] Atualizando dados do talento...')
       const updatedTalent = await getTalentById(id)
+      console.log('📊 [Upload] Talento atualizado:', updatedTalent)
+      console.log('🖼️ [Upload] Fotos no perfil:', updatedTalent?.files?.filter(f => f.type === 'PHOTO').length)
+      
       if (updatedTalent) {
         setTalent(updatedTalent)
       }
@@ -211,7 +226,7 @@ export default function TalentProfile() {
       
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      console.error('Erro ao fazer upload:', error)
+      console.error('❌ [Upload] Erro ao fazer upload:', error)
       toast({
         title: "Erro",
         description: error.message || "Erro ao fazer upload da foto",

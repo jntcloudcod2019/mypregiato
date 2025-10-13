@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useUser } from '@clerk/clerk-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +17,7 @@ import { CreateTrainingCourseDto, CreateTrainingLessonDto } from '@/types/traini
 const CriarTreinamentoPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useUser();
   const { createCourse, isCreating } = useTrainingCourses();
   
   const [formData, setFormData] = useState({
@@ -122,9 +124,19 @@ const CriarTreinamentoPage = () => {
       return;
     }
 
+    // ✅ Validar autenticação
+    if (!user?.id) {
+      toast({
+        title: "Erro de autenticação",
+        description: "Não foi possível identificar o usuário. Faça login novamente.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const courseData: CreateTrainingCourseDto = {
       ...formData,
-      createdBy: 'current-user-id', // TODO: Pegar do contexto de autenticação
+      createdBy: user.id, // ✅ Clerk User ID real
       lessons: lessons
     };
 
