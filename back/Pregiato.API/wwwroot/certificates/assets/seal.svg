@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="goldGradient" cx="50%" cy="30%" r="70%">
+      <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
+      <stop offset="30%" style="stop-color:#FFA500;stop-opacity:1" />
+      <stop offset="70%" style="stop-color:#DAA520;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#B8860B;stop-opacity:1" />
+    </radialGradient>
+    <radialGradient id="innerGold" cx="50%" cy="30%" r="60%">
+      <stop offset="0%" style="stop-color:#FFF8DC;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FFD700;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#DAA520;stop-opacity:1" />
+    </radialGradient>
+  </defs>
+  
+  <!-- Outer Ring -->
+  <circle cx="60" cy="60" r="58" fill="url(#goldGradient)" stroke="#B8860B" stroke-width="2"/>
+  
+  <!-- Inner Ring -->
+  <circle cx="60" cy="60" r="50" fill="url(#innerGold)" stroke="#DAA520" stroke-width="1"/>
+  
+  <!-- Decorative Border -->
+  <circle cx="60" cy="60" r="45" fill="none" stroke="#FFD700" stroke-width="1" opacity="0.8"/>
+  <circle cx="60" cy="60" r="40" fill="none" stroke="#FFD700" stroke-width="1" opacity="0.6"/>
+  
+  <!-- PREGIATO Text -->
+  <text x="60" y="35" font-family="Arial, sans-serif" font-size="12" font-weight="bold" 
+        text-anchor="middle" fill="#8B4513" letter-spacing="1px">
+    PREGIATO
+  </text>
+  
+  <!-- MANAGEMENT Text -->
+  <text x="60" y="50" font-family="Arial, sans-serif" font-size="8" font-weight="normal" 
+        text-anchor="middle" fill="#8B4513" letter-spacing="1px">
+    MANAGEMENT
+  </text>
+  
+  <!-- Inner Emblem -->
+  <circle cx="60" cy="80" r="15" fill="url(#goldGradient)" stroke="#DAA520" stroke-width="1"/>
+  
+  <!-- Letter P -->
+  <text x="60" y="87" font-family="Arial, sans-serif" font-size="16" font-weight="bold" 
+        text-anchor="middle" fill="#8B4513">P</text>
+  
+  <!-- Radiating Lines -->
+  <line x1="60" y1="65" x2="60" y2="45" stroke="#FFD700" stroke-width="2" opacity="0.8"/>
+  <line x1="75" y1="75" x2="90" y2="60" stroke="#FFD700" stroke-width="2" opacity="0.6"/>
+  <line x1="45" y1="75" x2="30" y2="60" stroke="#FFD700" stroke-width="2" opacity="0.6"/>
+  <line x1="75" y1="45" x2="90" y2="45" stroke="#FFD700" stroke-width="2" opacity="0.6"/>
+  <line x1="45" y1="45" x2="30" y2="45" stroke="#FFD700" stroke-width="2" opacity="0.6"/>
+</svg>

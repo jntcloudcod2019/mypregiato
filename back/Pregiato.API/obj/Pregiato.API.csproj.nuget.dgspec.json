@@ -106,7 +106,7 @@
             },
             "PuppeteerSharp": {
               "target": "Package",
-              "version": "[13.0.2, )"
+              "version": "[20.2.4, )"
             },
             "RabbitMQ.Client": {
               "target": "Package",

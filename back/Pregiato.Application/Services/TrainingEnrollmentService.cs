@@ -10,15 +10,18 @@ namespace Pregiato.Application.Services
     {
         private readonly ITrainingEnrollmentRepository _enrollmentRepository;
         private readonly ITrainingCourseRepository _courseRepository;
+        private readonly ITrainingCertificateService _certificateService;
         private readonly IMapper _mapper;
 
         public TrainingEnrollmentService(
             ITrainingEnrollmentRepository enrollmentRepository,
             ITrainingCourseRepository courseRepository,
+            ITrainingCertificateService certificateService,
             IMapper mapper)
         {
             _enrollmentRepository = enrollmentRepository;
             _courseRepository = courseRepository;
+            _certificateService = certificateService;
             _mapper = mapper;
         }
 
@@ -203,7 +206,40 @@ namespace Pregiato.Application.Services
 
         public async Task<bool> MarkAsCompletedAsync(Guid enrollmentId)
         {
+            // Marcar como concluído
             await _enrollmentRepository.MarkAsCompletedAsync(enrollmentId);
+            
+            // Buscar matrícula para obter dados do usuário
+            var enrollment = await _enrollmentRepository.GetByIdAsync(enrollmentId);
+            if (enrollment != null)
+            {
+                try
+                {
+                    // Buscar dados do curso para gerar certificado
+                    var course = await _courseRepository.GetByIdAsync(enrollment.CourseId);
+                    if (course != null)
+                    {
+                        // Buscar dados do usuário para obter nome completo
+                        // TODO: Implementar busca do usuário ou passar dados necessários
+                        var userFullName = "Usuário"; // Placeholder - implementar busca real
+                        
+                        // Gerar certificado automaticamente
+                        await _certificateService.GenerateCertificateAsync(
+                            enrollment.UserId, 
+                            userFullName, 
+                            course.Title, 
+                            enrollment.CompletedAt ?? DateTime.UtcNow);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Log do erro mas não falha a operação de conclusão
+                    // O certificado pode ser gerado manualmente depois
+                    // TODO: Implementar logging adequado
+                    Console.WriteLine($"Erro ao gerar certificado automaticamente: {ex.Message}");
+                }
+            }
+            
             return true;
         }
 

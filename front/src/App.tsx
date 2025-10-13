@@ -37,6 +37,8 @@ import Financas from "./pages/financas";
 import Usuarios from "./pages/usuarios";
 import TreinamentosPage from "./pages/treinamentos";
 import CriarTreinamentoPage from "./pages/treinamentos/criar";
+import GerenciarTreinamentosPage from "./pages/treinamentos/gerenciar";
+import EditarTreinamentoPage from "./pages/treinamentos/editar/[id]";
 import CursoPage from "./pages/treinamentos/curso/[id]";
 import PontoEletronicoPage from "./pages/ponto";
 import NotFound from "./pages/NotFound";
@@ -232,6 +234,22 @@ const App = () => (
           <ProtectedRoute>
             <MainLayout>
               <CriarTreinamentoPage />
+            </MainLayout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/treinamentos/gerenciar" element={
+          <ProtectedRoute>
+            <MainLayout>
+              <GerenciarTreinamentosPage />
+            </MainLayout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/treinamentos/editar/:id" element={
+          <ProtectedRoute>
+            <MainLayout>
+              <EditarTreinamentoPage />
             </MainLayout>
           </ProtectedRoute>
         } />

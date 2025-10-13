@@ -49,5 +49,26 @@ public class AutoMapperProfile : Profile
         CreateMap<CreateTaskDto, CrmTask>();
         CreateMap<UpdateTaskDto, CrmTask>()
             .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+
+        // Training mappings
+        CreateMap<TrainingCourse, TrainingCourseDto>();
+        CreateMap<CreateTrainingCourseDto, TrainingCourse>();
+        CreateMap<UpdateTrainingCourseDto, TrainingCourse>()
+            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+
+        CreateMap<TrainingLesson, TrainingLessonDto>();
+        CreateMap<CreateTrainingLessonDto, TrainingLesson>();
+        CreateMap<UpdateTrainingLessonDto, TrainingLesson>()
+            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+
+        CreateMap<TrainingEnrollment, TrainingEnrollmentDto>();
+        CreateMap<CreateTrainingEnrollmentDto, TrainingEnrollment>();
+
+        CreateMap<TrainingLessonProgress, TrainingLessonProgressDto>();
+
+        CreateMap<TrainingRating, TrainingRatingDto>();
+        CreateMap<CreateTrainingRatingDto, TrainingRating>();
+
+        CreateMap<TrainingCertificate, TrainingCertificateDto>();
     }
 } 

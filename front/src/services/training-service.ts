@@ -172,14 +172,30 @@ export class TrainingService {
   }
 
   // === CERTIFICATES ===
-  async generateCertificate(certificate: CreateTrainingCertificateDto): Promise<void> {
-    await apiClient.post<void>(`${this.baseUrl}/TrainingCertificates`, certificate);
+  async generateCertificate(request: { userEmail: string; courseId: string; completionDate: Date }): Promise<any> {
+    return await apiClient.post<any>(`${this.baseUrl}/TrainingCertificates`, {
+      userEmail: request.userEmail,
+      courseId: request.courseId,
+      completionDate: request.completionDate
+    });
   }
 
   async validateCertificate(validationCode: string): Promise<CertificateValidationResultDto> {
     return await apiClient.post<CertificateValidationResultDto>(`${this.baseUrl}/TrainingCertificates/validate`, {
       validationCode
     });
+  }
+
+  async getMyCertificates(): Promise<any[]> {
+    return await apiClient.get<any[]>(`${this.baseUrl}/TrainingCertificates/my-certificates`);
+  }
+
+  async getCertificateDownloadUrl(certificateId: string): Promise<{ downloadUrl: string }> {
+    return await apiClient.get<{ downloadUrl: string }>(`${this.baseUrl}/TrainingCertificates/${certificateId}/download-url`);
+  }
+
+  async checkCertificateExists(enrollmentId: string): Promise<{ exists: boolean }> {
+    return await apiClient.get<{ exists: boolean }>(`${this.baseUrl}/TrainingCertificates/enrollment/${enrollmentId}/exists`);
   }
 
   // === UTILITY METHODS ===

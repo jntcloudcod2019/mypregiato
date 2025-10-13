@@ -40,6 +40,7 @@ namespace Pregiato.Application.DTOs
         public string Description { get; set; } = string.Empty;
         
         public int OrderIndex { get; set; }
+        public string? VideoUrl { get; set; }
         public string? VideoObjectName { get; set; }
         public long? VideoSize { get; set; }
         public int? VideoDurationSeconds { get; set; }
@@ -58,6 +59,7 @@ namespace Pregiato.Application.DTOs
         public string Description { get; set; } = string.Empty;
         
         public int OrderIndex { get; set; }
+        public string? VideoUrl { get; set; }
         public string? VideoObjectName { get; set; }
         public long? VideoSize { get; set; }
         public int? VideoDurationSeconds { get; set; }

@@ -131,6 +131,7 @@ builder.Services.AddScoped<IOperatorLeadsService, Pregiato.Application.Services.
 builder.Services.AddScoped<Pregiato.Application.Interfaces.ITrainingCourseService, TrainingCourseService>();
 builder.Services.AddScoped<Pregiato.Application.Interfaces.ITrainingEnrollmentService, TrainingEnrollmentService>();
 builder.Services.AddScoped<Pregiato.Application.Interfaces.ITrainingVideoService, TrainingVideoService>();
+builder.Services.AddScoped<Pregiato.Application.Interfaces.ITrainingCertificateService, Pregiato.Application.Services.TrainingCertificateService>();
 
 // Serviços de resiliência
 builder.Services.AddScoped<IEmojiResilienceService, EmojiResilienceService>();
@@ -149,6 +150,7 @@ builder.Services.AddScoped<IOperatorLeadsRepository, OperatorLeadsRepository>();
 // Training Repositories
 builder.Services.AddScoped<ITrainingCourseRepository, TrainingCourseRepository>();
 builder.Services.AddScoped<ITrainingEnrollmentRepository, TrainingEnrollmentRepository>();
+builder.Services.AddScoped<ITrainingCertificateRepository, TrainingCertificateRepository>();
 
 // Chat services
 builder.Services.AddScoped<ChatLogService>();

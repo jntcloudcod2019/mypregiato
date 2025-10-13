@@ -29,11 +29,15 @@ export const useTrainingCourses = (filters?: TrainingCourseFilters) => {
   // Mutation para criar curso
   const createCourseMutation = useMutation({
     mutationFn: (course: CreateTrainingCourseDto) => trainingService.createCourse(course),
-    onSuccess: (newCourse) => {
+    onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: ['training-courses'] });
+      // A resposta agora vem com { course, message }
+      const courseData = response.course || response;
+      const message = response.message || `O curso "${courseData.title}" foi criado com sucesso.`;
+      
       toast({
         title: 'Curso criado!',
-        description: `O curso "${newCourse.title}" foi criado com sucesso.`,
+        description: message,
       });
     },
     onError: (error: any) => {

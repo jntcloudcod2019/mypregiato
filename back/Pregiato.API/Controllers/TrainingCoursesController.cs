@@ -173,7 +173,12 @@ namespace Pregiato.API.Controllers
                     return BadRequest(ModelState);
 
                 var course = await _courseService.CreateAsync(createDto);
-                return CreatedAtAction(nameof(GetById), new { id = course.Id }, course);
+                
+                // Retornar status 201 com mensagem específica
+                return StatusCode(201, new { 
+                    course = course,
+                    message = $"Curso {course.Title} criado com sucesso"
+                });
             }
             catch (Exception ex)
             {

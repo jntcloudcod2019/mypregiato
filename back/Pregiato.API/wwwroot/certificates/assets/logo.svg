@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="300" height="100" viewBox="0 0 300 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f0f0f0;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="300" height="100" fill="#1a1a2e" rx="8"/>
+  
+  <!-- PREGIATO Text -->
+  <text x="150" y="45" font-family="Arial, sans-serif" font-size="28" font-weight="bold" 
+        text-anchor="middle" fill="url(#logoGradient)" 
+        transform="skewX(-5)" letter-spacing="2px">
+    PREGIATO
+  </text>
+  
+  <!-- Line -->
+  <line x1="50" y1="55" x2="250" y2="55" stroke="#888" stroke-width="1"/>
+  
+  <!-- MANAGEMENT Text -->
+  <text x="150" y="75" font-family="Arial, sans-serif" font-size="12" font-weight="normal" 
+        text-anchor="middle" fill="#888" letter-spacing="3px">
+    MANAGEMENT
+  </text>
+</svg>
