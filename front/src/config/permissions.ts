@@ -188,6 +188,9 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
 export function hasPermission(role: string | null, permission: Permission): boolean {
   if (!role) return false;
   
+  // ADMIN tem acesso TOTAL - bypass de todas as validações
+  if (role.toUpperCase() === UserRole.ADMIN) return true;
+  
   // Normalizar a role para o enum (API retorna strings)
   const normalizedRole = role.toUpperCase() as UserRole;
   const permissions = ROLE_PERMISSIONS[normalizedRole] || [];
@@ -199,6 +202,10 @@ export function hasPermission(role: string | null, permission: Permission): bool
  */
 export function hasAllPermissions(role: string | null, permissions: Permission[]): boolean {
   if (!role) return false;
+  
+  // ADMIN tem acesso TOTAL - bypass de todas as validações
+  if (role.toUpperCase() === "ADMIN" || role.toUpperCase() === UserRole.ADMIN) return true;
+  
   return permissions.every(permission => hasPermission(role, permission));
 }
 
@@ -207,7 +214,11 @@ export function hasAllPermissions(role: string | null, permissions: Permission[]
  */
 export function hasAnyPermission(role: string | null, permissions: Permission[]): boolean {
   if (!role) return false;
-  return permissions.some(permission => hasPermission(role, permission));
+  
+  // ADMIN tem acesso TOTAL - bypass de todas as validações
+  if (role.toUpperCase() === UserRole.ADMIN) return true;
+  
+    return permissions.some(permission => hasPermission(role, permission));
 }
 
 /**
@@ -238,6 +249,9 @@ export const ROUTE_PERMISSIONS: Record<string, Permission[]> = {
  */
 export function canAccessRoute(role: string | null, route: string): boolean {
   if (!role) return false;
+  
+  // ADMIN tem acesso TOTAL - bypass de todas as validações
+  if (role.toUpperCase() === "ADMIN" || role.toUpperCase() === UserRole.ADMIN) return true;
   
   // Encontrar a rota mais específica que corresponde
   const matchingRoute = Object.keys(ROUTE_PERMISSIONS)

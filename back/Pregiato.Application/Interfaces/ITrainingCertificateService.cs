@@ -10,8 +10,9 @@ public interface ITrainingCertificateService
 {
     /// <summary>
     /// Gerar certificado com dados diretos do usuário e curso
+    /// Retorna uma tupla com o certificado e os bytes do PDF
     /// </summary>
-    Task<TrainingCertificateDto> GenerateCertificateAsync(string userId, string userFullName, string courseName, DateTime completionDate);
+    Task<(TrainingCertificateDto certificate, byte[] pdfBytes)> GenerateCertificateAsync(string userId, string userFullName, string courseName, DateTime completionDate);
 
     /// <summary>
     /// Gerar PDF do certificado para download direto

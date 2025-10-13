@@ -65,7 +65,10 @@ export const AuthPermissionsProvider: React.FC<AuthPermissionsProviderProps> = (
       const email = clerkUser.primaryEmailAddress?.emailAddress;
       
       if (!email) {
-        throw new Error('Email não encontrado no Clerk');
+        console.warn('[AuthPermissions] Email não encontrado no Clerk - modo degradado');
+        setUser(null);
+        setIsLoading(false);
+        return;
       }
 
       console.log('[AuthPermissions] Buscando dados do usuário:', email);
@@ -76,10 +79,15 @@ export const AuthPermissionsProvider: React.FC<AuthPermissionsProviderProps> = (
       console.log('[AuthPermissions] Dados do usuário:', response);
       
       setUser(response);
+      setError(null); // Limpar qualquer erro anterior
     } catch (err) {
       const error = err as { response?: { status?: number }; message?: string };
-      console.error('[AuthPermissions] Erro ao buscar usuário:', error);
-      setError(error.message || 'Usuário não encontrado no sistema');
+      console.warn('[AuthPermissions] Usuário não encontrado no banco de dados, permitindo acesso em modo degradado:', error);
+      
+      // NÃO bloquear o acesso - apenas logar o aviso
+      // O usuário está autenticado no Clerk, então pode acessar
+      setUser(null);
+      setError(null); // NÃO definir erro para não acionar ErrorBoundary
     } finally {
       setIsLoading(false);
     }

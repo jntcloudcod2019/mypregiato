@@ -27,22 +27,34 @@ export const CertificateDownload: React.FC<CertificateDownloadProps> = ({
 
     setIsGenerating(true);
     try {
-      await trainingService.generateCertificate({
+      // Gerar e baixar certificado diretamente
+      const pdfBlob = await trainingService.generateCertificate({
         userEmail: 'usuario@exemplo.com', // TODO: Obter do contexto de autenticação
         courseId: enrollment.course?.id || enrollment.courseId || '', // Usar o ID do curso
         completionDate: enrollment.completedAt || new Date()
       });
 
+      // Criar URL do blob e fazer download automaticamente
+      const url = window.URL.createObjectURL(pdfBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Certificado_${enrollment.course?.title || 'Curso'}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
       toast({
         title: 'Certificado gerado!',
-        description: 'Seu certificado foi criado com sucesso.',
+        description: 'Seu certificado foi criado e o download foi iniciado.',
       });
 
       onCertificateGenerated?.();
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro inesperado ao gerar certificado.';
       toast({
         title: 'Erro ao gerar certificado',
-        description: error.response?.data?.message || 'Erro inesperado ao gerar certificado.',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
