@@ -8,7 +8,7 @@ const LoginPage: React.FC = () => {
   const [params] = useSearchParams();
 
   // 1️⃣ Origem via ProtectedRoute
-  const fromPath = (location.state as any)?.from?.pathname as string | undefined;
+  const fromPath = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
 
   // 2️⃣ Via query param (?return_to=/treinamentos/criar)
   const returnTo = params.get("return_to") || undefined;
@@ -19,8 +19,12 @@ const LoginPage: React.FC = () => {
   // ✅ Ordem de prioridade (NUNCA usar /dashboard como padrão)
   const redirectTo = fromPath || returnTo || lastRoute || "/treinamentos";
 
-  // Logs para debug
+  // Salvar a rota de destino e logs para debug
   useEffect(() => {
+    if (fromPath) {
+      sessionStorage.setItem('lastRoute', fromPath);
+    }
+    
     console.log("🔐 [Login] fromPath:", fromPath);
     console.log("🔐 [Login] return_to:", returnTo);
     console.log("🔐 [Login] lastRoute:", lastRoute);
