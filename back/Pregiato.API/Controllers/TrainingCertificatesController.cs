@@ -32,10 +32,10 @@ public class TrainingCertificatesController : ControllerBase
     }
 
     /// <summary>
-    /// Gerar certificado para um usuário e curso
+    /// Gerar certificado para um usuário e curso e retornar PDF para download
     /// </summary>
     [HttpPost]
-    public async Task<ActionResult<TrainingCertificateDto>> GenerateCertificate([FromBody] GenerateCertificateRequest request)
+    public async Task<IActionResult> GenerateCertificate([FromBody] GenerateCertificateRequest request)
     {
         try
         {
@@ -71,13 +71,15 @@ public class TrainingCertificatesController : ControllerBase
                 userFullName, user.Id, course.Title);
 
             // Gerar certificado com os dados do usuário e curso
-            var certificate = await _certificateService.GenerateCertificateAsync(
+            var (certificate, pdfBytes) = await _certificateService.GenerateCertificateAsync(
                 user.Id, 
                 userFullName, 
                 course.Title, 
                 request.CompletionDate);
-            
-            return Ok(certificate);
+
+            // Retornar PDF como arquivo para download
+            var fileName = $"Certificado_{certificate.CertificateNumber}_{userFullName.Replace(" ", "_")}.pdf";
+            return File(pdfBytes, "application/pdf", fileName);
         }
         catch (ArgumentException ex)
         {
