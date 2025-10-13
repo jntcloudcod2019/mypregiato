@@ -1,0 +1,87 @@
+using System.ComponentModel.DataAnnotations;
+
+namespace Pregiato.Application.DTOs
+{
+    public class TrainingCourseDto
+    {
+        public Guid Id { get; set; }
+        
+        [Required]
+        [MaxLength(200)]
+        public string Title { get; set; } = string.Empty;
+        
+        [Required]
+        public string Description { get; set; } = string.Empty;
+        
+        public string? ThumbnailUrl { get; set; }
+        public string? ThumbnailObjectName { get; set; }
+        
+        [MaxLength(100)]
+        public string? Category { get; set; }
+        
+        [MaxLength(50)]
+        public string? Difficulty { get; set; }
+        
+        public bool IsActive { get; set; } = true;
+        public int TotalLessons { get; set; }
+        public int TotalDurationMinutes { get; set; }
+        public int TotalLikes { get; set; }
+        public int TotalDislikes { get; set; }
+        public decimal AverageRating { get; set; }
+        
+        [Required]
+        [MaxLength(100)]
+        public string CreatedBy { get; set; } = string.Empty;
+        
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
+        public DateTime? DeletedAt { get; set; }
+        
+        // Navegação
+        public List<TrainingLessonDto>? Lessons { get; set; }
+        public List<TrainingEnrollmentDto>? Enrollments { get; set; }
+        public List<TrainingRatingDto>? Ratings { get; set; }
+    }
+
+    public class CreateTrainingCourseDto
+    {
+        [Required]
+        [MaxLength(200)]
+        public string Title { get; set; } = string.Empty;
+        
+        [Required]
+        public string Description { get; set; } = string.Empty;
+        
+        [MaxLength(100)]
+        public string? Category { get; set; }
+        
+        [MaxLength(50)]
+        public string? Difficulty { get; set; }
+        
+        public bool IsActive { get; set; } = true;
+        
+        [Required]
+        [MaxLength(100)]
+        public string CreatedBy { get; set; } = string.Empty;
+        
+        public List<CreateTrainingLessonDto>? Lessons { get; set; }
+    }
+
+    public class UpdateTrainingCourseDto
+    {
+        [Required]
+        [MaxLength(200)]
+        public string Title { get; set; } = string.Empty;
+        
+        [Required]
+        public string Description { get; set; } = string.Empty;
+        
+        [MaxLength(100)]
+        public string? Category { get; set; }
+        
+        [MaxLength(50)]
+        public string? Difficulty { get; set; }
+        
+        public bool IsActive { get; set; }
+    }
+}
