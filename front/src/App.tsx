@@ -5,6 +5,7 @@ import { ProtectedRoute } from "./components/auth/protected-route";
 import { AuthGuard } from "./components/auth/auth-guard";
 import { AuthInitializer } from "./components/auth/auth-initializer";
 import { AutoLogout } from "./components/auth/auto-logout";
+import { AuthPermissionsProvider } from "./contexts/AuthPermissionsContext";
 import LoginPage from "./pages/login";
 import Dashboard from "./pages/dashboard";
 import CRMDashboard from "./pages/crm/dashboard";
@@ -56,8 +57,9 @@ const App = () => (
     <AuthInitializer>
       <AutoLogout>
         <AuthGuard>
-          <WhatsAppProvider>
-          <Routes>
+          <AuthPermissionsProvider>
+            <WhatsAppProvider>
+            <Routes>
         {/* Rotas públicas (não requerem autenticação) */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/ficha/:token" element={<FichaDigitalPage />} />
@@ -373,7 +375,8 @@ const App = () => (
         {/* Rota 404 - redireciona para login */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
-          </WhatsAppProvider>
+            </WhatsAppProvider>
+          </AuthPermissionsProvider>
         </AuthGuard>
       </AutoLogout>
     </AuthInitializer>
