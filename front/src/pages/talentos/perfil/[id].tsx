@@ -213,10 +213,17 @@ export default function TalentProfile() {
       console.log('🔄 [Upload] Atualizando dados do talento...')
       const updatedTalent = await getTalentById(id)
       console.log('📊 [Upload] Talento atualizado:', updatedTalent)
-      console.log('🖼️ [Upload] Fotos no perfil:', updatedTalent?.files?.filter(f => f.type === 'PHOTO').length)
+      
+      // TEMPORÁRIO: Buscar fotos do mock storage pois API ainda não retorna files
+      const photos = await getTalentPhotos(id)
+      console.log('🖼️ [Upload] Fotos do mock storage:', photos.length)
       
       if (updatedTalent) {
-        setTalent(updatedTalent)
+        // Adicionar as fotos do mock storage ao talent
+        setTalent({
+          ...updatedTalent,
+          files: photos
+        })
       }
       
       toast({
@@ -642,6 +649,8 @@ export default function TalentProfile() {
                         onChange={handlePhotoUpload}
                         className="hidden"
                         id="photo-upload"
+                        name="talent-photos"
+                        aria-label="Upload de fotos do talento"
                       />
                       <Button size="sm" asChild disabled={uploadingPhoto}>
                         <label htmlFor="photo-upload" className="cursor-pointer">
