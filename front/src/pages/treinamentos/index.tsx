@@ -7,8 +7,6 @@ import { Progress } from '@/components/ui/progress';
 import { Plus, Search, Play, Users, Clock, BookOpen, Star } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthPermissions } from '@/hooks/use-auth-permissions';
-import { Permission } from '@/config/permissions';
-import ProtectedFeature from '@/components/auth/protected-feature';
 
 interface Curso {
   id: string;
@@ -36,7 +34,10 @@ const TreinamentosPage = () => {
   const [cursos, setCursos] = useState<Curso[]>([]);
   const [busca, setBusca] = useState('');
   const [filtro, setFiltro] = useState<'todos' | 'andamento' | 'concluidos'>('todos');
-  const { user, isModel, isLoading: userLoading } = useAuthPermissions();
+  const { role } = useAuthPermissions();
+  
+  // Verificação simples: MODEL não pode criar/gerenciar
+  const isModelUser = role?.toUpperCase() === 'MODEL';
 
   useEffect(() => {
     // Carregar cursos da API quando disponível
@@ -79,8 +80,8 @@ const TreinamentosPage = () => {
             Treinamentos
           </h1>
         </div>
-        <div className="flex gap-2">
-          <ProtectedFeature permission={Permission.CREATE_TRAINING} hideWhenDenied>
+        {!isModelUser && (
+          <div className="flex gap-2">
             <Button 
               size="lg" 
               className="gap-2"
@@ -92,9 +93,7 @@ const TreinamentosPage = () => {
               <Plus className="h-4 w-4" />
               Criar Treinamento
             </Button>
-          </ProtectedFeature>
-          
-          <ProtectedFeature permission={Permission.MANAGE_TRAININGS} hideWhenDenied>
+            
             <Button 
               size="lg" 
               className="gap-2"
@@ -106,8 +105,8 @@ const TreinamentosPage = () => {
               <BookOpen className="h-4 w-4" />
               Gerenciar Treinamentos
             </Button>
-          </ProtectedFeature>
-        </div>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -258,9 +257,9 @@ const TreinamentosPage = () => {
           <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <h3 className="text-lg font-medium mb-2">Nenhum curso encontrado</h3>
           <p className="text-muted-foreground mb-4">
-            {busca ? 'Tente ajustar os filtros de busca.' : 'Comece criando seu primeiro treinamento.'}
+            {busca ? 'Tente ajustar os filtros de busca.' : isModelUser ? 'Nenhum curso disponível no momento.' : 'Comece criando seu primeiro treinamento.'}
           </p>
-          {!busca && (
+          {!busca && !isModelUser && (
             <Link to="/treinamentos/criar">
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
