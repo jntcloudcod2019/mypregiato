@@ -20,8 +20,31 @@ interface VideoUploadProps {
   className?: string;
 }
 
-const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB por chunk
-const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB máximo
+// ✅ CONFIGURAÇÕES DINÂMICAS BASEADAS NO TAMANHO DO ARQUIVO
+const getDynamicChunkSize = (fileSize: number): number => {
+  // Para arquivos pequenos (< 10MB): chunk de 1MB
+  if (fileSize < 10 * 1024 * 1024) {
+    return 1 * 1024 * 1024; // 1MB
+  }
+  // Para arquivos médios (10MB - 100MB): chunk de 5MB
+  else if (fileSize < 100 * 1024 * 1024) {
+    return 5 * 1024 * 1024; // 5MB
+  }
+  // Para arquivos grandes (100MB - 1GB): chunk de 10MB
+  else if (fileSize < 1024 * 1024 * 1024) {
+    return 10 * 1024 * 1024; // 10MB
+  }
+  // Para arquivos muito grandes (> 1GB): chunk de 20MB
+  else {
+    return 20 * 1024 * 1024; // 20MB
+  }
+};
+
+const getDynamicMaxFileSize = (fileSize: number): number => {
+  // Aceitar qualquer tamanho de arquivo, mas com limites de segurança
+  const maxAllowed = 5 * 1024 * 1024 * 1024; // 5GB máximo absoluto
+  return Math.min(fileSize, maxAllowed);
+};
 
 export const VideoUpload: React.FC<VideoUploadProps> = ({
   courseId,
@@ -44,7 +67,7 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
     type?: string;
   }>({});
 
-  // Validar arquivo
+  // ✅ VALIDAÇÃO DINÂMICA BASEADA NO TAMANHO DO ARQUIVO
   const validateFile = useCallback((file: File): string | null => {
     const validTypes = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo'];
     
@@ -52,8 +75,12 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
       return 'Tipo de arquivo não suportado. Use MP4, WebM, MOV ou AVI.';
     }
     
-    if (file.size > MAX_FILE_SIZE) {
-      return `Arquivo muito grande. Tamanho máximo: ${Math.round(MAX_FILE_SIZE / 1024 / 1024)}MB`;
+    // ✅ USAR TAMANHO MÁXIMO DINÂMICO
+    const dynamicMaxSize = getDynamicMaxFileSize(file.size);
+    const maxAllowed = 5 * 1024 * 1024 * 1024; // 5GB máximo absoluto
+    
+    if (file.size > maxAllowed) {
+      return `Arquivo muito grande. Tamanho máximo permitido: ${Math.round(maxAllowed / 1024 / 1024 / 1024)}GB`;
     }
     
     return null;
@@ -96,14 +123,20 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
     video.src = videoUrl;
   }, [validateFile, toast]);
 
-  // Upload em chunks
+  // ✅ UPLOAD EM CHUNKS COM TAMANHO DINÂMICO
   const uploadInChunks = useCallback(async (file: File): Promise<VideoUploadResultDto> => {
-    const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+    // ✅ CALCULAR CHUNK_SIZE DINÂMICO BASEADO NO TAMANHO DO ARQUIVO
+    const dynamicChunkSize = getDynamicChunkSize(file.size);
+    const totalChunks = Math.ceil(file.size / dynamicChunkSize);
     let uploadedChunks = 0;
     
+    console.log(`📊 [Upload] Arquivo: ${formatFileSize(file.size)}`);
+    console.log(`📊 [Upload] Chunk Size: ${formatFileSize(dynamicChunkSize)}`);
+    console.log(`📊 [Upload] Total de Chunks: ${totalChunks}`);
+    
     for (let i = 0; i < totalChunks; i++) {
-      const start = i * CHUNK_SIZE;
-      const end = Math.min(start + CHUNK_SIZE, file.size);
+      const start = i * dynamicChunkSize;
+      const end = Math.min(start + dynamicChunkSize, file.size);
       const chunk = file.slice(start, end);
       
       // Converter chunk para base64
@@ -180,10 +213,14 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
     try {
       let result: VideoUploadResultDto;
       
-      // Usar upload em chunks para arquivos grandes
-      if (selectedFile.size > CHUNK_SIZE) {
+      // ✅ DECISÃO DINÂMICA: Usar chunks baseado no tamanho do arquivo
+      const dynamicChunkSize = getDynamicChunkSize(selectedFile.size);
+      
+      if (selectedFile.size > dynamicChunkSize) {
+        console.log(`🔄 [Upload] Usando upload em chunks (arquivo: ${formatFileSize(selectedFile.size)}, chunk: ${formatFileSize(dynamicChunkSize)})`);
         result = await uploadInChunks(selectedFile);
       } else {
+        console.log(`🔄 [Upload] Usando upload direto (arquivo: ${formatFileSize(selectedFile.size)})`);
         result = await uploadDirect(selectedFile);
       }
       
@@ -251,7 +288,12 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
           Upload de Vídeo
         </CardTitle>
         <CardDescription>
-          Faça upload de um vídeo para esta aula. Formatos suportados: MP4, WebM, MOV, AVI (máx. 500MB)
+          Faça upload de um vídeo para esta aula. Formatos suportados: MP4, WebM, MOV, AVI (máx. 5GB)
+          {selectedFile && (
+            <div className="mt-2 text-xs text-blue-600">
+              📊 Configurações dinâmicas: Chunk de {formatFileSize(getDynamicChunkSize(selectedFile.size))} para arquivo de {formatFileSize(selectedFile.size)}
+            </div>
+          )}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -289,6 +331,10 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
                   {formatFileSize(selectedFile.size)}
                   {videoMetadata.duration && ` • ${formatDuration(videoMetadata.duration)}`}
                 </p>
+                <div className="text-xs text-blue-600 mt-1">
+                  📊 Chunk: {formatFileSize(getDynamicChunkSize(selectedFile.size))} • 
+                  Total: {Math.ceil(selectedFile.size / getDynamicChunkSize(selectedFile.size))} chunks
+                </div>
               </div>
               <Button
                 variant="outline"
