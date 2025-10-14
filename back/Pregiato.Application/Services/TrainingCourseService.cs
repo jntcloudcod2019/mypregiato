@@ -88,7 +88,7 @@ namespace Pregiato.Application.Services
             course.TotalDislikes = 0;
             course.AverageRating = 0;
 
-            // Adicionar as aulas se fornecidas
+            // ✅ ADICIONAR AS AULAS SE FORNECIDAS (OPCIONAL)
             if (createDto.Lessons != null && createDto.Lessons.Any())
             {
                 _logger.LogInformation($"Processando {createDto.Lessons.Count} aulas para o curso {course.Title}");
@@ -133,6 +133,10 @@ namespace Pregiato.Application.Services
                     }
                     course.Lessons.Add(lesson);
                 }
+            }
+            else
+            {
+                _logger.LogInformation($"Criando curso {course.Title} sem aulas inicialmente");
             }
 
             var createdCourse = await _courseRepository.AddAsync(course);

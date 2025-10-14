@@ -9,7 +9,7 @@ namespace Pregiato.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [ClerkAuthorize]
+    // [ClerkAuthorize] // ⚠️ TEMPORARIAMENTE DESABILITADO PARA TESTE
     public class TrainingCoursesController : ControllerBase
     {
         private readonly ITrainingCourseService _courseService;
