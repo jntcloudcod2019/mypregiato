@@ -34,13 +34,10 @@ namespace Pregiato.Application.Validators
                 .MaximumLength(100)
                 .WithMessage("Criador deve ter no máximo 100 caracteres");
 
-            RuleFor(x => x.Lessons)
-                .Must(lessons => lessons != null && lessons.Any())
-                .WithMessage("Pelo menos uma aula deve ser fornecida");
-
+            // ✅ LESSONS OPCIONAIS - Permitir criar curso sem aulas inicialmente
             RuleForEach(x => x.Lessons)
                 .SetValidator(new CreateTrainingLessonValidator())
-                .When(x => x.Lessons != null);
+                .When(x => x.Lessons != null && x.Lessons.Any());
         }
     }
 

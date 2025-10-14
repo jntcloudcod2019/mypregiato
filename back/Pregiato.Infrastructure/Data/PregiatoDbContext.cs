@@ -38,7 +38,7 @@ public class PregiatoDbContext : DbContext
         public DbSet<TrainingCourse> TrainingCourses { get; set; }
         public DbSet<TrainingLesson> TrainingLessons { get; set; }
         public DbSet<TrainingEnrollment> TrainingEnrollments { get; set; }
-        public DbSet<TrainingLessonProgress> TrainingLessonProgress { get; set; }
+        public DbSet<TrainingLessonProgress> TrainingLessonProgresses { get; set; }
         public DbSet<TrainingRating> TrainingRatings { get; set; }
         public DbSet<TrainingCertificate> TrainingCertificates { get; set; }
 
