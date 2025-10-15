@@ -45,11 +45,16 @@ namespace Pregiato.Application.Services
         {
             try
             {
-                Console.WriteLine($"🎬 [VIDEO-SERVICE] Iniciando upload de vídeo - Curso: {uploadDto.CourseTitle}, Aula: {uploadDto.LessonTitle}");
+                Console.WriteLine($"\n🎬 [VIDEO-SERVICE] ========================================");
+                Console.WriteLine($"🎬 [VIDEO-SERVICE] Iniciando upload de vídeo");
+                Console.WriteLine($"   📚 Curso: {uploadDto.CourseTitle}");
+                Console.WriteLine($"   📝 Aula: {uploadDto.LessonTitle}");
+                Console.WriteLine($"   📦 Arquivo: {uploadDto.FileName} ({uploadDto.FileSize} bytes)");
+                Console.WriteLine($"   🎞️ MIME: {uploadDto.MimeType}");
                 
                 // Gerar nome do objeto seguindo o padrão correto
                 var objectName = GenerateObjectName(uploadDto);
-                Console.WriteLine($"📁 [VIDEO-SERVICE] Path gerado: {objectName}");
+                Console.WriteLine($"   📁 Path gerado: {objectName}");
                 
                 // Converter bytes para base64
                 var base64Data = Convert.ToBase64String(videoData);
@@ -169,19 +174,34 @@ namespace Pregiato.Application.Services
 
         private string GenerateObjectName(TrainingVideoUploadDto uploadDto)
         {
-            // Formato: Course/{courseId}_{courseName}/{courseId}_{lessonId}_{lessonTitle}.ext
-            // A pasta "Course/" já existe no MinIO, só precisamos criar o restante
+            // ✅ NOVO FORMATO (sem IDs): Course/{courseName}/{timestamp}_{lessonTitle}.ext
+            // O vídeo é enviado ANTES de criar o curso, então não temos IDs ainda
             
             // Limpar o nome do curso e da aula para usar em path
-            var courseNameSafe = SanitizeForPath(uploadDto.CourseTitle ?? "Untitled");
-            var lessonTitleSafe = SanitizeForPath(uploadDto.LessonTitle ?? "Untitled");
+            var courseNameSafe = SanitizeForPath(uploadDto.CourseTitle);
+            var lessonTitleSafe = SanitizeForPath(uploadDto.LessonTitle);
+            
+            // Gerar timestamp único para evitar conflitos
+            var timestamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
+            var uniqueId = Guid.NewGuid().ToString("N").Substring(0, 8);
             
             // Obter extensão do arquivo
             var extension = Path.GetExtension(uploadDto.FileName);
+            if (string.IsNullOrEmpty(extension))
+            {
+                // Inferir extensão do MIME type
+                extension = uploadDto.MimeType switch
+                {
+                    "video/mp4" => ".mp4",
+                    "video/webm" => ".webm",
+                    "video/quicktime" => ".mov",
+                    _ => ".mp4"
+                };
+            }
             
-            // Formato: Course/{courseId}_{courseName}/{courseId}_{lessonId}_{lessonTitle}.ext
-            var folderPath = $"Course/{uploadDto.CourseId}_{courseNameSafe}";
-            var fileName = $"{uploadDto.CourseId}_{uploadDto.LessonId}_{lessonTitleSafe}.{extension}";
+            // ✅ Formato: Course/{courseName}/{timestamp}_{uniqueId}_{lessonTitle}.ext
+            var folderPath = $"Course/{courseNameSafe}";
+            var fileName = $"{timestamp}_{uniqueId}_{lessonTitleSafe}{extension}";
             
             return $"{folderPath}/{fileName}";
         }

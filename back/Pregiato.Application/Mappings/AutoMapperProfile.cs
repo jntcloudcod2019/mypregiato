@@ -58,8 +58,8 @@ public class AutoMapperProfile : Profile
 
         CreateMap<TrainingLesson, TrainingLessonDto>();
         CreateMap<CreateTrainingLessonDto, TrainingLesson>()
-            .ForMember(dest => dest.VideoSize, opt => opt.MapFrom(src => src.VideoFileSize ?? 0))
-            .ForMember(dest => dest.VideoDurationSeconds, opt => opt.MapFrom(src => src.DurationSeconds))
+            .ForMember(dest => dest.VideoSize, opt => opt.MapFrom(src => src.VideoSize ?? 0))
+            .ForMember(dest => dest.VideoDurationSeconds, opt => opt.MapFrom(src => src.VideoDurationSeconds ?? 0))
             .ForMember(dest => dest.VideoMimeType, opt => opt.MapFrom(src => src.VideoMimeType ?? "video/mp4"))
             .ForMember(dest => dest.VideoUrl, opt => opt.MapFrom(src => src.VideoUrl ?? string.Empty))
             .ForMember(dest => dest.VideoObjectName, opt => opt.MapFrom(src => src.VideoObjectName ?? string.Empty))

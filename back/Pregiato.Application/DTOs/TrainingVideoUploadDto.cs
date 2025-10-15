@@ -4,32 +4,36 @@ namespace Pregiato.Application.DTOs
 {
     public class TrainingVideoUploadDto
     {
-        [Required]
-        public Guid CourseId { get; set; }
+        // ⚠️ OPCIONAIS: CourseId e LessonId não existem no momento do upload
+        // O vídeo é enviado ANTES de criar o curso/aula
+        public Guid? CourseId { get; set; }
+        public Guid? LessonId { get; set; }
         
-        [Required]
-        public Guid LessonId { get; set; }
-        
-        [Required]
+        [Required(ErrorMessage = "Nome do arquivo é obrigatório")]
         public string FileName { get; set; } = string.Empty;
         
-        [Required]
+        [Required(ErrorMessage = "Tipo MIME é obrigatório")]
         public string MimeType { get; set; } = string.Empty;
         
-        [Required]
+        [Required(ErrorMessage = "Tamanho do arquivo é obrigatório")]
+        [Range(1, long.MaxValue, ErrorMessage = "Tamanho do arquivo deve ser maior que 0")]
         public long FileSize { get; set; }
         
-        // ✅ ADICIONADO: Campo para dados Base64
-        [Required]
+        [Required(ErrorMessage = "Dados Base64 são obrigatórios")]
         public string Base64Data { get; set; } = string.Empty;
         
+        // Chunking (opcional)
         public string? ChunkId { get; set; }
         public int? ChunkIndex { get; set; }
         public int? TotalChunks { get; set; }
         
-        // Campos adicionais para gerar o path correto
-        public string? CourseTitle { get; set; }
-        public string? LessonTitle { get; set; }
+        // ✅ OBRIGATÓRIOS: Usados para gerar o path no MinIO
+        // Formato: Course/{courseTitle}/{lessonTitle}.ext
+        [Required(ErrorMessage = "Título do curso é obrigatório")]
+        public string CourseTitle { get; set; } = string.Empty;
+        
+        [Required(ErrorMessage = "Título da aula é obrigatório")]
+        public string LessonTitle { get; set; } = string.Empty;
         
         // ✅ ADICIONADO: Metadados do vídeo
         public int? DurationSeconds { get; set; }

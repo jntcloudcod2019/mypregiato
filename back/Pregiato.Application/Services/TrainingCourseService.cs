@@ -95,58 +95,38 @@ namespace Pregiato.Application.Services
 
                 Console.WriteLine($"✅ [SERVICE] Curso mapeado com sucesso - ID: {course.Id}, Aulas: {course.TotalLessons}");
 
-            // ✅ ADICIONAR AS AULAS SE FORNECIDAS (OPCIONAL)
+            // ✅ ADICIONAR AS AULAS (vídeos já devem estar no MinIO)
             if (createDto.Lessons != null && createDto.Lessons.Any())
             {
                 Console.WriteLine($"📚 [SERVICE] Processando {createDto.Lessons.Count} aulas para o curso {course.Title}");
-
-                // Criar tarefas de upload de vídeo em paralelo
-                var uploadTasks = new List<Task<(TrainingLesson lesson, VideoUploadResultDto? uploadResult)>>();
-
+                Console.WriteLine($"⚠️ [SERVICE] IMPORTANTE: Vídeos devem ter sido enviados previamente via /api/TrainingVideos/upload");
+                
+                int lessonIndex = 0;
                 foreach (var lessonDto in createDto.Lessons)
                 {
+                    lessonIndex++;
+                    Console.WriteLine($"\n📚 [SERVICE] === AULA {lessonIndex}/{createDto.Lessons.Count} ===");
+                    Console.WriteLine($"   📝 Título: {lessonDto.Title}");
+                    Console.WriteLine($"   📄 Descrição: {lessonDto.Description?.Substring(0, Math.Min(50, lessonDto.Description?.Length ?? 0))}...");
+                    
                     var lesson = _mapper.Map<TrainingLesson>(lessonDto);
                     lesson.Id = Guid.NewGuid();
                     lesson.CourseId = course.Id;
                     lesson.CreatedAt = DateTime.UtcNow;
                     lesson.UpdatedAt = DateTime.UtcNow;
-
-                    // Se a aula tem dados de vídeo (base64), processar upload
-                    if (!string.IsNullOrEmpty(lessonDto.VideoBase64Data))
+                    
+                    Console.WriteLine($"   🆔 ID gerado: {lesson.Id}");
+                    Console.WriteLine($"   📹 VideoUrl: {lesson.VideoUrl ?? "VAZIO"}");
+                    Console.WriteLine($"   📁 VideoObjectName: {lesson.VideoObjectName ?? "VAZIO"}");
+                    
+                    // Validar se a URL do vídeo foi fornecida
+                    if (string.IsNullOrEmpty(lesson.VideoUrl))
                     {
-                        var uploadTask = ProcessVideoUploadAsync(course, lesson, lessonDto);
-                        uploadTasks.Add(uploadTask);
-                    }
-                    else
-                    {
-                        // Se não tem vídeo, apenas adicionar a aula com URLs vazias
-                        lesson.VideoUrl = string.Empty;
-                        lesson.VideoObjectName = string.Empty;
-                        uploadTasks.Add(Task.FromResult<(TrainingLesson, VideoUploadResultDto?)>((lesson, null)));
-                    }
-                }
-
-                // Executar todos os uploads em paralelo com timeout
-                Console.WriteLine("🚀 [SERVICE] Iniciando upload paralelo de vídeos...");
-                var uploadResults = await Task.WhenAll(uploadTasks);
-                Console.WriteLine($"✅ [SERVICE] Upload de {uploadResults.Length} vídeos concluído");
-
-                // Adicionar todas as aulas ao curso
-                Console.WriteLine($"📚 [SERVICE] Adicionando {uploadResults.Length} aulas ao curso");
-                foreach (var (lesson, uploadResult) in uploadResults)
-                {
-                    if (uploadResult != null && !uploadResult.Success)
-                    {
-                        Console.WriteLine($"⚠️ [SERVICE] Erro no upload do vídeo da aula {lesson.Title}: {uploadResult.ErrorMessage}");
-                        _logger.LogWarning($"Erro no upload do vídeo da aula {lesson.Title}: {uploadResult.ErrorMessage}");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"✅ [SERVICE] Aula '{lesson.Title}' processada com sucesso");
+                        Console.WriteLine($"   ⚠️ ATENÇÃO: Aula sem URL de vídeo!");
                     }
                     
                     course.Lessons.Add(lesson);
-                    Console.WriteLine($"📝 [SERVICE] Aula '{lesson.Title}' adicionada ao curso - ID: {lesson.Id}, CourseId: {lesson.CourseId}");
+                    Console.WriteLine($"   ✅ Aula adicionada ao curso");
                 }
             }
             else
@@ -183,63 +163,9 @@ namespace Pregiato.Application.Services
             }
         }
 
-        private async Task<(TrainingLesson lesson, VideoUploadResultDto? uploadResult)> ProcessVideoUploadAsync(
-            TrainingCourse course, 
-            TrainingLesson lesson, 
-            CreateTrainingLessonDto lessonDto)
-        {
-            try
-            {
-                Console.WriteLine($"🎬 [SERVICE] Iniciando upload do vídeo da aula: {lesson.Title}");
-
-                // Criar DTO de upload com informações necessárias
-                var uploadDto = new TrainingVideoUploadDto
-                {
-                    CourseId = course.Id,
-                    LessonId = lesson.Id,
-                    CourseTitle = course.Title,
-                    LessonTitle = lesson.Title,
-                    FileName = lessonDto.VideoFileName ?? $"{lesson.Title}.mp4",
-                    MimeType = lessonDto.VideoMimeType ?? "video/mp4",
-                    FileSize = lessonDto.VideoFileSize ?? 0
-                };
-
-                // Converter base64 para bytes
-                var videoBytes = Convert.FromBase64String(lessonDto.VideoBase64Data!);
-
-                // Upload do vídeo
-                var uploadResult = await _videoService.UploadVideoAsync(uploadDto, videoBytes);
-
-                if (uploadResult.Success)
-                {
-                    // Atualizar URLs da aula
-                    lesson.VideoUrl = uploadResult.VideoUrl ?? string.Empty;
-                    lesson.VideoObjectName = uploadResult.ObjectName ?? string.Empty;
-                    
-                    _logger.LogInformation($"Upload concluído com sucesso: {lesson.Title} -> {lesson.VideoUrl}");
-                }
-                else
-                {
-                    _logger.LogError($"Erro no upload do vídeo: {uploadResult.ErrorMessage}");
-                    lesson.VideoUrl = string.Empty;
-                    lesson.VideoObjectName = string.Empty;
-                }
-
-                return (lesson, uploadResult);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Exceção ao fazer upload do vídeo da aula {lesson.Title}");
-                lesson.VideoUrl = string.Empty;
-                lesson.VideoObjectName = string.Empty;
-                
-                return (lesson, new VideoUploadResultDto 
-                { 
-                    Success = false, 
-                    ErrorMessage = ex.Message 
-                });
-            }
-        }
+        // ⚠️ MÉTODO REMOVIDO: ProcessVideoUploadAsync
+        // O upload de vídeo agora deve ser feito ANTES via /api/TrainingVideos/upload
+        // O CreateTrainingCourseDto recebe apenas as URLs já geradas
 
         public async Task<TrainingCourseDto?> UpdateAsync(Guid id, UpdateTrainingCourseDto updateDto)
         {

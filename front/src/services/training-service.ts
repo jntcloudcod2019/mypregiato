@@ -87,6 +87,33 @@ export class TrainingService {
     return await apiClient.post<TrainingCourse>(`${this.baseUrl}/TrainingCourses/${courseId}/rating`, rating);
   }
 
+  // === VIDEO UPLOAD ===
+  async uploadVideo(uploadData: TrainingVideoUploadDto): Promise<VideoUploadResultDto> {
+    console.log('📤 [TRAINING-SERVICE] Iniciando upload de vídeo:', {
+      fileName: uploadData.fileName,
+      fileSize: uploadData.fileSize,
+      courseTitle: uploadData.courseTitle,
+      lessonTitle: uploadData.lessonTitle
+    });
+
+    try {
+      const response = await apiClient.post<VideoUploadResultDto>(
+        `${this.baseUrl}/TrainingVideos/upload`,
+        uploadData
+      );
+
+      console.log('✅ [TRAINING-SERVICE] Upload concluído com sucesso:', {
+        videoUrl: response.videoUrl,
+        objectName: response.objectName
+      });
+
+      return response;
+    } catch (error) {
+      console.error('❌ [TRAINING-SERVICE] Erro no upload de vídeo:', error);
+      throw error;
+    }
+  }
+
   // === ENROLLMENTS ===
   async getEnrollments(filters?: TrainingEnrollmentFilters): Promise<TrainingEnrollment[]> {
     const params = new URLSearchParams();
@@ -140,14 +167,9 @@ export class TrainingService {
     return await apiClient.get<boolean>(`${this.baseUrl}/TrainingEnrollments/user/${userId}/course/${courseId}/is-enrolled`);
   }
 
-  // === VIDEO UPLOAD ===
+  // === VIDEO UPLOAD (MÉTODOS COMPLEMENTARES) ===
   async generatePresignedUrl(uploadDto: TrainingVideoUploadDto): Promise<VideoPresignedUrlDto> {
     return await apiClient.post<VideoPresignedUrlDto>(`${this.baseUrl}/TrainingVideos/presigned-url`, uploadDto);
-  }
-
-  // ✅ MÉTODO ATUALIZADO: Upload de vídeo completo
-  async uploadVideo(uploadDto: TrainingVideoUploadDto): Promise<VideoUploadResultDto> {
-    return await apiClient.post<VideoUploadResultDto>(`${this.baseUrl}/TrainingVideos/upload`, uploadDto);
   }
 
   // ✅ MÉTODO MANTIDO: Upload em chunks (para compatibilidade)

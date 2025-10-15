@@ -50,13 +50,9 @@ namespace Pregiato.Application.DTOs
         public string? AttachmentsJson { get; set; }
         public bool IsActive { get; set; } = true;
         
-        // Campos para upload de vídeo
-        public string? VideoBase64Data { get; set; }
-        public string? VideoFileName { get; set; }
-        [Range(0, long.MaxValue, ErrorMessage = "O tamanho do arquivo deve ser maior ou igual a 0")]
-        public long? VideoFileSize { get; set; }
-        [Range(1, int.MaxValue, ErrorMessage = "A duração deve ser maior que 0 segundos")]
-        public int DurationSeconds { get; set; }
+        // ⚠️ IMPORTANTE: Os vídeos devem ser enviados ANTES via /api/TrainingVideos/upload
+        // Este DTO recebe apenas as URLs retornadas pelo upload
+        // Campos Base64 foram removidos para evitar request body too large (limite 30MB)
     }
 
     public class UpdateTrainingLessonDto
