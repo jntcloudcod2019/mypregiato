@@ -30,12 +30,11 @@ namespace Pregiato.Application.Validators
                 .WithMessage("Tamanho do vídeo não pode exceder 500MB")
                 .When(x => x.VideoSize.HasValue);
 
+            // ✅ DURAÇÃO FLEXÍVEL (não obrigatória, valor padrão será aplicado no service)
             RuleFor(x => x.VideoDurationSeconds)
-                .GreaterThan(0)
-                .WithMessage("Duração do vídeo deve ser maior que 0")
-                .LessThanOrEqualTo(3600) // 1 hora
-                .WithMessage("Duração do vídeo não pode exceder 1 hora")
-                .When(x => x.VideoDurationSeconds.HasValue);
+                .LessThanOrEqualTo(7200) // 2 horas
+                .WithMessage("Duração do vídeo não pode exceder 2 horas")
+                .When(x => x.VideoDurationSeconds.HasValue && x.VideoDurationSeconds > 0);
 
             RuleFor(x => x.VideoMimeType)
                 .Must(BeValidVideoMimeType)

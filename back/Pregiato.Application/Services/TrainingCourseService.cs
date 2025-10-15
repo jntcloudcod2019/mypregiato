@@ -118,6 +118,8 @@ namespace Pregiato.Application.Services
                     Console.WriteLine($"   🆔 ID gerado: {lesson.Id}");
                     Console.WriteLine($"   📹 VideoUrl: {lesson.VideoUrl ?? "VAZIO"}");
                     Console.WriteLine($"   📁 VideoObjectName: {lesson.VideoObjectName ?? "VAZIO"}");
+                    Console.WriteLine($"   ⏱️ Duração: {lesson.VideoDurationSeconds ?? 900} segundos" + 
+                        (lesson.VideoDurationSeconds == 900 ? " (padrão: 15 min)" : ""));
                     
                     // Validar se a URL do vídeo foi fornecida
                     if (string.IsNullOrEmpty(lesson.VideoUrl))
