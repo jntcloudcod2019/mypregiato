@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Plus, Trash2, Play, Save, Eye, Upload, Video, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Play, Save, Eye, Upload, Video, ChevronLeft, ChevronRight, Loader2, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { v4 as uuidv4 } from 'uuid';
 import { useTrainingCourses } from '@/hooks/use-training-courses';
@@ -46,17 +46,37 @@ const CriarTreinamentoPage = () => {
   const [activeStep, setActiveStep] = useState<'course' | 'lessons' | 'videos' | 'preview'>('course');
   const [showPreview, setShowPreview] = useState(true);
   const [isCreatingCourse, setIsCreatingCourse] = useState(false);
+  const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
 
   // ✅ FUNÇÃO PARA CONVERTER ARQUIVO PARA BASE64
   const convertFileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result as string;
-        resolve(result.split(',')[1]); // Remove data:video/mp4;base64,
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
+      try {
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const result = reader.result as string;
+            if (result && result.includes(',')) {
+              const base64Data = result.split(',')[1]; // Remove data:video/mp4;base64,
+              console.log('✅ [Debug] Base64 extraído com sucesso:', base64Data ? `${base64Data.substring(0, 50)}...` : 'VAZIO');
+              resolve(base64Data);
+            } else {
+              reject(new Error('Resultado do FileReader inválido'));
+            }
+          } catch (error) {
+            console.error('❌ [Debug] Erro ao processar resultado do FileReader:', error);
+            reject(error);
+          }
+        };
+        reader.onerror = (error) => {
+          console.error('❌ [Debug] Erro no FileReader:', error);
+          reject(new Error('Erro ao ler arquivo'));
+        };
+        reader.readAsDataURL(file);
+      } catch (error) {
+        console.error('❌ [Debug] Erro ao criar FileReader:', error);
+        reject(error);
+      }
     });
   };
 
@@ -79,15 +99,21 @@ const CriarTreinamentoPage = () => {
       return;
     }
 
-    if (!currentLesson.videoBase64Data || !currentLesson.videoFileName || !currentLesson.videoFileSize || !currentLesson.videoMimeType) {
+    // ✅ VALIDAÇÃO DE VÍDEO OBRIGATÓRIO
+    if (!currentLesson.videoBase64Data) {
+      console.log('❌ [Debug] Validação falhou - videoBase64Data vazio:', {
+        videoBase64Data: currentLesson.videoBase64Data,
+        videoFileName: currentLesson.videoFileName,
+        videoFileSize: currentLesson.videoFileSize,
+        videoMimeType: currentLesson.videoMimeType
+      });
       toast({
         title: "Vídeo obrigatório",
-        description: "É necessário fazer upload de um vídeo para a aula. Todos os campos de vídeo são obrigatórios.",
+        description: "É necessário fazer upload de um vídeo para a aula.",
         variant: "destructive"
       });
       return;
     }
-
 
     const newLesson: CreateTrainingLessonDto = {
       ...currentLesson,
@@ -322,7 +348,7 @@ const CriarTreinamentoPage = () => {
               <div className="space-y-2">
                 <Label htmlFor="category">Categoria</Label>
                 <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
-                  <SelectTrigger>
+                  <SelectTrigger id="category">
                     <SelectValue placeholder="Selecione uma categoria" />
                   </SelectTrigger>
                   <SelectContent>
@@ -351,7 +377,7 @@ const CriarTreinamentoPage = () => {
               <div className="space-y-2">
                 <Label htmlFor="difficulty">Nível de Dificuldade</Label>
                 <Select value={formData.difficulty} onValueChange={(value) => setFormData(prev => ({ ...prev, difficulty: value }))}>
-                  <SelectTrigger>
+                  <SelectTrigger id="difficulty">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -453,6 +479,7 @@ const CriarTreinamentoPage = () => {
                 <div className="space-y-2">
                   <Label>Upload do Vídeo *</Label>
                   <Input
+                    id="video-upload"
                     type="file"
                     accept="video/*"
                     onChange={async (e) => {
@@ -482,6 +509,11 @@ const CriarTreinamentoPage = () => {
                           return;
                         }
 
+                        // Criar URL de preview do vídeo
+                        const videoPreviewUrl = URL.createObjectURL(file);
+                        setVideoPreviewUrl(videoPreviewUrl);
+                        console.log('🎬 [Debug] URL de preview criada:', videoPreviewUrl);
+                        
                         // Converter para Base64
                         console.log('🔄 [Debug] Iniciando conversão para Base64:', file.name, file.size, 'bytes');
                         const base64Data = await convertFileToBase64(file);
@@ -492,7 +524,7 @@ const CriarTreinamentoPage = () => {
                         video.preload = 'metadata';
                         const duration = await new Promise<number>((resolve) => {
                           video.onloadedmetadata = () => resolve(video.duration);
-                          video.src = URL.createObjectURL(file);
+                          video.src = videoPreviewUrl;
                         });
                         console.log('⏱️ [Debug] Duração do vídeo:', duration, 'segundos');
 
@@ -510,33 +542,87 @@ const CriarTreinamentoPage = () => {
                           videoBase64Data: base64Data ? `${base64Data.substring(0, 50)}...` : 'VAZIO'
                         });
                         
-                        setCurrentLesson(prev => ({
-                          ...prev,
-                          ...videoData
-                        }));
+                        setCurrentLesson(prev => {
+                          const updated = {
+                            ...prev,
+                            ...videoData
+                          };
+                          console.log('🔄 [Debug] Estado atualizado:', {
+                            ...updated,
+                            videoBase64Data: updated.videoBase64Data ? `${updated.videoBase64Data.substring(0, 50)}...` : 'VAZIO'
+                          });
+                          return updated;
+                        });
 
                         toast({
                           title: 'Vídeo processado!',
                           description: `${file.name} (${Math.round(file.size / 1024 / 1024)}MB) preparado para envio`
                         });
                       } catch (error) {
-                        console.error('Erro ao processar vídeo:', error);
+                        console.error('❌ [Debug] Erro completo ao processar vídeo:', error);
+                        const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
                         toast({
                           title: 'Erro no processamento',
-                          description: 'Erro ao processar o vídeo selecionado',
+                          description: `Erro ao processar o vídeo: ${errorMessage}`,
                           variant: 'destructive'
                         });
                       }
                     }}
                   />
                   {currentLesson.videoFileName && (
-                    <div className="text-sm text-green-600">
-                      ✅ {currentLesson.videoFileName} ({Math.round(currentLesson.videoFileSize / 1024 / 1024)}MB)
-                      {currentLesson.videoBase64Data && (
-                        <div className="text-xs text-blue-600 mt-1">
-                          📊 Base64: {Math.round(currentLesson.videoBase64Data.length / 1024)}KB | 
-                          Tipo: {currentLesson.videoMimeType} | 
-                          Duração: {currentLesson.durationSeconds}s
+                    <div className="space-y-3">
+                      <div className="text-sm text-green-600">
+                        ✅ {currentLesson.videoFileName} ({Math.round(currentLesson.videoFileSize / 1024 / 1024)}MB)
+                        {currentLesson.videoBase64Data && (
+                          <div className="text-xs text-blue-600 mt-1">
+                            📊 Base64: {Math.round(currentLesson.videoBase64Data.length / 1024)}KB | 
+                            Tipo: {currentLesson.videoMimeType} | 
+                            Duração: {currentLesson.durationSeconds}s
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* ✅ PREVIEW DO VÍDEO COM PLAYER */}
+                      {videoPreviewUrl && (
+                        <div className="relative bg-black rounded-lg overflow-hidden shadow-lg">
+                          <video
+                            src={videoPreviewUrl}
+                            controls
+                            className="w-full max-h-64 object-contain"
+                            preload="metadata"
+                            onLoadedMetadata={() => {
+                              console.log('🎬 [Debug] Vídeo carregado para preview');
+                            }}
+                          />
+                          <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
+                            Preview
+                          </div>
+                          <div className="absolute top-2 left-2">
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => {
+                                // Limpar vídeo selecionado
+                                URL.revokeObjectURL(videoPreviewUrl);
+                                setVideoPreviewUrl(null);
+                                setCurrentLesson(prev => ({
+                                  ...prev,
+                                  videoBase64Data: '',
+                                  videoFileName: '',
+                                  videoFileSize: 0,
+                                  videoMimeType: '',
+                                  durationSeconds: 0
+                                }));
+                                // Limpar input
+                                const fileInput = document.getElementById('video-upload') as HTMLInputElement;
+                                if (fileInput) fileInput.value = '';
+                              }}
+                              className="h-6 w-6 p-0"
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
                         </div>
                       )}
                     </div>

@@ -32,18 +32,20 @@ export const useTrainingCourses = (filters?: TrainingCourseFilters) => {
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: ['training-courses'] });
       // A resposta agora vem com { course, message }
-      const courseData = response.course || response;
-      const message = response.message || `O curso "${courseData.title}" foi criado com sucesso.`;
+      const responseData = response as { course?: TrainingCourse; message?: string };
+      const courseData = responseData.course || response;
+      const message = responseData.message || `O curso "${courseData.title}" foi criado com sucesso.`;
       
       toast({
         title: 'Curso criado!',
         description: message,
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error ? error.message : 'Erro inesperado ao criar curso.';
       toast({
         title: 'Erro ao criar curso',
-        description: error.response?.data?.message || 'Erro inesperado ao criar curso.',
+        description: errorMessage,
         variant: 'destructive',
       });
     },
@@ -61,10 +63,11 @@ export const useTrainingCourses = (filters?: TrainingCourseFilters) => {
         description: `O curso "${updatedCourse.title}" foi atualizado com sucesso.`,
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error ? error.message : 'Erro inesperado ao atualizar curso.';
       toast({
         title: 'Erro ao atualizar curso',
-        description: error.response?.data?.message || 'Erro inesperado ao atualizar curso.',
+        description: errorMessage,
         variant: 'destructive',
       });
     },
@@ -80,10 +83,11 @@ export const useTrainingCourses = (filters?: TrainingCourseFilters) => {
         description: 'O curso foi deletado com sucesso.',
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error ? error.message : 'Erro inesperado ao deletar curso.';
       toast({
         title: 'Erro ao deletar curso',
-        description: error.response?.data?.message || 'Erro inesperado ao deletar curso.',
+        description: errorMessage,
         variant: 'destructive',
       });
     },
@@ -161,10 +165,11 @@ export const useTrainingCourse = (id: string) => {
         description: `O curso "${updatedCourse.title}" foi atualizado com sucesso.`,
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error ? error.message : 'Erro inesperado ao atualizar curso.';
       toast({
         title: 'Erro ao atualizar curso',
-        description: error.response?.data?.message || 'Erro inesperado ao atualizar curso.',
+        description: errorMessage,
         variant: 'destructive',
       });
     },
