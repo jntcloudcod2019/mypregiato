@@ -176,9 +176,12 @@ namespace Pregiato.API.Controllers
         [HttpPost]
         public async Task<ActionResult<TrainingCourseDto>> Create([FromBody] CreateTrainingCourseDto createDto)
         {
+            Console.WriteLine($"🚀 [CONTROLLER] Iniciando criação de curso - Título: {createDto.Title}, Aulas: {createDto.Lessons?.Count ?? 0}");
+            
             try
             {
                 // ✅ USAR VALIDATOR REAL EM VEZ DE ModelState.IsValid
+                Console.WriteLine("🔍 [CONTROLLER] Iniciando validação do DTO");
                 var validationResult = await _validator.ValidateAsync(createDto);
                 if (!validationResult.IsValid)
                 {
@@ -186,18 +189,18 @@ namespace Pregiato.API.Controllers
                         .Select(e => new { Field = e.PropertyName, Message = e.ErrorMessage })
                         .ToList();
                     
-                    _logger.LogWarning("Validação falhou ao criar curso: {Errors}", string.Join(", ", errors.Select(e => $"{e.Field}: {e.Message}")));
+                    Console.WriteLine($"❌ [CONTROLLER] Validação falhou - Erros: {string.Join(", ", errors.Select(e => $"{e.Field}: {e.Message}"))}");
                     return BadRequest(new { 
                         message = "Dados inválidos", 
                         errors = errors 
                     });
                 }
 
-                _logger.LogInformation("Criando curso: {Title} com {LessonCount} aulas", createDto.Title, createDto.Lessons?.Count ?? 0);
+                Console.WriteLine("✅ [CONTROLLER] Validação aprovada - Chamando service para criar curso");
                 
                 var course = await _courseService.CreateAsync(createDto);
                 
-                _logger.LogInformation("Curso criado com sucesso: {CourseId} - {Title}", course.Id, course.Title);
+                Console.WriteLine($"🎉 [CONTROLLER] Curso criado com sucesso - ID: {course.Id}, Título: {course.Title}, Aulas: {course.Lessons?.Count ?? 0}");
                 
                 // Retornar status 201 com mensagem específica
                 return StatusCode(201, new { 
@@ -207,17 +210,18 @@ namespace Pregiato.API.Controllers
             }
             catch (ArgumentException ex)
             {
-                _logger.LogWarning("Argumento inválido ao criar curso: {Message}", ex.Message);
+                Console.WriteLine($"⚠️ [CONTROLLER] Argumento inválido ao criar curso: {ex.Message}");
                 return BadRequest(new { message = ex.Message });
             }
             catch (InvalidOperationException ex)
             {
-                _logger.LogWarning("Operação inválida ao criar curso: {Message}", ex.Message);
+                Console.WriteLine($"⚠️ [CONTROLLER] Operação inválida ao criar curso: {ex.Message}");
                 return BadRequest(new { message = ex.Message });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erro inesperado ao criar curso: {Message}", ex.Message);
+                Console.WriteLine($"💥 [CONTROLLER] Erro inesperado ao criar curso: {ex.Message}");
+                Console.WriteLine($"💥 [CONTROLLER] Stack trace: {ex.StackTrace}");
                 return StatusCode(500, new { 
                     message = "Erro interno do servidor",
                     details = ex.Message

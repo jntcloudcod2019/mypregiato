@@ -79,10 +79,11 @@ namespace Pregiato.Application.Services
 
         public async Task<TrainingCourseDto> CreateAsync(CreateTrainingCourseDto createDto)
         {
+            Console.WriteLine($"🔧 [SERVICE] Iniciando criação do curso: {createDto.Title}");
+            
             try
             {
-                _logger.LogInformation("Iniciando criação do curso: {Title}", createDto.Title);
-                
+                Console.WriteLine("🔄 [SERVICE] Mapeando DTO para entidade TrainingCourse");
                 var course = _mapper.Map<TrainingCourse>(createDto);
                 course.Id = Guid.NewGuid();
                 course.CreatedAt = DateTime.UtcNow;
@@ -92,12 +93,12 @@ namespace Pregiato.Application.Services
                 course.TotalDislikes = 0;
                 course.AverageRating = 0;
 
-                _logger.LogInformation("Curso mapeado com sucesso: {CourseId}", course.Id);
+                Console.WriteLine($"✅ [SERVICE] Curso mapeado com sucesso - ID: {course.Id}, Aulas: {course.TotalLessons}");
 
             // ✅ ADICIONAR AS AULAS SE FORNECIDAS (OPCIONAL)
             if (createDto.Lessons != null && createDto.Lessons.Any())
             {
-                _logger.LogInformation($"Processando {createDto.Lessons.Count} aulas para o curso {course.Title}");
+                Console.WriteLine($"📚 [SERVICE] Processando {createDto.Lessons.Count} aulas para o curso {course.Title}");
 
                 // Criar tarefas de upload de vídeo em paralelo
                 var uploadTasks = new List<Task<(TrainingLesson lesson, VideoUploadResultDto? uploadResult)>>();
@@ -126,9 +127,9 @@ namespace Pregiato.Application.Services
                 }
 
                 // Executar todos os uploads em paralelo com timeout
-                _logger.LogInformation("Iniciando upload paralelo de vídeos...");
+                Console.WriteLine("🚀 [SERVICE] Iniciando upload paralelo de vídeos...");
                 var uploadResults = await Task.WhenAll(uploadTasks);
-                _logger.LogInformation($"Upload de {uploadResults.Length} vídeos concluído");
+                Console.WriteLine($"✅ [SERVICE] Upload de {uploadResults.Length} vídeos concluído");
 
                 // Adicionar todas as aulas ao curso
                 foreach (var (lesson, uploadResult) in uploadResults)
@@ -142,17 +143,20 @@ namespace Pregiato.Application.Services
             }
             else
             {
-                _logger.LogInformation($"Criando curso {course.Title} sem aulas inicialmente");
+                Console.WriteLine($"📝 [SERVICE] Criando curso {course.Title} sem aulas inicialmente");
             }
 
+                Console.WriteLine("💾 [SERVICE] Chamando repository para salvar curso no banco");
                 var createdCourse = await _courseRepository.AddAsync(course);
-                _logger.LogInformation("Curso salvo no banco de dados: {CourseId}", createdCourse.Id);
+                Console.WriteLine($"✅ [SERVICE] Curso salvo no banco de dados - ID: {createdCourse.Id}");
                 
+                Console.WriteLine("🔄 [SERVICE] Mapeando entidade para DTO de retorno");
                 return _mapper.Map<TrainingCourseDto>(createdCourse);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erro ao criar curso: {Message}", ex.Message);
+                Console.WriteLine($"💥 [SERVICE] Erro ao criar curso: {ex.Message}");
+                Console.WriteLine($"💥 [SERVICE] Stack trace: {ex.StackTrace}");
                 throw;
             }
         }
@@ -164,7 +168,7 @@ namespace Pregiato.Application.Services
         {
             try
             {
-                _logger.LogInformation($"Iniciando upload do vídeo da aula: {lesson.Title}");
+                Console.WriteLine($"🎬 [SERVICE] Iniciando upload do vídeo da aula: {lesson.Title}");
 
                 // Criar DTO de upload com informações necessárias
                 var uploadDto = new TrainingVideoUploadDto
