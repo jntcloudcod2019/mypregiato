@@ -45,6 +45,8 @@ namespace Pregiato.Application.DTOs
 
     public class CreateTrainingCourseDto
     {
+        public Guid Id { get; set; } = Guid.NewGuid();
+        
         [Required(ErrorMessage = "O título do curso é obrigatório")]
         [MaxLength(200, ErrorMessage = "O título deve ter no máximo 200 caracteres")]
         public string Title { get; set; } = string.Empty;
