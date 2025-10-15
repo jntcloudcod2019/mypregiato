@@ -79,6 +79,15 @@ const CriarTreinamentoPage = () => {
       return;
     }
 
+    if (!currentLesson.videoBase64Data) {
+      toast({
+        title: "Vídeo obrigatório",
+        description: "É necessário fazer upload de um vídeo para a aula.",
+        variant: "destructive"
+      });
+      return;
+    }
+
 
     const newLesson: CreateTrainingLessonDto = {
       ...currentLesson,
@@ -92,6 +101,14 @@ const CriarTreinamentoPage = () => {
       videoUrl: currentLesson.videoUrl || '', // Pode estar vazio inicialmente
       videoObjectName: currentLesson.videoObjectName || ''
     };
+
+    // ✅ DEBUG: Log dos dados do vídeo
+    console.log('🎥 [Debug] Dados do vídeo na aula:', {
+      videoBase64Data: currentLesson.videoBase64Data ? `${currentLesson.videoBase64Data.substring(0, 50)}...` : 'VAZIO',
+      videoFileName: currentLesson.videoFileName,
+      videoFileSize: currentLesson.videoFileSize,
+      videoMimeType: currentLesson.videoMimeType
+    });
 
     setLessons([...lessons, newLesson]);
     
@@ -169,6 +186,15 @@ const CriarTreinamentoPage = () => {
       createdBy: newId, 
       lessons: lessons
     };
+
+    // ✅ DEBUG: Log do payload completo
+    console.log('📤 [Debug] Payload completo do curso:', {
+      ...courseData,
+      lessons: courseData.lessons?.map(lesson => ({
+        ...lesson,
+        videoBase64Data: lesson.videoBase64Data ? `${lesson.videoBase64Data.substring(0, 50)}...` : 'VAZIO'
+      }))
+    });
 
     setIsCreatingCourse(true);
 
