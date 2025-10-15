@@ -94,8 +94,15 @@ namespace Pregiato.Infrastructure.Repositories
 
         public async Task<TrainingCourse> AddAsync(TrainingCourse course)
         {
+            Console.WriteLine($"💾 [REPOSITORY] Adicionando curso ao contexto - ID: {course.Id}, Título: {course.Title}");
+            Console.WriteLine($"💾 [REPOSITORY] Aulas a serem salvas: {course.Lessons?.Count ?? 0}");
+            
             _context.TrainingCourses.Add(course);
+            
+            Console.WriteLine("💾 [REPOSITORY] Salvando alterações no banco de dados...");
             await _context.SaveChangesAsync();
+            
+            Console.WriteLine($"✅ [REPOSITORY] Curso salvo com sucesso - ID: {course.Id}");
             return course;
         }
 
