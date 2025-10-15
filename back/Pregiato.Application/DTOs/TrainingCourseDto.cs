@@ -45,23 +45,24 @@ namespace Pregiato.Application.DTOs
 
     public class CreateTrainingCourseDto
     {
-        [Required]
-        [MaxLength(200)]
+        [Required(ErrorMessage = "O título do curso é obrigatório")]
+        [MaxLength(200, ErrorMessage = "O título deve ter no máximo 200 caracteres")]
         public string Title { get; set; } = string.Empty;
         
-        [Required]
+        [Required(ErrorMessage = "A descrição do curso é obrigatória")]
+        [MinLength(10, ErrorMessage = "A descrição deve ter pelo menos 10 caracteres")]
         public string Description { get; set; } = string.Empty;
         
-        [MaxLength(100)]
+        [MaxLength(100, ErrorMessage = "A categoria deve ter no máximo 100 caracteres")]
         public string? Category { get; set; }
         
-        [MaxLength(50)]
+        [MaxLength(50, ErrorMessage = "A dificuldade deve ter no máximo 50 caracteres")]
         public string? Difficulty { get; set; }
         
         public bool IsActive { get; set; } = true;
         
-        [Required]
-        [MaxLength(100)]
+        [Required(ErrorMessage = "O ID do criador é obrigatório")]
+        [MaxLength(100, ErrorMessage = "O ID do criador deve ter no máximo 100 caracteres")]
         public string CreatedBy { get; set; } = string.Empty;
         
         public List<CreateTrainingLessonDto>? Lessons { get; set; }
