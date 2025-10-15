@@ -59,7 +59,11 @@ public class AutoMapperProfile : Profile
         CreateMap<TrainingLesson, TrainingLessonDto>();
         CreateMap<CreateTrainingLessonDto, TrainingLesson>()
             .ForMember(dest => dest.VideoSize, opt => opt.MapFrom(src => src.VideoSize ?? 0))
-            .ForMember(dest => dest.VideoDurationSeconds, opt => opt.MapFrom(src => src.VideoDurationSeconds ?? 0))
+            // ✅ DURAÇÃO PADRÃO: 15 minutos (900 segundos) se não fornecida
+            .ForMember(dest => dest.VideoDurationSeconds, opt => opt.MapFrom(src => 
+                src.VideoDurationSeconds.HasValue && src.VideoDurationSeconds > 0 
+                    ? src.VideoDurationSeconds 
+                    : 900)) // 15 minutos padrão
             .ForMember(dest => dest.VideoMimeType, opt => opt.MapFrom(src => src.VideoMimeType ?? "video/mp4"))
             .ForMember(dest => dest.VideoUrl, opt => opt.MapFrom(src => src.VideoUrl ?? string.Empty))
             .ForMember(dest => dest.VideoObjectName, opt => opt.MapFrom(src => src.VideoObjectName ?? string.Empty))
