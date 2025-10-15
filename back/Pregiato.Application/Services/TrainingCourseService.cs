@@ -85,7 +85,7 @@ namespace Pregiato.Application.Services
             {
                 Console.WriteLine("🔄 [SERVICE] Mapeando DTO para entidade TrainingCourse");
                 var course = _mapper.Map<TrainingCourse>(createDto);
-                course.Id = Guid.NewGuid();
+                course.Id = createDto.Id;
                 course.CreatedAt = DateTime.UtcNow;
                 course.UpdatedAt = DateTime.UtcNow;
                 course.TotalLessons = createDto.Lessons?.Count ?? 0;
@@ -110,8 +110,7 @@ namespace Pregiato.Application.Services
                     Console.WriteLine($"   📄 Descrição: {lessonDto.Description?.Substring(0, Math.Min(50, lessonDto.Description?.Length ?? 0))}...");
                     
                     var lesson = _mapper.Map<TrainingLesson>(lessonDto);
-                    lesson.Id = Guid.NewGuid();
-                    lesson.CourseId = course.Id;
+                    lesson.CourseId = createDto.Id;
                     lesson.CreatedAt = DateTime.UtcNow;
                     lesson.UpdatedAt = DateTime.UtcNow;
                     

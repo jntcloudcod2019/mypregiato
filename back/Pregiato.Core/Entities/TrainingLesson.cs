@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace Pregiato.Core.Entities;
 
@@ -33,7 +34,7 @@ public class TrainingLesson
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     
-    // Relacionamentos
+    [System.Text.Json.Serialization.JsonIgnore] 
     public virtual TrainingCourse Course { get; set; } = null!;
     public virtual ICollection<TrainingLessonProgress> ProgressRecords { get; set; } = new List<TrainingLessonProgress>();
 }
