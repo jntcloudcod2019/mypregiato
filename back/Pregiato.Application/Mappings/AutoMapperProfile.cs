@@ -51,12 +51,21 @@ public class AutoMapperProfile : Profile
             .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
         // Training mappings
-        CreateMap<TrainingCourse, TrainingCourseDto>();
+        // ✅ CONFIGURAR PARA EVITAR REFERÊNCIAS CIRCULARES
+        CreateMap<TrainingCourse, TrainingCourseDto>()
+            .ForMember(dest => dest.Lessons, opt => opt.MapFrom(src => src.Lessons))
+            .ForMember(dest => dest.Enrollments, opt => opt.Ignore())
+            .ForMember(dest => dest.Ratings, opt => opt.Ignore())
+            .MaxDepth(1);
+        
         CreateMap<CreateTrainingCourseDto, TrainingCourse>();
         CreateMap<UpdateTrainingCourseDto, TrainingCourse>()
             .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
-        CreateMap<TrainingLesson, TrainingLessonDto>();
+        // ✅ IGNORAR REFERÊNCIA DE VOLTA PARA Course
+        CreateMap<TrainingLesson, TrainingLessonDto>()
+            .ForMember(dest => dest.Course, opt => opt.Ignore())
+            .ForMember(dest => dest.ProgressRecords, opt => opt.Ignore());
         CreateMap<CreateTrainingLessonDto, TrainingLesson>()
             .ForMember(dest => dest.VideoSize, opt => opt.MapFrom(src => src.VideoSize ?? 0))
             // ✅ DURAÇÃO PADRÃO: 15 minutos (900 segundos) se não fornecida
@@ -78,12 +87,21 @@ public class AutoMapperProfile : Profile
         CreateMap<UpdateTrainingLessonDto, TrainingLesson>()
             .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
-        CreateMap<TrainingEnrollment, TrainingEnrollmentDto>();
+        // ✅ ENROLLMENT - EVITAR REFERÊNCIAS CIRCULARES
+        CreateMap<TrainingEnrollment, TrainingEnrollmentDto>()
+            .ForMember(dest => dest.Course, opt => opt.Ignore())
+            .ForMember(dest => dest.LessonProgress, opt => opt.Ignore())
+            .ForMember(dest => dest.Certificates, opt => opt.Ignore());
         CreateMap<CreateTrainingEnrollmentDto, TrainingEnrollment>();
 
-        CreateMap<TrainingLessonProgress, TrainingLessonProgressDto>();
+        // ✅ LESSON PROGRESS - EVITAR REFERÊNCIAS CIRCULARES
+        CreateMap<TrainingLessonProgress, TrainingLessonProgressDto>()
+            .ForMember(dest => dest.Enrollment, opt => opt.Ignore())
+            .ForMember(dest => dest.Lesson, opt => opt.Ignore());
 
-        CreateMap<TrainingRating, TrainingRatingDto>();
+        // ✅ RATING - EVITAR REFERÊNCIAS CIRCULARES
+        CreateMap<TrainingRating, TrainingRatingDto>()
+            .ForMember(dest => dest.Course, opt => opt.Ignore());
         CreateMap<CreateTrainingRatingDto, TrainingRating>();
 
         CreateMap<TrainingCertificate, TrainingCertificateDto>();
