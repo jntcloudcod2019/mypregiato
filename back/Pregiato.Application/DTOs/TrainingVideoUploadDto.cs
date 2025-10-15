@@ -19,6 +19,10 @@ namespace Pregiato.Application.DTOs
         [Required]
         public long FileSize { get; set; }
         
+        // ✅ ADICIONADO: Campo para dados Base64
+        [Required]
+        public string Base64Data { get; set; } = string.Empty;
+        
         public string? ChunkId { get; set; }
         public int? ChunkIndex { get; set; }
         public int? TotalChunks { get; set; }
@@ -26,6 +30,11 @@ namespace Pregiato.Application.DTOs
         // Campos adicionais para gerar o path correto
         public string? CourseTitle { get; set; }
         public string? LessonTitle { get; set; }
+        
+        // ✅ ADICIONADO: Metadados do vídeo
+        public int? DurationSeconds { get; set; }
+        public int? Width { get; set; }
+        public int? Height { get; set; }
     }
 
     public class VideoUploadResultDto

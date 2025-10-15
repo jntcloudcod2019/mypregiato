@@ -10,8 +10,8 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, Plus, Trash2, Play, Save, Eye, Upload, Video, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { v4 as uuidv4 } from 'uuid';
 import { useTrainingCourses } from '@/hooks/use-training-courses';
-import VideoUpload from '@/components/training/VideoUpload';
 import { CreateTrainingCourseDto, CreateTrainingLessonDto } from '@/types/training';
 
 const CriarTreinamentoPage = () => {
@@ -24,7 +24,7 @@ const CriarTreinamentoPage = () => {
     title: '',
     description: '',
     category: '',
-    difficulty: 'Iniciante',
+    difficulty: 'Normal',
     isActive: true
   });
   
@@ -35,12 +35,30 @@ const CriarTreinamentoPage = () => {
     orderIndex: 1,
     durationSeconds: 0,
     videoUrl: '',
-    videoObjectName: ''
+    videoObjectName: '',
+    // ✅ ADICIONADO: Campos para dados Base64 do vídeo
+    videoBase64Data: '',
+    videoFileName: '',
+    videoFileSize: 0,
+    videoMimeType: ''
   });
   
   const [activeStep, setActiveStep] = useState<'course' | 'lessons' | 'videos' | 'preview'>('course');
-  const [showPreview, setShowPreview] = useState(false);
+  const [showPreview, setShowPreview] = useState(true);
   const [isCreatingCourse, setIsCreatingCourse] = useState(false);
+
+  // ✅ FUNÇÃO PARA CONVERTER ARQUIVO PARA BASE64
+  const convertFileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        resolve(result.split(',')[1]); // Remove data:video/mp4;base64,
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
 
   const addLesson = () => {
     if (!currentLesson.title) {
@@ -61,10 +79,15 @@ const CriarTreinamentoPage = () => {
       return;
     }
 
-    // Remover validação de videoUrl - o vídeo será enviado ao salvar o curso
+
     const newLesson: CreateTrainingLessonDto = {
       ...currentLesson,
       isActive: true,
+      // ✅ INCLUIR DADOS BASE64 DO VÍDEO
+      videoBase64Data: currentLesson.videoBase64Data || '',
+      videoFileName: currentLesson.videoFileName || '',
+      videoFileSize: currentLesson.videoFileSize || 0,
+      videoMimeType: currentLesson.videoMimeType || '',
       // Manter dados do vídeo para envio posterior
       videoUrl: currentLesson.videoUrl || '', // Pode estar vazio inicialmente
       videoObjectName: currentLesson.videoObjectName || ''
@@ -79,7 +102,12 @@ const CriarTreinamentoPage = () => {
       orderIndex: lessons.length + 2,
       durationSeconds: 0,
       videoUrl: '',
-      videoObjectName: ''
+      videoObjectName: '',
+      // ✅ LIMPAR CAMPOS BASE64
+      videoBase64Data: '',
+      videoFileName: '',
+      videoFileSize: 0,
+      videoMimeType: ''
     });
     
     toast({
@@ -124,19 +152,21 @@ const CriarTreinamentoPage = () => {
       return;
     }
 
-    // ✅ Validar autenticação
-    if (!user?.id) {
-      toast({
-        title: "Erro de autenticação",
-        description: "Usuário não autenticado. Faça login novamente.",
-        variant: "destructive"
-      });
-      return;
-    }
+    // // ✅ Validar autenticação
+    // if (!user?.id) {
+    //   toast({
+    //     title: "Erro de autenticação",
+    //     description: "Usuário não autenticado. Faça login novamente.",
+    //     variant: "destructive"
+    //   });
+    //   return;
+    // }
+
+    const newId: string = uuidv4();
 
     const courseData: CreateTrainingCourseDto = {
       ...formData,
-      createdBy: user.id, // ✅ Clerk User ID real
+      createdBy: newId, 
       lessons: lessons
     };
 
@@ -396,20 +426,76 @@ const CriarTreinamentoPage = () => {
                 
                 <div className="space-y-2">
                   <Label>Upload do Vídeo *</Label>
-                  <VideoUpload
-                    courseId={formData.title || 'temp'} // Usar título como ID temporário
-                    lessonId={currentLesson.title || 'temp'} // Usar título como ID temporário
-                    onUploadComplete={(result) => {
-                      setCurrentLesson(prev => ({
-                        ...prev,
-                        videoUrl: result.videoUrl || '',
-                        videoObjectName: result.objectName || ''
-                      }));
-                    }}
-                    onUploadError={(error) => {
-                      console.error('Erro no upload:', error);
+                  <Input
+                    type="file"
+                    accept="video/*"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+
+                      try {
+                        // Validar tipo de arquivo
+                        const validTypes = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo'];
+                        if (!validTypes.includes(file.type)) {
+                          toast({
+                            title: 'Tipo de arquivo inválido',
+                            description: 'Use MP4, WebM, MOV ou AVI',
+                            variant: 'destructive'
+                          });
+                          return;
+                        }
+
+                        // Validar tamanho (máx 5GB)
+                        const maxSize = 5 * 1024 * 1024 * 1024; // 5GB
+                        if (file.size > maxSize) {
+                          toast({
+                            title: 'Arquivo muito grande',
+                            description: 'Tamanho máximo: 5GB',
+                            variant: 'destructive'
+                          });
+                          return;
+                        }
+
+                        // Converter para Base64
+                        const base64Data = await convertFileToBase64(file);
+                        
+                        // Obter duração do vídeo
+                        const video = document.createElement('video');
+                        video.preload = 'metadata';
+                        const duration = await new Promise<number>((resolve) => {
+                          video.onloadedmetadata = () => resolve(video.duration);
+                          video.src = URL.createObjectURL(file);
+                        });
+
+                        // Atualizar estado com dados do vídeo
+                        setCurrentLesson(prev => ({
+                          ...prev,
+                          videoBase64Data: base64Data,
+                          videoFileName: file.name,
+                          videoFileSize: file.size,
+                          videoMimeType: file.type,
+                          durationSeconds: Math.round(duration)
+                        }));
+
+                        toast({
+                          title: 'Vídeo processado!',
+                          description: `${file.name} (${Math.round(file.size / 1024 / 1024)}MB) preparado para envio`
+                        });
+                      } catch (error) {
+                        console.error('Erro ao processar vídeo:', error);
+                        toast({
+                          title: 'Erro no processamento',
+                          description: 'Erro ao processar o vídeo selecionado',
+                          variant: 'destructive'
+                        });
+                      }
                     }}
                   />
+                  {currentLesson.videoFileName && (
+                    <div className="text-sm text-green-600">
+                      ✅ {currentLesson.videoFileName} ({Math.round(currentLesson.videoFileSize / 1024 / 1024)}MB)
+                    </div>
+                  )}
                 </div>
               </div>
 

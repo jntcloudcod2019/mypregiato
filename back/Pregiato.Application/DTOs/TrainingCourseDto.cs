@@ -65,6 +65,10 @@ namespace Pregiato.Application.DTOs
         public string CreatedBy { get; set; } = string.Empty;
         
         public List<CreateTrainingLessonDto>? Lessons { get; set; }
+        
+        // ✅ ADICIONADO: Campo para URL do vídeo após upload
+        public string? VideoUrl { get; set; }
+        public string? VideoObjectName { get; set; }
     }
 
     public class UpdateTrainingCourseDto

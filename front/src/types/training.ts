@@ -117,6 +117,9 @@ export interface CreateTrainingCourseDto {
   isActive?: boolean;
   createdBy: string;
   lessons?: CreateTrainingLessonDto[];
+  // ✅ ADICIONADO: Campos para URL do vídeo após upload
+  videoUrl?: string;
+  videoObjectName?: string;
 }
 
 export interface UpdateTrainingCourseDto {
@@ -139,6 +142,10 @@ export interface CreateTrainingLessonDto {
   videoMimeType?: string;
   attachmentsJson?: string;
   isActive?: boolean;
+  // ✅ ADICIONADO: Campos para upload de vídeo
+  videoBase64Data?: string;
+  videoFileName?: string;
+  videoFileSize?: number;
 }
 
 export interface UpdateTrainingLessonDto {
@@ -207,9 +214,18 @@ export interface TrainingVideoUploadDto {
   fileName: string;
   mimeType: string;
   fileSize: number;
+  // ✅ ADICIONADO: Campo para dados Base64
+  base64Data: string;
   chunkId?: string;
   chunkIndex?: number;
   totalChunks?: number;
+  // ✅ ADICIONADO: Metadados do vídeo
+  durationSeconds?: number;
+  width?: number;
+  height?: number;
+  // ✅ ADICIONADO: Campos para path correto
+  courseTitle?: string;
+  lessonTitle?: string;
 }
 
 export interface VideoUploadResultDto {
