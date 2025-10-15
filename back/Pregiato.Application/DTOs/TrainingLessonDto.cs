@@ -37,7 +37,7 @@ namespace Pregiato.Application.DTOs
         public string Title { get; set; } = string.Empty;
         
         [Required(ErrorMessage = "A descrição da aula é obrigatória")]
-        [MinLength(10, ErrorMessage = "A descrição deve ter pelo menos 10 caracteres")]
+        [MinLength(5, ErrorMessage = "A descrição deve ter pelo menos 5 caracteres")]
         public string Description { get; set; } = string.Empty;
         
         [Range(1, int.MaxValue, ErrorMessage = "O índice da aula deve ser maior que 0")]
@@ -53,7 +53,7 @@ namespace Pregiato.Application.DTOs
         // Campos para upload de vídeo
         public string? VideoBase64Data { get; set; }
         public string? VideoFileName { get; set; }
-        [Range(0, long.MaxValue, ErrorMessage = "O tamanho do arquivo deve ser maior que 0")]
+        [Range(0, long.MaxValue, ErrorMessage = "O tamanho do arquivo deve ser maior ou igual a 0")]
         public long? VideoFileSize { get; set; }
         [Range(1, int.MaxValue, ErrorMessage = "A duração deve ser maior que 0 segundos")]
         public int DurationSeconds { get; set; }

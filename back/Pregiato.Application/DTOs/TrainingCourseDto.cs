@@ -50,7 +50,7 @@ namespace Pregiato.Application.DTOs
         public string Title { get; set; } = string.Empty;
         
         [Required(ErrorMessage = "A descrição do curso é obrigatória")]
-        [MinLength(10, ErrorMessage = "A descrição deve ter pelo menos 10 caracteres")]
+        [MinLength(5, ErrorMessage = "A descrição deve ter pelo menos 5 caracteres")]
         public string Description { get; set; } = string.Empty;
         
         [MaxLength(100, ErrorMessage = "A categoria deve ter no máximo 100 caracteres")]
