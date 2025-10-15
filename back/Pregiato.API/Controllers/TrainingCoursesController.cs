@@ -4,6 +4,7 @@ using Pregiato.API.Attributes;
 using Pregiato.Application.DTOs;
 using Pregiato.Application.Interfaces;
 using Pregiato.Infrastructure.Data;
+using FluentValidation;
 
 namespace Pregiato.API.Controllers
 {
@@ -15,15 +16,18 @@ namespace Pregiato.API.Controllers
         private readonly ITrainingCourseService _courseService;
         private readonly ILogger<TrainingCoursesController> _logger;
         private readonly PregiatoDbContext _context;
+        private readonly IValidator<CreateTrainingCourseDto> _validator;
 
         public TrainingCoursesController(
             ITrainingCourseService courseService,
             ILogger<TrainingCoursesController> logger,
-            PregiatoDbContext context)
+            PregiatoDbContext context,
+            IValidator<CreateTrainingCourseDto> validator)
         {
             _courseService = courseService;
             _logger = logger;
             _context = context;
+            _validator = validator;
         }
 
         [HttpGet]
@@ -174,11 +178,12 @@ namespace Pregiato.API.Controllers
         {
             try
             {
-                if (!ModelState.IsValid)
+                // ✅ USAR VALIDATOR REAL EM VEZ DE ModelState.IsValid
+                var validationResult = await _validator.ValidateAsync(createDto);
+                if (!validationResult.IsValid)
                 {
-                    var errors = ModelState
-                        .Where(x => x.Value?.Errors.Count > 0)
-                        .SelectMany(x => x.Value.Errors.Select(e => new { Field = x.Key, Message = e.ErrorMessage }))
+                    var errors = validationResult.Errors
+                        .Select(e => new { Field = e.PropertyName, Message = e.ErrorMessage })
                         .ToList();
                     
                     _logger.LogWarning("Validação falhou ao criar curso: {Errors}", string.Join(", ", errors.Select(e => $"{e.Field}: {e.Message}")));
