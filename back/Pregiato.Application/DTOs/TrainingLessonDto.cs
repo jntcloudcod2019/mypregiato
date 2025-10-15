@@ -32,13 +32,15 @@ namespace Pregiato.Application.DTOs
 
     public class CreateTrainingLessonDto
     {
-        [Required]
-        [MaxLength(200)]
+        [Required(ErrorMessage = "O título da aula é obrigatório")]
+        [MaxLength(200, ErrorMessage = "O título deve ter no máximo 200 caracteres")]
         public string Title { get; set; } = string.Empty;
         
-        [Required]
+        [Required(ErrorMessage = "A descrição da aula é obrigatória")]
+        [MinLength(10, ErrorMessage = "A descrição deve ter pelo menos 10 caracteres")]
         public string Description { get; set; } = string.Empty;
         
+        [Range(1, int.MaxValue, ErrorMessage = "O índice da aula deve ser maior que 0")]
         public int OrderIndex { get; set; }
         public string? VideoUrl { get; set; }
         public string? VideoObjectName { get; set; }
@@ -51,7 +53,9 @@ namespace Pregiato.Application.DTOs
         // Campos para upload de vídeo
         public string? VideoBase64Data { get; set; }
         public string? VideoFileName { get; set; }
+        [Range(0, long.MaxValue, ErrorMessage = "O tamanho do arquivo deve ser maior que 0")]
         public long? VideoFileSize { get; set; }
+        [Range(1, int.MaxValue, ErrorMessage = "A duração deve ser maior que 0 segundos")]
         public int DurationSeconds { get; set; }
     }
 

@@ -79,14 +79,20 @@ namespace Pregiato.Application.Services
 
         public async Task<TrainingCourseDto> CreateAsync(CreateTrainingCourseDto createDto)
         {
-            var course = _mapper.Map<TrainingCourse>(createDto);
-            course.Id = Guid.NewGuid();
-            course.CreatedAt = DateTime.UtcNow;
-            course.UpdatedAt = DateTime.UtcNow;
-            course.TotalLessons = createDto.Lessons?.Count ?? 0;
-            course.TotalLikes = 0;
-            course.TotalDislikes = 0;
-            course.AverageRating = 0;
+            try
+            {
+                _logger.LogInformation("Iniciando criação do curso: {Title}", createDto.Title);
+                
+                var course = _mapper.Map<TrainingCourse>(createDto);
+                course.Id = Guid.NewGuid();
+                course.CreatedAt = DateTime.UtcNow;
+                course.UpdatedAt = DateTime.UtcNow;
+                course.TotalLessons = createDto.Lessons?.Count ?? 0;
+                course.TotalLikes = 0;
+                course.TotalDislikes = 0;
+                course.AverageRating = 0;
+
+                _logger.LogInformation("Curso mapeado com sucesso: {CourseId}", course.Id);
 
             // ✅ ADICIONAR AS AULAS SE FORNECIDAS (OPCIONAL)
             if (createDto.Lessons != null && createDto.Lessons.Any())
@@ -139,8 +145,16 @@ namespace Pregiato.Application.Services
                 _logger.LogInformation($"Criando curso {course.Title} sem aulas inicialmente");
             }
 
-            var createdCourse = await _courseRepository.AddAsync(course);
-            return _mapper.Map<TrainingCourseDto>(createdCourse);
+                var createdCourse = await _courseRepository.AddAsync(course);
+                _logger.LogInformation("Curso salvo no banco de dados: {CourseId}", createdCourse.Id);
+                
+                return _mapper.Map<TrainingCourseDto>(createdCourse);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao criar curso: {Message}", ex.Message);
+                throw;
+            }
         }
 
         private async Task<(TrainingLesson lesson, VideoUploadResultDto? uploadResult)> ProcessVideoUploadAsync(

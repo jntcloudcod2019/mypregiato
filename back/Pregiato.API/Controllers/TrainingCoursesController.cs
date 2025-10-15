@@ -175,9 +175,24 @@ namespace Pregiato.API.Controllers
             try
             {
                 if (!ModelState.IsValid)
-                    return BadRequest(ModelState);
+                {
+                    var errors = ModelState
+                        .Where(x => x.Value?.Errors.Count > 0)
+                        .SelectMany(x => x.Value.Errors.Select(e => new { Field = x.Key, Message = e.ErrorMessage }))
+                        .ToList();
+                    
+                    _logger.LogWarning("Validação falhou ao criar curso: {Errors}", string.Join(", ", errors.Select(e => $"{e.Field}: {e.Message}")));
+                    return BadRequest(new { 
+                        message = "Dados inválidos", 
+                        errors = errors 
+                    });
+                }
 
+                _logger.LogInformation("Criando curso: {Title} com {LessonCount} aulas", createDto.Title, createDto.Lessons?.Count ?? 0);
+                
                 var course = await _courseService.CreateAsync(createDto);
+                
+                _logger.LogInformation("Curso criado com sucesso: {CourseId} - {Title}", course.Id, course.Title);
                 
                 // Retornar status 201 com mensagem específica
                 return StatusCode(201, new { 
@@ -185,10 +200,23 @@ namespace Pregiato.API.Controllers
                     message = $"Curso {course.Title} criado com sucesso"
                 });
             }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning("Argumento inválido ao criar curso: {Message}", ex.Message);
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning("Operação inválida ao criar curso: {Message}", ex.Message);
+                return BadRequest(new { message = ex.Message });
+            }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erro ao criar curso");
-                return StatusCode(500, "Erro interno do servidor");
+                _logger.LogError(ex, "Erro inesperado ao criar curso: {Message}", ex.Message);
+                return StatusCode(500, new { 
+                    message = "Erro interno do servidor",
+                    details = ex.Message
+                });
             }
         }
 
