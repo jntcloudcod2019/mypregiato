@@ -42,30 +42,16 @@ namespace Pregiato.Application.Validators
                 .WithMessage("Tipo de arquivo deve ser um vídeo válido (mp4, webm, mov)")
                 .When(x => !string.IsNullOrEmpty(x.VideoMimeType));
 
-            // ✅ VALIDAÇÃO DOS CAMPOS DE VÍDEO BASE64
-            RuleFor(x => x.VideoBase64Data)
+            // ✅ VALIDAÇÃO DAS URLs DO VÍDEO (já devem ter sido enviadas via /api/TrainingVideos/upload)
+            RuleFor(x => x.VideoUrl)
                 .NotEmpty()
-                .WithMessage("Dados do vídeo em Base64 são obrigatórios")
-                .When(x => !string.IsNullOrEmpty(x.VideoFileName));
+                .WithMessage("URL do vídeo é obrigatória (envie o vídeo via /api/TrainingVideos/upload primeiro)")
+                .When(x => !string.IsNullOrEmpty(x.VideoObjectName));
 
-            RuleFor(x => x.VideoFileName)
+            RuleFor(x => x.VideoObjectName)
                 .NotEmpty()
-                .WithMessage("Nome do arquivo de vídeo é obrigatório")
-                .When(x => !string.IsNullOrEmpty(x.VideoBase64Data));
-
-            RuleFor(x => x.VideoFileSize)
-                .GreaterThan(0)
-                .WithMessage("Tamanho do arquivo de vídeo deve ser maior que 0")
-                .LessThanOrEqualTo(5L * 1024 * 1024 * 1024) // 5GB
-                .WithMessage("Tamanho do arquivo de vídeo não pode exceder 5GB")
-                .When(x => x.VideoFileSize.HasValue);
-
-            RuleFor(x => x.DurationSeconds)
-                .GreaterThan(0)
-                .WithMessage("Duração do vídeo deve ser maior que 0 segundos")
-                .LessThanOrEqualTo(7200) // 2 horas
-                .WithMessage("Duração do vídeo não pode exceder 2 horas")
-                .When(x => x.DurationSeconds > 0);
+                .WithMessage("ObjectName do vídeo é obrigatório (envie o vídeo via /api/TrainingVideos/upload primeiro)")
+                .When(x => !string.IsNullOrEmpty(x.VideoUrl));
         }
 
         private bool BeValidVideoMimeType(string? mimeType)
