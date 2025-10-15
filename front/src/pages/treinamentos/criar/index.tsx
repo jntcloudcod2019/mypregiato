@@ -79,10 +79,10 @@ const CriarTreinamentoPage = () => {
       return;
     }
 
-    if (!currentLesson.videoBase64Data) {
+    if (!currentLesson.videoBase64Data || !currentLesson.videoFileName || !currentLesson.videoFileSize || !currentLesson.videoMimeType) {
       toast({
         title: "Vídeo obrigatório",
-        description: "É necessário fazer upload de um vídeo para a aula.",
+        description: "É necessário fazer upload de um vídeo para a aula. Todos os campos de vídeo são obrigatórios.",
         variant: "destructive"
       });
       return;
@@ -92,14 +92,14 @@ const CriarTreinamentoPage = () => {
     const newLesson: CreateTrainingLessonDto = {
       ...currentLesson,
       isActive: true,
-      // ✅ INCLUIR DADOS BASE64 DO VÍDEO
-      videoBase64Data: currentLesson.videoBase64Data || '',
-      videoFileName: currentLesson.videoFileName || '',
-      videoFileSize: currentLesson.videoFileSize || 0,
-      videoMimeType: currentLesson.videoMimeType || '',
+      // ✅ INCLUIR DADOS BASE64 DO VÍDEO (OBRIGATÓRIOS)
+      videoBase64Data: currentLesson.videoBase64Data, // Já validado acima
+      videoFileName: currentLesson.videoFileName, // Nome do arquivo original
+      videoFileSize: currentLesson.videoFileSize, // Tamanho em bytes
+      videoMimeType: currentLesson.videoMimeType, // Tipo MIME (video/mp4, etc)
       // Manter dados do vídeo para envio posterior
-      videoUrl: currentLesson.videoUrl || '', // Pode estar vazio inicialmente
-      videoObjectName: currentLesson.videoObjectName || ''
+      videoUrl: currentLesson.videoUrl || '', // Será preenchido pelo backend
+      videoObjectName: currentLesson.videoObjectName || '' // Será preenchido pelo backend
     };
 
     // ✅ DEBUG: Log dos dados do vídeo
@@ -483,7 +483,9 @@ const CriarTreinamentoPage = () => {
                         }
 
                         // Converter para Base64
+                        console.log('🔄 [Debug] Iniciando conversão para Base64:', file.name, file.size, 'bytes');
                         const base64Data = await convertFileToBase64(file);
+                        console.log('✅ [Debug] Base64 convertido:', base64Data ? `${base64Data.substring(0, 50)}...` : 'VAZIO');
                         
                         // Obter duração do vídeo
                         const video = document.createElement('video');
@@ -492,15 +494,25 @@ const CriarTreinamentoPage = () => {
                           video.onloadedmetadata = () => resolve(video.duration);
                           video.src = URL.createObjectURL(file);
                         });
+                        console.log('⏱️ [Debug] Duração do vídeo:', duration, 'segundos');
 
                         // Atualizar estado com dados do vídeo
-                        setCurrentLesson(prev => ({
-                          ...prev,
+                        const videoData = {
                           videoBase64Data: base64Data,
                           videoFileName: file.name,
                           videoFileSize: file.size,
                           videoMimeType: file.type,
                           durationSeconds: Math.round(duration)
+                        };
+                        
+                        console.log('📝 [Debug] Dados do vídeo para salvar:', {
+                          ...videoData,
+                          videoBase64Data: base64Data ? `${base64Data.substring(0, 50)}...` : 'VAZIO'
+                        });
+                        
+                        setCurrentLesson(prev => ({
+                          ...prev,
+                          ...videoData
                         }));
 
                         toast({
@@ -520,6 +532,13 @@ const CriarTreinamentoPage = () => {
                   {currentLesson.videoFileName && (
                     <div className="text-sm text-green-600">
                       ✅ {currentLesson.videoFileName} ({Math.round(currentLesson.videoFileSize / 1024 / 1024)}MB)
+                      {currentLesson.videoBase64Data && (
+                        <div className="text-xs text-blue-600 mt-1">
+                          📊 Base64: {Math.round(currentLesson.videoBase64Data.length / 1024)}KB | 
+                          Tipo: {currentLesson.videoMimeType} | 
+                          Duração: {currentLesson.durationSeconds}s
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
