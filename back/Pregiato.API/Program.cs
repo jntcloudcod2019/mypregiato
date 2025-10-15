@@ -101,13 +101,7 @@ builder.Services.AddScoped<RuntimePregiatoDbContextFactory>(provider =>
 
  builder.WebHost.ConfigureKestrel(serverOptions =>
 {
-    serverOptions.Limits.MaxRequestBodySize = null; 
-    serverOptions.Limits.MaxRequestLineSize = null;
-    serverOptions.Limits.MaxRequestHeadersTotalCount = null;
-    serverOptions.Limits.MaxRequestHeadersCount = null;
-    serverOptions.Limits.MaxRequestHeadersLength = null;
-    serverOptions.Limits.MaxRequestBodyBufferSize = null;
-    serverOptions.RequestBodyLimit = null;
+   serverOptions.Limits.MaxRequestBodySize = 314572800L; // 100 MB, por exemp
 });
 
 // HttpClient
