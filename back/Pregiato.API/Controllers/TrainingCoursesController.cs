@@ -80,6 +80,25 @@ namespace Pregiato.API.Controllers
             }
         }
 
+        [HttpGet("{id}/lessons")]
+        public async Task<ActionResult<IEnumerable<TrainingLessonDto>>> GetLessons(Guid id)
+        {
+            try
+            {
+                var course = await _courseService.GetByIdAsync(id);
+                if (course == null)
+                    return NotFound("Curso não encontrado");
+
+                var lessons = course.Lessons?.OrderBy(l => l.OrderIndex).ToList() ?? new List<TrainingLessonDto>();
+                return Ok(lessons);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao buscar aulas do curso {CourseId}", id);
+                return StatusCode(500, "Erro interno do servidor");
+            }
+        }
+
         [HttpGet("{id}/with-enrollments")]
         public async Task<ActionResult<TrainingCourseDto>> GetByIdWithEnrollments(Guid id)
         {

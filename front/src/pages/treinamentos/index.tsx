@@ -4,76 +4,115 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
-import { Plus, Search, Play, Users, Clock, BookOpen, Star } from 'lucide-react';
+import { Plus, Search, Play, Users, Clock, BookOpen, Star, AlertCircle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthPermissions } from '@/hooks/use-auth-permissions';
-
-interface Curso {
-  id: string;
-  nome: string;
-  descricao: string;
-  quantidadeAulas: number;
-  aulas: Aula[];
-  progresso: number;
-  concluido: boolean;
-  avaliacoes: { likes: number; dislikes: number };
-  criadoEm: string;
-}
-
-interface Aula {
-  id: string;
-  nome: string;
-  descricao: string;
-  linkVideo: string;
-  assistida: boolean;
-  duracao?: string;
-}
+import { useUser } from '@clerk/clerk-react';
+import { useToast } from '@/hooks/use-toast';
+import { trainingService } from '@/services/training-service';
+import { TrainingCourse, TrainingProgressSummaryDto } from '@/types/training';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const TreinamentosPage = () => {
   const navigate = useNavigate();
-  const [cursos, setCursos] = useState<Curso[]>([]);
+  const { user, isLoaded: isUserLoaded } = useUser();
+  const { role } = useAuthPermissions();
+  const { toast } = useToast();
+  
+  const [cursos, setCursos] = useState<TrainingCourse[]>([]);
+  const [progressos, setProgressos] = useState<Map<string, TrainingProgressSummaryDto>>(new Map());
   const [busca, setBusca] = useState('');
   const [filtro, setFiltro] = useState<'todos' | 'andamento' | 'concluidos'>('todos');
-  const { role } = useAuthPermissions();
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   // Verificação simples: MODEL não pode criar/gerenciar
   const isModelUser = role?.toUpperCase() === 'MODEL';
 
+  // Carregar cursos e progresso do usuário
   useEffect(() => {
-    // Carregar cursos da API quando disponível
-    // Por enquanto, manter lista vazia
-    setCursos([]);
-  }, []);
+    const carregarDados = async () => {
+      if (!isUserLoaded) return;
+      
+      setIsLoading(true);
+      setError(null);
+      
+      try {
+        // Buscar todos os cursos
+        const cursosData = await trainingService.getCourses({ limit: 100 });
+        setCursos(cursosData);
+        
+        // Se usuário autenticado, buscar progresso
+        if (user) {
+          try {
+            const progressoData = await trainingService.getUserProgressSummary(user.id);
+            const progressoMap = new Map<string, TrainingProgressSummaryDto>();
+            progressoData.forEach(p => progressoMap.set(p.courseId, p));
+            setProgressos(progressoMap);
+          } catch (err) {
+            console.log('Nenhum progresso encontrado ou erro ao buscar:', err);
+          }
+        }
+      } catch (err) {
+        console.error('Erro ao carregar cursos:', err);
+        setError('Erro ao carregar cursos. Tente novamente mais tarde.');
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível carregar os cursos.',
+          variant: 'destructive'
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    carregarDados();
+  }, [user, isUserLoaded, toast]);
 
   const cursosFiltrados = cursos.filter(curso => {
-    const matchBusca = curso.nome.toLowerCase().includes(busca.toLowerCase()) ||
-                       curso.descricao.toLowerCase().includes(busca.toLowerCase());
+    const matchBusca = curso.title.toLowerCase().includes(busca.toLowerCase()) ||
+                       curso.description.toLowerCase().includes(busca.toLowerCase());
+    
+    const progresso = progressos.get(curso.id);
+    const concluido = progresso?.isCompleted || false;
+    const emAndamento = progresso && !progresso.isCompleted;
     
     const matchFiltro = filtro === 'todos' || 
-                       (filtro === 'andamento' && !curso.concluido) ||
-                       (filtro === 'concluidos' && curso.concluido);
+                       (filtro === 'andamento' && emAndamento) ||
+                       (filtro === 'concluidos' && concluido);
     
     return matchBusca && matchFiltro;
   });
 
   const estatisticas = {
     totalCursos: cursos.length,
-    cursosAndamento: cursos.filter(c => !c.concluido).length,
-    cursosConcluidos: cursos.filter(c => c.concluido).length,
-    horasEstudo: cursos.reduce((acc, curso) => {
-      const horasCurso = curso.aulas.reduce((accAulas, aula) => {
-        if (aula.duracao) {
-          const [min, seg] = aula.duracao.split(':').map(Number);
-          return accAulas + (min + seg/60);
-        }
-        return accAulas;
-      }, 0);
-      return acc + horasCurso;
-    }, 0)
+    cursosAndamento: Array.from(progressos.values()).filter(p => !p.isCompleted).length,
+    cursosConcluidos: Array.from(progressos.values()).filter(p => p.isCompleted).length,
+    horasEstudo: Math.round(Array.from(progressos.values()).reduce((acc, p) => acc + p.totalTimeWatchedMinutes, 0) / 60)
   };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="p-6 flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4 animate-spin" />
+          <p className="text-muted-foreground">Carregando cursos...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
+      {/* Error Alert */}
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-foreground">
@@ -188,68 +227,110 @@ const TreinamentosPage = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {cursosFiltrados.map((curso) => (
-          <Card key={curso.id} className="hover:shadow-md transition-shadow group">
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <CardTitle className="line-clamp-2 group-hover:text-primary transition-colors">
-                    {curso.nome}
-                  </CardTitle>
-                  <p className="text-sm text-muted-foreground mt-2 line-clamp-3">
-                    {curso.descricao}
-                  </p>
-                  <div className="mt-2">
+        {cursosFiltrados.map((curso) => {
+          const progresso = progressos.get(curso.id);
+          const porcentagemProgresso = progresso?.progressPercentage || 0;
+          const concluido = progresso?.isCompleted || false;
+          
+          return (
+            <Card key={curso.id} className="hover:shadow-md transition-shadow group">
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    {/* Thumbnail do curso se existir */}
+                    {curso.thumbnailUrl && (
+                      <div className="mb-3 rounded-lg overflow-hidden">
+                        <img 
+                          src={curso.thumbnailUrl} 
+                          alt={curso.title}
+                          className="w-full h-32 object-cover"
+                        />
+                      </div>
+                    )}
+                    <CardTitle className="line-clamp-2 group-hover:text-primary transition-colors">
+                      {curso.title}
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground mt-2 line-clamp-3">
+                      {curso.description}
+                    </p>
+                    {/* Categoria e Dificuldade */}
+                    <div className="mt-2 flex gap-2">
+                      {curso.category && (
+                        <Badge variant="outline" className="text-xs">
+                          {curso.category}
+                        </Badge>
+                      )}
+                      {curso.difficulty && (
+                        <Badge variant="secondary" className="text-xs">
+                          {curso.difficulty}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  {concluido && (
+                    <Badge variant="default" className="ml-2">
+                      ✓ Concluído
+                    </Badge>
+                  )}
+                </div>
+              </CardHeader>
+              
+              <CardContent className="space-y-4">
+                {/* Progresso do curso */}
+                {progresso && !concluido && (
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span>Progresso</span>
+                      <span>{Math.round(porcentagemProgresso)}%</span>
+                    </div>
+                    <Progress value={porcentagemProgresso} className="h-2" />
                     <p className="text-xs text-muted-foreground">
-                      <strong>ID do Curso:</strong> {curso.id}
+                      {progresso.completedLessons} de {progresso.totalLessons} aulas concluídas
                     </p>
                   </div>
-                </div>
-                {curso.concluido && (
-                  <Badge variant="secondary" className="ml-2">
-                    Concluído
-                  </Badge>
                 )}
-              </div>
-            </CardHeader>
-            
-            <CardContent className="space-y-4">
-              {!curso.concluido && (
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Progresso</span>
-                    <span>{curso.progresso}%</span>
+
+                {/* Estatísticas do curso */}
+                <div className="flex justify-between text-sm text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    <BookOpen className="h-4 w-4" />
+                    <span>{curso.totalLessons} aulas</span>
                   </div>
-                  <Progress value={curso.progresso} className="h-2" />
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-4 w-4" />
+                    <span>{Math.round(curso.totalDurationMinutes / 60)}h</span>
+                  </div>
                 </div>
-              )}
 
-              <div className="flex justify-between text-sm text-muted-foreground">
-                <div className="flex items-center gap-1">
-                  <BookOpen className="h-4 w-4" />
-                  <span>{curso.quantidadeAulas} aulas</span>
-                </div>
-                <div className="flex items-center gap-3">
+                {/* Avaliações */}
+                <div className="flex items-center gap-3 text-sm">
                   <span className="flex items-center gap-1">
-                    👍 {curso.avaliacoes.likes}
+                    👍 {curso.totalLikes}
                   </span>
                   <span className="flex items-center gap-1">
-                    👎 {curso.avaliacoes.dislikes}
+                    👎 {curso.totalDislikes}
                   </span>
+                  {curso.averageRating > 0 && (
+                    <span className="flex items-center gap-1">
+                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                      {curso.averageRating.toFixed(1)}
+                    </span>
+                  )}
                 </div>
-              </div>
 
-              <div className="flex gap-2 pt-2">
-                <Link to={`/treinamentos/curso/${curso.id}`} className="flex-1">
-                  <Button className="w-full" variant={curso.concluido ? "outline" : "default"}>
-                    <Play className="h-4 w-4 mr-2" />
-                    {curso.concluido ? 'Revisar' : 'Continuar'}
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                {/* Botão de ação */}
+                <div className="flex gap-2 pt-2">
+                  <Link to={`/treinamentos/curso/${curso.id}`} className="flex-1">
+                    <Button className="w-full" variant={concluido ? "outline" : "default"}>
+                      <Play className="h-4 w-4 mr-2" />
+                      {concluido ? 'Revisar' : progresso ? 'Continuar' : 'Iniciar'}
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {cursosFiltrados.length === 0 && (

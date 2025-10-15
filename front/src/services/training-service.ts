@@ -47,6 +47,10 @@ export class TrainingService {
     return await apiClient.get<TrainingCourse>(`${this.baseUrl}/TrainingCourses/${id}`);
   }
 
+  async getCourseLessons(id: string): Promise<TrainingLesson[]> {
+    return await apiClient.get<TrainingLesson[]>(`${this.baseUrl}/TrainingCourses/${id}/lessons`);
+  }
+
   async getCourseWithEnrollments(id: string): Promise<TrainingCourse> {
     return await apiClient.get<TrainingCourse>(`${this.baseUrl}/TrainingCourses/${id}/with-enrollments`);
   }
