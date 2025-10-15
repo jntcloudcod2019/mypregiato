@@ -64,7 +64,12 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.VideoUrl, opt => opt.MapFrom(src => src.VideoUrl ?? string.Empty))
             .ForMember(dest => dest.VideoObjectName, opt => opt.MapFrom(src => src.VideoObjectName ?? string.Empty))
             .ForMember(dest => dest.AttachmentsJson, opt => opt.MapFrom(src => src.AttachmentsJson))
-            .ForAllOtherMembers(opts => opts.Ignore());
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.CourseId, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+            .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
+            .ForMember(dest => dest.Course, opt => opt.Ignore())
+            .ForMember(dest => dest.ProgressRecords, opt => opt.Ignore());
         CreateMap<UpdateTrainingLessonDto, TrainingLesson>()
             .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
