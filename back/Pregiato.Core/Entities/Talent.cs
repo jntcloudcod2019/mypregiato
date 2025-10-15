@@ -64,6 +64,8 @@ public class Talent
     
     [StringLength(255)]
     public string? InviteToken { get; set; }
+
+    
     
     [StringLength(255)]
     public string? ClerkInviteId { get; set; }

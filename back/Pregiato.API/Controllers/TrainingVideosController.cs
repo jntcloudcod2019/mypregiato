@@ -51,9 +51,31 @@ namespace Pregiato.API.Controllers
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
 
-                // TODO: Implementar upload de arquivo via IFormFile
-                // Por enquanto, retornando erro indicando que deve usar presigned URL
-                return BadRequest("Use o endpoint de presigned URL para upload de vídeos grandes");
+                if (string.IsNullOrEmpty(uploadDto.Base64Data))
+                    return BadRequest("Dados Base64 do vídeo são obrigatórios");
+
+                _logger.LogInformation($"Iniciando upload de vídeo: {uploadDto.FileName} ({uploadDto.FileSize} bytes)");
+
+                // Converter Base64 para bytes
+                var videoBytes = Convert.FromBase64String(uploadDto.Base64Data);
+                
+                // Fazer upload usando o serviço
+                var result = await _videoService.UploadVideoAsync(uploadDto, videoBytes);
+                
+                if (result.Success)
+                {
+                    _logger.LogInformation($"Upload concluído com sucesso: {result.ObjectName}");
+                    return Ok(result);
+                }
+                else
+                {
+                    _logger.LogWarning($"Upload falhou: {result.ErrorMessage}");
+                    return BadRequest(result);
+                }
+            }
+            catch (FormatException)
+            {
+                return BadRequest("Dados Base64 inválidos");
             }
             catch (Exception ex)
             {

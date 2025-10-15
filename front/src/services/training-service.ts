@@ -145,6 +145,12 @@ export class TrainingService {
     return await apiClient.post<VideoPresignedUrlDto>(`${this.baseUrl}/TrainingVideos/presigned-url`, uploadDto);
   }
 
+  // ✅ MÉTODO ATUALIZADO: Upload de vídeo completo
+  async uploadVideo(uploadDto: TrainingVideoUploadDto): Promise<VideoUploadResultDto> {
+    return await apiClient.post<VideoUploadResultDto>(`${this.baseUrl}/TrainingVideos/upload`, uploadDto);
+  }
+
+  // ✅ MÉTODO MANTIDO: Upload em chunks (para compatibilidade)
   async uploadVideoChunk(uploadDto: TrainingVideoUploadDto, chunkData: string): Promise<VideoUploadResultDto> {
     return await apiClient.post<VideoUploadResultDto>(`${this.baseUrl}/TrainingVideos/upload-chunk`, {
       ...uploadDto,

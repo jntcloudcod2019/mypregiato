@@ -170,24 +170,17 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
         if (i === totalChunks - 1) {
           return result;
         }
-      } catch (error: any) {
-        throw new Error(`Erro no chunk ${i + 1}: ${error.message}`);
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+        throw new Error(`Erro no chunk ${i + 1}: ${errorMessage}`);
       }
     }
     
     throw new Error('Upload incompleto');
   }, [courseId, lessonId]);
 
-  // Upload direto (para arquivos pequenos)
+  // ✅ UPLOAD DIRETO REFATORADO: Usar novo endpoint
   const uploadDirect = useCallback(async (file: File): Promise<VideoUploadResultDto> => {
-    const uploadDto: TrainingVideoUploadDto = {
-      courseId,
-      lessonId,
-      fileName: file.name,
-      mimeType: file.type,
-      fileSize: file.size,
-    };
-    
     // Converter arquivo para base64
     const base64Data = await new Promise<string>((resolve) => {
       const reader = new FileReader();
@@ -198,8 +191,19 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
       reader.readAsDataURL(file);
     });
     
-    return await trainingService.uploadVideoChunk(uploadDto, base64Data);
-  }, [courseId, lessonId]);
+    const uploadDto: TrainingVideoUploadDto = {
+      courseId,
+      lessonId,
+      fileName: file.name,
+      mimeType: file.type,
+      fileSize: file.size,
+      base64Data, // ✅ DADOS BASE64 INCLUÍDOS
+      durationSeconds: videoMetadata.duration ? Math.round(videoMetadata.duration) : undefined,
+      // ✅ ADICIONAR: Metadados do vídeo quando disponíveis
+    };
+    
+    return await trainingService.uploadVideo(uploadDto);
+  }, [courseId, lessonId, videoMetadata.duration]);
 
   // Iniciar upload
   const handleUpload = useCallback(async () => {
@@ -213,16 +217,10 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
     try {
       let result: VideoUploadResultDto;
       
-      // ✅ DECISÃO DINÂMICA: Usar chunks baseado no tamanho do arquivo
-      const dynamicChunkSize = getDynamicChunkSize(selectedFile.size);
-      
-      if (selectedFile.size > dynamicChunkSize) {
-        console.log(`🔄 [Upload] Usando upload em chunks (arquivo: ${formatFileSize(selectedFile.size)}, chunk: ${formatFileSize(dynamicChunkSize)})`);
-        result = await uploadInChunks(selectedFile);
-      } else {
-        console.log(`🔄 [Upload] Usando upload direto (arquivo: ${formatFileSize(selectedFile.size)})`);
-        result = await uploadDirect(selectedFile);
-      }
+      // ✅ DECISÃO SIMPLIFICADA: Usar upload direto para todos os arquivos
+      // O novo endpoint UploadVideo já lida com arquivos grandes internamente
+      console.log(`🔄 [Upload] Usando upload direto (arquivo: ${formatFileSize(selectedFile.size)})`);
+      result = await uploadDirect(selectedFile);
       
       if (result.success) {
         toast({
@@ -233,8 +231,8 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
       } else {
         throw new Error(result.errorMessage || 'Erro no upload');
       }
-    } catch (error: any) {
-      const errorMessage = error.message || 'Erro inesperado no upload';
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro inesperado no upload';
       setUploadError(errorMessage);
       onUploadError?.(errorMessage);
       toast({
@@ -245,7 +243,7 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
     } finally {
       setIsUploading(false);
     }
-  }, [selectedFile, uploadInChunks, uploadDirect, onUploadStart, onUploadComplete, onUploadError, toast]);
+  }, [selectedFile, uploadDirect, onUploadStart, onUploadComplete, onUploadError, toast]);
 
   // Limpar seleção
   const handleClear = useCallback(() => {
