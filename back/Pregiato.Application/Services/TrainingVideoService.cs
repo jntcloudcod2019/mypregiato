@@ -25,7 +25,7 @@ namespace Pregiato.Application.Services
                 var objectName = GenerateObjectName(uploadDto);
                 
                 // Gerar URL usando o protocolo correto
-                var videoUrl = GenerateVideoUrl(objectName);
+                var videoUrl =objectName;
 
                 return new VideoPresignedUrlDto
                 {
@@ -45,34 +45,40 @@ namespace Pregiato.Application.Services
         {
             try
             {
+                Console.WriteLine($"🎬 [VIDEO-SERVICE] Iniciando upload de vídeo - Curso: {uploadDto.CourseTitle}, Aula: {uploadDto.LessonTitle}");
+                
                 // Gerar nome do objeto seguindo o padrão correto
                 var objectName = GenerateObjectName(uploadDto);
+                Console.WriteLine($"📁 [VIDEO-SERVICE] Path gerado: {objectName}");
                 
                 // Converter bytes para base64
                 var base64Data = Convert.ToBase64String(videoData);
+                Console.WriteLine($"🔄 [VIDEO-SERVICE] Base64 convertido - Tamanho: {base64Data.Length} chars");
                 
                 // Upload para MinIO usando o método disponível
+                Console.WriteLine($"📤 [VIDEO-SERVICE] Chamando MinIO para upload");
                 var result = await _mediaStorage.StoreMediaAsync(
                     base64Data,
                     uploadDto.MimeType,
                     objectName, // Usar o objectName gerado com o padrão correto
                     null // senderName
                 );
+                
 
-                // Gerar URL com protocolo correto
-                var videoUrl = GenerateVideoUrl(result.ObjectName);
-
+                Console.WriteLine($"✅ [VIDEO-SERVICE] Upload concluído com sucesso - URL: {result.MediaUrl}");
+                
                 return new VideoUploadResultDto
                 {
                     Success = true,
                     ObjectName = result.ObjectName,
-                    VideoUrl = videoUrl,
+                    VideoUrl = result.MediaUrl,
                     FileSize = uploadDto.FileSize,
                     MimeType = uploadDto.MimeType
                 };
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"❌ [VIDEO-SERVICE] Erro no upload: {ex.Message}");
                 return new VideoUploadResultDto
                 {
                     Success = false,
@@ -175,7 +181,7 @@ namespace Pregiato.Application.Services
             
             // Formato: Course/{courseId}_{courseName}/{courseId}_{lessonId}_{lessonTitle}.ext
             var folderPath = $"Course/{uploadDto.CourseId}_{courseNameSafe}";
-            var fileName = $"{uploadDto.CourseId}_{uploadDto.LessonId}_{lessonTitleSafe}{extension}";
+            var fileName = $"{uploadDto.CourseId}_{uploadDto.LessonId}_{lessonTitleSafe}.{extension}";
             
             return $"{folderPath}/{fileName}";
         }
@@ -204,15 +210,5 @@ namespace Pregiato.Application.Services
             return sanitized;
         }
 
-        private string GenerateVideoUrl(string objectName)
-        {
-            // Usar protocolo correto baseado em UseSSL
-            var protocol = _minioOptions.UseSSL ? "https" : "http";
-            var endpoint = _minioOptions.Endpoint;
-            var bucketName = _minioOptions.BucketName;
-            
-            // Gerar URL pública do vídeo
-            return $"{protocol}://{endpoint}/{bucketName}/{objectName}";
-        }
     }
 }

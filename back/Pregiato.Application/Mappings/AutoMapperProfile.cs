@@ -63,13 +63,14 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.VideoMimeType, opt => opt.MapFrom(src => src.VideoMimeType ?? "video/mp4"))
             .ForMember(dest => dest.VideoUrl, opt => opt.MapFrom(src => src.VideoUrl ?? string.Empty))
             .ForMember(dest => dest.VideoObjectName, opt => opt.MapFrom(src => src.VideoObjectName ?? string.Empty))
-            .ForMember(dest => dest.AttachmentsJson, opt => opt.MapFrom(src => src.AttachmentsJson))
+            .ForMember(dest => dest.AttachmentsJson, opt => opt.MapFrom(src => src.AttachmentsJson ?? string.Empty))
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.CourseId, opt => opt.Ignore())
             .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
             .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
             .ForMember(dest => dest.Course, opt => opt.Ignore())
-            .ForMember(dest => dest.ProgressRecords, opt => opt.Ignore());
+            .ForMember(dest => dest.ProgressRecords, opt => opt.Ignore())
+            .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive));
         CreateMap<UpdateTrainingLessonDto, TrainingLesson>()
             .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 

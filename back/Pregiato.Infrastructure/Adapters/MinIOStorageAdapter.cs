@@ -85,8 +85,9 @@ namespace Pregiato.Infrastructure.Adapters
         /// <summary>
         /// Armazena mídia com nomenclatura descritiva baseada no contexto da mensagem
         /// Formato: messageId_contato_data_hora_remetente.extensao
+        /// Para vídeos de curso: Course/{courseId}_{courseName}/{courseId}_{lessonId}_{lessonTitle}.mp4
         /// </summary>
-        public async Task<MediaResultDto> StoreMediaAsync(string base64Data, string mimeType, string contactNumber, string? senderName)
+        public async Task<MediaResultDto> StoreMediaAsync(string base64Data, string mimeType, string? objectPath, string? senderName)
         {
             try
             {
@@ -95,49 +96,69 @@ namespace Pregiato.Infrastructure.Adapters
                 var base64Content = ExtractBase64Content(base64Data);
                 var bytes = Convert.FromBase64String(base64Content);
 
-        if (bytes.Length == 0)
-            throw new InvalidOperationException("Arquivo vazio não pode ser enviado.");
+                Console.WriteLine($"📁 [MINIO] Recebido para upload - MimeType: {mimeType}, ObjectPath: {objectPath}");
 
-        // 🔑 Pega extensão e ContentType baseados no MIME recebido
-        var extension = GetFileExtension(mimeType); // ex: ".mp3" para audio/mpeg
-        var finalMimeType = mimeType ?? "application/octet-stream";
+                if (bytes.Length == 0)
+                    throw new InvalidOperationException("Arquivo vazio não pode ser enviado.");
 
-                var timestamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
+                // 🔑 Pega extensão e ContentType baseados no MIME recebido
+                var extension = GetFileExtension(mimeType); // ex: ".mp3" para audio/mpeg
+                var finalMimeType = mimeType ?? "application/octet-stream";
+
+                string objectName;
                 
-        var descriptiveFileName = $"_{contactNumber}_{timestamp}{extension}";
-                var objectName = $"media/{descriptiveFileName}";
+                // ✅ VERIFICAR SE É UPLOAD DE VÍDEO DE CURSO (contactNumber contém path completo)
+                if (objectPath.StartsWith("Course/"))
+                {
+                    // Para vídeos de curso, usar o path completo fornecido
+                    objectName = objectPath;
+                    Console.WriteLine($"🎬 [MINIO] Upload de vídeo de curso - Path: {objectName}");
+                }
+                else
+                {
+                    // Para outros tipos de mídia, usar o formato antigo
+                    var timestamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");               
+                    var descriptiveFileName = $"_{objectPath}_{timestamp}{extension}";
+                    objectName = $"media/{descriptiveFileName}";
+                    Console.WriteLine($"📱 [MINIO] Upload de mídia geral - Path: {objectName}");
+                }
 
                 using var stream = new MemoryStream(bytes);
+
+                Console.WriteLine($"📤 [MINIO] Iniciando upload - Bucket: {_options.BucketName}, Object: {objectName}, Size: {bytes.Length} bytes");
 
                 var putObjectArgs = new PutObjectArgs()
                     .WithBucket(_options.BucketName)
                     .WithObject(objectName)
                     .WithStreamData(stream)
                     .WithObjectSize(stream.Length)
-            .WithContentType(finalMimeType);
+                    .WithContentType(finalMimeType);
 
                 await _minioClient.PutObjectAsync(putObjectArgs);
 
-        // ✅ CORREÇÃO: Construir URL completa com protocolo HTTPS
-        var protocol = _options.UseSSL ? "https" : "http";
-        var mediaUrl = $"{protocol}://{_options.Endpoint}/{_options.BucketName}/{objectName}";
-        var result = new MediaResultDto
-        {
-            MediaUrl = mediaUrl,
-            ObjectName = objectName
-        };
+                // ✅ CORREÇÃO: Construir URL completa com protocolo HTTPS
+                var protocol = _options.UseSSL ? "https" : "http";
+                var mediaUrl = $"{protocol}://{_options.Endpoint}/{_options.BucketName}/{objectName}";
+                var result = new MediaResultDto
+                {
+                    MediaUrl = mediaUrl,
+                    ObjectName = objectName
+                };
 
-        _logger.LogInformation("✅ Upload concluído: {Url}", mediaUrl);
-        return result;
+                Console.WriteLine($"✅ [MINIO] Upload concluído com sucesso - URL: {mediaUrl}");
+                _logger.LogInformation("✅ Upload concluído: {Url}", mediaUrl);
+                return result;
             }
             catch (MinioException ex)
             {
-        _logger.LogError(ex, "❌ Erro do MinIO ao fazer upload");
+                Console.WriteLine($"❌ [MINIO] Erro do MinIO ao fazer upload: {ex.Message}");
+                _logger.LogError(ex, "❌ Erro do MinIO ao fazer upload");
                 throw;
             }
             catch (Exception ex)
             {
-        _logger.LogError(ex, "❌ Erro inesperado ao fazer upload");
+                Console.WriteLine($"💥 [MINIO] Erro inesperado ao fazer upload: {ex.Message}");
+                _logger.LogError(ex, "❌ Erro inesperado ao fazer upload");
                 throw;
             }
         }
@@ -185,7 +206,7 @@ namespace Pregiato.Infrastructure.Adapters
         }
 
 
-        // ✅ Método de interface renomeado e ajustado
+
         public Task<string> GetPublicUrlAsync(string mediaUrl)
         {
             // Para MinIO, a URL já é pública se o bucket permitir
@@ -238,7 +259,7 @@ namespace Pregiato.Infrastructure.Adapters
                     "audio/aac" => ".mp3", // Converter para MP3
                     "audio/flac" => ".mp3", // Converter para MP3
                     "audio/m4a" => ".mp3", // Converter para MP3
-                    _ => ".mp3" // ✅ CORREÇÃO: Qualquer áudio desconhecido vira .mp3
+                    _ => ".mp3" 
                 };
             }
 
