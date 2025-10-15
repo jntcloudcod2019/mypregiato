@@ -29,7 +29,30 @@ Log.Logger = new LoggerConfiguration()
 builder.Host.UseSerilog();
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    // Aumentar limite de tamanho de requisição para uploads de vídeo
+    options.MaxModelBindingCollectionSize = 10; // Máximo de 10 vídeos por requisição em lote
+});
+
+// Configurar limites de upload (Kestrel)
+builder.Services.Configure<Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerOptions>(options =>
+{
+    // Aumentar limite de tamanho do corpo da requisição para 500MB (para vídeos)
+    options.Limits.MaxRequestBodySize = 524_288_000; // 500MB
+    options.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(5);
+    options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(5);
+});
+
+// Configurar limites de upload (IIS)
+builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 524_288_000; // 500MB
+    options.ValueLengthLimit = int.MaxValue;
+    options.MultipartBoundaryLengthLimit = int.MaxValue;
+    options.MultipartHeadersCountLimit = 16;
+    options.MultipartHeadersLengthLimit = int.MaxValue;
+});
 
 // SignalR
 builder.Services.AddSignalR(options =>

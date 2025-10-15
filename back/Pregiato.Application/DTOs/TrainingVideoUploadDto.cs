@@ -73,4 +73,62 @@ namespace Pregiato.Application.DTOs
         public string? ThumbnailUrl { get; set; }
         public DateTime CreatedAt { get; set; }
     }
+
+    /// <summary>
+    /// DTO para iniciar um processo de upload em lote
+    /// O frontend envia esta requisição para obter um BatchId
+    /// </summary>
+    public class BatchUploadInitDto
+    {
+        [Required(ErrorMessage = "Quantidade total de vídeos é obrigatória")]
+        [Range(1, 50, ErrorMessage = "O lote deve conter entre 1 e 50 vídeos")]
+        public int TotalVideos { get; set; }
+        
+        public Guid? CourseId { get; set; }
+        public string? CourseName { get; set; }
+    }
+
+    /// <summary>
+    /// Resposta ao iniciar um upload em lote
+    /// </summary>
+    public class BatchUploadResponseDto
+    {
+        public Guid BatchId { get; set; }
+        public int TotalVideos { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public string Message { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// DTO para upload de vídeo individual dentro de um lote
+    /// </summary>
+    public class BatchVideoUploadDto
+    {
+        [Required(ErrorMessage = "BatchId é obrigatório")]
+        public Guid BatchId { get; set; }
+        
+        [Required(ErrorMessage = "Índice do vídeo é obrigatório")]
+        [Range(0, int.MaxValue, ErrorMessage = "Índice deve ser maior ou igual a 0")]
+        public int VideoIndex { get; set; }
+        
+        [Required(ErrorMessage = "Dados do vídeo são obrigatórios")]
+        public TrainingVideoUploadDto VideoData { get; set; } = new();
+    }
+
+    /// <summary>
+    /// Status de um upload em lote
+    /// </summary>
+    public class BatchUploadStatusDto
+    {
+        public Guid BatchId { get; set; }
+        public int TotalVideos { get; set; }
+        public int UploadedVideos { get; set; }
+        public int FailedVideos { get; set; }
+        public double ProgressPercentage { get; set; }
+        public bool IsCompleted { get; set; }
+        public List<VideoUploadResultDto> Results { get; set; } = new();
+        public List<string> Errors { get; set; } = new();
+        public DateTime CreatedAt { get; set; }
+        public DateTime? CompletedAt { get; set; }
+    }
 }
