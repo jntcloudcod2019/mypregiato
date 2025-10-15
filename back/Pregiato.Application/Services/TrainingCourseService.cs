@@ -132,13 +132,21 @@ namespace Pregiato.Application.Services
                 Console.WriteLine($"✅ [SERVICE] Upload de {uploadResults.Length} vídeos concluído");
 
                 // Adicionar todas as aulas ao curso
+                Console.WriteLine($"📚 [SERVICE] Adicionando {uploadResults.Length} aulas ao curso");
                 foreach (var (lesson, uploadResult) in uploadResults)
                 {
                     if (uploadResult != null && !uploadResult.Success)
                     {
+                        Console.WriteLine($"⚠️ [SERVICE] Erro no upload do vídeo da aula {lesson.Title}: {uploadResult.ErrorMessage}");
                         _logger.LogWarning($"Erro no upload do vídeo da aula {lesson.Title}: {uploadResult.ErrorMessage}");
                     }
+                    else
+                    {
+                        Console.WriteLine($"✅ [SERVICE] Aula '{lesson.Title}' processada com sucesso");
+                    }
+                    
                     course.Lessons.Add(lesson);
+                    Console.WriteLine($"📝 [SERVICE] Aula '{lesson.Title}' adicionada ao curso - ID: {lesson.Id}, CourseId: {lesson.CourseId}");
                 }
             }
             else
@@ -149,6 +157,20 @@ namespace Pregiato.Application.Services
                 Console.WriteLine("💾 [SERVICE] Chamando repository para salvar curso no banco");
                 var createdCourse = await _courseRepository.AddAsync(course);
                 Console.WriteLine($"✅ [SERVICE] Curso salvo no banco de dados - ID: {createdCourse.Id}");
+                
+                // ✅ VERIFICAR SE AS AULAS FORAM SALVAS
+                Console.WriteLine($"🔍 [SERVICE] Verificando aulas salvas - Total de aulas no curso: {createdCourse.Lessons?.Count ?? 0}");
+                if (createdCourse.Lessons?.Any() == true)
+                {
+                    foreach (var lesson in createdCourse.Lessons)
+                    {
+                        Console.WriteLine($"📚 [SERVICE] Aula salva - ID: {lesson.Id}, Título: {lesson.Title}, CourseId: {lesson.CourseId}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("⚠️ [SERVICE] ATENÇÃO: Nenhuma aula foi salva no banco de dados!");
+                }
                 
                 Console.WriteLine("🔄 [SERVICE] Mapeando entidade para DTO de retorno");
                 return _mapper.Map<TrainingCourseDto>(createdCourse);

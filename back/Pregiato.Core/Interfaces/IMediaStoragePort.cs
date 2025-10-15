@@ -15,7 +15,7 @@ namespace Pregiato.Core.Interfaces
 
     public interface IMediaStoragePort
     {
-        Task<MediaResultDto> StoreMediaAsync(string base64Data, string mimeType, string contactNumber, string? senderName);
+        Task<MediaResultDto> StoreMediaAsync(string base64Data, string mimeType, string? objectPath, string? senderName);
         Task<byte[]> GetMediaAsync(string mediaUrl);      
         Task<string> GetPublicUrlAsync(string mediaUrl);
     }

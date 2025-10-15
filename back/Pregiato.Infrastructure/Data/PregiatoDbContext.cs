@@ -1131,11 +1131,9 @@ public class PregiatoDbContext : DbContext
                 .HasColumnType("LONGTEXT");
             
             entity.Property(e => e.VideoUrl)
-                .IsRequired()
                 .HasMaxLength(500);
             
             entity.Property(e => e.VideoObjectName)
-                .IsRequired()
                 .HasMaxLength(500);
             
             entity.Property(e => e.VideoMimeType)

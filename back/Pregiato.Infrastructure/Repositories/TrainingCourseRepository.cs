@@ -99,6 +99,17 @@ namespace Pregiato.Infrastructure.Repositories
             
             _context.TrainingCourses.Add(course);
             
+            // ✅ ADICIONAR AULAS EXPLICITAMENTE AO CONTEXTO
+            if (course.Lessons?.Any() == true)
+            {
+                Console.WriteLine($"📚 [REPOSITORY] Adicionando {course.Lessons.Count} aulas ao contexto");
+                foreach (var lesson in course.Lessons)
+                {
+                    Console.WriteLine($"📝 [REPOSITORY] Adicionando aula - ID: {lesson.Id}, Título: {lesson.Title}, CourseId: {lesson.CourseId}");
+                    _context.TrainingLessons.Add(lesson);
+                }
+            }
+            
             Console.WriteLine("💾 [REPOSITORY] Salvando alterações no banco de dados...");
             await _context.SaveChangesAsync();
             
