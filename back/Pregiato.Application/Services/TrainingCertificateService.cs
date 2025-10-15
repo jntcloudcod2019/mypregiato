@@ -1,4 +1,5 @@
 using AutoMapper;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using Pregiato.Application.DTOs;
 using Pregiato.Application.Interfaces;
@@ -20,6 +21,7 @@ public class TrainingCertificateService : ITrainingCertificateService
     private readonly IMediaStoragePort _mediaStorage;
     private readonly IMapper _mapper;
     private readonly ILogger<TrainingCertificateService> _logger;
+    private readonly IWebHostEnvironment _webHostEnvironment;
 
     public TrainingCertificateService(
         ITrainingCertificateRepository certificateRepository,
@@ -27,7 +29,8 @@ public class TrainingCertificateService : ITrainingCertificateService
         ITrainingCourseRepository courseRepository,
         IMediaStoragePort mediaStorage,
         IMapper mapper,
-        ILogger<TrainingCertificateService> logger)
+        ILogger<TrainingCertificateService> logger,
+        IWebHostEnvironment webHostEnvironment)
     {
         _certificateRepository = certificateRepository;
         _enrollmentRepository = enrollmentRepository;
@@ -35,6 +38,7 @@ public class TrainingCertificateService : ITrainingCertificateService
         _mediaStorage = mediaStorage;
         _mapper = mapper;
         _logger = logger;
+        _webHostEnvironment = webHostEnvironment;
     }
 
     public async Task<(TrainingCertificateDto certificate, byte[] pdfBytes)> GenerateCertificateAsync(string userId, string userFullName, string courseName, DateTime completionDate)
@@ -234,27 +238,71 @@ public class TrainingCertificateService : ITrainingCertificateService
     {
         try
         {
-            var templatePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "certificates", "template.html");
+            // Usar WebRootPath do IWebHostEnvironment para garantir o caminho correto
+            var webRootPath = _webHostEnvironment?.WebRootPath;
+            
+            if (string.IsNullOrEmpty(webRootPath))
+            {
+                // Fallback para o diretório atual se WebRootPath não estiver disponível
+                webRootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                _logger.LogWarning("WebRootPath não disponível, usando fallback: {WebRootPath}", webRootPath);
+            }
+            
+            var templatePath = Path.Combine(webRootPath, "certificates", "template.html");
+            
+            _logger.LogInformation("Buscando template de certificado em: {TemplatePath}", templatePath);
             
             if (!File.Exists(templatePath))
             {
-                throw new FileNotFoundException($"Template não encontrado: {templatePath}");
+                var errorMessage = $"Template de certificado não encontrado no caminho: {templatePath}";
+                _logger.LogError(errorMessage);
+                
+                // Tentar listar arquivos no diretório para diagnóstico
+                var certificatesDir = Path.Combine(webRootPath, "certificates");
+                if (Directory.Exists(certificatesDir))
+                {
+                    var files = Directory.GetFiles(certificatesDir);
+                    _logger.LogWarning("Arquivos encontrados no diretório de certificados: {Files}", string.Join(", ", files.Select(Path.GetFileName)));
+                }
+                else
+                {
+                    _logger.LogError("Diretório de certificados não existe: {CertificatesDir}", certificatesDir);
+                }
+                
+                throw new FileNotFoundException(errorMessage, templatePath);
             }
 
             var template = await File.ReadAllTextAsync(templatePath, Encoding.UTF8);
+            
+            _logger.LogInformation("Template de certificado carregado com sucesso ({Length} caracteres)", template.Length);
 
             // Substituir placeholders
             var html = template
-                .Replace("{{STUDENT_NAME}}", certificate.UserFullName)
-                .Replace("{{COURSE_NAME}}", certificate.CourseName)
+                .Replace("{{STUDENT_NAME}}", certificate.UserFullName ?? "Nome não informado")
+                .Replace("{{COURSE_NAME}}", certificate.CourseName ?? "Curso não informado")
                 .Replace("{{COMPLETION_DATE}}", certificate.CompletionDate.ToString("dd/MM/yyyy"))
-                .Replace("{{VALIDATION_CODE}}", certificate.ValidationCode);
+                .Replace("{{VALIDATION_CODE}}", certificate.ValidationCode ?? "N/A");
 
             return html;
         }
+        catch (FileNotFoundException)
+        {
+            // Re-throw FileNotFoundException com contexto adicional
+            throw;
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogError(ex, "Sem permissão para ler o template do certificado");
+            throw new InvalidOperationException("Erro de permissão ao acessar o template do certificado", ex);
+        }
+        catch (IOException ex)
+        {
+            _logger.LogError(ex, "Erro de I/O ao ler o template do certificado");
+            throw new InvalidOperationException("Erro ao ler o arquivo de template do certificado", ex);
+        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro ao gerar HTML do certificado");
+            _logger.LogError(ex, "Erro inesperado ao gerar HTML do certificado");
             throw;
         }
     }

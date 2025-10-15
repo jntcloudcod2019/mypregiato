@@ -44,14 +44,49 @@ public class FileService : IFileService
     {
         try
         {
-            if (!File.Exists(filePath))
-                throw new FileNotFoundException("Arquivo não encontrado", filePath);
+            // Validação de segurança: verificar se o caminho é válido
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                throw new ArgumentException("Caminho do arquivo não pode ser vazio", nameof(filePath));
+            }
 
-            return await File.ReadAllBytesAsync(filePath);
+            // Validação de segurança: prevenir path traversal attacks
+            var fullPath = Path.GetFullPath(filePath);
+            var basePath = _configuration["FileStorage:BasePath"] ?? "uploads";
+            var baseFullPath = Path.GetFullPath(basePath);
+            
+            if (!fullPath.StartsWith(baseFullPath, StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogWarning("Tentativa de acesso a arquivo fora do diretório permitido: {FilePath}", filePath);
+                throw new UnauthorizedAccessException("Acesso ao arquivo não permitido");
+            }
+
+            if (!File.Exists(fullPath))
+            {
+                _logger.LogWarning("Arquivo não encontrado: {FilePath}", fullPath);
+                throw new FileNotFoundException("Arquivo não encontrado", fullPath);
+            }
+
+            return await File.ReadAllBytesAsync(fullPath);
+        }
+        catch (FileNotFoundException)
+        {
+            // Re-throw FileNotFoundException sem logging adicional (já foi logado acima)
+            throw;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            // Re-throw UnauthorizedAccessException sem logging adicional
+            throw;
+        }
+        catch (IOException ioEx)
+        {
+            _logger.LogError(ioEx, "Erro de I/O ao ler arquivo {FilePath}", filePath);
+            throw new InvalidOperationException($"Erro ao ler arquivo: {ioEx.Message}", ioEx);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro ao ler arquivo {FilePath}", filePath);
+            _logger.LogError(ex, "Erro inesperado ao ler arquivo {FilePath}", filePath);
             throw;
         }
     }

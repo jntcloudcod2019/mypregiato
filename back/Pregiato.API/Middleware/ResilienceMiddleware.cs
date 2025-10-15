@@ -64,10 +64,13 @@ namespace Pregiato.API.Middleware
             var response = context.Response;
             response.ContentType = "application/json";
 
+            // Determinar mensagem de erro amigável baseada no tipo de exceção
+            var (errorTitle, errorMessage) = GetUserFriendlyErrorMessage(ex);
+
             var errorResponse = new ErrorResponse
             {
-                Error = "Erro interno do servidor",
-                Message = ex.Message,
+                Error = errorTitle,
+                Message = errorMessage,
                 Timestamp = DateTime.UtcNow,
                 Path = context.Request.Path.Value,
                 Resilience = new ResilienceInfo
@@ -179,15 +182,51 @@ namespace Pregiato.API.Middleware
                    (ex.InnerException != null && IsRetryableException(ex.InnerException));
         }
 
+        private static (string Title, string Message) GetUserFriendlyErrorMessage(Exception ex)
+        {
+            return ex switch
+            {
+                FileNotFoundException fileEx => 
+                    ("Arquivo não encontrado", $"O recurso solicitado não foi encontrado: {Path.GetFileName(fileEx.FileName ?? "arquivo desconhecido")}"),
+                
+                UnauthorizedAccessException => 
+                    ("Acesso negado", "Sem permissão para acessar este recurso"),
+                
+                IOException ioEx => 
+                    ("Erro de leitura/escrita", "Erro ao acessar arquivo ou recurso do sistema"),
+                
+                ArgumentException argEx => 
+                    ("Requisição inválida", argEx.Message),
+                
+                InvalidOperationException invalidEx => 
+                    ("Operação inválida", invalidEx.Message),
+                
+                NotImplementedException => 
+                    ("Funcionalidade não implementada", "Este recurso ainda não está disponível"),
+                
+                TimeoutException => 
+                    ("Tempo esgotado", "A operação demorou muito tempo para ser concluída"),
+                
+                DbUpdateException dbEx => 
+                    ("Erro de banco de dados", "Erro ao salvar dados. Por favor, tente novamente"),
+                
+                _ => 
+                    ("Erro interno do servidor", ex.Message)
+            };
+        }
+
         private static int GetStatusCodeForException(Exception ex)
         {
             return ex switch
             {
                 ArgumentException or ArgumentNullException => (int)HttpStatusCode.BadRequest,
-                UnauthorizedAccessException => (int)HttpStatusCode.Unauthorized,
+                FileNotFoundException => (int)HttpStatusCode.NotFound,
+                UnauthorizedAccessException => (int)HttpStatusCode.Forbidden,
                 NotImplementedException => (int)HttpStatusCode.NotImplemented,
                 TimeoutException => (int)HttpStatusCode.RequestTimeout,
                 DbUpdateException => (int)HttpStatusCode.ServiceUnavailable,
+                IOException => (int)HttpStatusCode.InternalServerError,
+                InvalidOperationException => (int)HttpStatusCode.BadRequest,
                 _ => (int)HttpStatusCode.InternalServerError
             };
         }
