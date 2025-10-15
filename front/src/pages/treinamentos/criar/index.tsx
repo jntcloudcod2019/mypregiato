@@ -13,6 +13,15 @@ import { useToast } from '@/hooks/use-toast';
 import { v4 as uuidv4 } from 'uuid';
 import { useTrainingCourses } from '@/hooks/use-training-courses';
 import { CreateTrainingCourseDto, CreateTrainingLessonDto } from '@/types/training';
+import { trainingService } from '@/services/training-service';
+
+// ✅ Tipo temporário para estado local (com Base64)
+interface LessonWithBase64 extends CreateTrainingLessonDto {
+  videoBase64Data?: string;
+  videoFileName?: string;
+  videoFileSize?: number;
+  durationSeconds?: number; // Alias para videoDurationSeconds
+}
 
 const CriarTreinamentoPage = () => {
   const navigate = useNavigate();
@@ -28,15 +37,14 @@ const CriarTreinamentoPage = () => {
     isActive: true
   });
   
-  const [lessons, setLessons] = useState<CreateTrainingLessonDto[]>([]);
-  const [currentLesson, setCurrentLesson] = useState({
+  const [lessons, setLessons] = useState<LessonWithBase64[]>([]);
+  const [currentLesson, setCurrentLesson] = useState<LessonWithBase64>({
     title: '',
     description: '',
     orderIndex: 1,
-    durationSeconds: 0,
+    videoDurationSeconds: 0,
     videoUrl: '',
     videoObjectName: '',
-    // ✅ ADICIONADO: Campos para dados Base64 do vídeo
     videoBase64Data: '',
     videoFileName: '',
     videoFileSize: 0,
@@ -115,17 +123,22 @@ const CriarTreinamentoPage = () => {
       return;
     }
 
-    const newLesson: CreateTrainingLessonDto = {
-      ...currentLesson,
+    // ✅ Criar objeto do tipo LessonWithBase64 (estado local)
+    const newLesson: LessonWithBase64 = {
+      title: currentLesson.title,
+      description: currentLesson.description,
+      orderIndex: currentLesson.orderIndex,
       isActive: true,
-      // ✅ INCLUIR DADOS BASE64 DO VÍDEO (OBRIGATÓRIOS)
-      videoBase64Data: currentLesson.videoBase64Data, // Já validado acima
-      videoFileName: currentLesson.videoFileName, // Nome do arquivo original
-      videoFileSize: currentLesson.videoFileSize, // Tamanho em bytes
-      videoMimeType: currentLesson.videoMimeType, // Tipo MIME (video/mp4, etc)
-      // Manter dados do vídeo para envio posterior
-      videoUrl: currentLesson.videoUrl || '', // Será preenchido pelo backend
-      videoObjectName: currentLesson.videoObjectName || '' // Será preenchido pelo backend
+      videoUrl: currentLesson.videoUrl || '',
+      videoObjectName: currentLesson.videoObjectName || '',
+      videoSize: currentLesson.videoFileSize,
+      videoDurationSeconds: currentLesson.videoDurationSeconds,
+      videoMimeType: currentLesson.videoMimeType,
+      // ✅ Campos Base64 (usado localmente antes do upload)
+      videoBase64Data: currentLesson.videoBase64Data,
+      videoFileName: currentLesson.videoFileName,
+      videoFileSize: currentLesson.videoFileSize,
+      durationSeconds: currentLesson.durationSeconds
     };
 
     // ✅ DEBUG: Log dos dados do vídeo
@@ -195,36 +208,92 @@ const CriarTreinamentoPage = () => {
       return;
     }
 
-    // // ✅ Validar autenticação
-    // if (!user?.id) {
-    //   toast({
-    //     title: "Erro de autenticação",
-    //     description: "Usuário não autenticado. Faça login novamente.",
-    //     variant: "destructive"
-    //   });
-    //   return;
-    // }
-
     const newId: string = uuidv4();
 
-    const courseData: CreateTrainingCourseDto = {
-      ...formData,
-      createdBy: newId, 
-      lessons: lessons
-    };
-
-    // ✅ DEBUG: Log do payload completo
-    console.log('📤 [Debug] Payload completo do curso:', {
-      ...courseData,
-      lessons: courseData.lessons?.map(lesson => ({
-        ...lesson,
-        videoBase64Data: lesson.videoBase64Data ? `${lesson.videoBase64Data.substring(0, 50)}...` : 'VAZIO'
-      }))
-    });
+    console.log('🚀 [CRIAR-CURSO] Iniciando processo de criação');
+    console.log('📚 [CRIAR-CURSO] Total de aulas:', lessons.length);
 
     setIsCreatingCourse(true);
 
     try {
+      // ✅ PASSO 1: FAZER UPLOAD DE TODOS OS VÍDEOS PRIMEIRO
+      console.log('📤 [CRIAR-CURSO] Passo 1: Upload de vídeos');
+      const lessonsWithUrls: CreateTrainingLessonDto[] = [];
+      
+      for (let i = 0; i < lessons.length; i++) {
+        const lesson = lessons[i];
+        console.log(`\n🎬 [CRIAR-CURSO] === UPLOAD AULA ${i + 1}/${lessons.length} ===`);
+        console.log(`   📝 Título: ${lesson.title}`);
+        
+        // Verificar se tem vídeo para fazer upload
+        if (lesson.videoBase64Data) {
+          console.log(`   ✅ Vídeo detectado - Fazendo upload...`);
+          
+          try {
+            const uploadResult = await trainingService.uploadVideo({
+              courseTitle: formData.title,
+              lessonTitle: lesson.title,
+              fileName: lesson.videoFileName || `${lesson.title}.mp4`,
+              mimeType: lesson.videoMimeType || 'video/mp4',
+              fileSize: lesson.videoFileSize || 0,
+              base64Data: lesson.videoBase64Data || ''
+            });
+
+            if (uploadResult.success) {
+              console.log(`   ✅ Upload concluído!`);
+              console.log(`   📹 URL: ${uploadResult.videoUrl}`);
+              
+              // Adicionar aula com URLs do vídeo
+              lessonsWithUrls.push({
+                title: lesson.title,
+                description: lesson.description,
+                orderIndex: lesson.orderIndex,
+                videoUrl: uploadResult.videoUrl,
+                videoObjectName: uploadResult.objectName,
+                videoSize: uploadResult.fileSize,
+                videoDurationSeconds: lesson.videoDurationSeconds || 0,
+                videoMimeType: uploadResult.mimeType,
+                isActive: true
+              });
+            } else {
+              throw new Error(uploadResult.errorMessage || 'Erro no upload');
+            }
+          } catch (uploadError) {
+            console.error(`❌ [CRIAR-CURSO] Erro no upload da aula ${lesson.title}:`, uploadError);
+            throw new Error(`Falha no upload do vídeo da aula "${lesson.title}"`);
+          }
+        } else {
+          console.log(`   ⚠️ Aula sem vídeo - adicionando sem URL`);
+          lessonsWithUrls.push({
+            title: lesson.title,
+            description: lesson.description,
+            orderIndex: lesson.orderIndex,
+            videoUrl: '',
+            videoObjectName: '',
+            isActive: true
+          });
+        }
+      }
+
+      console.log(`\n✅ [CRIAR-CURSO] Todos os vídeos foram enviados (${lessonsWithUrls.length}/${lessons.length})`);
+      
+      // ✅ PASSO 2: CRIAR CURSO COM AS URLs DOS VÍDEOS
+      console.log('💾 [CRIAR-CURSO] Passo 2: Criando curso no banco');
+      const courseData: CreateTrainingCourseDto = {
+        ...formData,
+        createdBy: newId,
+        lessons: lessonsWithUrls
+      };
+
+      console.log('📤 [CRIAR-CURSO] Payload do curso (sem Base64):', {
+        ...courseData,
+        lessons: courseData.lessons?.map(l => ({
+          title: l.title,
+          videoUrl: l.videoUrl,
+          videoObjectName: l.videoObjectName
+        }))
+      });
+
       const response = await createCourse(courseData);
       
       // Verificar se a resposta contém a mensagem personalizada
@@ -265,11 +334,9 @@ const CriarTreinamentoPage = () => {
   const categories = [
 
     'Marketing',
-    'Design',
+    'Socil Media',
     'Desenvolvimento Pessoal',
-    'Liderança',
-    'Produtividade',
-    'Comunicação',
+    'Maquiagem',
     'Outros'
   ];
 
@@ -295,7 +362,7 @@ const CriarTreinamentoPage = () => {
             Criar Novo Treinamento
           </h1>
           <p className="text-muted-foreground">
-            Crie um novo curso de treinamento para sua equipe
+            Crie um novo curso 
           </p>
         </div>
       </div>
@@ -669,7 +736,7 @@ const CriarTreinamentoPage = () => {
                             <span className="text-xs text-muted-foreground">
                               Duração: {lesson.durationSeconds ? `${Math.floor(lesson.durationSeconds / 60)}min ${lesson.durationSeconds % 60}s` : 'Não definida'}
                             </span>
-                            {lesson.videoUrl ? (
+                            {lesson.videoBase64Data? (
                               <span className="text-xs text-green-600 font-medium">✓ Vídeo pronto</span>
                             ) : (
                               <span className="text-xs text-orange-600 font-medium">⚠ Vídeo pendente</span>
@@ -727,12 +794,6 @@ const CriarTreinamentoPage = () => {
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Dificuldade</Label>
                   <Badge variant="outline">{formData.difficulty}</Badge>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Status</Label>
-                  <Badge variant={formData.isActive ? 'default' : 'secondary'}>
-                    {formData.isActive ? 'Ativo' : 'Inativo'}
-                  </Badge>
                 </div>
               </div>
               

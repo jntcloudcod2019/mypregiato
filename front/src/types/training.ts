@@ -138,14 +138,11 @@ export interface CreateTrainingLessonDto {
   videoObjectName?: string;
   videoSize?: number;
   videoDurationSeconds?: number;
-  durationSeconds?: number; // Adicionado para compatibilidade
   videoMimeType?: string;
   attachmentsJson?: string;
   isActive?: boolean;
-  // ✅ ADICIONADO: Campos para upload de vídeo
-  videoBase64Data?: string;
-  videoFileName?: string;
-  videoFileSize?: number;
+  // ⚠️ IMPORTANTE: Campos Base64 foram removidos
+  // Os vídeos devem ser enviados via uploadVideo() ANTES de criar o curso
 }
 
 export interface UpdateTrainingLessonDto {
@@ -209,14 +206,23 @@ export interface TrainingRatingSummaryDto {
 
 // DTOs para upload de vídeo
 export interface TrainingVideoUploadDto {
-  courseId: string;
-  lessonId: string;
+  courseId?: string;
+  lessonId?: string;
+  courseTitle?: string;
+  lessonTitle?: string;
   fileName: string;
   mimeType: string;
   fileSize: number;
-  // ✅ ADICIONADO: Campo para dados Base64
   base64Data: string;
-  chunkId?: string;
+}
+
+export interface VideoUploadResultDto {
+  success: boolean;
+  objectName?: string;
+  videoUrl?: string;
+  fileSize?: number;
+  mimeType?: string;
+  errorMessage?: string;
   chunkIndex?: number;
   totalChunks?: number;
   // ✅ ADICIONADO: Metadados do vídeo
