@@ -29,7 +29,10 @@ Log.Logger = new LoggerConfiguration()
 builder.Host.UseSerilog();
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers( options =>
+{
+    options.MaxModelBindingCollectionSize = 15;
+});
 
 // SignalR
 builder.Services.AddSignalR(options =>
@@ -95,6 +98,17 @@ builder.Services.AddDbContext<PregiatoDbContext>(options =>
 
 builder.Services.AddScoped<RuntimePregiatoDbContextFactory>(provider => 
     new RuntimePregiatoDbContextFactory(provider.GetRequiredService<DbContextOptions<PregiatoDbContext>>()));
+
+ builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.Limits.MaxRequestBodySize = null; 
+    serverOptions.Limits.MaxRequestLineSize = null;
+    serverOptions.Limits.MaxRequestHeadersTotalCount = null;
+    serverOptions.Limits.MaxRequestHeadersCount = null;
+    serverOptions.Limits.MaxRequestHeadersLength = null;
+    serverOptions.Limits.MaxRequestBodyBufferSize = null;
+    serverOptions.RequestBodyLimit = null;
+});
 
 // HttpClient
 builder.Services.AddHttpClient();
