@@ -76,7 +76,14 @@ export class TrainingService {
   }
 
   async createCourse(course: CreateTrainingCourseDto): Promise<TrainingCourse> {
-    return await apiClient.post<TrainingCourse>(`${this.baseUrl}/TrainingCourses`, course);
+    // ✅ AUMENTAR TIMEOUT PARA 10 MINUTOS (criação de cursos com múltiplas aulas pode demorar)
+    const axiosInstance = apiClient.getAxiosInstance();
+    const response = await axiosInstance.post<any>(`${this.baseUrl}/TrainingCourses`, course, {
+      timeout: 600000 // 10 minutos
+    });
+    
+    // Retornar resposta (pode ser { course, message } ou direto o curso)
+    return response.data;
   }
 
   async updateCourse(id: string, course: UpdateTrainingCourseDto): Promise<TrainingCourse> {
@@ -101,17 +108,22 @@ export class TrainingService {
     });
 
     try {
-      const response = await apiClient.post<VideoUploadResultDto>(
+      // ✅ AUMENTAR TIMEOUT PARA 10 MINUTOS (vídeos grandes podem demorar)
+      const axiosInstance = apiClient.getAxiosInstance();
+      const response = await axiosInstance.post<VideoUploadResultDto>(
         `${this.baseUrl}/TrainingVideos/upload`,
-        uploadData
+        uploadData,
+        {
+          timeout: 600000 // 10 minutos
+        }
       );
 
       console.log('✅ [TRAINING-SERVICE] Upload concluído com sucesso:', {
-        videoUrl: response.videoUrl,
-        objectName: response.objectName
+        videoUrl: response.data.videoUrl,
+        objectName: response.data.objectName
       });
 
-      return response;
+      return response.data;
     } catch (error) {
       console.error('❌ [TRAINING-SERVICE] Erro no upload de vídeo:', error);
       throw error;

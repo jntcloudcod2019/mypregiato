@@ -29,9 +29,19 @@ Log.Logger = new LoggerConfiguration()
 builder.Host.UseSerilog();
 
 // Add services to the container.
-builder.Services.AddControllers( options =>
+builder.Services.AddControllers(options =>
 {
     options.MaxModelBindingCollectionSize = 15;
+})
+// ✅ CONFIGURAR JSON SERIALIZER PARA IGNORAR REFERÊNCIAS CIRCULARES
+.AddJsonOptions(options =>
+{
+    // Ignora ciclos de referência ao serializar JSON
+    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    
+    // Outras configurações úteis
+    options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+    options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
 });
 
 // SignalR

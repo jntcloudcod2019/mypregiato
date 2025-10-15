@@ -308,13 +308,13 @@ const CriarTreinamentoPage = () => {
     toast({
       title: "Curso criado com sucesso!",
           description: `ID do Curso: ${response.id || 'N/A'}`,
-          duration: 5000,
+          duration: 7000,
         });
       } else {
         toast({
           title: "Curso criado!",
           description: "O curso foi criado com sucesso.",
-          duration: 5000,
+          duration: 7000,
         });
       }
       
@@ -830,11 +830,11 @@ const CriarTreinamentoPage = () => {
               {isCreatingCourse ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Criando Curso...
+                  Criando Curso... (Pode levar alguns minutos)
                 </>
               ) : (
                 <>
-              <Save className="h-4 w-4 mr-2" />
+                  <Save className="h-4 w-4 mr-2" />
                   Salvar Curso ({lessons.length} aulas)
                 </>
               )}
