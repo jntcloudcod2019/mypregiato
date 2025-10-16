@@ -2,6 +2,7 @@ using Pregiato.Application.DTOs;
 using Pregiato.Application.Interfaces;
 using Pregiato.Core.Interfaces;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
 using Pregiato.Infrastructure.Adapters;
 
 namespace Pregiato.Application.Services
