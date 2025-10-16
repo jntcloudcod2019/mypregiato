@@ -85,16 +85,51 @@ namespace Pregiato.API.Controllers
         {
             try
             {
-                var course = await _courseService.GetByIdAsync(id);
-                if (course == null)
-                    return NotFound("Curso não encontrado");
-
-                var lessons = course.Lessons?.OrderBy(l => l.OrderIndex).ToList() ?? new List<TrainingLessonDto>();
-                return Ok(lessons);
+                _logger.LogInformation("🔍 [LESSONS] Buscando aulas para curso {CourseId}", id);
+                
+                // ✅ BUSCAR DIRETAMENTE NA TABELA TrainingLessons
+                var lessons = await _context.TrainingLessons
+                    .Where(l => l.CourseId == id && l.IsActive)
+                    .OrderBy(l => l.OrderIndex)
+                    .ToListAsync();
+                
+                _logger.LogInformation("📚 [LESSONS] Encontradas {Count} aulas na tabela TrainingLessons", lessons.Count);
+                
+                if (lessons.Any())
+                {
+                    foreach (var lesson in lessons)
+                    {
+                        _logger.LogInformation("📖 [LESSONS] Aula: {Title} (Order: {Order}, VideoUrl: {VideoUrl})", 
+                            lesson.Title, lesson.OrderIndex, lesson.VideoUrl);
+                    }
+                }
+                
+                // Mapear para DTO manualmente para evitar problemas de serialização
+                var lessonDtos = lessons.Select(l => new TrainingLessonDto
+                {
+                    Id = l.Id,
+                    CourseId = l.CourseId,
+                    Title = l.Title,
+                    Description = l.Description,
+                    OrderIndex = l.OrderIndex,
+                    VideoUrl = l.VideoUrl,
+                    VideoObjectName = l.VideoObjectName,
+                    VideoSize = l.VideoSize,
+                    VideoDurationSeconds = l.VideoDurationSeconds,
+                    VideoMimeType = l.VideoMimeType,
+                    AttachmentsJson = l.AttachmentsJson,
+                    IsActive = l.IsActive,
+                    CreatedAt = l.CreatedAt,
+                    UpdatedAt = l.UpdatedAt
+                }).ToList();
+                
+                _logger.LogInformation("📚 [LESSONS] Retornando {Count} aulas mapeadas", lessonDtos.Count);
+                
+                return Ok(lessonDtos);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erro ao buscar aulas do curso {CourseId}", id);
+                _logger.LogError(ex, "❌ [LESSONS] Erro ao buscar aulas do curso {CourseId}", id);
                 return StatusCode(500, "Erro interno do servidor");
             }
         }
