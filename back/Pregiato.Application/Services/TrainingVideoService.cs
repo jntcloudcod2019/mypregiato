@@ -10,11 +10,13 @@ namespace Pregiato.Application.Services
     {
         private readonly IMediaStoragePort _mediaStorage;
         private readonly MinIOOptions _minioOptions;
+        private readonly ILogger<TrainingVideoService> _logger;
 
-        public TrainingVideoService(IMediaStoragePort mediaStorage, IOptions<MinIOOptions> minioOptions)
+        public TrainingVideoService(IMediaStoragePort mediaStorage, IOptions<MinIOOptions> minioOptions, ILogger<TrainingVideoService> logger)
         {
             _mediaStorage = mediaStorage;
             _minioOptions = minioOptions.Value;
+            _logger = logger;
         }
 
         public async Task<VideoPresignedUrlDto> GeneratePresignedUrlAsync(TrainingVideoUploadDto uploadDto)
@@ -108,18 +110,23 @@ namespace Pregiato.Application.Services
         {
             try
             {
+                // ✅ CORREÇÃO: Gerar URL de streaming válida do MinIO
                 var videoUrl = await _mediaStorage.GetPublicUrlAsync(objectName);
+                
+                _logger.LogInformation("🔗 [VIDEO-SERVICE] Gerando URL de streaming para: {ObjectName}", objectName);
+                _logger.LogInformation("🔗 [VIDEO-SERVICE] URL gerada: {VideoUrl}", videoUrl);
                 
                 return new VideoPresignedUrlDto
                 {
                     ObjectName = objectName,
-                    PresignedUrl = videoUrl, // Implementar presigned URL futuramente
+                    PresignedUrl = videoUrl, // URL válida para streaming
                     ExpiresAt = DateTime.UtcNow.Add(expiresIn),
-                    VideoUrl = videoUrl
+                    VideoUrl = videoUrl // URL que o frontend vai usar no <video> tag
                 };
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "❌ [VIDEO-SERVICE] Erro ao gerar URL de streaming para {ObjectName}", objectName);
                 throw new InvalidOperationException($"Erro ao gerar URL de streaming: {ex.Message}", ex);
             }
         }

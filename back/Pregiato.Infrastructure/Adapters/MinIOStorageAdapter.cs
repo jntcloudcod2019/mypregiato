@@ -207,10 +207,30 @@ namespace Pregiato.Infrastructure.Adapters
 
 
 
-        public Task<string> GetPublicUrlAsync(string mediaUrl)
+        public Task<string> GetPublicUrlAsync(string objectName)
         {
-            // Para MinIO, a URL já é pública se o bucket permitir
-            return Task.FromResult(mediaUrl);
+            try
+            {
+                // ✅ CORREÇÃO: Gerar URL pública válida do MinIO usando configuração real
+                var baseUrl = _options.UseSSL ? "https://" : "http://";
+                var endpoint = _options.Endpoint.Replace("https://", "").Replace("http://", "");
+                
+                // URL correta: https://bucket-production-1aef.up.railway.app/midias/objectName
+                var publicUrl = $"{baseUrl}{endpoint}/{_options.BucketName}/{objectName}";
+                
+                _logger.LogInformation("🔗 [MINIO] Gerando URL pública:");
+                _logger.LogInformation("   📍 Endpoint: {Endpoint}", _options.Endpoint);
+                _logger.LogInformation("   🪣 Bucket: {BucketName}", _options.BucketName);
+                _logger.LogInformation("   📁 Object: {ObjectName}", objectName);
+                _logger.LogInformation("   🔗 URL Final: {PublicUrl}", publicUrl);
+                
+                return Task.FromResult(publicUrl);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ [MINIO] Erro ao gerar URL pública para {ObjectName}", objectName);
+                throw;
+            }
         }
 
         private string ExtractBase64Content(string base64Data)
