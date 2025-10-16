@@ -58,13 +58,19 @@ const CursoPage = () => {
       setError(null);
       
       try {
-        // Buscar curso com aulas (lessons já vem incluído)
+        // Buscar curso
         const cursoData = await trainingService.getCourseById(id);
         setCurso(cursoData);
         
+        // Buscar aulas específicas do curso usando endpoint /lessons
+        const aulasData = await trainingService.getCourseLessons(id);
+        console.log('📚 [CURSO] Aulas carregadas:', aulasData);
+        
         // Ordenar aulas por orderIndex
-        const aulasOrdenadas = (cursoData.lessons || []).sort((a, b) => a.orderIndex - b.orderIndex);
+        const aulasOrdenadas = aulasData.sort((a, b) => a.orderIndex - b.orderIndex);
         setAulas(aulasOrdenadas);
+        
+        console.log('📚 [CURSO] Total de aulas encontradas:', aulasOrdenadas.length);
         
         // Se usuário autenticado, buscar enrollment e progresso
         if (user) {
@@ -117,8 +123,8 @@ const CursoPage = () => {
               if (aulasOrdenadas.length > 0) {
                 setAulaAtiva(aulasOrdenadas[0].id);
               }
-              
-              toast({
+          
+          toast({
                 title: 'Matrícula realizada!',
                 description: 'Você foi inscrito neste curso com sucesso.',
               });
@@ -258,14 +264,14 @@ const CursoPage = () => {
       });
       
       // Download do certificado
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
       a.download = `certificado-${curso?.title.replace(/\s+/g, '-')}.pdf`;
-      a.click();
-      URL.revokeObjectURL(url);
-      
-      toast({
+    a.click();
+    URL.revokeObjectURL(url);
+
+    toast({
         title: 'Certificado gerado!',
         description: 'Seu certificado foi baixado com sucesso.',
       });
@@ -333,7 +339,7 @@ const CursoPage = () => {
               {progresso.isCompleted 
                 ? '✓ Concluído' 
                 : `${Math.round(progresso.progressPercentage)}% Completo`}
-            </Badge>
+          </Badge>
           )}
         </div>
       </div>
@@ -377,21 +383,21 @@ const CursoPage = () => {
                 />
                 
                 <div className="flex items-center gap-3 flex-wrap">
-                  <Button
+                    <Button
                     variant={userRating === 'like' ? 'default' : 'outline'}
-                    size="sm"
+                      size="sm"
                     onClick={() => handleRating('like')}
-                  >
-                    <ThumbsUp className="h-4 w-4 mr-1" />
+                    >
+                      <ThumbsUp className="h-4 w-4 mr-1" />
                     {curso.totalLikes}
-                  </Button>
+                    </Button>
                   
-                  <Button
+                    <Button
                     variant={userRating === 'dislike' ? 'destructive' : 'outline'}
-                    size="sm"
+                      size="sm"
                     onClick={() => handleRating('dislike')}
-                  >
-                    <ThumbsDown className="h-4 w-4 mr-1" />
+                    >
+                      <ThumbsDown className="h-4 w-4 mr-1" />
                     {curso.totalDislikes}
                   </Button>
                   
@@ -427,7 +433,7 @@ const CursoPage = () => {
                 showControls={true}
               />
               
-              <Card>
+            <Card>
                 <CardContent className="p-6">
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex-1">
@@ -481,42 +487,42 @@ const CursoPage = () => {
                   const isActive = aulaAtiva === aula.id;
                   
                   return (
-                    <div
-                      key={aula.id}
-                      className={`p-4 border-b cursor-pointer hover:bg-muted/50 transition-colors ${
+                  <div
+                    key={aula.id}
+                    className={`p-4 border-b cursor-pointer hover:bg-muted/50 transition-colors ${
                         isActive ? 'bg-muted border-l-4 border-l-primary' : ''
-                      }`}
-                      onClick={() => setAulaAtiva(aula.id)}
-                    >
-                      <div className="flex items-start gap-3">
+                    }`}
+                    onClick={() => setAulaAtiva(aula.id)}
+                  >
+                    <div className="flex items-start gap-3">
                         <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted text-sm font-medium flex-shrink-0">
                           {isCompleted ? (
-                            <CheckCircle className="h-4 w-4 text-green-600" />
-                          ) : (
-                            <Circle className="h-4 w-4" />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-sm text-muted-foreground">
-                              {index + 1}.
-                            </span>
-                            <h4 className={`font-medium text-sm line-clamp-2 ${
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <Circle className="h-4 w-4" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-sm text-muted-foreground">
+                            {index + 1}.
+                          </span>
+                          <h4 className={`font-medium text-sm line-clamp-2 ${
                               isActive ? 'text-primary' : ''
-                            }`}>
+                          }`}>
                               {aula.title}
-                            </h4>
-                          </div>
+                          </h4>
+                        </div>
                           {aula.description && (
-                            <p className="text-xs text-muted-foreground line-clamp-2">
+                          <p className="text-xs text-muted-foreground line-clamp-2">
                               {aula.description}
-                            </p>
-                          )}
+                          </p>
+                        )}
                           {aula.videoDurationSeconds && (
                             <span className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
                               <Clock className="h-3 w-3" />
                               {Math.floor(aula.videoDurationSeconds / 60)}min
-                            </span>
+                          </span>
                           )}
                         </div>
                         {isActive && (
@@ -532,31 +538,31 @@ const CursoPage = () => {
 
           {/* Avaliações do Curso */}
           {!progresso?.isCompleted && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Avaliações</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Avaliações</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
                 <div className="flex items-center justify-between gap-2">
-                  <Button
+                <Button
                     variant={userRating === 'like' ? 'default' : 'outline'}
-                    size="sm"
+                  size="sm"
                     onClick={() => handleRating('like')}
                     className="flex-1"
-                  >
-                    <ThumbsUp className="h-4 w-4 mr-1" />
+                >
+                  <ThumbsUp className="h-4 w-4 mr-1" />
                     {curso.totalLikes}
-                  </Button>
-                  <Button
+                </Button>
+                <Button
                     variant={userRating === 'dislike' ? 'destructive' : 'outline'}
-                    size="sm"
+                  size="sm"
                     onClick={() => handleRating('dislike')}
-                    className="flex-1"
-                  >
-                    <ThumbsDown className="h-4 w-4 mr-1" />
+                  className="flex-1"
+                >
+                  <ThumbsDown className="h-4 w-4 mr-1" />
                     {curso.totalDislikes}
-                  </Button>
-                </div>
+                </Button>
+              </div>
                 {curso.averageRating > 0 && (
                   <div className="flex items-center justify-center gap-1 text-sm">
                     <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
@@ -564,8 +570,8 @@ const CursoPage = () => {
                     <span className="text-muted-foreground">/ 5.0</span>
                   </div>
                 )}
-              </CardContent>
-            </Card>
+            </CardContent>
+          </Card>
           )}
         </div>
       </div>
