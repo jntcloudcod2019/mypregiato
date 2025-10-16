@@ -78,7 +78,7 @@ export class TrainingService {
   async createCourse(course: CreateTrainingCourseDto): Promise<TrainingCourse> {
     // ✅ AUMENTAR TIMEOUT PARA 10 MINUTOS (criação de cursos com múltiplas aulas pode demorar)
     const axiosInstance = apiClient.getAxiosInstance();
-    const response = await axiosInstance.post<any>(`${this.baseUrl}/TrainingCourses`, course, {
+    const response = await axiosInstance.post<TrainingCourse>(`${this.baseUrl}/TrainingCourses`, course, {
       timeout: 600000 // 10 minutos
     });
     
