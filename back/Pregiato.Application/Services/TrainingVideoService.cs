@@ -238,5 +238,29 @@ namespace Pregiato.Application.Services
             return sanitized;
         }
 
+        /// <summary>
+        /// Faz download de um vídeo do MinIO
+        /// </summary>
+        public async Task<byte[]> DownloadVideoAsync(string objectName)
+        {
+            try
+            {
+                _logger.LogInformation("📥 [VIDEO-SERVICE] Fazendo download do vídeo: {ObjectName}", objectName);
+                
+                // Fazer download do MinIO usando o método correto
+                var videoBytes = await _mediaStorage.GetMediaAsync(objectName);
+                
+                _logger.LogInformation("✅ [VIDEO-SERVICE] Download concluído: {ObjectName} ({Size} bytes)", 
+                    objectName, videoBytes.Length);
+                
+                return videoBytes;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ [VIDEO-SERVICE] Erro ao fazer download do vídeo {ObjectName}", objectName);
+                throw new InvalidOperationException($"Erro ao fazer download do vídeo: {ex.Message}", ex);
+            }
+        }
+
     }
 }
