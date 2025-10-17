@@ -12,6 +12,7 @@ namespace Pregiato.Application.Interfaces
         Task<IEnumerable<TrainingEnrollmentDto>> GetInProgressByUserIdAsync(string userId);
         Task<TrainingEnrollmentDto> EnrollAsync(CreateTrainingEnrollmentDto createDto);
         Task<TrainingEnrollmentDto?> UpdateProgressAsync(Guid enrollmentId, UpdateTrainingProgressDto progressDto);
+        Task<TrainingEnrollmentDto?> UpdateLessonProgressAsync(Guid enrollmentId, Guid lessonId, int timeWatchedSeconds, bool isCompleted);
         Task<TrainingProgressSummaryDto?> GetProgressSummaryAsync(string userId, Guid courseId);
         Task<IEnumerable<TrainingProgressSummaryDto>> GetUserProgressSummaryAsync(string userId);
         Task<bool> MarkAsCompletedAsync(Guid enrollmentId);

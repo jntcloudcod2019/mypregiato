@@ -22,6 +22,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@clerk/clerk-react';
 import { trainingService } from '@/services/training-service';
+import { userManagementService } from '@/services/user-management-service';
 import { 
   TrainingCourse, 
   TrainingLesson, 
@@ -29,6 +30,7 @@ import {
   TrainingProgressSummaryDto 
 } from '@/types/training';
 import { VideoPlayer } from '@/components/training/VideoPlayer';
+import { ProgressSteps } from '@/components/training/ProgressSteps';
 
 const CursoPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -48,6 +50,9 @@ const CursoPage = () => {
   const [userRating, setUserRating] = useState<'like' | 'dislike' | null>(null);
   const [feedback, setFeedback] = useState('');
   const [showCertificatePrompt, setShowCertificatePrompt] = useState(false);
+  const [currentVideoTime, setCurrentVideoTime] = useState(0);
+  const [totalWatchedTime, setTotalWatchedTime] = useState(0);
+  const [dbUserId, setDbUserId] = useState<string | null>(null); // ID do banco MySQL
 
   // Carregar dados do curso
   useEffect(() => {
@@ -58,7 +63,29 @@ const CursoPage = () => {
       setError(null);
       
       try {
-        // Buscar curso
+        // ✅ PASSO 1: Buscar dados do usuário do BANCO (MySQL) usando email do Clerk
+        let userId: string | null = null;
+        
+        if (user && user.primaryEmailAddress?.emailAddress) {
+          try {
+            console.log('👤 [CURSO] Buscando dados do usuário no banco via email:', user.primaryEmailAddress.emailAddress);
+            const dbUser = await userManagementService.getUserByEmail(user.primaryEmailAddress.emailAddress);
+            userId = dbUser.id; // ✅ ID do MySQL
+            setDbUserId(userId);
+            console.log('✅ [CURSO] Usuário do banco encontrado:', {
+              id: dbUser.id,
+              name: `${dbUser.firstName} ${dbUser.lastName}`,
+              role: dbUser.role
+            });
+          } catch (err) {
+            console.warn('⚠️ [CURSO] Usuário não encontrado no banco, usando fallback do Clerk');
+            // Fallback: usar ClerkId se usuário não existir no banco
+            userId = user.id;
+            setDbUserId(userId);
+          }
+        }
+
+        // ✅ PASSO 2: Buscar curso
         const cursoData = await trainingService.getCourseById(id);
         setCurso(cursoData);
         
@@ -83,78 +110,52 @@ const CursoPage = () => {
         
         console.log('📚 [CURSO] Total de aulas encontradas:', aulasOrdenadas.length);
         
-        // ✅ DEFINIR PRIMEIRA AULA COMO ATIVA
-        if (aulasOrdenadas.length > 0) {
-          setAulaAtiva(aulasOrdenadas[0].id);
-          console.log('🎯 [CURSO] Primeira aula definida como ativa:', aulasOrdenadas[0].id);
-        }
-       
-        // // Se usuário autenticado, buscar enrollment e progresso
-        // if (user) {
-        //   try {
-        //     // Verificar se já tem enrollment
-        //     const isEnrolled = await trainingService.isEnrolled(user.id, id);
+        // ✅ PASSO 3: Buscar enrollment automaticamente (usando ID do MySQL)
+        if (userId && aulasOrdenadas.length > 0) {
+          try {
+            console.log('🎓 [CURSO] Buscando ou criando enrollment para usuário do banco:', userId);
             
-        //     if (isEnrolled) {
-        //       // Buscar enrollment existente
-        //       const enrollments = await trainingService.getEnrollments({
-        //         userId: user.id,
-        //         courseId: id
-        //       });
-              
-        //       if (enrollments.length > 0) {
-        //         setEnrollment(enrollments[0]);
-                
-        //         // Buscar progresso detalhado
-        //         const progressoData = await trainingService.getProgressSummary(user.id, id);
-        //         setProgresso(progressoData);
-                
-        //         // Verificar se curso foi concluído
-        //         if (progressoData.isCompleted && !showCertificatePrompt) {
-        //           setShowCertificatePrompt(true);
-        //         }
-                
-        //         // Encontrar primeira aula não concluída ou primeira aula
-        //         const primeiraAulaNaoConcluida = aulasOrdenadas.find(aula => {
-        //           const lessonProgress = enrollments[0].lessonProgress?.find(
-        //             p => p.lessonId === aula.id
-        //           );
-        //           return !lessonProgress?.isCompleted;
-        //         });
-                
-        //         if (primeiraAulaNaoConcluida) {
-        //           setAulaAtiva(primeiraAulaNaoConcluida.id);
-        //         } else if (aulasOrdenadas.length > 0) {
-        //           setAulaAtiva(aulasOrdenadas[0].id);
-        //         }
-        //       }
-        //     } else {
-        //       // Criar enrollment automaticamente ao abrir o curso
-        //       const novoEnrollment = await trainingService.enrollInCourse({
-        //         userId: user.id,
-        //         courseId: id
-        //       });
-        //       setEnrollment(novoEnrollment);
-              
-        //       // Definir primeira aula como ativa
-        //       if (aulasOrdenadas.length > 0) {
-        //         setAulaAtiva(aulasOrdenadas[0].id);
-        //       }
-          
-        //   toast({
-        //         title: 'Matrícula realizada!',
-        //         description: 'Você foi inscrito neste curso com sucesso.',
-        //       });
-        //     }
-        //   } catch (err) {
-        //     console.error('Erro ao buscar enrollment:', err);
-        //   }
-        // } else {
-        //   // Se não autenticado, apenas mostrar primeira aula
-        //   if (aulasOrdenadas.length > 0) {
-        //     setAulaAtiva(aulasOrdenadas[0].id);
-        //   }
-        // }
+            // Buscar ou criar enrollment (backend cria automaticamente se não existir)
+            const enrollmentData = await trainingService.getOrCreateEnrollment(userId, id);
+            setEnrollment(enrollmentData);
+            console.log('✅ [CURSO] Enrollment carregado:', enrollmentData.id);
+            
+            // Buscar progresso resumido
+            const progressoData = await trainingService.getProgressSummary(userId, id);
+            setProgresso(progressoData);
+            console.log('📊 [CURSO] Progresso:', progressoData);
+            
+            // Verificar se curso foi concluído
+            if (progressoData && progressoData.isCompleted) {
+              setShowCertificatePrompt(true);
+            }
+            
+            // Encontrar primeira aula não concluída
+            const primeiraAulaNaoConcluida = aulasOrdenadas.find(aula => {
+              const lessonProgress = enrollmentData.lessonProgress?.find(
+                p => p.lessonId === aula.id
+              );
+              return !lessonProgress?.isCompleted;
+            });
+            
+            if (primeiraAulaNaoConcluida) {
+              setAulaAtiva(primeiraAulaNaoConcluida.id);
+              console.log('🎯 [CURSO] Retomando aula não concluída:', primeiraAulaNaoConcluida.title);
+            } else if (aulasOrdenadas.length > 0) {
+              setAulaAtiva(aulasOrdenadas[0].id);
+              console.log('🎯 [CURSO] Iniciando pela primeira aula');
+            }
+          } catch (err) {
+            console.error('❌ [CURSO] Erro ao buscar enrollment:', err);
+            // Em caso de erro, definir primeira aula como ativa
+        if (aulasOrdenadas.length > 0) {
+              setAulaAtiva(aulasOrdenadas[0].id);
+            }
+          }
+        } else if (aulasOrdenadas.length > 0) {
+          // Se não autenticado, apenas mostrar primeira aula
+          setAulaAtiva(aulasOrdenadas[0].id);
+        }
       } catch (err) {
         console.error('Erro ao carregar curso:', err);
         setError('Erro ao carregar o curso. Tente novamente mais tarde.');
@@ -182,6 +183,7 @@ const CursoPage = () => {
       
       console.log('🎬 [CURSO] Usando URL direta do banco:', aula.videoUrl);
       setVideoUrl(aula.videoUrl);
+      setCurrentVideoTime(0); // Reset timer ao mudar de aula
     };
     
     if (aulaAtiva && aulas.length > 0) {
@@ -189,13 +191,55 @@ const CursoPage = () => {
     }
   }, [aulaAtiva, aulas]);
 
+  // ✅ TRACKING AUTOMÁTICO: Atualizar progresso a cada 5 minutos (só quando assistindo)
+  useEffect(() => {
+    if (!enrollment || !aulaAtiva || !dbUserId) return;
+
+    console.log('⏱️ [TRACKING] Iniciando tracking automático de progresso (5 min)');
+
+    const interval = setInterval(async () => {
+      try {
+        const timeWatchedSeconds = Math.floor(totalWatchedTime);
+        
+        console.log('📊 [TRACKING] Salvando progresso automático:', {
+          lesson: aulaAtiva,
+          timeWatched: timeWatchedSeconds,
+          totalMinutes: Math.floor(totalWatchedTime / 60)
+        });
+
+        await trainingService.updateLessonProgress(
+          enrollment.id,
+          aulaAtiva,
+          timeWatchedSeconds,
+          false // Ainda não concluído
+        );
+
+        // Atualizar progresso geral
+        await trainingService.updateEnrollmentProgress(
+          enrollment.id,
+          aulaAtiva,
+          Math.floor(totalWatchedTime / 60)
+        );
+
+        console.log('✅ [TRACKING] Progresso salvo automaticamente');
+      } catch (err) {
+        console.error('❌ [TRACKING] Erro ao salvar progresso:', err);
+      }
+    }, 5 * 60 * 1000); // 5 minutos
+
+    return () => {
+      console.log('🛑 [TRACKING] Parando tracking automático');
+      clearInterval(interval);
+    };
+  }, [enrollment, aulaAtiva, totalWatchedTime, dbUserId]);
+
   // Callback para atualizar progresso
   const handleProgressUpdate = useCallback(async () => {
-    if (!enrollment || !progresso) return;
+    if (!enrollment || !progresso || !dbUserId) return;
     
     try {
       const progressoAtualizado = await trainingService.getProgressSummary(
-        user!.id, 
+        dbUserId, 
         id!
       );
       setProgresso(progressoAtualizado);
@@ -211,33 +255,91 @@ const CursoPage = () => {
     } catch (err) {
       console.error('Erro ao atualizar progresso:', err);
     }
-  }, [enrollment, progresso, user, id, showCertificatePrompt, toast]);
+  }, [enrollment, progresso, dbUserId, id, showCertificatePrompt, toast]);
 
-  // Callback para quando vídeo é concluído
+  // ✅ Callback para quando vídeo termina
   const handleVideoComplete = useCallback(async () => {
-    handleProgressUpdate();
+    if (!enrollment || !aulaAtiva || !dbUserId) return;
+
+    try {
+      console.log('✅ [VIDEO] Vídeo concluído, marcando aula como completa');
+      
+      // Marcar aula como concluída
+      await trainingService.updateLessonProgress(
+        enrollment.id,
+        aulaAtiva,
+        Math.floor(totalWatchedTime),
+        true // ✅ Concluído
+      );
+
+      // Atualizar progresso resumido
+      const progressoAtualizado = await trainingService.getProgressSummary(dbUserId, id!);
+      setProgresso(progressoAtualizado);
+
+      // Verificar se curso foi 100% concluído
+      if (progressoAtualizado && progressoAtualizado.isCompleted) {
+        setShowCertificatePrompt(true);
+        toast({
+          title: '🎉 Curso Concluído!',
+          description: 'Parabéns! Você completou todas as aulas.',
+        });
+        return;
+      }
     
     // Avançar para próxima aula
     const currentIndex = aulas.findIndex(a => a.id === aulaAtiva);
     if (currentIndex < aulas.length - 1) {
       setAulaAtiva(aulas[currentIndex + 1].id);
+        setTotalWatchedTime(0); // Reset contador
       toast({
         title: 'Aula concluída!',
         description: 'Avançando para a próxima aula...',
       });
     }
-  }, [aulas, aulaAtiva, handleProgressUpdate, toast]);
+    } catch (err) {
+      console.error('❌ [VIDEO] Erro ao marcar aula como concluída:', err);
+    }
+  }, [aulas, aulaAtiva, enrollment, totalWatchedTime, dbUserId, id, toast]);
+
+  // ✅ Handler para capturar tempo do vídeo
+  const handleVideoTimeUpdate = useCallback((currentTime: number) => {
+    setCurrentVideoTime(currentTime);
+    setTotalWatchedTime(prev => prev + 1); // Incrementa a cada segundo
+  }, []);
 
   // Avaliar curso (like/dislike)
   const handleRating = useCallback(async (tipo: 'like' | 'dislike') => {
-    if (!user || !id) return;
+    if (!user || !id) {
+      console.warn('⚠️ [RATING] Usuário ou ID do curso não disponível');
+      return;
+    }
+    
+    if (!user.primaryEmailAddress?.emailAddress) {
+      console.error('❌ [RATING] Email do usuário não encontrado');
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível identificar seu email. Faça login novamente.',
+        variant: 'destructive'
+      });
+      return;
+    }
     
     try {
-      await trainingService.addCourseRating(id, {
+      console.log('👍 [RATING] Iniciando avaliação:', {
+        tipo,
+        userEmail: user.primaryEmailAddress.emailAddress,
+        courseId: id
+      });
+      
+      await trainingService.addCourseRating(
+        id, 
+        {
         courseId: id,
         ratingType: tipo.toUpperCase(),
         stars: tipo === 'like' ? 5 : 1,
-      });
+        },
+        user.primaryEmailAddress.emailAddress  // ✅ Passando email do usuário
+      );
       
       setUserRating(tipo);
       
@@ -245,12 +347,16 @@ const CursoPage = () => {
       const cursoAtualizado = await trainingService.getCourseById(id);
       setCurso(cursoAtualizado);
       
+      console.log('✅ [RATING] Avaliação registrada com sucesso!');
+      
       toast({
         title: 'Avaliação registrada!',
         description: `Obrigado pelo seu ${tipo === 'like' ? 'like' : 'dislike'}!`,
       });
     } catch (err) {
-      console.error('Erro ao avaliar curso:', err);
+      console.error('❌ [RATING] Erro ao avaliar curso:', err);
+      const error = err as { response?: { data?: string }; message?: string };
+      console.error('❌ [RATING] Detalhes:', error.response?.data || error.message);
       toast({
         title: 'Erro',
         description: 'Não foi possível registrar sua avaliação.',
@@ -441,6 +547,11 @@ const CursoPage = () => {
                       style={{ maxHeight: '70vh' }}
                       preload="metadata"
                       crossOrigin="anonymous"
+                      onTimeUpdate={(e) => {
+                        const video = e.currentTarget;
+                        handleVideoTimeUpdate(video.currentTime);
+                      }}
+                      onEnded={handleVideoComplete}
                       onError={(e) => {
                         console.error('❌ [VIDEO] Erro ao carregar vídeo:', e.currentTarget.error);
                         console.error('❌ [VIDEO] URL do vídeo:', videoUrl);
@@ -504,59 +615,14 @@ const CursoPage = () => {
                 {aulas.length} {aulas.length === 1 ? 'aula' : 'aulas'}
               </p>
             </CardHeader>
-            <CardContent className="p-0">
-              <div className="max-h-[600px] overflow-y-auto">
-                {aulas.map((aula, index) => {
-                  const aulaProgress = enrollment?.lessonProgress?.find(p => p.lessonId === aula.id);
-                  const isCompleted = aulaProgress?.isCompleted || false;
-                  const isActive = aulaAtiva === aula.id;
-                  
-                  return (
-                  <div
-                    key={aula.id}
-                    className={`p-4 border-b cursor-pointer hover:bg-muted/50 transition-colors ${
-                        isActive ? 'bg-muted border-l-4 border-l-primary' : ''
-                    }`}
-                    onClick={() => setAulaAtiva(aula.id)}
-                  >
-                    <div className="flex items-start gap-3">
-                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted text-sm font-medium flex-shrink-0">
-                          {isCompleted ? (
-                          <CheckCircle className="h-4 w-4 text-green-600" />
-                        ) : (
-                          <Circle className="h-4 w-4" />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-sm text-muted-foreground">
-                            {index + 1}.
-                          </span>
-                          <h4 className={`font-medium text-sm line-clamp-2 ${
-                              isActive ? 'text-primary' : ''
-                          }`}>
-                              {aula.title}
-                          </h4>
-                        </div>
-                          {aula.description && (
-                          <p className="text-xs text-muted-foreground line-clamp-2">
-                              {aula.description}
-                          </p>
-                        )}
-                          {aula.videoDurationSeconds && (
-                            <span className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                              <Clock className="h-3 w-3" />
-                              {Math.floor(aula.videoDurationSeconds / 60)}min
-                          </span>
-                          )}
-                        </div>
-                        {isActive && (
-                          <Play className="h-4 w-4 text-primary flex-shrink-0" />
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+            <CardContent className="p-4">
+              <div className="max-h-[600px] overflow-y-auto pr-2">
+                <ProgressSteps
+                  lessons={aulas}
+                  lessonProgress={enrollment?.lessonProgress || []}
+                  currentLessonId={aulaAtiva}
+                  onLessonClick={setAulaAtiva}
+                />
               </div>
             </CardContent>
           </Card>

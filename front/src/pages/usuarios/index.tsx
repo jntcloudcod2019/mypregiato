@@ -186,7 +186,7 @@ export default function Usuarios() {
 
   const getStatusBadge = (clerkId: string) => {
     if (!clerkId) {
-      return <Badge className="bg-yellow-500 hover:bg-yellow-600">Pendente</Badge>
+        return <Badge className="bg-yellow-500 hover:bg-yellow-600">Pendente</Badge>
     }
     return <Badge className="bg-green-500 hover:bg-green-600">Ativo</Badge>
   }
@@ -305,8 +305,8 @@ export default function Usuarios() {
                   </>
                 ) : (
                   <>
-                    <Mail className="mr-2 h-4 w-4" />
-                    Enviar Convite
+                <Mail className="mr-2 h-4 w-4" />
+                Enviar Convite
                   </>
                 )}
               </Button>
@@ -358,17 +358,17 @@ export default function Usuarios() {
                   <span className="ml-2 text-muted-foreground">Carregando usuários...</span>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  {/* Header da tabela */}
-                  <div className="grid grid-cols-12 gap-4 text-sm font-medium text-muted-foreground border-b pb-2">
-                    <div className="col-span-3">Nome</div>
-                    <div className="col-span-3">Email</div>
-                    <div className="col-span-2">Status</div>
+              <div className="space-y-4">
+                {/* Header da tabela */}
+                <div className="grid grid-cols-12 gap-4 text-sm font-medium text-muted-foreground border-b pb-2">
+                  <div className="col-span-3">Nome</div>
+                  <div className="col-span-3">Email</div>
+                  <div className="col-span-2">Status</div>
                     <div className="col-span-2">Data</div>
-                    <div className="col-span-2">Ações</div>
-                  </div>
+                  <div className="col-span-2">Ações</div>
+                </div>
 
-                  {/* Lista de talentos */}
+                {/* Lista de talentos */}
                   {talentUsers.map((user) => (
                     <div key={user.id} className="grid grid-cols-12 gap-4 items-center py-3 border-b border-border/50">
                       <div className="col-span-3 font-medium">
@@ -379,7 +379,7 @@ export default function Usuarios() {
                       <div className="col-span-2 text-sm text-muted-foreground">
                         {new Date(user.createdAt).toLocaleDateString('pt-BR')}
                       </div>
-                      <div className="col-span-2 flex gap-2">
+                    <div className="col-span-2 flex gap-2">
                         {/* Se convite pendente, mostrar botões de reenviar e cancelar */}
                         {!user.clerkId ? (
                           <>
@@ -404,34 +404,34 @@ export default function Usuarios() {
                           </>
                         ) : (
                           <>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
+                        <Button 
+                          variant="outline" 
+                          size="sm"
                               onClick={() => handleEditUser(user)}
                               title="Editar usuário"
-                            >
+                        >
                               <Edit2 className="h-3 w-3" />
-                            </Button>
-                            <Button 
+                        </Button>
+                        <Button 
                               variant="outline" 
-                              size="sm"
+                          size="sm"
                               onClick={() => handleDeleteUser(user)}
                               title="Deletar usuário"
-                            >
+                        >
                               <Trash2 className="h-3 w-3" />
-                            </Button>
+                        </Button>
                           </>
-                        )}
-                      </div>
+                      )}
                     </div>
-                  ))}
+                  </div>
+                ))}
 
                   {talentUsers.length === 0 && (
-                    <div className="text-center py-8 text-muted-foreground">
-                      Nenhum talento encontrado
-                    </div>
-                  )}
-                </div>
+                  <div className="text-center py-8 text-muted-foreground">
+                    Nenhum talento encontrado
+                  </div>
+                )}
+              </div>
               )}
             </CardContent>
           </Card>
@@ -452,18 +452,18 @@ export default function Usuarios() {
                   <span className="ml-2 text-muted-foreground">Carregando usuários...</span>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  {/* Header da tabela */}
-                  <div className="grid grid-cols-12 gap-4 text-sm font-medium text-muted-foreground border-b pb-2">
+              <div className="space-y-4">
+                {/* Header da tabela */}
+                <div className="grid grid-cols-12 gap-4 text-sm font-medium text-muted-foreground border-b pb-2">
                     <div className="col-span-2">Nome</div>
-                    <div className="col-span-3">Email</div>
-                    <div className="col-span-2">Cargo</div>
-                    <div className="col-span-2">Status</div>
+                  <div className="col-span-3">Email</div>
+                  <div className="col-span-2">Cargo</div>
+                  <div className="col-span-2">Status</div>
                     <div className="col-span-1">Data</div>
-                    <div className="col-span-2">Ações</div>
-                  </div>
+                  <div className="col-span-2">Ações</div>
+                </div>
 
-                  {/* Lista de funcionários */}
+                {/* Lista de funcionários */}
                   {employeeUsers.map((user) => (
                     <div key={user.id} className="grid grid-cols-12 gap-4 items-center py-3 border-b border-border/50">
                       <div className="col-span-2 font-medium">
@@ -474,8 +474,8 @@ export default function Usuarios() {
                       <div className="col-span-2">{getStatusBadge(user.clerkId)}</div>
                       <div className="col-span-1 text-sm text-muted-foreground">
                         {new Date(user.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
-                      </div>
-                      <div className="col-span-2 flex gap-2">
+                    </div>
+                    <div className="col-span-2 flex gap-2">
                         {/* Se convite pendente, mostrar botões de reenviar e cancelar */}
                         {!user.clerkId ? (
                           <>
@@ -508,26 +508,26 @@ export default function Usuarios() {
                             >
                               <Edit2 className="h-3 w-3" />
                             </Button>
-                            <Button 
+                      <Button 
                               variant="outline" 
-                              size="sm"
+                        size="sm"
                               onClick={() => handleDeleteUser(user)}
                               title="Deletar usuário"
-                            >
+                      >
                               <Trash2 className="h-3 w-3" />
-                            </Button>
+                      </Button>
                           </>
                         )}
                       </div>
-                    </div>
-                  ))}
+                  </div>
+                ))}
 
                   {employeeUsers.length === 0 && (
-                    <div className="text-center py-8 text-muted-foreground">
-                      Nenhum funcionário encontrado
-                    </div>
-                  )}
-                </div>
+                  <div className="text-center py-8 text-muted-foreground">
+                    Nenhum funcionário encontrado
+                  </div>
+                )}
+              </div>
               )}
             </CardContent>
           </Card>

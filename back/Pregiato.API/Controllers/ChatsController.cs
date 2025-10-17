@@ -7,6 +7,8 @@ using Pregiato.Core.Entities;
 using Pregiato.Core.Interfaces;
 using Pregiato.Infrastructure.Data;
 using Pregiato.Infrastructure.Adapters;
+using Pregiato.Application.Interfaces;
+using Pregiato.Application.DTOs.Meta;
 using System.Text.Json;
 using System.Text;
 
@@ -23,8 +25,19 @@ namespace Pregiato.API.Controllers
         private readonly RabbitBackgroundService _rabbit;
         private readonly ILogger<ChatsController> _logger;
         private readonly ConversationService _conversationService;
+        private readonly IMetaAPIClient _metaClient;
+        private readonly IConfiguration _configuration;
 
-        public ChatsController(IMediaStoragePort minIOStorageAdapter, ChatLogService chatService, PregiatoDbContext db, IHubContext<WhatsAppHub> hub, RabbitBackgroundService rabbit, ILogger<ChatsController> logger, ConversationService conversationService)
+        public ChatsController(
+            IMediaStoragePort minIOStorageAdapter, 
+            ChatLogService chatService, 
+            PregiatoDbContext db, 
+            IHubContext<WhatsAppHub> hub, 
+            RabbitBackgroundService rabbit, 
+            ILogger<ChatsController> logger, 
+            ConversationService conversationService,
+            IMetaAPIClient metaClient,
+            IConfiguration configuration)
         {
             _chatService = chatService;
             _db = db;
@@ -33,6 +46,8 @@ namespace Pregiato.API.Controllers
             _logger = logger;
             _conversationService = conversationService;
             _minIOStorageAdapter = minIOStorageAdapter;
+            _metaClient = metaClient;
+            _configuration = configuration;
         }
 
         [HttpGet]
@@ -599,9 +614,125 @@ namespace Pregiato.API.Controllers
             
             _logger.LogInformation($"📤 Enviando mensagem: from={fromNumber} to={toNormalized}");
             
-            await _rabbit.PublishAsync("whatsapp.outgoing", cmd);
+            // ✅ DUAL MODE: Verificar qual provider usar
+            var useMetaAPI = _configuration.GetValue<bool>("WhatsApp:UseMetaAPI", false);
             
-            return Ok(new { success = true, messageId = message.Id });
+            if (useMetaAPI)
+            {
+                _logger.LogInformation("🆕 [META API MODE] Enviando via Meta Cloud API");
+                
+                try
+                {
+                    string? metaMediaId = null;
+                    
+                    // Se houver mídia, fazer upload para Meta primeiro
+                    if (isMediaMessage && attachment != null && mediaUrl != null)
+                    {
+                        _logger.LogInformation("📤 [META] Uploading mídia para Meta API - Type: {Type}", message.Type);
+                        
+                        // Baixar mídia do MinIO
+                        var mediaBuffer = await _minIOStorageAdapter.DownloadMediaAsync(mediaUrl.MediaUrl);
+                        
+                        // Upload para Meta API
+                        var uploadResult = await _metaClient.UploadMediaAsync(
+                            mediaBuffer,
+                            attachment.MimeType ?? "application/octet-stream",
+                            attachment.FileName ?? "media"
+                        );
+                        
+                        if (uploadResult.Success && !string.IsNullOrEmpty(uploadResult.MediaId))
+                        {
+                            metaMediaId = uploadResult.MediaId;
+                            _logger.LogInformation("✅ [META] Mídia uploaded - Media ID: {MediaId}", metaMediaId);
+                        }
+                        else
+                        {
+                            _logger.LogError("❌ [META] Falha no upload de mídia: {Error}", uploadResult.Error);
+                            return StatusCode(500, new { error = "Falha no upload de mídia para Meta API", details = uploadResult.Error });
+                        }
+                    }
+                    
+                    // Enviar mensagem via Meta API
+                    MetaSendMessageResult sendResult;
+                    
+                    if (isMediaMessage && !string.IsNullOrEmpty(metaMediaId))
+                    {
+                        // Enviar mídia
+                        sendResult = await _metaClient.SendMediaMessageAsync(
+                            to: toNormalized,
+                            mediaType: message.Type,
+                            mediaId: metaMediaId,
+                            caption: body,
+                            clientMessageId: message.Id
+                        );
+                    }
+                    else
+                    {
+                        // Enviar texto
+                        sendResult = await _metaClient.SendTextMessageAsync(
+                            to: toNormalized,
+                            body: body ?? string.Empty,
+                            clientMessageId: message.Id
+                        );
+                    }
+                    
+                    if (sendResult.Success)
+                    {
+                        _logger.LogInformation("✅ [META] Mensagem enviada com sucesso - WhatsApp ID: {MessageId}",
+                            sendResult.WhatsAppMessageId);
+                        
+                        // Atualizar ChatLog com WhatsApp Message ID (para tracking de status)
+                        // TODO: Implementar update do PayloadJson com WhatsAppMessageId
+                        
+                        return Ok(new { 
+                            success = true, 
+                            messageId = message.Id,
+                            whatsappMessageId = sendResult.WhatsAppMessageId
+                        });
+                    }
+                    else
+                    {
+                        _logger.LogError("❌ [META] Falha no envio via Meta API: {Error}", sendResult.Error);
+                        
+                        // Fallback para Zap-Blaster se configurado
+                        var fallbackEnabled = _configuration.GetValue<bool>("WhatsApp:FallbackToZapBlaster", false);
+                        
+                        if (fallbackEnabled)
+                        {
+                            _logger.LogWarning("🔄 [FALLBACK] Tentando via Zap-Blaster como fallback");
+                            await _rabbit.PublishAsync("whatsapp.outgoing", cmd);
+                            return Ok(new { success = true, messageId = message.Id, provider = "zapblaster_fallback" });
+                        }
+                        
+                        return StatusCode(500, new { error = "Falha no envio via Meta API", details = sendResult.Error });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "❌ [META] Exceção ao enviar via Meta API");
+                    
+                    // Fallback para Zap-Blaster se configurado
+                    var fallbackEnabled = _configuration.GetValue<bool>("WhatsApp:FallbackToZapBlaster", false);
+                    
+                    if (fallbackEnabled)
+                    {
+                        _logger.LogWarning("🔄 [FALLBACK] Exceção na Meta API, usando Zap-Blaster");
+                        await _rabbit.PublishAsync("whatsapp.outgoing", cmd);
+                        return Ok(new { success = true, messageId = message.Id, provider = "zapblaster_fallback" });
+                    }
+                    
+                    return StatusCode(500, new { error = "Exceção ao enviar via Meta API", details = ex.Message });
+                }
+            }
+            else
+            {
+                _logger.LogInformation("📤 [ZAPBLASTER MODE] Enviando via RabbitMQ/Zap-Blaster");
+                
+                // Modo legado: enviar via RabbitMQ para Zap-Blaster
+                await _rabbit.PublishAsync("whatsapp.outgoing", cmd);
+                
+                return Ok(new { success = true, messageId = message.Id, provider = "zapblaster" });
+            }
         }
         
         

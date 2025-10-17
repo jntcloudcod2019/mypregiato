@@ -137,6 +137,17 @@ builder.Services.Configure<Pregiato.Infrastructure.Adapters.MinIOOptions>(
 // ✅ MINIO STORAGE ADAPTER
 builder.Services.AddScoped<Pregiato.Core.Interfaces.IMediaStoragePort, Pregiato.Infrastructure.Adapters.MinIOStorageAdapter>();
 
+// ✅ META API CONFIGURATION
+builder.Services.AddHttpClient("MetaAPI", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["Meta:BaseUrl"] ?? "https://graph.facebook.com/v21.0");
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+
+// ✅ META API SERVICES
+builder.Services.AddScoped<Pregiato.Application.Interfaces.IMetaAPIClient, Pregiato.Infrastructure.Adapters.MetaAPIAdapter>();
+builder.Services.AddScoped<Pregiato.Application.Interfaces.IMetaWebhookProcessor, Pregiato.Application.Services.MetaWebhookProcessor>();
+
 // Services
 builder.Services.AddScoped<ITalentService, TalentService>();
 builder.Services.AddScoped<IFileService, FileService>();

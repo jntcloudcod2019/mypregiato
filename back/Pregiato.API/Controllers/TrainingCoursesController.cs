@@ -330,26 +330,47 @@ namespace Pregiato.API.Controllers
         {
             try
             {
+                Console.WriteLine($"\n🎯 [RATING] ==================== INÍCIO ====================");
+                Console.WriteLine($"📦 [RATING] CourseId: {id}");
+                Console.WriteLine($"📧 [RATING] UserEmail (query): {userEmail ?? "NULL"}");
+                Console.WriteLine($"📊 [RATING] RatingType: {ratingDto?.RatingType ?? "NULL"}");
+                Console.WriteLine($"⭐ [RATING] Stars: {ratingDto?.Stars ?? 0}");
+                Console.WriteLine($"💬 [RATING] Comment: {ratingDto?.Comment ?? "NULL"}");
+                Console.WriteLine($"✅ [RATING] ModelState Valid: {ModelState.IsValid}");
+
                 if (!ModelState.IsValid)
+                {
+                    Console.WriteLine($"❌ [RATING] ModelState inválido:");
+                    foreach (var modelState in ModelState.Values)
+                    {
+                        foreach (var error in modelState.Errors)
+                        {
+                            Console.WriteLine($"   - {error.ErrorMessage}");
+                        }
+                    }
                     return BadRequest(ModelState);
+                }
 
                 if (string.IsNullOrEmpty(userEmail))
+                {
+                    Console.WriteLine($"❌ [RATING] Email do usuário não fornecido");
                     return BadRequest("Email do usuário é obrigatório");
+                }
 
                 // Buscar usuário pelo email
                 var decodedEmail = Uri.UnescapeDataString(userEmail);
-                _logger.LogInformation($"Buscando usuário com email: {decodedEmail}");
+                Console.WriteLine($"🔍 [RATING] Buscando usuário com email: {decodedEmail}");
                 
                 var user = await _context.Users
                     .FirstOrDefaultAsync(u => u.Email.ToLower() == decodedEmail.ToLower());
 
                 if (user == null)
                 {
-                    _logger.LogWarning($"Usuário com email {decodedEmail} não encontrado");
+                    Console.WriteLine($"❌ [RATING] Usuário com email {decodedEmail} NÃO encontrado");
                     return NotFound($"Usuário com email {decodedEmail} não encontrado");
                 }
 
-                _logger.LogInformation($"Usuário encontrado: {user.FirstName} {user.LastName} (ID: {user.Id})");
+                Console.WriteLine($"✅ [RATING] Usuário encontrado: {user.FirstName} {user.LastName} (ID: {user.Id})");
 
                 var course = await _courseService.AddRatingAsync(
                     id, 
@@ -359,13 +380,21 @@ namespace Pregiato.API.Controllers
                     ratingDto.Comment);
 
                 if (course == null)
+                {
+                    Console.WriteLine($"❌ [RATING] Curso {id} NÃO encontrado");
                     return NotFound("Curso não encontrado");
+                }
+
+                Console.WriteLine($"✅ [RATING] Avaliação adicionada com sucesso!");
+                Console.WriteLine($"📈 [RATING] Total Likes: {course.TotalLikes}, Total Dislikes: {course.TotalDislikes}");
+                Console.WriteLine($"🎯 [RATING] ==================== FIM ====================\n");
 
                 return Ok(course);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erro ao adicionar avaliação ao curso {CourseId}", id);
+                Console.WriteLine($"❌ [RATING] EXCEÇÃO: {ex.Message}");
+                Console.WriteLine($"❌ [RATING] Stack Trace: {ex.StackTrace}");
                 return StatusCode(500, $"Erro interno do servidor: {ex.Message}");
             }
         }

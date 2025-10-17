@@ -104,8 +104,27 @@ namespace Pregiato.Application.Services
             var enrollment = await _enrollmentRepository.GetByIdAsync(enrollmentId);
             if (enrollment == null) return null;
 
-            // Atualizar progresso da aula específica
-            var lessonProgress = enrollment.LessonProgress.FirstOrDefault(lp => lp.LessonId == progressDto.LessonId);
+            // Atualizar última aula acessada
+            enrollment.LastAccessedAt = DateTime.UtcNow;
+            enrollment.TotalTimeWatchedMinutes = progressDto.TimeWatchedMinutes;
+            
+            // Definir StartedAt se for primeira vez
+            if (!enrollment.StartedAt.HasValue)
+            {
+                enrollment.StartedAt = DateTime.UtcNow;
+            }
+
+            await _enrollmentRepository.UpdateAsync(enrollment);
+            return await GetByIdAsync(enrollmentId);
+        }
+
+        public async Task<TrainingEnrollmentDto?> UpdateLessonProgressAsync(Guid enrollmentId, Guid lessonId, int timeWatchedSeconds, bool isCompleted)
+        {
+            var enrollment = await _enrollmentRepository.GetByIdAsync(enrollmentId);
+            if (enrollment == null) return null;
+
+            // Buscar ou criar progresso da aula
+            var lessonProgress = enrollment.LessonProgress.FirstOrDefault(lp => lp.LessonId == lessonId);
             
             if (lessonProgress == null)
             {
@@ -114,30 +133,41 @@ namespace Pregiato.Application.Services
                 {
                     Id = Guid.NewGuid(),
                     EnrollmentId = enrollmentId,
-                    LessonId = progressDto.LessonId,
-                    IsCompleted = progressDto.IsCompleted,
-                    CompletedAt = progressDto.IsCompleted ? DateTime.UtcNow : null,
-                    WatchedSeconds = progressDto.WatchedSeconds,
-                    LastPositionSeconds = progressDto.LastPositionSeconds,
+                    LessonId = lessonId,
+                    IsCompleted = isCompleted,
+                    CompletedAt = isCompleted ? DateTime.UtcNow : null,
+                    WatchedSeconds = timeWatchedSeconds,
+                    LastPositionSeconds = timeWatchedSeconds,
                     StartedAt = DateTime.UtcNow,
                     LastWatchedAt = DateTime.UtcNow,
                     WatchCount = 1
                 };
                 enrollment.LessonProgress.Add(lessonProgress);
+                Console.WriteLine($"🆕 [SERVICE] Criado novo lesson progress: {lessonId}");
             }
             else
             {
                 // Atualizar progresso existente
-                lessonProgress.WatchedSeconds = progressDto.WatchedSeconds;
-                lessonProgress.LastPositionSeconds = progressDto.LastPositionSeconds;
+                lessonProgress.WatchedSeconds = timeWatchedSeconds;
+                lessonProgress.LastPositionSeconds = timeWatchedSeconds;
                 lessonProgress.LastWatchedAt = DateTime.UtcNow;
                 lessonProgress.WatchCount++;
 
-                if (progressDto.IsCompleted && !lessonProgress.IsCompleted)
+                if (isCompleted && !lessonProgress.IsCompleted)
                 {
                     lessonProgress.IsCompleted = true;
                     lessonProgress.CompletedAt = DateTime.UtcNow;
+                    Console.WriteLine($"✅ [SERVICE] Aula marcada como concluída: {lessonId}");
                 }
+            }
+
+            // Atualizar enrollment
+            enrollment.LastAccessedAt = DateTime.UtcNow;
+            
+            // Definir StartedAt se for primeira vez
+            if (!enrollment.StartedAt.HasValue)
+            {
+                enrollment.StartedAt = DateTime.UtcNow;
             }
 
             // Calcular progresso geral do curso
@@ -148,7 +178,16 @@ namespace Pregiato.Application.Services
                 var completedLessons = enrollment.LessonProgress.Count(lp => lp.IsCompleted);
                 var progressPercentage = totalLessons > 0 ? (decimal)completedLessons / totalLessons * 100 : 0;
 
+                Console.WriteLine($"📊 [SERVICE] Recalculando progresso: {completedLessons}/{totalLessons} = {progressPercentage}%");
+
                 await _enrollmentRepository.UpdateProgressAsync(enrollmentId, progressPercentage, completedLessons);
+                
+                // Verificar se curso foi concluído
+                if (progressPercentage >= 100 && !enrollment.CompletedAt.HasValue)
+                {
+                    Console.WriteLine($"🎉 [SERVICE] Curso 100% completo! Marcando como concluído...");
+                    await MarkAsCompletedAsync(enrollmentId);
+                }
             }
 
             return await GetByIdAsync(enrollmentId);

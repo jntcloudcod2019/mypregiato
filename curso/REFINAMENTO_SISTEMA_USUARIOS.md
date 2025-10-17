@@ -768,7 +768,6 @@ export default function Usuarios() {
 
 1. **Implementar Backend** (ClerkAuthService + Controller)
 2. **Implementar Frontend** (Service + Página)
-3. **Testar localmente**
 4. **Deploy e validação em produção**
 5. **Adicionar envio de email com senha** (opcional para não-MODEL)
 

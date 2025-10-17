@@ -94,8 +94,42 @@ export class TrainingService {
     await apiClient.delete<void>(`${this.baseUrl}/TrainingCourses/${id}`);
   }
 
-  async addCourseRating(courseId: string, rating: CreateTrainingRatingDto): Promise<TrainingCourse> {
-    return await apiClient.post<TrainingCourse>(`${this.baseUrl}/TrainingCourses/${courseId}/rating`, rating);
+  async addCourseRating(courseId: string, rating: CreateTrainingRatingDto, userEmail: string): Promise<TrainingCourse> {
+    console.log('⭐ [RATING] Enviando avaliação:', {
+      courseId,
+      ratingType: rating.ratingType,
+      stars: rating.stars,
+      userEmail
+    });
+    
+    return await apiClient.post<TrainingCourse>(
+      `${this.baseUrl}/TrainingCourses/${courseId}/rating?userEmail=${encodeURIComponent(userEmail)}`,
+      rating
+    );
+  }
+
+  // === ENROLLMENT ===
+  async getOrCreateEnrollment(userId: string, courseId: string): Promise<TrainingEnrollment> {
+    console.log('🎓 [ENROLLMENT] Buscando ou criando enrollment:', { userId, courseId });
+    return await apiClient.get<TrainingEnrollment>(
+      `${this.baseUrl}/TrainingEnrollments/get-or-create?userId=${userId}&courseId=${courseId}`
+    );
+  }
+
+  async updateLessonProgress(enrollmentId: string, lessonId: string, timeWatchedSeconds: number, isCompleted: boolean): Promise<TrainingEnrollment> {
+    console.log('🎬 [LESSON] Atualizando progresso:', { enrollmentId, lessonId, timeWatchedSeconds, isCompleted });
+    return await apiClient.post<TrainingEnrollment>(
+      `${this.baseUrl}/TrainingEnrollments/${enrollmentId}/lesson/${lessonId}/progress`,
+      { timeWatchedSeconds, isCompleted }
+    );
+  }
+
+  async updateEnrollmentProgress(enrollmentId: string, currentLessonId: string, timeWatchedMinutes: number): Promise<TrainingEnrollment> {
+    console.log('📊 [ENROLLMENT] Atualizando progresso geral:', { enrollmentId, currentLessonId, timeWatchedMinutes });
+    return await apiClient.put<TrainingEnrollment>(
+      `${this.baseUrl}/TrainingEnrollments/${enrollmentId}/progress`,
+      { currentLessonId, timeWatchedMinutes }
+    );
   }
 
   // === VIDEO UPLOAD ===
