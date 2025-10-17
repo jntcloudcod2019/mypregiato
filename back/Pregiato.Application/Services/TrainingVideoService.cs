@@ -142,8 +142,8 @@ namespace Pregiato.Application.Services
                 return new VideoMetadataDto
                 {
                     ObjectName = objectName,
-                    FileSize = videoUrl.Length, // Implementar futuramente
-                    MimeType = videoUrl.MimeType, // Implementar futuramente
+                    FileSize = 0, // Implementar futuramente
+                    MimeType = "video/mp4", // Implementar futuramente
                 };
             }
             catch (Exception ex)
