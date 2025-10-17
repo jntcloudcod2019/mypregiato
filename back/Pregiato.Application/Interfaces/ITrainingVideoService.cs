@@ -11,6 +11,5 @@ namespace Pregiato.Application.Interfaces
         Task<VideoMetadataDto?> GetVideoMetadataAsync(string objectName);
         Task<bool> DeleteVideoAsync(string objectName);
         Task<bool> VideoExistsAsync(string objectName);
-        Task<byte[]> DownloadVideoAsync(string objectName);
     }
 }
