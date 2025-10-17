@@ -212,28 +212,6 @@ namespace Pregiato.API.Controllers
             }
         }
 
-        [HttpGet("download/{objectName}")]
-        public async Task<IActionResult> DownloadVideo(string objectName)
-        {
-            try
-            {
-                _logger.LogInformation("📥 [VIDEO-CONTROLLER] Fazendo download do vídeo: {ObjectName}", objectName);
-                
-                // Fazer download do vídeo do MinIO
-                var videoBytes = await _videoService.DownloadVideoAsync(objectName);
-                
-                _logger.LogInformation("✅ [VIDEO-CONTROLLER] Download concluído: {ObjectName} ({Size} bytes)", 
-                    objectName, videoBytes.Length);
-                
-                // Retornar como stream
-                return File(videoBytes, "video/mp4", $"{objectName.Split('/').Last()}");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ [VIDEO-CONTROLLER] Erro ao fazer download do vídeo {ObjectName}", objectName);
-                return StatusCode(500, "Erro interno do servidor");
-            }
-        }
     }
 
     // DTO auxiliar para upload de chunk
