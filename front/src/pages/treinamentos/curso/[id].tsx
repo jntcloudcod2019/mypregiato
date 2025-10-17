@@ -426,19 +426,27 @@ const CursoPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Player de Vídeo */}
         <div className="lg:col-span-3 space-y-4">
-          {aulaAtivaDados && enrollment && videoUrl ? (
+          {aulaAtivaDados && videoUrl ? (
             <>
-              <VideoPlayer
-                videoUrl={videoUrl}
-                objectName={aulaAtivaDados.videoUrl || ''} // Usar videoUrl como objectName
-                enrollmentId={enrollment.id}
-                lessonId={aulaAtivaDados.id}
-                userId={user?.id || ''}
-                onProgressUpdate={handleProgressUpdate}
-                onVideoComplete={handleVideoComplete}
-                autoPlay={false}
-                showControls={true}
-              />
+              {/* Player HTML5 Simples */}
+              <Card>
+                <CardContent className="p-0">
+                  <div className="relative bg-black rounded-lg overflow-hidden">
+                    <video
+                      key={videoUrl}
+                      src={videoUrl}
+                      controls
+                      controlsList="nodownload"
+                      className="w-full h-auto"
+                      style={{ maxHeight: '70vh' }}
+                      preload="metadata"
+                      crossOrigin="anonymous"
+                    >
+                      Seu navegador não suporta a tag de vídeo.
+                    </video>
+                  </div>
+                </CardContent>
+              </Card>
               
             <Card>
                 <CardContent className="p-6">
