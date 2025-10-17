@@ -428,9 +428,9 @@ const CursoPage = () => {
         <div className="lg:col-span-3 space-y-4">
           {aulaAtivaDados && videoUrl ? (
             <>
-              {/* Player HTML5 Simples */}
-            <Card>
-              <CardContent className="p-0">
+              {/* Player HTML5 com CORS configurado */}
+              <Card>
+                <CardContent className="p-0">
                   <div className="relative bg-black rounded-lg overflow-hidden">
                     <video
                       key={videoUrl}
@@ -441,10 +441,20 @@ const CursoPage = () => {
                       style={{ maxHeight: '70vh' }}
                       preload="metadata"
                       crossOrigin="anonymous"
+                      onError={(e) => {
+                        console.error('❌ [VIDEO] Erro ao carregar vídeo:', e.currentTarget.error);
+                        console.error('❌ [VIDEO] URL do vídeo:', videoUrl);
+                        console.error('❌ [VIDEO] Error code:', e.currentTarget.error?.code);
+                        console.error('❌ [VIDEO] Error message:', e.currentTarget.error?.message);
+                      }}
+                      onLoadStart={() => console.log('🎬 [VIDEO] Iniciando carregamento:', videoUrl)}
+                      onLoadedMetadata={() => console.log('✅ [VIDEO] Metadados carregados')}
+                      onCanPlay={() => console.log('✅ [VIDEO] Vídeo pronto para reproduzir')}
                     >
+                      <source src={videoUrl} type="video/mp4" />
                       Seu navegador não suporta a tag de vídeo.
                     </video>
-                </div>
+                  </div>
                 </CardContent>
               </Card>
               

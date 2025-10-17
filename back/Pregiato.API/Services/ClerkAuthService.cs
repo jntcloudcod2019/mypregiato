@@ -15,6 +15,47 @@ namespace Pregiato.API.Services
         string? GetCurrentUserId(ClaimsPrincipal user);
         string? GetCurrentUserEmail(ClaimsPrincipal user);
         string? GetCurrentUserName(ClaimsPrincipal user);
+        
+        /// <summary>
+        /// Envia convite via Clerk (Clerk envia email automaticamente)
+        /// </summary>
+        Task<ClerkInvitationResult> SendInvitationAsync(SendClerkInvitationRequest request);
+        
+        /// <summary>
+        /// Revoga (cancela) um convite pendente
+        /// </summary>
+        Task<bool> RevokeInvitationAsync(string invitationId);
+        
+        /// <summary>
+        /// Lista convites pendentes de um email
+        /// </summary>
+        Task<List<ClerkInvitationInfo>> GetInvitationsByEmailAsync(string email);
+    }
+
+    public class SendClerkInvitationRequest
+    {
+        public string Email { get; set; } = string.Empty;
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public string Role { get; set; } = string.Empty;
+        public string RedirectUrl { get; set; } = string.Empty;
+    }
+
+    public class ClerkInvitationResult
+    {
+        public bool Success { get; set; }
+        public string? InvitationId { get; set; }
+        public string? Status { get; set; }
+        public string? ErrorMessage { get; set; }
+    }
+
+    public class ClerkInvitationInfo
+    {
+        public string Id { get; set; } = string.Empty;
+        public string EmailAddress { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+        public DateTime CreatedAt { get; set; }
+        public DateTime? ExpiresAt { get; set; }
     }
 
     public class ClerkAuthService : IClerkAuthService
@@ -125,6 +166,181 @@ namespace Pregiato.API.Services
         public string? GetCurrentUserName(ClaimsPrincipal user)
         {
             return user?.FindFirst(ClaimTypes.Name)?.Value;
+        }
+
+        public async Task<ClerkInvitationResult> SendInvitationAsync(SendClerkInvitationRequest request)
+        {
+            try
+            {
+                var clerkSecretKey = _configuration["Clerk:SecretKey"];
+                if (string.IsNullOrEmpty(clerkSecretKey))
+                {
+                    return new ClerkInvitationResult 
+                    { 
+                        Success = false, 
+                        ErrorMessage = "Clerk Secret Key não configurada" 
+                    };
+                }
+
+                // Configurar HttpClient com autenticação
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {clerkSecretKey}");
+
+                // 📧 Clerk Invitations API Payload
+                var payload = new
+                {
+                    email_address = request.Email,
+                    public_metadata = new 
+                    { 
+                        role = request.Role,
+                        firstName = request.FirstName,
+                        lastName = request.LastName
+                    },
+                    redirect_url = request.RedirectUrl, // URL após aceitar convite
+                    notify = true // ✅ Clerk envia email automaticamente!
+                };
+
+                var jsonContent = JsonSerializer.Serialize(payload);
+                var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
+
+                // ✅ Clerk Invitations API (não Users)
+                var response = await _httpClient.PostAsync("https://api.clerk.com/v1/invitations", content);
+                
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    _logger.LogError($"Erro ao enviar convite pelo Clerk: {errorContent}");
+                    
+                    return new ClerkInvitationResult 
+                    { 
+                        Success = false, 
+                        ErrorMessage = $"Clerk API error: {errorContent}" 
+                    };
+                }
+
+                var responseContent = await response.Content.ReadAsStringAsync();
+                var invitation = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                
+                var invitationId = invitation.GetProperty("id").GetString();
+                var status = invitation.GetProperty("status").GetString();
+
+                _logger.LogInformation($"Convite enviado com sucesso: {invitationId}");
+
+                return new ClerkInvitationResult
+                {
+                    Success = true,
+                    InvitationId = invitationId,
+                    Status = status
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exceção ao enviar convite pelo Clerk");
+                return new ClerkInvitationResult 
+                { 
+                    Success = false, 
+                    ErrorMessage = ex.Message 
+                };
+            }
+        }
+
+        public async Task<bool> RevokeInvitationAsync(string invitationId)
+        {
+            try
+            {
+                var clerkSecretKey = _configuration["Clerk:SecretKey"];
+                if (string.IsNullOrEmpty(clerkSecretKey))
+                {
+                    _logger.LogWarning("Clerk Secret Key não configurada");
+                    return false;
+                }
+
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {clerkSecretKey}");
+
+                // DELETE /v1/invitations/{invitation_id}
+                var response = await _httpClient.DeleteAsync($"https://api.clerk.com/v1/invitations/{invitationId}");
+                
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    _logger.LogError($"Erro ao revogar convite {invitationId}: {errorContent}");
+                    return false;
+                }
+
+                _logger.LogInformation($"Convite {invitationId} revogado com sucesso");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Exceção ao revogar convite {invitationId}");
+                return false;
+            }
+        }
+
+        public async Task<List<ClerkInvitationInfo>> GetInvitationsByEmailAsync(string email)
+        {
+            try
+            {
+                var clerkSecretKey = _configuration["Clerk:SecretKey"];
+                if (string.IsNullOrEmpty(clerkSecretKey))
+                {
+                    _logger.LogWarning("Clerk Secret Key não configurada");
+                    return new List<ClerkInvitationInfo>();
+                }
+
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {clerkSecretKey}");
+
+                // GET /v1/invitations?status=pending
+                var response = await _httpClient.GetAsync("https://api.clerk.com/v1/invitations?status=pending");
+                
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    _logger.LogError($"Erro ao buscar convites: {errorContent}");
+                    return new List<ClerkInvitationInfo>();
+                }
+
+                var responseContent = await response.Content.ReadAsStringAsync();
+                var invitations = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                
+                var result = new List<ClerkInvitationInfo>();
+                
+                if (invitations.TryGetProperty("data", out var data))
+                {
+                    foreach (var invitation in data.EnumerateArray())
+                    {
+                        var invitationEmail = invitation.GetProperty("email_address").GetString();
+                        
+                        // Filtrar por email
+                        if (invitationEmail?.ToLower() == email.ToLower())
+                        {
+                            var info = new ClerkInvitationInfo
+                            {
+                                Id = invitation.GetProperty("id").GetString() ?? "",
+                                EmailAddress = invitationEmail ?? "",
+                                Status = invitation.GetProperty("status").GetString() ?? "",
+                                CreatedAt = DateTime.UnixEpoch.AddMilliseconds(invitation.GetProperty("created_at").GetInt64())
+                            };
+                            
+                            if (invitation.TryGetProperty("expires_at", out var expiresAt))
+                            {
+                                info.ExpiresAt = DateTime.UnixEpoch.AddMilliseconds(expiresAt.GetInt64());
+                            }
+                            
+                            result.Add(info);
+                        }
+                    }
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exceção ao buscar convites");
+                return new List<ClerkInvitationInfo>();
+            }
         }
     }
 }

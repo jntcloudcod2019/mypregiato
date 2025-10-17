@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Pregiato.Application.DTOs;
 
 public class UserDto
@@ -30,6 +32,29 @@ public class UpdateUserDto
     public string? Email { get; set; }
     public string? ImageUrl { get; set; }
     public string? Role { get; set; }
+}
+
+/// <summary>
+/// DTO para envio de convite via Clerk Invitations
+/// </summary>
+public class SendUserInvitationDto
+{
+    [Required(ErrorMessage = "Email é obrigatório")]
+    [EmailAddress(ErrorMessage = "Email inválido")]
+    public string Email { get; set; } = string.Empty;
+    
+    [Required(ErrorMessage = "Nome é obrigatório")]
+    [StringLength(191, ErrorMessage = "Nome não pode exceder 191 caracteres")]
+    public string FirstName { get; set; } = string.Empty;
+    
+    [Required(ErrorMessage = "Sobrenome é obrigatório")]
+    [StringLength(191, ErrorMessage = "Sobrenome não pode exceder 191 caracteres")]
+    public string LastName { get; set; } = string.Empty;
+    
+    [Required(ErrorMessage = "Role é obrigatória")]
+    [StringLength(20, ErrorMessage = "Role não pode exceder 20 caracteres")]
+    [RegularExpression("^(ADMIN|MODEL|PRODUCER|OPERATOR)$", ErrorMessage = "Role deve ser: ADMIN, MODEL, PRODUCER ou OPERATOR")]
+    public string Role { get; set; } = string.Empty;
 }
 
 public class PagedResult<T>

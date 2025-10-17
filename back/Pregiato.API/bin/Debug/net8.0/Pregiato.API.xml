@@ -186,6 +186,28 @@
             Request para validar certificado
             </summary>
         </member>
+        <member name="M:Pregiato.API.Controllers.UsersController.SendUserInvitation(Pregiato.Application.DTOs.SendUserInvitationDto)">
+            <summary>
+            Envia convite para novo usuário via Clerk
+            Clerk envia o email automaticamente com link de ativação
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.UsersController.ResendUserInvitation(System.String)">
+            <summary>
+            Reenviar convite para usuário (cancela o antigo e cria novo)
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.UsersController.CancelUserInvitation(System.String)">
+            <summary>
+            Cancelar convite pendente
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.WebhooksController.ClerkWebhook">
+            <summary>
+            Webhook do Clerk para sincronizar dados de usuários
+            Documentação: https://clerk.com/docs/integrations/webhooks/overview
+            </summary>
+        </member>
         <member name="M:Pregiato.API.Controllers.WhatsAppController.BroadcastStatus(Pregiato.API.Controllers.WhatsAppController.BotStatusBroadcastRequest)">
             <summary>
             Endpoint para broadcast de status em tempo real via SignalR
@@ -301,6 +323,21 @@
         <member name="M:Pregiato.API.Services.ChatMappingService.GetCacheStats">
             <summary>
             Obtém estatísticas do cache
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.IClerkAuthService.SendInvitationAsync(Pregiato.API.Services.SendClerkInvitationRequest)">
+            <summary>
+            Envia convite via Clerk (Clerk envia email automaticamente)
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.IClerkAuthService.RevokeInvitationAsync(System.String)">
+            <summary>
+            Revoga (cancela) um convite pendente
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.IClerkAuthService.GetInvitationsByEmailAsync(System.String)">
+            <summary>
+            Lista convites pendentes de um email
             </summary>
         </member>
         <member name="M:Pregiato.API.Services.ConversationService.GetOrCreateConversationAsync(System.String,System.String,System.Boolean,System.String)">

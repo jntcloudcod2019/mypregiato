@@ -381,7 +381,7 @@ public Task<string> GetPublicUrlAsync(string objectName)
 <div className="lg:col-span-3 space-y-4">
   {aulaAtivaDados && videoUrl ? (
     <>
-      {/* Player HTML5 Simples */}
+      {/* Player HTML5 com CORS configurado */}
       <Card>
         <CardContent className="p-0">
           <div className="relative bg-black rounded-lg overflow-hidden">
@@ -393,8 +393,17 @@ public Task<string> GetPublicUrlAsync(string objectName)
               className="w-full h-auto"
               style={{ maxHeight: '70vh' }}
               preload="metadata" // Carrega apenas metadados
-              crossOrigin="anonymous" // Permite CORS
+              crossOrigin="anonymous" // ✅ CRÍTICO: MinIO não usa credenciais
+              onError={(e) => {
+                // Log detalhado de erros de vídeo
+                console.error('❌ [VIDEO] Erro:', e.currentTarget.error);
+                console.error('❌ [VIDEO] URL:', videoUrl);
+              }}
+              onLoadStart={() => console.log('🎬 [VIDEO] Carregando')}
+              onLoadedMetadata={() => console.log('✅ [VIDEO] Metadados OK')}
+              onCanPlay={() => console.log('✅ [VIDEO] Pronto')}
             >
+              <source src={videoUrl} type="video/mp4" />
               Seu navegador não suporta a tag de vídeo.
             </video>
           </div>
