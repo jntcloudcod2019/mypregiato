@@ -154,33 +154,23 @@ const CursoPage = () => {
     carregarCurso();
   }, [id, user, isUserLoaded, toast, showCertificatePrompt]);
 
-  // Carregar URL de streaming quando aula ativa mudar
+  // Carregar URL do vídeo quando aula ativa mudar
   useEffect(() => {
-    const carregarVideoUrl = async () => {
+    const carregarVideoUrl = () => {
       const aula = aulas.find(a => a.id === aulaAtiva);
-      if (!aula?.videoObjectName) return;
-      
-      try {
-        // Gerar URL de streaming temporária
-        const { presignedUrl } = await trainingService.getStreamingUrl(
-          aula.videoObjectName, 
-          24 // 24 horas de validade
-        );
-        setVideoUrl(presignedUrl);
-      } catch (err) {
-        console.error('Erro ao carregar URL do vídeo:', err);
-        toast({
-          title: 'Erro',
-          description: 'Não foi possível carregar o vídeo.',
-          variant: 'destructive'
-        });
+      if (!aula?.videoUrl) {
+        console.warn('Aula sem videoUrl:', aula);
+        return;
       }
+      
+      console.log('🎬 [CURSO] Usando URL direta do banco:', aula.videoUrl);
+      setVideoUrl(aula.videoUrl);
     };
     
-    if (aulaAtiva) {
+    if (aulaAtiva && aulas.length > 0) {
       carregarVideoUrl();
     }
-  }, [aulaAtiva, aulas, toast]);
+  }, [aulaAtiva, aulas]);
 
   // Callback para atualizar progresso
   const handleProgressUpdate = useCallback(async () => {
@@ -423,7 +413,7 @@ const CursoPage = () => {
             <>
               <VideoPlayer
                 videoUrl={videoUrl}
-                objectName={aulaAtivaDados.videoObjectName || ''}
+                objectName={aulaAtivaDados.videoUrl || ''} // Usar videoUrl como objectName
                 enrollmentId={enrollment.id}
                 lessonId={aulaAtivaDados.id}
                 userId={user?.id || ''}
