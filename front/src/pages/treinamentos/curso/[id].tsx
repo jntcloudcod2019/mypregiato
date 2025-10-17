@@ -22,6 +22,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@clerk/clerk-react';
 import { trainingService } from '@/services/training-service';
+import { minioCacheService } from '@/services/minio-cache-service';
 import { 
   TrainingCourse, 
   TrainingLesson, 
@@ -154,23 +155,37 @@ const CursoPage = () => {
     carregarCurso();
   }, [id, user, isUserLoaded, toast, showCertificatePrompt]);
 
-  // Carregar URL do vídeo quando aula ativa mudar
+  // Carregar vídeo via cache do MinIO quando aula ativa mudar
   useEffect(() => {
-    const carregarVideoUrl = () => {
+    const carregarVideoUrl = async () => {
       const aula = aulas.find(a => a.id === aulaAtiva);
       if (!aula?.videoUrl) {
         console.warn('Aula sem videoUrl:', aula);
         return;
       }
       
-      console.log('🎬 [CURSO] Usando URL direta do banco:', aula.videoUrl);
-      setVideoUrl(aula.videoUrl);
+      try {
+        console.log('🎬 [CURSO] Carregando vídeo via cache MinIO:', aula.videoUrl);
+        
+        // Usar o serviço de cache para obter blob URL
+        const blobUrl = await minioCacheService.getVideoStream(aula.videoUrl);
+        setVideoUrl(blobUrl);
+        
+        console.log('✅ [CURSO] Vídeo carregado com sucesso:', blobUrl);
+      } catch (err) {
+        console.error('❌ [CURSO] Erro ao carregar vídeo:', err);
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível carregar o vídeo.',
+          variant: 'destructive'
+        });
+      }
     };
     
     if (aulaAtiva && aulas.length > 0) {
       carregarVideoUrl();
     }
-  }, [aulaAtiva, aulas]);
+  }, [aulaAtiva, aulas, toast]);
 
   // Callback para atualizar progresso
   const handleProgressUpdate = useCallback(async () => {
