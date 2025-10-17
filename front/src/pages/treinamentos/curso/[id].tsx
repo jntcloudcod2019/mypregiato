@@ -429,8 +429,8 @@ const CursoPage = () => {
           {aulaAtivaDados && videoUrl ? (
             <>
               {/* Player HTML5 Simples */}
-              <Card>
-                <CardContent className="p-0">
+            <Card>
+              <CardContent className="p-0">
                   <div className="relative bg-black rounded-lg overflow-hidden">
                     <video
                       key={videoUrl}
@@ -444,7 +444,7 @@ const CursoPage = () => {
                     >
                       Seu navegador não suporta a tag de vídeo.
                     </video>
-                  </div>
+                </div>
                 </CardContent>
               </Card>
               
