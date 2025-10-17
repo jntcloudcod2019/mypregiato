@@ -416,5 +416,199 @@ namespace Pregiato.API.Controllers
                 return StatusCode(500, $"Erro interno do servidor: {ex.Message}");
             }
         }
+
+        /// <summary>
+        /// Envia convite para novo usuário via Clerk
+        /// Clerk envia o email automaticamente com link de ativação
+        /// </summary>
+        [HttpPost("send-invitation")]
+        public async Task<ActionResult> SendUserInvitation([FromBody] SendUserInvitationDto invitationDto)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                // 1️⃣ VALIDAR - Verificar se email já existe
+                var existingUser = await _context.Users
+                    .FirstOrDefaultAsync(u => u.Email.ToLower() == invitationDto.Email.ToLower());
+
+                if (existingUser != null)
+                {
+                    return BadRequest("Já existe um usuário com este email");
+                }
+
+                // 2️⃣ ENVIAR CONVITE VIA CLERK
+                var redirectUrl = "https://my-pregiato-production.up.railway.app/"; 
+                
+                var clerkRequest = new Pregiato.API.Services.SendClerkInvitationRequest
+                {
+                    Email = invitationDto.Email,
+                    FirstName = invitationDto.FirstName,
+                    LastName = invitationDto.LastName,
+                    Role = invitationDto.Role,
+                    RedirectUrl = redirectUrl
+                };
+
+                var result = await _clerkAuthService.SendInvitationAsync(clerkRequest);
+
+                if (!result.Success)
+                {
+                    return StatusCode(500, $"Erro ao enviar convite: {result.ErrorMessage}");
+                }
+
+                // 3️⃣ CRIAR REGISTRO PENDENTE NO BANCO
+                // ClerkId ficará vazio até usuário aceitar convite
+                var user = new User
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    ClerkId = "", // ⚠️ Vazio - será preenchido via webhook quando aceitar
+                    Email = invitationDto.Email,
+                    FirstName = invitationDto.FirstName,
+                    LastName = invitationDto.LastName,
+                    Role = invitationDto.Role.ToUpper(),
+                    ImageUrl = null,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                _context.Users.Add(user);
+                await _context.SaveChangesAsync();
+
+                Console.WriteLine($"✅ Convite enviado para {invitationDto.Email} (Role: {invitationDto.Role}, InvitationId: {result.InvitationId})");
+
+                return Ok(new 
+                { 
+                    message = $"Convite enviado para {invitationDto.FirstName} {invitationDto.LastName}",
+                    invitationId = result.InvitationId,
+                    status = result.Status,
+                    email = invitationDto.Email,
+                    note = "O usuário receberá um email do Clerk com link de ativação"
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Erro ao enviar convite: {ex.Message}");
+                return StatusCode(500, $"Erro interno: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Reenviar convite para usuário (cancela o antigo e cria novo)
+        /// </summary>
+        [HttpPost("resend-invitation/{userId}")]
+        public async Task<ActionResult> ResendUserInvitation(string userId)
+        {
+            try
+            {
+                // Buscar usuário
+                var user = await _context.Users.FindAsync(userId);
+                
+                if (user == null)
+                {
+                    return NotFound($"Usuário com ID {userId} não encontrado");
+                }
+
+                // Verificar se ainda está pendente (ClerkId vazio)
+                if (!string.IsNullOrEmpty(user.ClerkId))
+                {
+                    return BadRequest("Este usuário já aceitou o convite");
+                }
+
+                // Buscar convites pendentes no Clerk
+                var pendingInvitations = await _clerkAuthService.GetInvitationsByEmailAsync(user.Email);
+                
+                // Cancelar convites antigos
+                foreach (var invitation in pendingInvitations)
+                {
+                    await _clerkAuthService.RevokeInvitationAsync(invitation.Id);
+                }
+
+                // Enviar novo convite
+                var redirectUrl = "https://my-pregiato-production.up.railway.app/";
+                
+                var clerkRequest = new Pregiato.API.Services.SendClerkInvitationRequest
+                {
+                    Email = user.Email,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Role = user.Role,
+                    RedirectUrl = redirectUrl
+                };
+
+                var result = await _clerkAuthService.SendInvitationAsync(clerkRequest);
+
+                if (!result.Success)
+                {
+                    return StatusCode(500, $"Erro ao reenviar convite: {result.ErrorMessage}");
+                }
+
+                Console.WriteLine($"✅ Convite reenviado para {user.Email}");
+
+                return Ok(new 
+                { 
+                    message = $"Convite reenviado para {user.FirstName} {user.LastName}",
+                    invitationId = result.InvitationId,
+                    email = user.Email
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Erro ao reenviar convite: {ex.Message}");
+                return StatusCode(500, $"Erro interno: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Cancelar convite pendente
+        /// </summary>
+        [HttpPost("cancel-invitation/{userId}")]
+        public async Task<ActionResult> CancelUserInvitation(string userId)
+        {
+            try
+            {
+                // Buscar usuário
+                var user = await _context.Users.FindAsync(userId);
+                
+                if (user == null)
+                {
+                    return NotFound($"Usuário com ID {userId} não encontrado");
+                }
+
+                // Verificar se ainda está pendente (ClerkId vazio)
+                if (!string.IsNullOrEmpty(user.ClerkId))
+                {
+                    return BadRequest("Este usuário já aceitou o convite");
+                }
+
+                // Buscar e cancelar convites pendentes no Clerk
+                var pendingInvitations = await _clerkAuthService.GetInvitationsByEmailAsync(user.Email);
+                
+                bool anyRevoked = false;
+                foreach (var invitation in pendingInvitations)
+                {
+                    var revoked = await _clerkAuthService.RevokeInvitationAsync(invitation.Id);
+                    if (revoked) anyRevoked = true;
+                }
+
+                // Remover usuário do banco (convite cancelado)
+                _context.Users.Remove(user);
+                await _context.SaveChangesAsync();
+
+                Console.WriteLine($"✅ Convite cancelado para {user.Email}");
+
+                return Ok(new 
+                { 
+                    message = $"Convite cancelado para {user.FirstName} {user.LastName}",
+                    email = user.Email,
+                    clerkInvitationsRevoked = anyRevoked
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Erro ao cancelar convite: {ex.Message}");
+                return StatusCode(500, $"Erro interno: {ex.Message}");
+            }
+        }
     }
 } 

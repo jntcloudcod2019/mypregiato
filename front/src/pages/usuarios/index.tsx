@@ -5,157 +5,201 @@ import { Input } from "../../components/ui/input"
 import { Badge } from "../../components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../../components/ui/dialog"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../../components/ui/alert-dialog"
 import { Label } from "../../components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select"
 import { toast } from "sonner"
-import { Users, UserPlus, Mail, Search, RefreshCw } from "lucide-react"
-
-// Mock data para usuários
-const mockTalents = [
-  {
-    id: 1,
-    name: "Ana Clara Silva",
-    email: "ana.clara@email.com",
-    status: "Ativo",
-    inviteStatus: "Aceito",
-    joinDate: "2024-01-15"
-  },
-  {
-    id: 2,
-    name: "Carlos Eduardo Santos",
-    email: "carlos.santos@email.com",
-    status: "Ativo",
-    inviteStatus: "Aceito",
-    joinDate: "2024-01-20"
-  },
-  {
-    id: 3,
-    name: "Marina Oliveira",
-    email: "marina.oliveira@email.com",
-    status: "Pendente",
-    inviteStatus: "Enviado",
-    joinDate: null
-  },
-  {
-    id: 4,
-    name: "Rafael Costa",
-    email: "rafael.costa@email.com",
-    status: "Inativo",
-    inviteStatus: "Aceito",
-    joinDate: "2024-02-01"
-  }
-]
-
-const mockEmployees = [
-  {
-    id: 1,
-    name: "João Silva",
-    email: "joao@pregiato.com",
-    role: "Gerente",
-    status: "Ativo",
-    joinDate: "2023-06-15"
-  },
-  {
-    id: 2,
-    name: "Maria Santos",
-    email: "maria@pregiato.com",
-    role: "Coordenadora",
-    status: "Ativo",
-    joinDate: "2023-08-20"
-  },
-  {
-    id: 3,
-    name: "Pedro Oliveira",
-    email: "pedro@pregiato.com",
-    role: "Assistente",
-    status: "Ativo",
-    joinDate: "2023-10-10"
-  }
-]
+import { Users, UserPlus, Mail, Search, Loader2, RefreshCw, X, Edit2, Trash2 } from "lucide-react"
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { userManagementService, CreateUserRequest, UserResponse } from '../../services/user-management-service'
 
 export default function Usuarios() {
+  const queryClient = useQueryClient()
   const [searchTerm, setSearchTerm] = useState("")
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false)
-  const [inviteEmail, setInviteEmail] = useState("")
-  const [inviteName, setInviteName] = useState("")
-  const [userType, setUserType] = useState<"TALENT" | "EMPLOYEE">("TALENT")
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [selectedUser, setSelectedUser] = useState<UserResponse | null>(null)
+  
+  // ✅ Formulário completo com FirstName, LastName e Role
+  const [inviteData, setInviteData] = useState<CreateUserRequest>({
+    email: "",
+    firstName: "",
+    lastName: "",
+    role: "MODEL"
+  })
 
-  const filteredTalents = mockTalents.filter(talent =>
-    talent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    talent.email.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  // ✅ Dados de edição
+  const [editData, setEditData] = useState<Partial<UserResponse>>({
+    firstName: "",
+    lastName: "",
+    role: "MODEL"
+  })
 
-  const filteredEmployees = mockEmployees.filter(employee =>
-    employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    employee.email.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  // ✅ Query para buscar usuários reais da API
+  const { data: users = [], isLoading } = useQuery({
+    queryKey: ['users'],
+    queryFn: () => userManagementService.getAllUsers()
+  })
 
-  const handleSendInvite = async (email: string, type: "TALENT" | "EMPLOYEE") => {
-    try {
-      // TODO: Implementar envio de convite via Clerk
-      // const response = await fetch('/api/invites/send', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ 
-      //     email, 
-      //     userType: type,
-      //     inviteUrl: `${window.location.origin}/auth/signup?invite=${generateInviteToken()}` 
-      //   })
-      // })
+  // ✅ Mutation para enviar convite
+  const sendInvitationMutation = useMutation({
+    mutationFn: userManagementService.sendInvitation,
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: ['users'] })
       
-      console.log("API endpoint para envio de convites:")
-      console.log(`POST /api/invites/send`)
-      console.log("Body:", { 
-        email, 
-        userType: type,
-        name: inviteName,
-        inviteUrl: `${window.location.origin}/auth/signup?invite=TOKEN_GENERATED`
-      })
+      toast.success(
+        `✅ ${response.message}\n\n📧 Um email foi enviado para ${response.email} com instruções de ativação.`,
+        { duration: 5000 }
+      )
       
-      toast.success(`Convite enviado para ${email}`)
       setIsInviteDialogOpen(false)
-      setInviteEmail("")
-      setInviteName("")
-    } catch (error) {
-      console.error("Erro ao enviar convite:", error)
-      toast.error("Erro ao enviar convite")
+      resetForm()
+    },
+    onError: (error: any) => {
+      const errorMessage = error.response?.data || error.message || 'Erro ao enviar convite'
+      toast.error(`Erro: ${errorMessage}`)
     }
+  })
+
+  // ✅ Mutation para reenviar convite
+  const resendInvitationMutation = useMutation({
+    mutationFn: userManagementService.resendInvitation,
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+      toast.success(`✅ Convite reenviado para ${response.email}!`)
+    },
+    onError: (error: any) => {
+      toast.error(`Erro ao reenviar: ${error.response?.data || error.message}`)
+    }
+  })
+
+  // ✅ Mutation para cancelar convite
+  const cancelInvitationMutation = useMutation({
+    mutationFn: userManagementService.cancelInvitation,
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+      toast.success(`✅ Convite cancelado para ${response.email}`)
+    },
+    onError: (error: any) => {
+      toast.error(`Erro ao cancelar: ${error.response?.data || error.message}`)
+    }
+  })
+
+  // ✅ Mutation para editar usuário
+  const updateUserMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<CreateUserRequest> }) => 
+      userManagementService.updateUser(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+      toast.success('✅ Usuário atualizado com sucesso!')
+      setIsEditDialogOpen(false)
+      setSelectedUser(null)
+    },
+    onError: (error: any) => {
+      toast.error(`Erro ao atualizar: ${error.response?.data || error.message}`)
+    }
+  })
+
+  // ✅ Mutation para deletar usuário
+  const deleteUserMutation = useMutation({
+    mutationFn: userManagementService.deleteUser,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+      toast.success('✅ Usuário deletado com sucesso!')
+      setIsDeleteDialogOpen(false)
+      setSelectedUser(null)
+    },
+    onError: (error: any) => {
+      toast.error(`Erro ao deletar: ${error.response?.data || error.message}`)
+    }
+  })
+
+  const handleSendInvite = async () => {
+    if (!inviteData.email || !inviteData.firstName || !inviteData.lastName) {
+      toast.error("Preencha todos os campos obrigatórios")
+      return
+    }
+
+    await sendInvitationMutation.mutateAsync(inviteData)
   }
 
-  const handleResendInvite = async (email: string) => {
-    try {
-      // TODO: Reenviar convite
-      console.log("Reenviando convite para:", email)
-      toast.success(`Convite reenviado para ${email}`)
-    } catch (error) {
-      console.error("Erro ao reenviar convite:", error)
-      toast.error("Erro ao reenviar convite")
-    }
+  const handleResendInvite = (userId: string) => {
+    resendInvitationMutation.mutate(userId)
   }
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "Ativo":
-        return <Badge className="bg-green-500 hover:bg-green-600">Ativo</Badge>
-      case "Inativo":
-        return <Badge variant="secondary">Inativo</Badge>
-      case "Pendente":
-        return <Badge className="bg-yellow-500 hover:bg-yellow-600">Pendente</Badge>
-      default:
-        return <Badge variant="outline">{status}</Badge>
-    }
+  const handleCancelInvite = (userId: string) => {
+    cancelInvitationMutation.mutate(userId)
   }
 
-  const getInviteStatusBadge = (status: string) => {
-    switch (status) {
-      case "Aceito":
-        return <Badge className="bg-green-500 hover:bg-green-600">Aceito</Badge>
-      case "Enviado":
-        return <Badge className="bg-blue-500 hover:bg-blue-600">Enviado</Badge>
-      case "Expirado":
-        return <Badge className="bg-red-500 hover:bg-red-600">Expirado</Badge>
-      default:
-        return <Badge variant="outline">{status}</Badge>
+  const handleEditUser = (user: UserResponse) => {
+    setSelectedUser(user)
+    setEditData({
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role as any
+    })
+    setIsEditDialogOpen(true)
+  }
+
+  const handleUpdateUser = () => {
+    if (!selectedUser) return
+    if (!editData.firstName || !editData.lastName) {
+      toast.error("Preencha nome e sobrenome")
+      return
     }
+
+    updateUserMutation.mutate({ 
+      id: selectedUser.id, 
+      data: editData as any 
+    })
+  }
+
+  const handleDeleteUser = (user: UserResponse) => {
+    setSelectedUser(user)
+    setIsDeleteDialogOpen(true)
+  }
+
+  const confirmDeleteUser = () => {
+    if (!selectedUser) return
+    deleteUserMutation.mutate(selectedUser.id)
+  }
+
+  const resetForm = () => {
+    setInviteData({
+      email: "",
+      firstName: "",
+      lastName: "",
+      role: "MODEL"
+    })
+  }
+
+  // Filtrar usuários por busca
+  const filteredUsers = users.filter(user =>
+    `${user.firstName} ${user.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.email.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
+  // Separar por tipo
+  const talentUsers = filteredUsers.filter(u => u.role === 'MODEL')
+  const employeeUsers = filteredUsers.filter(u => ['ADMIN', 'OPERATOR', 'PRODUCER'].includes(u.role))
+
+  const getStatusBadge = (clerkId: string) => {
+    if (!clerkId) {
+      return <Badge className="bg-yellow-500 hover:bg-yellow-600">Pendente</Badge>
+    }
+    return <Badge className="bg-green-500 hover:bg-green-600">Ativo</Badge>
+  }
+
+  const getRoleBadge = (role: string) => {
+    const roleMap: Record<string, { label: string; color: string }> = {
+      'ADMIN': { label: 'Administrador', color: 'bg-purple-500' },
+      'MODEL': { label: 'Modelo', color: 'bg-blue-500' },
+      'PRODUCER': { label: 'Produtor', color: 'bg-orange-500' },
+      'OPERATOR': { label: 'Operador', color: 'bg-green-500' },
+    }
+    const roleInfo = roleMap[role] || { label: role, color: 'bg-gray-500' }
+    return <Badge className={`${roleInfo.color} hover:${roleInfo.color}`}>{roleInfo.label}</Badge>
   }
 
   return (
@@ -173,50 +217,98 @@ export default function Usuarios() {
               Enviar Convite
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle>Enviar Convite</DialogTitle>
               <DialogDescription>
-                Envie um convite para um novo usuário se cadastrar no sistema.
+                O Clerk enviará automaticamente um email para o usuário com link de ativação.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
+              {/* Nome */}
               <div className="grid gap-2">
-                <Label htmlFor="name">Nome</Label>
+                <Label htmlFor="firstName">Nome *</Label>
                 <Input
-                  id="name"
-                  value={inviteName}
-                  onChange={(e) => setInviteName(e.target.value)}
-                  placeholder="Nome completo"
+                  id="firstName"
+                  name="firstName"
+                  value={inviteData.firstName}
+                  onChange={(e) => setInviteData(prev => ({ ...prev, firstName: e.target.value }))}
+                  placeholder="João"
+                  autoComplete="given-name"
                 />
               </div>
+
+              {/* ✅ NOVO: Sobrenome */}
               <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="lastName">Sobrenome *</Label>
+                <Input
+                  id="lastName"
+                  name="lastName"
+                  value={inviteData.lastName}
+                  onChange={(e) => setInviteData(prev => ({ ...prev, lastName: e.target.value }))}
+                  placeholder="Silva"
+                  autoComplete="family-name"
+                />
+              </div>
+
+              {/* Email */}
+              <div className="grid gap-2">
+                <Label htmlFor="email">Email *</Label>
                 <Input
                   id="email"
+                  name="email"
                   type="email"
-                  value={inviteEmail}
-                  onChange={(e) => setInviteEmail(e.target.value)}
+                  value={inviteData.email}
+                  onChange={(e) => setInviteData(prev => ({ ...prev, email: e.target.value }))}
                   placeholder="email@exemplo.com"
+                  autoComplete="email"
                 />
               </div>
+
+              {/* ✅ NOVO: Role (Tipo de Usuário) com Select */}
               <div className="grid gap-2">
-                <Label>Tipo de Usuário</Label>
-                <Tabs value={userType} onValueChange={(value) => setUserType(value as "TALENT" | "EMPLOYEE")}>
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="TALENT">Talento</TabsTrigger>
-                    <TabsTrigger value="EMPLOYEE">Funcionário</TabsTrigger>
-                  </TabsList>
-                </Tabs>
+                <Label htmlFor="role">Tipo de Usuário *</Label>
+                <Select 
+                  value={inviteData.role} 
+                  onValueChange={(value) => setInviteData(prev => ({ 
+                    ...prev, 
+                    role: value as 'ADMIN' | 'MODEL' | 'PRODUCER' | 'OPERATOR' 
+                  }))}
+                >
+                  <SelectTrigger id="role">
+                    <SelectValue placeholder="Selecione o tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="MODEL">Modelo (Talento)</SelectItem>
+                    <SelectItem value="OPERATOR">Operador (CRM)</SelectItem>
+                    <SelectItem value="PRODUCER">Produtor</SelectItem>
+                    <SelectItem value="ADMIN">Administrador</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                {/* ✅ INFO: Convite Clerk */}
+                <p className="text-xs text-muted-foreground">
+                  ℹ️ O usuário receberá um email do Clerk para definir sua própria senha
+                </p>
               </div>
             </div>
+
             <DialogFooter>
               <Button
-                onClick={() => handleSendInvite(inviteEmail, userType)}
-                disabled={!inviteEmail || !inviteName}
+                onClick={handleSendInvite}
+                disabled={sendInvitationMutation.isPending || !inviteData.email || !inviteData.firstName || !inviteData.lastName}
               >
-                <Mail className="mr-2 h-4 w-4" />
-                Enviar Convite
+                {sendInvitationMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Enviando convite...
+                  </>
+                ) : (
+                  <>
+                    <Mail className="mr-2 h-4 w-4" />
+                    Enviar Convite
+                  </>
+                )}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -243,11 +335,11 @@ export default function Usuarios() {
         <TabsList>
           <TabsTrigger value="talents" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
-            Talentos ({filteredTalents.length})
+            Talentos ({talentUsers.length})
           </TabsTrigger>
           <TabsTrigger value="employees" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
-            Funcionários ({filteredEmployees.length})
+            Funcionários ({employeeUsers.length})
           </TabsTrigger>
         </TabsList>
 
@@ -260,54 +352,87 @@ export default function Usuarios() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {/* Header da tabela */}
-                <div className="grid grid-cols-12 gap-4 text-sm font-medium text-muted-foreground border-b pb-2">
-                  <div className="col-span-3">Nome</div>
-                  <div className="col-span-3">Email</div>
-                  <div className="col-span-2">Status</div>
-                  <div className="col-span-2">Convite</div>
-                  <div className="col-span-2">Ações</div>
+              {isLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                  <span className="ml-2 text-muted-foreground">Carregando usuários...</span>
                 </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* Header da tabela */}
+                  <div className="grid grid-cols-12 gap-4 text-sm font-medium text-muted-foreground border-b pb-2">
+                    <div className="col-span-3">Nome</div>
+                    <div className="col-span-3">Email</div>
+                    <div className="col-span-2">Status</div>
+                    <div className="col-span-2">Data</div>
+                    <div className="col-span-2">Ações</div>
+                  </div>
 
-                {/* Lista de talentos */}
-                {filteredTalents.map((talent) => (
-                  <div key={talent.id} className="grid grid-cols-12 gap-4 items-center py-3 border-b border-border/50">
-                    <div className="col-span-3 font-medium">{talent.name}</div>
-                    <div className="col-span-3 text-muted-foreground">{talent.email}</div>
-                    <div className="col-span-2">{getStatusBadge(talent.status)}</div>
-                    <div className="col-span-2">{getInviteStatusBadge(talent.inviteStatus)}</div>
-                    <div className="col-span-2 flex gap-2">
-                      {talent.inviteStatus === "Enviado" && (
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleResendInvite(talent.email)}
-                        >
-                          <RefreshCw className="h-3 w-3 mr-1" />
-                          Reenviar
-                        </Button>
-                      )}
-                      {talent.inviteStatus === "Aceito" && (
-                        <Button 
-                          variant="contained" 
-                          size="sm"
-                          onClick={() => handleSendInvite(talent.email, "TALENT")}
-                        >
-                          <Mail className="h-3 w-3 mr-1" />
-                          Convidar
-                        </Button>
-                      )}
+                  {/* Lista de talentos */}
+                  {talentUsers.map((user) => (
+                    <div key={user.id} className="grid grid-cols-12 gap-4 items-center py-3 border-b border-border/50">
+                      <div className="col-span-3 font-medium">
+                        {user.firstName} {user.lastName}
+                      </div>
+                      <div className="col-span-3 text-muted-foreground text-sm">{user.email}</div>
+                      <div className="col-span-2">{getStatusBadge(user.clerkId)}</div>
+                      <div className="col-span-2 text-sm text-muted-foreground">
+                        {new Date(user.createdAt).toLocaleDateString('pt-BR')}
+                      </div>
+                      <div className="col-span-2 flex gap-2">
+                        {/* Se convite pendente, mostrar botões de reenviar e cancelar */}
+                        {!user.clerkId ? (
+                          <>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleResendInvite(user.id)}
+                              disabled={resendInvitationMutation.isPending}
+                              title="Reenviar convite"
+                            >
+                              <RefreshCw className="h-3 w-3" />
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleCancelInvite(user.id)}
+                              disabled={cancelInvitationMutation.isPending}
+                              title="Cancelar convite"
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleEditUser(user)}
+                              title="Editar usuário"
+                            >
+                              <Edit2 className="h-3 w-3" />
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleDeleteUser(user)}
+                              title="Deletar usuário"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
 
-                {filteredTalents.length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    Nenhum talento encontrado
-                  </div>
-                )}
-              </div>
+                  {talentUsers.length === 0 && (
+                    <div className="text-center py-8 text-muted-foreground">
+                      Nenhum talento encontrado
+                    </div>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -321,48 +446,194 @@ export default function Usuarios() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {/* Header da tabela */}
-                <div className="grid grid-cols-12 gap-4 text-sm font-medium text-muted-foreground border-b pb-2">
-                  <div className="col-span-3">Nome</div>
-                  <div className="col-span-3">Email</div>
-                  <div className="col-span-2">Cargo</div>
-                  <div className="col-span-2">Status</div>
-                  <div className="col-span-2">Ações</div>
+              {isLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                  <span className="ml-2 text-muted-foreground">Carregando usuários...</span>
                 </div>
-
-                {/* Lista de funcionários */}
-                {filteredEmployees.map((employee) => (
-                  <div key={employee.id} className="grid grid-cols-12 gap-4 items-center py-3 border-b border-border/50">
-                    <div className="col-span-3 font-medium">{employee.name}</div>
-                    <div className="col-span-3 text-muted-foreground">{employee.email}</div>
-                    <div className="col-span-2">
-                      <Badge variant="outline">{employee.role}</Badge>
-                    </div>
-                    <div className="col-span-2">{getStatusBadge(employee.status)}</div>
-                    <div className="col-span-2 flex gap-2">
-                      <Button 
-                        variant="contained" 
-                        size="sm"
-                        onClick={() => handleSendInvite(employee.email, "EMPLOYEE")}
-                      >
-                        <Mail className="h-3 w-3 mr-1" />
-                        Convidar
-                      </Button>
-                    </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* Header da tabela */}
+                  <div className="grid grid-cols-12 gap-4 text-sm font-medium text-muted-foreground border-b pb-2">
+                    <div className="col-span-2">Nome</div>
+                    <div className="col-span-3">Email</div>
+                    <div className="col-span-2">Cargo</div>
+                    <div className="col-span-2">Status</div>
+                    <div className="col-span-1">Data</div>
+                    <div className="col-span-2">Ações</div>
                   </div>
-                ))}
 
-                {filteredEmployees.length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    Nenhum funcionário encontrado
-                  </div>
-                )}
-              </div>
+                  {/* Lista de funcionários */}
+                  {employeeUsers.map((user) => (
+                    <div key={user.id} className="grid grid-cols-12 gap-4 items-center py-3 border-b border-border/50">
+                      <div className="col-span-2 font-medium">
+                        {user.firstName} {user.lastName}
+                      </div>
+                      <div className="col-span-3 text-muted-foreground text-sm">{user.email}</div>
+                      <div className="col-span-2">{getRoleBadge(user.role)}</div>
+                      <div className="col-span-2">{getStatusBadge(user.clerkId)}</div>
+                      <div className="col-span-1 text-sm text-muted-foreground">
+                        {new Date(user.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+                      </div>
+                      <div className="col-span-2 flex gap-2">
+                        {/* Se convite pendente, mostrar botões de reenviar e cancelar */}
+                        {!user.clerkId ? (
+                          <>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleResendInvite(user.id)}
+                              disabled={resendInvitationMutation.isPending}
+                              title="Reenviar convite"
+                            >
+                              <RefreshCw className="h-3 w-3" />
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleCancelInvite(user.id)}
+                              disabled={cancelInvitationMutation.isPending}
+                              title="Cancelar convite"
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleEditUser(user)}
+                              title="Editar usuário"
+                            >
+                              <Edit2 className="h-3 w-3" />
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleDeleteUser(user)}
+                              title="Deletar usuário"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+
+                  {employeeUsers.length === 0 && (
+                    <div className="text-center py-8 text-muted-foreground">
+                      Nenhum funcionário encontrado
+                    </div>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Dialog de Edição */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Editar Usuário</DialogTitle>
+            <DialogDescription>
+              Altere os dados do usuário {selectedUser?.firstName} {selectedUser?.lastName}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="edit-firstName">Nome *</Label>
+              <Input
+                id="edit-firstName"
+                value={editData.firstName || ""}
+                onChange={(e) => setEditData(prev => ({ ...prev, firstName: e.target.value }))}
+                placeholder="Nome"
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="edit-lastName">Sobrenome *</Label>
+              <Input
+                id="edit-lastName"
+                value={editData.lastName || ""}
+                onChange={(e) => setEditData(prev => ({ ...prev, lastName: e.target.value }))}
+                placeholder="Sobrenome"
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="edit-role">Tipo de Usuário *</Label>
+              <Select 
+                value={editData.role as string} 
+                onValueChange={(value) => setEditData(prev => ({ ...prev, role: value }))}
+              >
+                <SelectTrigger id="edit-role">
+                  <SelectValue placeholder="Selecione o tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="MODEL">Modelo (Talento)</SelectItem>
+                  <SelectItem value="OPERATOR">Operador (CRM)</SelectItem>
+                  <SelectItem value="PRODUCER">Produtor</SelectItem>
+                  <SelectItem value="ADMIN">Administrador</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleUpdateUser}
+              disabled={updateUserMutation.isPending}
+            >
+              {updateUserMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                'Salvar Alterações'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Confirmação de Exclusão */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir o usuário <strong>{selectedUser?.firstName} {selectedUser?.lastName}</strong>?
+              <br /><br />
+              Esta ação não pode ser desfeita. O usuário será removido permanentemente do sistema.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteUser}
+              disabled={deleteUserMutation.isPending}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {deleteUserMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Excluindo...
+                </>
+              ) : (
+                'Excluir Usuário'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
