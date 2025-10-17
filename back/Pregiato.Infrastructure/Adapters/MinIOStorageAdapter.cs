@@ -68,6 +68,11 @@ namespace Pregiato.Infrastructure.Adapters
                     _logger.LogInformation("✅ Bucket MinIO já existe: {BucketName}", _options.BucketName);
                 }
 
+                // ⚠️ NOTA: CORS deve ser configurado manualmente no MinIO Console
+                // A configuração CORS é necessária para permitir streaming de vídeo do frontend
+                // Ver documentação em: DOCUMENTACAO_FLUXO_VIDEOS_TREINAMENTO.md
+                _logger.LogInformation("⚠️ [CORS] Certifique-se de que o CORS está configurado no MinIO para permitir acesso de: https://my-pregiato-production.up.railway.app");
+
                 _isInitialized = true;
                 _logger.LogInformation("🎉 MinIO inicializado com sucesso - Endpoint: {Endpoint}, Bucket: {BucketName}", 
                     _options.Endpoint, _options.BucketName);
