@@ -22,7 +22,6 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@clerk/clerk-react';
 import { trainingService } from '@/services/training-service';
-import { minioCacheService } from '@/services/minio-cache-service';
 import { 
   TrainingCourse, 
   TrainingLesson, 
@@ -70,79 +69,96 @@ const CursoPage = () => {
         // Ordenar aulas por orderIndex
         const aulasOrdenadas = aulasData.sort((a, b) => a.orderIndex - b.orderIndex);
         setAulas(aulasOrdenadas);
+
+        aulasData.forEach(aula => {
+          // Exemplo de acesso a uma propriedade de cada aula
+          console.log(`ID da Aula: ${aula.id}`); 
+          console.log(`Título da Aula: ${aula.title}`);
+          console.log(`VideoUrl da Aula: ${aula.videoUrl}`);
+          
+      });
+
+
+      
         
         console.log('📚 [CURSO] Total de aulas encontradas:', aulasOrdenadas.length);
         
-        // Se usuário autenticado, buscar enrollment e progresso
-        if (user) {
-          try {
-            // Verificar se já tem enrollment
-            const isEnrolled = await trainingService.isEnrolled(user.id, id);
-            
-            if (isEnrolled) {
-              // Buscar enrollment existente
-              const enrollments = await trainingService.getEnrollments({
-                userId: user.id,
-                courseId: id
-              });
-              
-              if (enrollments.length > 0) {
-                setEnrollment(enrollments[0]);
-                
-                // Buscar progresso detalhado
-                const progressoData = await trainingService.getProgressSummary(user.id, id);
-                setProgresso(progressoData);
-                
-                // Verificar se curso foi concluído
-                if (progressoData.isCompleted && !showCertificatePrompt) {
-                  setShowCertificatePrompt(true);
-                }
-                
-                // Encontrar primeira aula não concluída ou primeira aula
-                const primeiraAulaNaoConcluida = aulasOrdenadas.find(aula => {
-                  const lessonProgress = enrollments[0].lessonProgress?.find(
-                    p => p.lessonId === aula.id
-                  );
-                  return !lessonProgress?.isCompleted;
-                });
-                
-                if (primeiraAulaNaoConcluida) {
-                  setAulaAtiva(primeiraAulaNaoConcluida.id);
-                } else if (aulasOrdenadas.length > 0) {
-                  setAulaAtiva(aulasOrdenadas[0].id);
-                }
-              }
-            } else {
-              // Criar enrollment automaticamente ao abrir o curso
-              const novoEnrollment = await trainingService.enrollInCourse({
-                userId: user.id,
-                courseId: id
-              });
-              setEnrollment(novoEnrollment);
-              
-              // Definir primeira aula como ativa
-              if (aulasOrdenadas.length > 0) {
-                setAulaAtiva(aulasOrdenadas[0].id);
-              }
-          
-          toast({
-                title: 'Matrícula realizada!',
-                description: 'Você foi inscrito neste curso com sucesso.',
-              });
-            }
-          } catch (err) {
-            console.error('Erro ao buscar enrollment:', err);
-          }
-        } else {
-          // Se não autenticado, apenas mostrar primeira aula
-          if (aulasOrdenadas.length > 0) {
-            setAulaAtiva(aulasOrdenadas[0].id);
-          }
+        // ✅ DEFINIR PRIMEIRA AULA COMO ATIVA
+        if (aulasOrdenadas.length > 0) {
+          setAulaAtiva(aulasOrdenadas[0].id);
+          console.log('🎯 [CURSO] Primeira aula definida como ativa:', aulasOrdenadas[0].id);
         }
+       
+        // // Se usuário autenticado, buscar enrollment e progresso
+        // if (user) {
+        //   try {
+        //     // Verificar se já tem enrollment
+        //     const isEnrolled = await trainingService.isEnrolled(user.id, id);
+            
+        //     if (isEnrolled) {
+        //       // Buscar enrollment existente
+        //       const enrollments = await trainingService.getEnrollments({
+        //         userId: user.id,
+        //         courseId: id
+        //       });
+              
+        //       if (enrollments.length > 0) {
+        //         setEnrollment(enrollments[0]);
+                
+        //         // Buscar progresso detalhado
+        //         const progressoData = await trainingService.getProgressSummary(user.id, id);
+        //         setProgresso(progressoData);
+                
+        //         // Verificar se curso foi concluído
+        //         if (progressoData.isCompleted && !showCertificatePrompt) {
+        //           setShowCertificatePrompt(true);
+        //         }
+                
+        //         // Encontrar primeira aula não concluída ou primeira aula
+        //         const primeiraAulaNaoConcluida = aulasOrdenadas.find(aula => {
+        //           const lessonProgress = enrollments[0].lessonProgress?.find(
+        //             p => p.lessonId === aula.id
+        //           );
+        //           return !lessonProgress?.isCompleted;
+        //         });
+                
+        //         if (primeiraAulaNaoConcluida) {
+        //           setAulaAtiva(primeiraAulaNaoConcluida.id);
+        //         } else if (aulasOrdenadas.length > 0) {
+        //           setAulaAtiva(aulasOrdenadas[0].id);
+        //         }
+        //       }
+        //     } else {
+        //       // Criar enrollment automaticamente ao abrir o curso
+        //       const novoEnrollment = await trainingService.enrollInCourse({
+        //         userId: user.id,
+        //         courseId: id
+        //       });
+        //       setEnrollment(novoEnrollment);
+              
+        //       // Definir primeira aula como ativa
+        //       if (aulasOrdenadas.length > 0) {
+        //         setAulaAtiva(aulasOrdenadas[0].id);
+        //       }
+          
+        //   toast({
+        //         title: 'Matrícula realizada!',
+        //         description: 'Você foi inscrito neste curso com sucesso.',
+        //       });
+        //     }
+        //   } catch (err) {
+        //     console.error('Erro ao buscar enrollment:', err);
+        //   }
+        // } else {
+        //   // Se não autenticado, apenas mostrar primeira aula
+        //   if (aulasOrdenadas.length > 0) {
+        //     setAulaAtiva(aulasOrdenadas[0].id);
+        //   }
+        // }
       } catch (err) {
         console.error('Erro ao carregar curso:', err);
         setError('Erro ao carregar o curso. Tente novamente mais tarde.');
-        toast({
+          toast({
           title: 'Erro',
           description: 'Não foi possível carregar o curso.',
           variant: 'destructive'
@@ -155,37 +171,23 @@ const CursoPage = () => {
     carregarCurso();
   }, [id, user, isUserLoaded, toast, showCertificatePrompt]);
 
-  // Carregar vídeo via cache do MinIO quando aula ativa mudar
+  // Carregar URL do vídeo quando aula ativa mudar
   useEffect(() => {
-    const carregarVideoUrl = async () => {
+    const carregarVideoUrl = () => {
       const aula = aulas.find(a => a.id === aulaAtiva);
       if (!aula?.videoUrl) {
         console.warn('Aula sem videoUrl:', aula);
         return;
       }
       
-      try {
-        console.log('🎬 [CURSO] Carregando vídeo via cache MinIO:', aula.videoUrl);
-        
-        // Usar o serviço de cache para obter blob URL
-        const blobUrl = await minioCacheService.getVideoStream(aula.videoUrl);
-        setVideoUrl(blobUrl);
-        
-        console.log('✅ [CURSO] Vídeo carregado com sucesso:', blobUrl);
-      } catch (err) {
-        console.error('❌ [CURSO] Erro ao carregar vídeo:', err);
-        toast({
-          title: 'Erro',
-          description: 'Não foi possível carregar o vídeo.',
-          variant: 'destructive'
-        });
-      }
+      console.log('🎬 [CURSO] Usando URL direta do banco:', aula.videoUrl);
+      setVideoUrl(aula.videoUrl);
     };
     
     if (aulaAtiva && aulas.length > 0) {
       carregarVideoUrl();
     }
-  }, [aulaAtiva, aulas, toast]);
+  }, [aulaAtiva, aulas]);
 
   // Callback para atualizar progresso
   const handleProgressUpdate = useCallback(async () => {
