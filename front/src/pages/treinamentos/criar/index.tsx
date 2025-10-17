@@ -611,7 +611,7 @@ const CriarTreinamentoPage = () => {
                         
                         setCurrentLesson(prev => {
                           const updated = {
-                            ...prev,
+                        ...prev,
                             ...videoData
                           };
                           console.log('🔄 [Debug] Estado atualizado:', {
@@ -834,7 +834,7 @@ const CriarTreinamentoPage = () => {
                 </>
               ) : (
                 <>
-                  <Save className="h-4 w-4 mr-2" />
+              <Save className="h-4 w-4 mr-2" />
                   Salvar Curso ({lessons.length} aulas)
                 </>
               )}

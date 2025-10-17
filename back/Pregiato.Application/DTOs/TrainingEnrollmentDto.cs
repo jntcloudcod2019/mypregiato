@@ -40,10 +40,14 @@ namespace Pregiato.Application.DTOs
     public class UpdateTrainingProgressDto
     {
         [Required]
-        public Guid LessonId { get; set; }
+        public Guid CurrentLessonId { get; set; }
         
-        public int WatchedSeconds { get; set; }
-        public int LastPositionSeconds { get; set; }
+        public int TimeWatchedMinutes { get; set; }
+    }
+
+    public class UpdateLessonProgressDto
+    {
+        public int TimeWatchedSeconds { get; set; }
         public bool IsCompleted { get; set; }
     }
 

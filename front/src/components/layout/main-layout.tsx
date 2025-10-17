@@ -8,6 +8,7 @@ import CustomLogin from "../auth/custom-login";
 import { ErrorBoundary } from "../common/error-boundary";
 import { ClerkErrorFallback } from "../auth/clerk-fallback";
 import { LoadingFallback } from "../ui/loading-fallback";
+import { NotificationBell } from "../notifications/NotificationBell";
 
 
 interface MainLayoutProps {
@@ -129,6 +130,9 @@ export default function MainLayout({ children }: MainLayoutProps) {
               >
                 <RotateCcw className="h-4 w-4" />
               </Button>
+              
+              {/* ✅ Notificações de Cursos em Progresso */}
+              {isSignedIn && <NotificationBell />}
               
               <Button
                 variant="ghost"

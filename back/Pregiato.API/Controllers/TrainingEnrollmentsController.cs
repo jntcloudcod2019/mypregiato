@@ -28,23 +28,29 @@ namespace Pregiato.API.Controllers
         {
             try
             {
+                Console.WriteLine($"🔍 [ENROLLMENT] Buscando enrollments - UserId: {userId ?? "NULL"}, CourseId: {courseId?.ToString() ?? "NULL"}");
+                
                 IEnumerable<TrainingEnrollmentDto> enrollments;
 
                 if (!string.IsNullOrEmpty(userId) && courseId.HasValue)
                 {
                     var enrollment = await _enrollmentService.GetByUserAndCourseAsync(userId, courseId.Value);
                     enrollments = enrollment != null ? new[] { enrollment } : Array.Empty<TrainingEnrollmentDto>();
+                    Console.WriteLine($"✅ [ENROLLMENT] Enrollment encontrado: {enrollment != null}");
                 }
                 else if (!string.IsNullOrEmpty(userId))
                 {
                     enrollments = await _enrollmentService.GetByUserIdAsync(userId);
+                    Console.WriteLine($"✅ [ENROLLMENT] Total de enrollments do usuário: {enrollments.Count()}");
                 }
                 else if (courseId.HasValue)
                 {
                     enrollments = await _enrollmentService.GetByCourseIdAsync(courseId.Value);
+                    Console.WriteLine($"✅ [ENROLLMENT] Total de enrollments do curso: {enrollments.Count()}");
                 }
                 else
                 {
+                    Console.WriteLine($"❌ [ENROLLMENT] Parâmetros inválidos");
                     return BadRequest("É necessário fornecer userId ou courseId");
                 }
 
@@ -52,8 +58,64 @@ namespace Pregiato.API.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erro ao buscar matrículas");
+                Console.WriteLine($"❌ [ENROLLMENT] Erro: {ex.Message}");
                 return StatusCode(500, "Erro interno do servidor");
+            }
+        }
+
+        /// <summary>
+        /// Buscar ou criar enrollment automaticamente
+        /// </summary>
+        [HttpGet("get-or-create")]
+        public async Task<ActionResult<TrainingEnrollmentDto>> GetOrCreateEnrollment(
+            [FromQuery] string userId,
+            [FromQuery] Guid courseId)
+        {
+            try
+            {
+                Console.WriteLine($"\n🎓 [ENROLLMENT] ==================== GET OR CREATE ====================");
+                Console.WriteLine($"👤 [ENROLLMENT] UserId: {userId}");
+                Console.WriteLine($"📚 [ENROLLMENT] CourseId: {courseId}");
+
+                if (string.IsNullOrEmpty(userId) || courseId == Guid.Empty)
+                {
+                    Console.WriteLine($"❌ [ENROLLMENT] Parâmetros inválidos");
+                    return BadRequest("UserId e CourseId são obrigatórios");
+                }
+
+                // Buscar enrollment existente
+                var enrollment = await _enrollmentService.GetByUserAndCourseAsync(userId, courseId);
+
+                if (enrollment != null)
+                {
+                    Console.WriteLine($"✅ [ENROLLMENT] Enrollment existente encontrado: {enrollment.Id}");
+                    Console.WriteLine($"📊 [ENROLLMENT] Progresso: {enrollment.ProgressPercentage}%");
+                    Console.WriteLine($"🎯 [ENROLLMENT] ==================== FIM ====================\n");
+                    return Ok(enrollment);
+                }
+
+                // Criar novo enrollment
+                Console.WriteLine($"🆕 [ENROLLMENT] Criando novo enrollment...");
+                
+                var createDto = new CreateTrainingEnrollmentDto
+                {
+                    UserId = userId,
+                    CourseId = courseId
+                };
+
+                var newEnrollment = await _enrollmentService.EnrollAsync(createDto);
+                
+                Console.WriteLine($"✅ [ENROLLMENT] Novo enrollment criado: {newEnrollment.Id}");
+                Console.WriteLine($"📚 [ENROLLMENT] Total de aulas: {newEnrollment.Course?.TotalLessons ?? 0}");
+                Console.WriteLine($"🎯 [ENROLLMENT] ==================== FIM ====================\n");
+
+                return Ok(newEnrollment);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ [ENROLLMENT] Erro: {ex.Message}");
+                Console.WriteLine($"❌ [ENROLLMENT] Stack: {ex.StackTrace}");
+                return StatusCode(500, $"Erro interno: {ex.Message}");
             }
         }
 
@@ -168,19 +230,76 @@ namespace Pregiato.API.Controllers
         {
             try
             {
+                Console.WriteLine($"\n📊 [PROGRESS] ==================== UPDATE ====================");
+                Console.WriteLine($"📦 [PROGRESS] EnrollmentId: {id}");
+                Console.WriteLine($"⏱️ [PROGRESS] TimeWatchedMinutes: {progressDto.TimeWatchedMinutes}");
+                Console.WriteLine($"📍 [PROGRESS] CurrentLessonId: {progressDto.CurrentLessonId}");
+
                 if (!ModelState.IsValid)
+                {
+                    Console.WriteLine($"❌ [PROGRESS] ModelState inválido");
                     return BadRequest(ModelState);
+                }
 
                 var enrollment = await _enrollmentService.UpdateProgressAsync(id, progressDto);
                 if (enrollment == null)
+                {
+                    Console.WriteLine($"❌ [PROGRESS] Enrollment não encontrado");
                     return NotFound("Matrícula não encontrada");
+                }
+
+                Console.WriteLine($"✅ [PROGRESS] Progresso atualizado: {enrollment.ProgressPercentage}%");
+                Console.WriteLine($"🎯 [PROGRESS] ==================== FIM ====================\n");
 
                 return Ok(enrollment);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erro ao atualizar progresso da matrícula {EnrollmentId}", id);
+                Console.WriteLine($"❌ [PROGRESS] Erro: {ex.Message}");
                 return StatusCode(500, "Erro interno do servidor");
+            }
+        }
+
+        /// <summary>
+        /// Atualizar progresso de uma aula específica
+        /// </summary>
+        [HttpPost("{enrollmentId}/lesson/{lessonId}/progress")]
+        public async Task<ActionResult<TrainingEnrollmentDto>> UpdateLessonProgress(
+            Guid enrollmentId,
+            Guid lessonId,
+            [FromBody] UpdateLessonProgressDto progressDto)
+        {
+            try
+            {
+                Console.WriteLine($"\n🎬 [LESSON PROGRESS] ==================== UPDATE ====================");
+                Console.WriteLine($"📦 [LESSON PROGRESS] EnrollmentId: {enrollmentId}");
+                Console.WriteLine($"🎥 [LESSON PROGRESS] LessonId: {lessonId}");
+                Console.WriteLine($"⏱️ [LESSON PROGRESS] TimeWatched: {progressDto.TimeWatchedSeconds}s");
+                Console.WriteLine($"✅ [LESSON PROGRESS] IsCompleted: {progressDto.IsCompleted}");
+
+                var enrollment = await _enrollmentService.UpdateLessonProgressAsync(
+                    enrollmentId,
+                    lessonId,
+                    progressDto.TimeWatchedSeconds,
+                    progressDto.IsCompleted
+                );
+
+                if (enrollment == null)
+                {
+                    Console.WriteLine($"❌ [LESSON PROGRESS] Enrollment não encontrado");
+                    return NotFound("Matrícula não encontrada");
+                }
+
+                Console.WriteLine($"✅ [LESSON PROGRESS] Progresso da aula atualizado");
+                Console.WriteLine($"📊 [LESSON PROGRESS] Progresso geral do curso: {enrollment.ProgressPercentage}%");
+                Console.WriteLine($"🎯 [LESSON PROGRESS] ==================== FIM ====================\n");
+
+                return Ok(enrollment);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ [LESSON PROGRESS] Erro: {ex.Message}");
+                return StatusCode(500, $"Erro interno: {ex.Message}");
             }
         }
 
