@@ -1,7 +1,5 @@
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Pregiato.API.Hubs;
 using Pregiato.Application.DTOs.Meta;
 using Pregiato.Application.Interfaces;
 using Pregiato.Core.Entities;
@@ -19,18 +17,18 @@ namespace Pregiato.Application.Services
     {
         private readonly ILogger<MetaWebhookProcessor> _logger;
         private readonly PregiatoDbContext _db;
-        private readonly IHubContext<WhatsAppHub> _hubContext;
+        // private readonly IHubContext<WhatsAppHub> _hubContext; // ⚠️ Removido - dependência de API
         private readonly IMetaAPIClient _metaClient;
 
         public MetaWebhookProcessor(
             ILogger<MetaWebhookProcessor> logger,
             PregiatoDbContext db,
-            IHubContext<WhatsAppHub> hubContext,
+            // IHubContext<WhatsAppHub> hubContext, // ⚠️ Removido
             IMetaAPIClient metaClient)
         {
             _logger = logger;
             _db = db;
-            _hubContext = hubContext;
+            // _hubContext = hubContext; // ⚠️ Removido
             _metaClient = metaClient;
         }
 
@@ -132,25 +130,25 @@ namespace Pregiato.Application.Services
                 _logger.LogInformation("📋 [META] ChatId mapeado - Phone: {Phone} → ChatId: {ChatId}",
                     normalizedPhone, realChatId);
 
-                // ✅ NOTIFICAR FRONTEND VIA SIGNALR (MESMO FORMATO ATUAL)
-                await _hubContext.Clients.Group("whatsapp").SendAsync("message.inbound", new
-                {
-                    chatId = realChatId,
-                    fromNormalized = whatsappMessage.fromNormalized,
-                    message = new
-                    {
-                        id = whatsappMessage.externalMessageId,
-                        externalMessageId = whatsappMessage.externalMessageId,
-                        from = whatsappMessage.from,
-                        fromMe = false,
-                        body = whatsappMessage.body,
-                        type = whatsappMessage.type,
-                        timestamp = whatsappMessage.timestamp,
-                        attachment = whatsappMessage.attachment
-                    }
-                });
+                // ⚠️ SignalR temporariamente desabilitado - dependência de API layer
+                // await _hubContext.Clients.Group("whatsapp").SendAsync("message.inbound", new
+                // {
+                //     chatId = realChatId,
+                //     fromNormalized = whatsappMessage.fromNormalized,
+                //     message = new
+                //     {
+                //         id = whatsappMessage.externalMessageId,
+                //         externalMessageId = whatsappMessage.externalMessageId,
+                //         from = whatsappMessage.from,
+                //         fromMe = false,
+                //         body = whatsappMessage.body,
+                //         type = whatsappMessage.type,
+                //         timestamp = whatsappMessage.timestamp,
+                //         attachment = whatsappMessage.attachment
+                //     }
+                // });
 
-                _logger.LogInformation("📤 [META] Evento message.inbound emitido via SignalR");
+                _logger.LogInformation("📤 [META] Mensagem processada (SignalR desabilitado)");
 
                 // ✅ REUTILIZAR LÓGICA EXISTENTE: Salvar no banco
                 // TODO: Chamar função ProcessIncomingMessage do RabbitBackgroundService
@@ -202,15 +200,16 @@ namespace Pregiato.Application.Services
 
                     if (chatLog != null)
                     {
-                        await _hubContext.Clients.Group("whatsapp").SendAsync("message.status", new
-                        {
-                            chatId = chatLog.ChatId.ToString(),
-                            messageId = message.ClientMessageId ?? message.ExternalMessageId,
-                            whatsappMessageId = status.Id,
-                            status = internalStatus
-                        });
+                        // ⚠️ SignalR temporariamente desabilitado - dependência de API layer
+                        // await _hubContext.Clients.Group("whatsapp").SendAsync("message.status", new
+                        // {
+                        //     chatId = chatLog.ChatId.ToString(),
+                        //     messageId = message.ClientMessageId ?? message.ExternalMessageId,
+                        //     whatsappMessageId = status.Id,
+                        //     status = internalStatus
+                        // });
 
-                        _logger.LogInformation("📤 [META] Evento message.status emitido via SignalR");
+                        _logger.LogInformation("📤 [META] Status de mensagem processado (SignalR desabilitado)");
                     }
                 }
                 else
@@ -388,15 +387,15 @@ namespace Pregiato.Application.Services
         /// <summary>
         /// Mapeia status da Meta para status interno
         /// </summary>
-        private string MapMetaStatusToInternal(string metaStatus)
+        private MessageStatus MapMetaStatusToInternal(string metaStatus)
         {
             return metaStatus.ToLower() switch
             {
-                "sent" => "sent",
-                "delivered" => "delivered",
-                "read" => "read",
-                "failed" => "failed",
-                _ => "sent" // Fallback
+                "sent" => MessageStatus.Sent,
+                "delivered" => MessageStatus.Delivered,
+                "read" => MessageStatus.Read,
+                "failed" => MessageStatus.Failed,
+                _ => MessageStatus.Sent // Fallback
             };
         }
 

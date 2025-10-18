@@ -119,8 +119,13 @@ export class TrainingService {
   async updateLessonProgress(enrollmentId: string, lessonId: string, timeWatchedSeconds: number, isCompleted: boolean): Promise<TrainingEnrollment> {
     console.log('🎬 [LESSON] Atualizando progresso:', { enrollmentId, lessonId, timeWatchedSeconds, isCompleted });
     return await apiClient.post<TrainingEnrollment>(
-      `${this.baseUrl}/TrainingEnrollments/${enrollmentId}/lesson/${lessonId}/progress`,
-      { timeWatchedSeconds, isCompleted }
+      `${this.baseUrl}/TrainingEnrollments/${enrollmentId}/lesson-progress`,
+      { 
+        lessonId,
+        watchedSeconds: timeWatchedSeconds,
+        lastPositionSeconds: timeWatchedSeconds,
+        isCompleted 
+      }
     );
   }
 
