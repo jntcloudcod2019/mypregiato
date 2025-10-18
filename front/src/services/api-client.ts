@@ -3,6 +3,10 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 // Configuração base da API
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://pregiato-api-production.up.railway.app';
 
+// Debug da URL base
+console.log('🔧 [API-CLIENT] VITE_API_URL:', import.meta.env.VITE_API_URL);
+console.log('🔧 [API-CLIENT] API_BASE_URL final:', API_BASE_URL);
+
 class ApiClient {
   private client: AxiosInstance;
 

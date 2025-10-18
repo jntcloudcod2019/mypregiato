@@ -1173,7 +1173,7 @@ public class PregiatoDbContext : DbContext
                 .HasColumnType("decimal(5,2)");
             
             entity.Property(e => e.CertificateUrl)
-                .HasMaxLength(500);
+                  .HasMaxLength(500);
             
             entity.Property(e => e.CertificateObjectName)
                 .HasMaxLength(500);
@@ -1207,6 +1207,7 @@ public class PregiatoDbContext : DbContext
         // TrainingLessonProgress
         modelBuilder.Entity<TrainingLessonProgress>(entity =>
         {
+            entity.ToTable("TrainingLessonProgress"); // ✅ Nome correto da tabela
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Id).HasDefaultValueSql("(UUID())");
             
