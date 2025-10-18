@@ -49,6 +49,36 @@
             Força a verificação de saúde de todos os serviços
             </summary>
         </member>
+        <member name="T:Pregiato.API.Controllers.MetaWebhookController">
+            <summary>
+            Controller para receber webhooks da Meta Cloud API (WhatsApp Business)
+            Endpoint configurado no Meta Business Manager
+            Documentação: https://developers.facebook.com/docs/whatsapp/cloud-api/webhooks
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.MetaWebhookController.VerifyWebhook(System.String,System.String,System.String)">
+            <summary>
+            GET endpoint para verificação do webhook pela Meta
+            A Meta faz esta chamada quando você configura o webhook no Business Manager
+            </summary>
+            <param name="mode">Deve ser "subscribe"</param>
+            <param name="verifyToken">Token de verificação configurado</param>
+            <param name="challenge">Challenge string enviado pela Meta</param>
+            <returns>Echo do challenge se token válido, 403 caso contrário</returns>
+        </member>
+        <member name="M:Pregiato.API.Controllers.MetaWebhookController.ReceiveWebhook(Pregiato.Application.DTOs.Meta.MetaWebhookPayload)">
+            <summary>
+            POST endpoint para receber webhooks da Meta
+            A Meta envia mensagens, status updates, etc via este endpoint
+            </summary>
+            <param name="payload">Payload do webhook</param>
+            <returns>200 OK sempre (Meta exige resposta rápida)</returns>
+        </member>
+        <member name="M:Pregiato.API.Controllers.MetaWebhookController.TestWebhook(System.Object)">
+            <summary>
+            Endpoint de teste para simular webhook (desenvolvimento)
+            </summary>
+        </member>
         <member name="M:Pregiato.API.Controllers.OperatorLeadsController.GetKanbanData(System.String)">
             <summary>
             Gets Kanban board data for scheduling page
@@ -184,6 +214,16 @@
         <member name="T:Pregiato.API.Controllers.ValidateCertificateRequest">
             <summary>
             Request para validar certificado
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TrainingEnrollmentsController.GetOrCreateEnrollment(System.String,System.Guid)">
+            <summary>
+            Buscar ou criar enrollment automaticamente
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TrainingEnrollmentsController.UpdateLessonProgress(System.Guid,Pregiato.Application.DTOs.UpdateLessonProgressDto)">
+            <summary>
+            Atualizar progresso de uma aula específica
             </summary>
         </member>
         <member name="M:Pregiato.API.Controllers.UsersController.SendUserInvitation(Pregiato.Application.DTOs.SendUserInvitationDto)">

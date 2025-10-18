@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Pregiato.API.Attributes;
 using Pregiato.Application.DTOs;
 using Pregiato.Application.Interfaces;
+using Pregiato.Infrastructure.Data;
 
 namespace Pregiato.API.Controllers
 {
@@ -12,13 +14,17 @@ namespace Pregiato.API.Controllers
     {
         private readonly ITrainingEnrollmentService _enrollmentService;
         private readonly ILogger<TrainingEnrollmentsController> _logger;
+        private readonly PregiatoDbContext _context;
+
 
         public TrainingEnrollmentsController(
             ITrainingEnrollmentService enrollmentService,
-            ILogger<TrainingEnrollmentsController> logger)
+            ILogger<TrainingEnrollmentsController> logger,
+            PregiatoDbContext context)
         {
             _enrollmentService = enrollmentService;
             _logger = logger;
+            _context = context;
         }
 
         [HttpGet]
@@ -74,23 +80,53 @@ namespace Pregiato.API.Controllers
             try
             {
                 Console.WriteLine($"\n🎓 [ENROLLMENT] ==================== GET OR CREATE ====================");
-                Console.WriteLine($"👤 [ENROLLMENT] UserId: {userId}");
+                Console.WriteLine($"👤 [ENROLLMENT] UserId recebido: {userId}");
                 Console.WriteLine($"📚 [ENROLLMENT] CourseId: {courseId}");
 
-                if (string.IsNullOrEmpty(userId) || courseId == Guid.Empty)
+                // ⚠️ FALLBACK: Se userId vier vazio/nulo, usar ID padrão
+                const string FALLBACK_USER_ID = "cmcakqiv00000l70470zgwq1j";
+                
+                if (string.IsNullOrEmpty(userId))
                 {
-                    Console.WriteLine($"❌ [ENROLLMENT] Parâmetros inválidos");
-                    return BadRequest("UserId e CourseId são obrigatórios");
+                    Console.WriteLine($"⚠️ [ENROLLMENT] UserId vazio/nulo - usando fallback: {FALLBACK_USER_ID}");
+                    userId = FALLBACK_USER_ID;
+                }
+                
+                if (courseId == Guid.Empty)
+                {
+                    Console.WriteLine($"❌ [ENROLLMENT] CourseId vazio ou inválido");
+                    return BadRequest(new { error = "CourseId é obrigatório", receivedCourseId = courseId.ToString() });
+                }
+
+                // Validar se o usuário existe no banco (userId já é o ID do banco MySQL)
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+                if (user == null)
+                {
+                    Console.WriteLine($"⚠️ [ENROLLMENT] Usuário não encontrado: {userId} - usando fallback: {FALLBACK_USER_ID}");
+                    
+                    // Tentar com o fallback
+                    user = await _context.Users.FirstOrDefaultAsync(u => u.Id == FALLBACK_USER_ID);
+                    
+                    if (user == null)
+                    {
+                        Console.WriteLine($"❌ [ENROLLMENT] Erro crítico: usuário fallback não encontrado");
+                        return BadRequest(new { error = "Usuário não encontrado", userId, fallbackUserId = FALLBACK_USER_ID });
+                    }
+                    
+                    Console.WriteLine($"✅ [ENROLLMENT] Usando usuário fallback: {user.FirstName} {user.LastName}");
+                }
+                else
+                {
+                    Console.WriteLine($"✅ [ENROLLMENT] Usuário validado: {user.FirstName} {user.LastName} ({user.Role})");
                 }
 
                 // Buscar enrollment existente
-                var enrollment = await _enrollmentService.GetByUserAndCourseAsync(userId, courseId);
+                var enrollment = await _enrollmentService.GetByUserAndCourseAsync(user.Id,  courseId);
 
                 if (enrollment != null)
                 {
                     Console.WriteLine($"✅ [ENROLLMENT] Enrollment existente encontrado: {enrollment.Id}");
-                    Console.WriteLine($"📊 [ENROLLMENT] Progresso: {enrollment.ProgressPercentage}%");
-                    Console.WriteLine($"🎯 [ENROLLMENT] ==================== FIM ====================\n");
+                  
                     return Ok(enrollment);
                 }
 
@@ -106,8 +142,7 @@ namespace Pregiato.API.Controllers
                 var newEnrollment = await _enrollmentService.EnrollAsync(createDto);
                 
                 Console.WriteLine($"✅ [ENROLLMENT] Novo enrollment criado: {newEnrollment.Id}");
-                Console.WriteLine($"📚 [ENROLLMENT] Total de aulas: {newEnrollment.Course?.TotalLessons ?? 0}");
-                Console.WriteLine($"🎯 [ENROLLMENT] ==================== FIM ====================\n");
+                
 
                 return Ok(newEnrollment);
             }
@@ -263,24 +298,24 @@ namespace Pregiato.API.Controllers
         /// <summary>
         /// Atualizar progresso de uma aula específica
         /// </summary>
-        [HttpPost("{enrollmentId}/lesson/{lessonId}/progress")]
+        [HttpPost("{enrollmentId}/lesson-progress")]
         public async Task<ActionResult<TrainingEnrollmentDto>> UpdateLessonProgress(
             Guid enrollmentId,
-            Guid lessonId,
             [FromBody] UpdateLessonProgressDto progressDto)
         {
             try
             {
                 Console.WriteLine($"\n🎬 [LESSON PROGRESS] ==================== UPDATE ====================");
                 Console.WriteLine($"📦 [LESSON PROGRESS] EnrollmentId: {enrollmentId}");
-                Console.WriteLine($"🎥 [LESSON PROGRESS] LessonId: {lessonId}");
-                Console.WriteLine($"⏱️ [LESSON PROGRESS] TimeWatched: {progressDto.TimeWatchedSeconds}s");
+                Console.WriteLine($"🎥 [LESSON PROGRESS] LessonId: {progressDto.LessonId}");
+                Console.WriteLine($"⏱️ [LESSON PROGRESS] WatchedSeconds: {progressDto.WatchedSeconds}s");
+                Console.WriteLine($"📍 [LESSON PROGRESS] LastPosition: {progressDto.LastPositionSeconds}s");
                 Console.WriteLine($"✅ [LESSON PROGRESS] IsCompleted: {progressDto.IsCompleted}");
 
                 var enrollment = await _enrollmentService.UpdateLessonProgressAsync(
                     enrollmentId,
-                    lessonId,
-                    progressDto.TimeWatchedSeconds,
+                    progressDto.LessonId,
+                    progressDto.WatchedSeconds,
                     progressDto.IsCompleted
                 );
 

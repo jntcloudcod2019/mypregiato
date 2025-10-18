@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Http;
 using Pregiato.Application.DTOs.Meta;
 using Pregiato.Application.Interfaces;
 using System.Net.Http.Headers;
@@ -7,7 +8,7 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 
-namespace Pregiato.Infrastructure.Adapters
+namespace Pregiato.Application.Adapters
 {
     /// <summary>
     /// Adapter para Meta Cloud API (WhatsApp Business)

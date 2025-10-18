@@ -145,7 +145,7 @@ builder.Services.AddHttpClient("MetaAPI", client =>
 });
 
 // ✅ META API SERVICES
-builder.Services.AddScoped<Pregiato.Application.Interfaces.IMetaAPIClient, Pregiato.Infrastructure.Adapters.MetaAPIAdapter>();
+builder.Services.AddScoped<Pregiato.Application.Interfaces.IMetaAPIClient, Pregiato.Application.Adapters.MetaAPIAdapter>();
 builder.Services.AddScoped<Pregiato.Application.Interfaces.IMetaWebhookProcessor, Pregiato.Application.Services.MetaWebhookProcessor>();
 
 // Services

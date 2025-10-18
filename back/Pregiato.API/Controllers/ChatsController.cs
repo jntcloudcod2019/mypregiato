@@ -6,7 +6,7 @@ using Pregiato.API.Services;
 using Pregiato.Core.Entities;
 using Pregiato.Core.Interfaces;
 using Pregiato.Infrastructure.Data;
-using Pregiato.Infrastructure.Adapters;
+using Pregiato.Application.Adapters;
 using Pregiato.Application.Interfaces;
 using Pregiato.Application.DTOs.Meta;
 using System.Text.Json;
@@ -631,7 +631,7 @@ namespace Pregiato.API.Controllers
                         _logger.LogInformation("📤 [META] Uploading mídia para Meta API - Type: {Type}", message.Type);
                         
                         // Baixar mídia do MinIO
-                        var mediaBuffer = await _minIOStorageAdapter.DownloadMediaAsync(mediaUrl.MediaUrl);
+                        var mediaBuffer = await _minIOStorageAdapter.GetMediaAsync(mediaUrl.MediaUrl);
                         
                         // Upload para Meta API
                         var uploadResult = await _metaClient.UploadMediaAsync(

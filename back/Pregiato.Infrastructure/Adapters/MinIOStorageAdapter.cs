@@ -137,7 +137,7 @@ namespace Pregiato.Infrastructure.Adapters
                     .WithObject(objectName)
                     .WithStreamData(stream)
                     .WithObjectSize(stream.Length)
-                    .WithContentType(finalMimeType);
+                    .WithContentType("video/mp4");
 
                 await _minioClient.PutObjectAsync(putObjectArgs);
 

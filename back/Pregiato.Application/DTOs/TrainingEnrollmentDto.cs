@@ -45,12 +45,6 @@ namespace Pregiato.Application.DTOs
         public int TimeWatchedMinutes { get; set; }
     }
 
-    public class UpdateLessonProgressDto
-    {
-        public int TimeWatchedSeconds { get; set; }
-        public bool IsCompleted { get; set; }
-    }
-
     public class TrainingProgressSummaryDto
     {
         public Guid CourseId { get; set; }

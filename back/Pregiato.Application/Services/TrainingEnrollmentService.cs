@@ -95,8 +95,16 @@ namespace Pregiato.Application.Services
                 CertificateObjectName = null
             };
 
+            Console.WriteLine($"🆕 [SERVICE] Criando enrollment com valores iniciais: Progress=0%, TimeWatched=0min");
+
             var createdEnrollment = await _enrollmentRepository.AddAsync(enrollment);
-            return _mapper.Map<TrainingEnrollmentDto>(createdEnrollment);
+            
+            // ✅ Buscar novamente com todas as relações (Course, LessonProgress)
+            var fullEnrollment = await _enrollmentRepository.GetByIdAsync(createdEnrollment.Id);
+            
+            Console.WriteLine($"✅ [SERVICE] Enrollment criado com sucesso: {fullEnrollment?.Id}");
+            
+            return _mapper.Map<TrainingEnrollmentDto>(fullEnrollment);
         }
 
         public async Task<TrainingEnrollmentDto?> UpdateProgressAsync(Guid enrollmentId, UpdateTrainingProgressDto progressDto)

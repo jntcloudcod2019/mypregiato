@@ -2752,6 +2752,7 @@
           "Microsoft.EntityFrameworkCore": "8.0.0",
           "Microsoft.Extensions.Configuration.EnvironmentVariables": "8.0.0",
           "Microsoft.Extensions.Configuration.Json": "8.0.0",
+          "Microsoft.Extensions.Http": "8.0.0",
           "Minio": "6.0.2",
           "Pomelo.EntityFrameworkCore.MySql": "8.0.0",
           "Pregiato.Core": "1.0.0"
