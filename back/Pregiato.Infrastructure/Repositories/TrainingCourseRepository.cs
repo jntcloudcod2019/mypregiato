@@ -198,5 +198,38 @@ namespace Pregiato.Infrastructure.Repositories
         {
             await _context.SaveChangesAsync();
         }
+
+        // ✅ Salvar like/dislike direto na tabela TrainingRatings (SEM tocar no TrainingCourse)
+        public async Task AddOrUpdateRatingAsync(Guid courseId, string userId, string ratingType, int stars, string? comment)
+        {
+            // Buscar se usuário já avaliou este curso com este tipo
+            var rating = await _context.TrainingRatings
+                .FirstOrDefaultAsync(r => r.CourseId == courseId && r.UserId == userId && r.RatingType == ratingType);
+
+            if (rating != null)
+            {
+                // Atualizar existente
+                rating.Stars = stars;
+                rating.Comment = comment;
+                rating.UpdatedAt = DateTime.UtcNow;
+            }
+            else
+            {
+                // Criar novo
+                _context.TrainingRatings.Add(new TrainingRating
+                {
+                    Id = Guid.NewGuid(),
+                    CourseId = courseId,
+                    UserId = userId,
+                    RatingType = ratingType,
+                    Stars = stars,
+                    Comment = comment,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                });
+            }
+
+            await _context.SaveChangesAsync();
+        }
     }
 }
