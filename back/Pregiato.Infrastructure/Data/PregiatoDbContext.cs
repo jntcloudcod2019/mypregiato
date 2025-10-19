@@ -45,6 +45,9 @@ public class PregiatoDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        
+        // ✅ Desabilitar pluralização automática para evitar conflitos
+        modelBuilder.HasDefaultSchema("railway");
 
         // Configuração da entidade Talent
         modelBuilder.Entity<Talent>(entity =>
@@ -1173,7 +1176,7 @@ public class PregiatoDbContext : DbContext
                 .HasColumnType("decimal(5,2)");
             
             entity.Property(e => e.CertificateUrl)
-                .HasMaxLength(500);
+                  .HasMaxLength(500);
             
             entity.Property(e => e.CertificateObjectName)
                 .HasMaxLength(500);
@@ -1207,8 +1210,12 @@ public class PregiatoDbContext : DbContext
         // TrainingLessonProgress
         modelBuilder.Entity<TrainingLessonProgress>(entity =>
         {
+            entity.ToTable("TrainingLessonProgress"); // ✅ Nome correto da tabela
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Id).HasDefaultValueSql("(UUID())");
+            
+            // ✅ FORÇAR nome da tabela para evitar pluralização
+            entity.HasAnnotation("Relational:TableName", "TrainingLessonProgress");
             
             entity.Property(e => e.CompletedAt)
                 .HasColumnType("datetime");

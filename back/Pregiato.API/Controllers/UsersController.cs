@@ -426,19 +426,37 @@ namespace Pregiato.API.Controllers
         {
             try
             {
+                Console.WriteLine($"\n👥 [USER] ==================== SEND INVITATION ====================");
+                Console.WriteLine($"📧 [USER] Email: {invitationDto.Email}");
+                Console.WriteLine($"👤 [USER] Nome: {invitationDto.FirstName} {invitationDto.LastName}");
+                Console.WriteLine($"🎭 [USER] Role: {invitationDto.Role}");
+                Console.WriteLine($"✅ [USER] ModelState Valid: {ModelState.IsValid}");
+
                 if (!ModelState.IsValid)
+                {
+                    Console.WriteLine($"❌ [USER] ModelState inválido!");
+                    foreach (var error in ModelState)
+                    {
+                        Console.WriteLine($"   - {error.Key}: {string.Join(", ", error.Value.Errors.Select(e => e.ErrorMessage))}");
+                    }
                     return BadRequest(ModelState);
+                }
 
                 // 1️⃣ VALIDAR - Verificar se email já existe
+                Console.WriteLine($"🔍 [USER] Verificando se email já existe...");
                 var existingUser = await _context.Users
                     .FirstOrDefaultAsync(u => u.Email.ToLower() == invitationDto.Email.ToLower());
 
                 if (existingUser != null)
                 {
+                    Console.WriteLine($"❌ [USER] Email já existe: {existingUser.FirstName} {existingUser.LastName} (ID: {existingUser.Id})");
                     return BadRequest("Já existe um usuário com este email");
                 }
 
+                Console.WriteLine($"✅ [USER] Email disponível");
+
                 // 2️⃣ ENVIAR CONVITE VIA CLERK
+                Console.WriteLine($"📤 [USER] Preparando request para Clerk...");
                 var redirectUrl = "https://my-pregiato-production.up.railway.app/"; 
                 
                 var clerkRequest = new Pregiato.API.Services.SendClerkInvitationRequest
@@ -450,15 +468,21 @@ namespace Pregiato.API.Controllers
                     RedirectUrl = redirectUrl
                 };
 
+                Console.WriteLine($"🔐 [USER] Chamando Clerk Auth Service...");
                 var result = await _clerkAuthService.SendInvitationAsync(clerkRequest);
 
                 if (!result.Success)
                 {
+                    Console.WriteLine($"❌ [USER] Clerk falhou: {result.ErrorMessage}");
                     return StatusCode(500, $"Erro ao enviar convite: {result.ErrorMessage}");
                 }
 
+                Console.WriteLine($"✅ [USER] Clerk respondeu com sucesso");
+                Console.WriteLine($"🆔 [USER] Invitation ID: {result.InvitationId}");
+                Console.WriteLine($"📊 [USER] Status: {result.Status}");
+
                 // 3️⃣ CRIAR REGISTRO PENDENTE NO BANCO
-                // ClerkId ficará vazio até usuário aceitar convite
+                Console.WriteLine($"💾 [USER] Criando usuário pendente no banco...");
                 var user = new User
                 {
                     Id = Guid.NewGuid().ToString(),
@@ -472,10 +496,14 @@ namespace Pregiato.API.Controllers
                     UpdatedAt = DateTime.UtcNow
                 };
 
+                Console.WriteLine($"📝 [USER] Novo usuário: ID={user.Id}, Email={user.Email}, Role={user.Role}");
+
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
 
-                Console.WriteLine($"✅ Convite enviado para {invitationDto.Email} (Role: {invitationDto.Role}, InvitationId: {result.InvitationId})");
+                Console.WriteLine($"✅ [USER] Usuário salvo no banco com sucesso");
+                Console.WriteLine($"🎉 [USER] Convite enviado para {invitationDto.Email}");
+                Console.WriteLine($"🎯 [USER] ==================== FIM ====================\n");
 
                 return Ok(new 
                 { 
@@ -488,7 +516,8 @@ namespace Pregiato.API.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Erro ao enviar convite: {ex.Message}");
+                Console.WriteLine($"❌ [USER] Exception: {ex.Message}");
+                Console.WriteLine($"❌ [USER] Stack: {ex.StackTrace}");
                 return StatusCode(500, $"Erro interno: {ex.Message}");
             }
         }

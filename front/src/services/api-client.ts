@@ -3,12 +3,26 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 // Configuração base da API
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://pregiato-api-production.up.railway.app';
 
+// Debug da URL base
+console.log('🔧 [API-CLIENT] VITE_API_URL:', import.meta.env.VITE_API_URL);
+console.log('🔧 [API-CLIENT] API_BASE_URL final:', API_BASE_URL);
+
+// ✅ Fallback robusto para evitar undefined
+const FINAL_API_URL = API_BASE_URL || 'https://pregiato-api-production.up.railway.app';
+console.log('🔧 [API-CLIENT] FINAL_API_URL garantida:', FINAL_API_URL);
+
+// ✅ Validação adicional
+if (!FINAL_API_URL || FINAL_API_URL === 'undefined') {
+  console.error('❌ [API-CLIENT] URL da API inválida!');
+  throw new Error('API URL não configurada corretamente');
+}
+
 class ApiClient {
   private client: AxiosInstance;
 
   constructor() {
     this.client = axios.create({
-      baseURL: API_BASE_URL,
+      baseURL: FINAL_API_URL,
       timeout: 30000,
       headers: {
         'Content-Type': 'application/json',

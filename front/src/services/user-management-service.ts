@@ -29,12 +29,18 @@ export interface InvitationResponse {
 
 export class UserManagementService {
   private readonly baseUrl = '/api/users';
+  
+  constructor() {
+    console.log('🔧 [USER-SERVICE] Inicializando com baseUrl:', this.baseUrl);
+  }
 
   /**
    * Enviar convite via Clerk (Clerk envia email automaticamente)
    */
   async sendInvitation(data: CreateUserRequest): Promise<InvitationResponse> {
-    return await apiClient.post<InvitationResponse>(`${this.baseUrl}/send-invitation`, data);
+    const url = `${this.baseUrl}/send-invitation`;
+    console.log('📤 [USER-SERVICE] Enviando convite para:', url, data);
+    return await apiClient.post<InvitationResponse>(url, data);
   }
 
   /**

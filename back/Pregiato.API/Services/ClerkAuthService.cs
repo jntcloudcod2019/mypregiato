@@ -172,15 +172,24 @@ namespace Pregiato.API.Services
         {
             try
             {
+                Console.WriteLine($"\n🔐 [CLERK] ==================== SEND INVITATION ====================");
+                Console.WriteLine($"📧 [CLERK] Email: {request.Email}");
+                Console.WriteLine($"👤 [CLERK] Nome: {request.FirstName} {request.LastName}");
+                Console.WriteLine($"🎭 [CLERK] Role: {request.Role}");
+                Console.WriteLine($"🔗 [CLERK] RedirectUrl: {request.RedirectUrl}");
+
                 var clerkSecretKey = _configuration["Clerk:SecretKey"];
                 if (string.IsNullOrEmpty(clerkSecretKey))
                 {
+                    Console.WriteLine($"❌ [CLERK] Clerk Secret Key não configurada!");
                     return new ClerkInvitationResult 
                     { 
                         Success = false, 
                         ErrorMessage = "Clerk Secret Key não configurada" 
                     };
                 }
+
+                Console.WriteLine($"✅ [CLERK] Secret Key encontrada (length: {clerkSecretKey.Length})");
 
                 // Configurar HttpClient com autenticação
                 _httpClient.DefaultRequestHeaders.Clear();
@@ -201,14 +210,20 @@ namespace Pregiato.API.Services
                 };
 
                 var jsonContent = JsonSerializer.Serialize(payload);
+                Console.WriteLine($"📦 [CLERK] Payload JSON: {jsonContent}");
+
                 var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
 
                 // ✅ Clerk Invitations API (não Users)
+                Console.WriteLine($"🌐 [CLERK] Enviando request para: https://api.clerk.com/v1/invitations");
                 var response = await _httpClient.PostAsync("https://api.clerk.com/v1/invitations", content);
                 
+                Console.WriteLine($"📊 [CLERK] Status Code: {(int)response.StatusCode} ({response.StatusCode})");
+
                 if (!response.IsSuccessStatusCode)
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"❌ [CLERK] Erro Response: {errorContent}");
                     _logger.LogError($"Erro ao enviar convite pelo Clerk: {errorContent}");
                     
                     return new ClerkInvitationResult 
@@ -219,10 +234,17 @@ namespace Pregiato.API.Services
                 }
 
                 var responseContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"✅ [CLERK] Success Response: {responseContent}");
+
                 var invitation = JsonSerializer.Deserialize<JsonElement>(responseContent);
                 
                 var invitationId = invitation.GetProperty("id").GetString();
                 var status = invitation.GetProperty("status").GetString();
+
+                Console.WriteLine($"🎉 [CLERK] Convite criado com sucesso!");
+                Console.WriteLine($"🆔 [CLERK] Invitation ID: {invitationId}");
+                Console.WriteLine($"📊 [CLERK] Status: {status}");
+                Console.WriteLine($"🎯 [CLERK] ==================== FIM ====================\n");
 
                 _logger.LogInformation($"Convite enviado com sucesso: {invitationId}");
 
@@ -235,6 +257,8 @@ namespace Pregiato.API.Services
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"❌ [CLERK] Exception: {ex.Message}");
+                Console.WriteLine($"❌ [CLERK] Stack: {ex.StackTrace}");
                 _logger.LogError(ex, "Exceção ao enviar convite pelo Clerk");
                 return new ClerkInvitationResult 
                 { 
