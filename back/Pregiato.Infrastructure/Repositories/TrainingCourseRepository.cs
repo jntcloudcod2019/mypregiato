@@ -119,9 +119,15 @@ namespace Pregiato.Infrastructure.Repositories
 
         public async Task<TrainingCourse> UpdateAsync(TrainingCourse course)
         {
-            course.UpdatedAt = DateTime.UtcNow;
+            // ✅ NÃO atualizar UpdatedAt manualmente - MySQL faz via trigger ON UPDATE CURRENT_TIMESTAMP
+            // course.UpdatedAt = DateTime.UtcNow; // ❌ REMOVIDO para evitar conflito de concorrência
+            
             _context.TrainingCourses.Update(course);
             await _context.SaveChangesAsync();
+            
+            // ✅ Recarregar entidade para obter UpdatedAt gerado pelo banco
+            await _context.Entry(course).ReloadAsync();
+            
             return course;
         }
 
@@ -134,7 +140,8 @@ namespace Pregiato.Infrastructure.Repositories
                 return false;
 
             course.DeletedAt = DateTime.UtcNow;
-            course.UpdatedAt = DateTime.UtcNow;
+            // ✅ NÃO atualizar UpdatedAt manualmente - MySQL faz via trigger
+            // course.UpdatedAt = DateTime.UtcNow; // ❌ REMOVIDO
             
             await _context.SaveChangesAsync();
             return true;
@@ -184,6 +191,12 @@ namespace Pregiato.Infrastructure.Repositories
                 .GroupBy(c => c.Category!)
                 .Select(g => new { Category = g.Key, Count = g.Count() })
                 .ToDictionaryAsync(x => x.Category, x => x.Count);
+        }
+
+        // ✅ Método para salvar mudanças rastreadas pelo Entity Framework
+        public async Task SaveChangesAsync()
+        {
+            await _context.SaveChangesAsync();
         }
     }
 }

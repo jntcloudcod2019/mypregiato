@@ -232,7 +232,11 @@ namespace Pregiato.Application.Services
                 course.Ratings.Add(newRating);
             }
 
-            await _courseRepository.UpdateAsync(course);
+            // ✅ SALVAR DIRETAMENTE pelo DbContext sem chamar UpdateAsync
+            // Isso evita conflito de concorrência com UpdatedAt
+            await _courseRepository.SaveChangesAsync();
+            
+            // ✅ Recalcular estatísticas APÓS salvar
             await _courseRepository.UpdateRatingStatsAsync(courseId);
 
             return await GetByIdAsync(courseId);

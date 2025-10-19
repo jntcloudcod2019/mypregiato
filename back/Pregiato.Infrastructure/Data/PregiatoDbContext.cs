@@ -1107,7 +1107,9 @@ public class PregiatoDbContext : DbContext
             
             entity.Property(e => e.UpdatedAt)
                 .HasColumnType("datetime")
-                .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+                .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
+                .ValueGeneratedOnAddOrUpdate() // ✅ Informa EF que o campo é gerado pelo banco
+                .IsConcurrencyToken(false); // ✅ Não usar como token de concorrência
             
             entity.Property(e => e.DeletedAt)
                 .HasColumnType("datetime");
