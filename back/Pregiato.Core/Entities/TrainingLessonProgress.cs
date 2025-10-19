@@ -5,7 +5,6 @@ namespace Pregiato.Core.Entities;
 /// <summary>
 /// Rastreia o progresso de uma aula específica
 /// </summary>
-[Table("TrainingLessonProgress")]
 public class TrainingLessonProgress
 {
     public Guid Id { get; set; }
