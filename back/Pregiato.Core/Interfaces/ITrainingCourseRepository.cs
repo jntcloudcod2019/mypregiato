@@ -20,5 +20,6 @@ namespace Pregiato.Core.Interfaces
         Task<IEnumerable<string>> GetCategoriesAsync();
         Task<Dictionary<string, int>> GetCategoryStatsAsync();
         Task SaveChangesAsync(); // ✅ Método para salvar mudanças rastreadas pelo EF
+        Task AddOrUpdateRatingAsync(Guid courseId, string userId, string ratingType, int stars, string? comment); // ✅ Adicionar/atualizar rating sem conflito
     }
 }

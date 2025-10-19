@@ -1,4 +1,5 @@
 import { apiClient } from './api-client';
+import { API_URL } from '@/config/api';
 
 export interface CreateUserRequest {
   email: string;
@@ -38,7 +39,7 @@ export class UserManagementService {
    * Enviar convite via Clerk (Clerk envia email automaticamente)
    */
   async sendInvitation(data: CreateUserRequest): Promise<InvitationResponse> {
-    const url = `${this.baseUrl}/send-invitation`;
+    const url = `${API_URL}${this.baseUrl}/send-invitation`;
     console.log('📤 [USER-SERVICE] Enviando convite para:', url, data);
     return await apiClient.post<InvitationResponse>(url, data);
   }

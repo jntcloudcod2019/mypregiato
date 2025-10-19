@@ -202,41 +202,16 @@ namespace Pregiato.Application.Services
 
         public async Task<TrainingCourseDto?> AddRatingAsync(Guid courseId, string userId, string ratingType, int stars = 0, string? comment = null)
         {
-            var course = await _courseRepository.GetByIdAsync(courseId);
-            if (course == null) return null;
-
-            // Verificar se o usuário já avaliou
-            var existingRating = course.Ratings.FirstOrDefault(r => r.UserId == userId && r.RatingType == ratingType);
+            // ✅ SOLUÇÃO SIMPLES: Usar AddOrUpdateRatingAsync que trabalha diretamente com TrainingRating
+            Console.WriteLine($"⭐ [SERVICE] Adicionando rating - CourseId: {courseId}, UserId: {userId}, Type: {ratingType}");
             
-            if (existingRating != null)
-            {
-                // Atualizar avaliação existente
-                existingRating.Stars = stars;
-                existingRating.Comment = comment;
-                existingRating.UpdatedAt = DateTime.UtcNow;
-            }
-            else
-            {
-                // Criar nova avaliação
-                var newRating = new TrainingRating
-                {
-                    Id = Guid.NewGuid(),
-                    CourseId = courseId,
-                    UserId = userId,
-                    RatingType = ratingType,
-                    Stars = stars,
-                    Comment = comment,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                };
-                course.Ratings.Add(newRating);
-            }
+            var courseExists = await _courseRepository.ExistsAsync(courseId);
+            if (!courseExists) return null;
 
-            // ✅ SALVAR DIRETAMENTE pelo DbContext sem chamar UpdateAsync
-            // Isso evita conflito de concorrência com UpdatedAt
-            await _courseRepository.SaveChangesAsync();
+            // Salvar rating diretamente (SEM modificar TrainingCourse)
+            await _courseRepository.AddOrUpdateRatingAsync(courseId, userId, ratingType, stars, comment);
             
-            // ✅ Recalcular estatísticas APÓS salvar
+            // Recalcular estatísticas
             await _courseRepository.UpdateRatingStatsAsync(courseId);
 
             return await GetByIdAsync(courseId);
