@@ -216,5 +216,45 @@ namespace Pregiato.Infrastructure.Repositories
                 await _context.SaveChangesAsync();
             }
         }
+
+        /// <summary>
+        /// Adiciona ou atualiza TrainingLessonProgress diretamente, evitando conflito de concorrência
+        /// </summary>
+        public async Task AddOrUpdateLessonProgressAsync(TrainingLessonProgress lessonProgress)
+        {
+            var existing = await _context.TrainingLessonProgress
+                .FirstOrDefaultAsync(lp => 
+                    lp.EnrollmentId == lessonProgress.EnrollmentId && 
+                    lp.LessonId == lessonProgress.LessonId);
+
+            if (existing == null)
+            {
+                // Adicionar novo progresso
+                _context.TrainingLessonProgress.Add(lessonProgress);
+            }
+            else
+            {
+                // Atualizar progresso existente
+                existing.WatchedSeconds = lessonProgress.WatchedSeconds;
+                existing.LastPositionSeconds = lessonProgress.LastPositionSeconds;
+                existing.LastWatchedAt = lessonProgress.LastWatchedAt;
+                existing.WatchCount = lessonProgress.WatchCount;
+                
+                if (lessonProgress.IsCompleted && !existing.IsCompleted)
+                {
+                    existing.IsCompleted = true;
+                    existing.CompletedAt = DateTime.UtcNow;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            
+            // ✅ Atualizar LastAccessedAt do enrollment usando ExecuteUpdateAsync (sem conflito)
+            await _context.TrainingEnrollments
+                .Where(e => e.Id == lessonProgress.EnrollmentId)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(e => e.LastAccessedAt, DateTime.UtcNow)
+                );
+        }
     }
 }

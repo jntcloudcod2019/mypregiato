@@ -1,8 +1,10 @@
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Pregiato.Application.DTOs;
 using Pregiato.Application.Interfaces;
 using Pregiato.Core.Entities;
 using Pregiato.Core.Interfaces;
+using Pregiato.Infrastructure.Data;
 
 namespace Pregiato.Application.Services
 {
@@ -11,17 +13,20 @@ namespace Pregiato.Application.Services
         private readonly ITrainingEnrollmentRepository _enrollmentRepository;
         private readonly ITrainingCourseRepository _courseRepository;
         private readonly ITrainingCertificateService _certificateService;
+        private readonly PregiatoDbContext _context;
         private readonly IMapper _mapper;
 
         public TrainingEnrollmentService(
             ITrainingEnrollmentRepository enrollmentRepository,
             ITrainingCourseRepository courseRepository,
             ITrainingCertificateService certificateService,
+            PregiatoDbContext context,
             IMapper mapper)
         {
             _enrollmentRepository = enrollmentRepository;
             _courseRepository = courseRepository;
             _certificateService = certificateService;
+            _context = context;
             _mapper = mapper;
         }
 
@@ -131,10 +136,12 @@ namespace Pregiato.Application.Services
             var enrollment = await _enrollmentRepository.GetByIdAsync(enrollmentId);
             if (enrollment == null) return null;
 
-            // Buscar ou criar progresso da aula
-            var lessonProgress = enrollment.LessonProgress.FirstOrDefault(lp => lp.LessonId == lessonId);
+            // Buscar progresso existente
+            var existingProgress = enrollment.LessonProgress.FirstOrDefault(lp => lp.LessonId == lessonId);
             
-            if (lessonProgress == null)
+            TrainingLessonProgress lessonProgress;
+            
+            if (existingProgress == null)
             {
                 // Criar novo registro de progresso
                 lessonProgress = new TrainingLessonProgress
@@ -150,45 +157,57 @@ namespace Pregiato.Application.Services
                     LastWatchedAt = DateTime.UtcNow,
                     WatchCount = 1
                 };
-                enrollment.LessonProgress.Add(lessonProgress);
-                Console.WriteLine($"🆕 [SERVICE] Criado novo lesson progress: {lessonId}");
+                Console.WriteLine($"🆕 [SERVICE] Criando novo lesson progress: {lessonId}");
             }
             else
             {
                 // Atualizar progresso existente
-                lessonProgress.WatchedSeconds = timeWatchedSeconds;
-                lessonProgress.LastPositionSeconds = timeWatchedSeconds;
-                lessonProgress.LastWatchedAt = DateTime.UtcNow;
-                lessonProgress.WatchCount++;
-
-                if (isCompleted && !lessonProgress.IsCompleted)
+                lessonProgress = new TrainingLessonProgress
                 {
-                    lessonProgress.IsCompleted = true;
-                    lessonProgress.CompletedAt = DateTime.UtcNow;
+                    Id = existingProgress.Id,
+                    EnrollmentId = enrollmentId,
+                    LessonId = lessonId,
+                    IsCompleted = isCompleted || existingProgress.IsCompleted,
+                    CompletedAt = (isCompleted && !existingProgress.IsCompleted) ? DateTime.UtcNow : existingProgress.CompletedAt,
+                    WatchedSeconds = timeWatchedSeconds,
+                    LastPositionSeconds = timeWatchedSeconds,
+                    StartedAt = existingProgress.StartedAt,
+                    LastWatchedAt = DateTime.UtcNow,
+                    WatchCount = existingProgress.WatchCount + 1
+                };
+                
+                if (isCompleted && !existingProgress.IsCompleted)
+                {
                     Console.WriteLine($"✅ [SERVICE] Aula marcada como concluída: {lessonId}");
                 }
             }
 
-            // Atualizar enrollment
-            enrollment.LastAccessedAt = DateTime.UtcNow;
-            
+            // ✅ SALVAR PROGRESSO DIRETAMENTE (evita conflito de concorrência)
+            Console.WriteLine($"💾 [SERVICE] Salvando progresso da aula...");
+            await _enrollmentRepository.AddOrUpdateLessonProgressAsync(lessonProgress);
+            Console.WriteLine($"✅ [SERVICE] Progresso salvo com sucesso!");
+
             // Definir StartedAt se for primeira vez
             if (!enrollment.StartedAt.HasValue)
             {
-                enrollment.StartedAt = DateTime.UtcNow;
+                await _context.TrainingEnrollments
+                    .Where(e => e.Id == enrollmentId)
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(e => e.StartedAt, DateTime.UtcNow)
+                    );
             }
-
-            // ✅ SALVAR AS ALTERAÇÕES NO BANCO DE DADOS
-            Console.WriteLine($"💾 [SERVICE] Salvando alterações no banco de dados...");
-            await _enrollmentRepository.UpdateAsync(enrollment);
-            Console.WriteLine($"✅ [SERVICE] Alterações salvas com sucesso!");
 
             // Calcular progresso geral do curso
             var course = await _courseRepository.GetByIdAsync(enrollment.CourseId);
             if (course != null)
             {
+                // Recarregar progresso atualizado
+                var allProgress = await _context.TrainingLessonProgress
+                    .Where(lp => lp.EnrollmentId == enrollmentId)
+                    .ToListAsync();
+                
                 var totalLessons = course.Lessons.Count;
-                var completedLessons = enrollment.LessonProgress.Count(lp => lp.IsCompleted);
+                var completedLessons = allProgress.Count(lp => lp.IsCompleted);
                 var progressPercentage = totalLessons > 0 ? (decimal)completedLessons / totalLessons * 100 : 0;
 
                 Console.WriteLine($"📊 [SERVICE] Recalculando progresso: {completedLessons}/{totalLessons} = {progressPercentage}%");
