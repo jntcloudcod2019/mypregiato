@@ -175,6 +175,7 @@ builder.Services.AddScoped<ITalentRepository, TalentRepository>();
 builder.Services.AddScoped<IImportedFileRepository, ImportedFileRepository>();
 builder.Services.AddScoped<IChatLogRepository, ChatLogRepository>();
 builder.Services.AddScoped<IOperatorLeadsRepository, OperatorLeadsRepository>();
+builder.Services.AddScoped<IFileUploadRepository, FileUploadRepository>();
 
 // Training Repositories
 builder.Services.AddScoped<ITrainingCourseRepository, TrainingCourseRepository>();
@@ -193,6 +194,9 @@ builder.Services.AddScoped<MediaStorageService>();
 
 // Serviços de importação
 builder.Services.AddScoped<IImportService, Pregiato.Application.Services.ImportServiceWithRepo>();
+
+// FileUpload Services
+builder.Services.AddScoped<IFileUploadService, FileUploadService>();
 
 // MemoryCache e RabbitMQ HostedService
 builder.Services.AddMemoryCache();

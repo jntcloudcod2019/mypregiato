@@ -20,7 +20,7 @@ import { cn } from "../../../lib/utils"
 import { CompositeTemplates } from "../../../components/composite-templates"
 import { getTalentById, updateTalent } from "../../../lib/talent-service"
 import { getTalentDNA, createOrUpdateTalentDNA } from "../../../lib/dna-service"
-import { talentPhotosService } from "../../../services/talent-photos-service"
+import { talentPhotosService, TalentPhotoDto } from "../../../services/talent-photos-service"
 import { TalentData } from "../../../types/talent"
 import { useToast } from "../../../hooks/use-toast"
 import { compressImage, validateImageFile } from "../../../utils/image-compression"
@@ -44,6 +44,8 @@ export default function TalentProfile() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [dnaData, setDnaData] = useState<any>({})
   const [savingDNA, setSavingDNA] = useState(false)
+  const [talentPhotos, setTalentPhotos] = useState<TalentPhotoDto[]>([])
+  const [selectedProfilePhoto, setSelectedProfilePhoto] = useState<string | null>(null)
 
   // Fetch talent data on component mount
   useEffect(() => {
@@ -101,6 +103,32 @@ export default function TalentProfile() {
     
     fetchTalentData()
   }, [id, navigate, toast])
+
+  // Carregar fotos do talento
+  useEffect(() => {
+    const loadTalentPhotos = async () => {
+      if (!id) return
+      
+      try {
+        setLoadingPhotos(true)
+        console.log('📸 [PERFIL] Carregando fotos do talento:', id)
+        const photos = await talentPhotosService.getTalentPhotos(id)
+        setTalentPhotos(photos)
+        console.log('✅ [PERFIL] Fotos carregadas:', photos.length)
+      } catch (error) {
+        console.error('❌ [PERFIL] Erro ao carregar fotos:', error)
+        toast({
+          title: "Erro",
+          description: "Erro ao carregar fotos do talento",
+          variant: "destructive"
+        })
+      } finally {
+        setLoadingPhotos(false)
+      }
+    }
+    
+    loadTalentPhotos()
+  }, [id, toast])
 
   const handleSave = async () => {
     if (!talent || !id) return
@@ -209,14 +237,16 @@ export default function TalentProfile() {
         console.log('✅ [Upload] Foto enviada para API')
       }
       
+      // Recarregar fotos da galeria
+      console.log('🔄 [Upload] Recarregando fotos da galeria...')
+      const photos = await talentPhotosService.getTalentPhotos(id)
+      setTalentPhotos(photos)
+      console.log('✅ [Upload] Fotos recarregadas:', photos.length)
+      
       // Refresh talent data to show new photos
       console.log('🔄 [Upload] Atualizando dados do talento...')
       const updatedTalent = await getTalentById(id)
       console.log('📊 [Upload] Talento atualizado:', updatedTalent)
-      
-      // Buscar fotos do talent via API
-      const photos = await talentPhotosService.getTalentPhotos(id)
-      console.log('🖼️ [Upload] Fotos carregadas:', photos.length)
       
       if (updatedTalent) {
         // Adicionar as fotos carregadas ao talent
@@ -258,6 +288,11 @@ export default function TalentProfile() {
       await talentPhotosService.deletePhoto(id, photoId)
       
       console.log('✅ [Delete] Foto deletada da API')
+      
+      // Recarregar fotos da galeria
+      const photos = await talentPhotosService.getTalentPhotos(id)
+      setTalentPhotos(photos)
+      console.log('✅ [Delete] Fotos recarregadas:', photos.length)
       
       // Refresh talent data
       const updatedTalent = await getTalentById(id)
@@ -381,7 +416,7 @@ export default function TalentProfile() {
                   <div className="relative group">
                   <div className="w-32 h-32 rounded-xl overflow-hidden border-4 border-primary/20 shadow-lg">
                     <img
-                      src={talent.files?.[0]?.filePath || "/placeholder.svg"}
+                      src={selectedProfilePhoto || talent.files?.[0]?.filePath || "/placeholder.svg"}
                       alt={talent.fullName}
                       className="w-full h-full object-cover"
                     />
@@ -672,23 +707,38 @@ export default function TalentProfile() {
                       <Loader2 className="h-6 w-6 animate-spin" />
                       <span className="ml-2">Aguarde um instante...</span>
                     </div>
+                  ) : talentPhotos.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-32 text-center">
+                      <Camera className="h-8 w-8 text-muted-foreground/50 mb-2" />
+                      <p className="text-sm text-muted-foreground">Nenhuma foto encontrada</p>
+                      <p className="text-xs text-muted-foreground">Adicione fotos para criar sua galeria</p>
+                    </div>
                   ) : (
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      {talent.files?.filter(file => file.tags === 'PHOTO').map((file, index) => (
-                        <div key={file.id} className="relative group">
+                      {talentPhotos.map((photo, index) => (
+                        <div key={photo.id} className="relative group">
                           <div className="aspect-square rounded-lg overflow-hidden bg-muted shadow-md">
                             <img
-                              src={file.filePath}
+                              src={photo.filePath}
                               alt={`Foto ${index + 1}`}
                               className="w-full h-full object-cover transition-transform group-hover:scale-105"
                             />
                           </div>
-                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
+                            <Button
+                              size="sm"
+                              variant="default"
+                              className="text-xs"
+                              onClick={() => setSelectedProfilePhoto(photo.filePath)}
+                            >
+                              <User className="h-3 w-3 mr-1" />
+                              Perfil
+                            </Button>
                             <Button
                               size="sm"
                               variant="destructive"
                               className="text-xs"
-                              onClick={() => handlePhotoDelete(file.id)}
+                              onClick={() => handlePhotoDelete(photo.id)}
                             >
                               <Trash2 className="h-3 w-3" />
                             </Button>

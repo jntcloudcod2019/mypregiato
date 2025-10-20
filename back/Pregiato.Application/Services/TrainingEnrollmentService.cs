@@ -178,6 +178,11 @@ namespace Pregiato.Application.Services
                 enrollment.StartedAt = DateTime.UtcNow;
             }
 
+            // ✅ SALVAR AS ALTERAÇÕES NO BANCO DE DADOS
+            Console.WriteLine($"💾 [SERVICE] Salvando alterações no banco de dados...");
+            await _enrollmentRepository.UpdateAsync(enrollment);
+            Console.WriteLine($"✅ [SERVICE] Alterações salvas com sucesso!");
+
             // Calcular progresso geral do curso
             var course = await _courseRepository.GetByIdAsync(enrollment.CourseId);
             if (course != null)

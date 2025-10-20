@@ -27,6 +27,7 @@ public class CreateUserDto
 
 public class UpdateUserDto
 {
+   
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
     public string? Email { get; set; }
@@ -52,8 +53,7 @@ public class SendUserInvitationDto
     public string LastName { get; set; } = string.Empty;
     
     [Required(ErrorMessage = "Role é obrigatória")]
-    [StringLength(20, ErrorMessage = "Role não pode exceder 20 caracteres")]
-    [RegularExpression("^(ADMIN|MODEL|PRODUCER|OPERATOR)$", ErrorMessage = "Role deve ser: ADMIN, MODEL, PRODUCER ou OPERATOR")]
+    
     public string Role { get; set; } = string.Empty;
 }
 

@@ -87,10 +87,9 @@ public class AutoMapperProfile : Profile
         CreateMap<UpdateTrainingLessonDto, TrainingLesson>()
             .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
-        // ✅ ENROLLMENT - EVITAR REFERÊNCIAS CIRCULARES
+        // ✅ ENROLLMENT - INCLUIR LESSON PROGRESS
         CreateMap<TrainingEnrollment, TrainingEnrollmentDto>()
             .ForMember(dest => dest.Course, opt => opt.Ignore())
-            .ForMember(dest => dest.LessonProgress, opt => opt.Ignore())
             .ForMember(dest => dest.Certificates, opt => opt.Ignore());
         CreateMap<CreateTrainingEnrollmentDto, TrainingEnrollment>();
 

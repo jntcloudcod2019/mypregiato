@@ -170,25 +170,7 @@ namespace Pregiato.API.Controllers
 
                 if (user == null)
                 {
-                    // Se o usuário não existe no banco, criar um novo
-                    var nameParts = currentUserName?.Split(' ') ?? new[] { "Usuário" };
-                    var firstName = nameParts[0];
-                    var lastName = nameParts.Length > 1 ? string.Join(" ", nameParts.Skip(1)) : "";
-
-                    user = new User
-                    {
-                        Id = Guid.NewGuid().ToString(),
-                        ClerkId = currentUserId ?? Guid.NewGuid().ToString(),
-                        Email = currentUserEmail,
-                        FirstName = firstName,
-                        LastName = lastName,
-                        Role = "USER", // Valor padrão para novos usuários
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow
-                    };
-
-                    _context.Users.Add(user);
-                    await _context.SaveChangesAsync();
+                   return NotFound("Usuário não encontrado");
                 }
 
                 var userDto = new UserDto
@@ -356,6 +338,7 @@ namespace Pregiato.API.Controllers
                 // Atualizar campos
                 if (!string.IsNullOrEmpty(updateUserDto.FirstName))
                     user.FirstName = updateUserDto.FirstName;
+          
 
                 if (!string.IsNullOrEmpty(updateUserDto.LastName))
                     user.LastName = updateUserDto.LastName;
@@ -376,7 +359,7 @@ namespace Pregiato.API.Controllers
                 var userDto = new UserDto
                 {
                     Id = user.Id,
-                    ClerkId = user.ClerkId,
+                    ClerkId = id,
                     Email = user.Email,
                     FirstName = user.FirstName,
                     LastName = user.LastName,
@@ -432,16 +415,7 @@ namespace Pregiato.API.Controllers
                 Console.WriteLine($"🎭 [USER] Role: {invitationDto.Role}");
                 Console.WriteLine($"✅ [USER] ModelState Valid: {ModelState.IsValid}");
 
-                if (!ModelState.IsValid)
-                {
-                    Console.WriteLine($"❌ [USER] ModelState inválido!");
-                    foreach (var error in ModelState)
-                    {
-                        Console.WriteLine($"   - {error.Key}: {string.Join(", ", error.Value.Errors.Select(e => e.ErrorMessage))}");
-                    }
-                    return BadRequest(ModelState);
-                }
-
+              
                 // 1️⃣ VALIDAR - Verificar se email já existe
                 Console.WriteLine($"🔍 [USER] Verificando se email já existe...");
                 var existingUser = await _context.Users

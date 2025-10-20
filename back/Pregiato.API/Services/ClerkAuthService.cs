@@ -210,10 +210,7 @@ namespace Pregiato.API.Services
 
                 // 🎭 Mapear role do sistema para role padrão do Clerk
                 // Para organizações, apenas org:admin e org:member são válidos por padrão
-                string clerkOrgRole = request.Role.ToUpper() == "ADMIN" ? "org:admin" : "org:member";
-                Console.WriteLine($"🎭 [CLERK] Role mapeada para Clerk: {request.Role} → {clerkOrgRole}");
-
-                // 📧 Clerk Organization Invitations API Payload
+                string clerkOrgRole = request.Role.ToUpper() == "MODEL" ? "org:model" : request.Role.ToUpper() == "ADMIN" ? "org:admin" : request.Role.ToUpper() == "OPERATOR" ? "org:operator" : request.Role.ToUpper() == "PRODUCER" ? "org:producer" : "org:member" ;
                 var payload = new
                 {
                     email_address = request.Email,                 // obrigatório

@@ -29,12 +29,14 @@ class TalentPhotosService {
    */
   async getTalentPhotos(talentId: string): Promise<TalentPhotoDto[]> {
     try {
+      console.log('📸 [TALENT-PHOTOS] Buscando fotos do talento:', talentId);
       const response = await apiClient.get<TalentPhotoDto[]>(
-        `/api/Talents/${talentId}/photos`
+        `/api/FileUploads/talent/${talentId}`
       );
+      console.log('✅ [TALENT-PHOTOS] Fotos encontradas:', response.length);
       return response;
     } catch (error) {
-      console.error('Erro ao buscar fotos do talento:', error);
+      console.error('❌ [TALENT-PHOTOS] Erro ao buscar fotos do talento:', error);
       return [];
     }
   }
@@ -59,8 +61,11 @@ class TalentPhotosService {
       };
 
       const response = await apiClient.post<TalentPhotoDto>(
-        `/api/Talents/${talentId}/photos`,
-        uploadDto
+        `/api/FileUploads`,
+        {
+          ...uploadDto,
+          talentId: talentId
+        }
       );
 
       return response;
@@ -75,7 +80,7 @@ class TalentPhotosService {
    */
   async deletePhoto(talentId: string, photoId: string): Promise<void> {
     try {
-      await apiClient.delete(`/api/Talents/${talentId}/photos/${photoId}`);
+      await apiClient.delete(`/api/FileUploads/${photoId}`);
     } catch (error) {
       console.error('Erro ao deletar foto:', error);
       throw error;
