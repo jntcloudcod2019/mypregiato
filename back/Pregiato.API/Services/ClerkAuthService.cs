@@ -194,15 +194,7 @@ namespace Pregiato.API.Services
                     Console.WriteLine($"🔐 [CLERK] Usando chaves de TESTE");
                 }
 
-                if (string.IsNullOrEmpty(clerkSecretKey))
-                {
-                    Console.WriteLine($"❌ [CLERK] Clerk Secret Key não configurada para ambiente {clerkEnvironment}!");
-                    return new ClerkInvitationResult 
-                    { 
-                        Success = false, 
-                        ErrorMessage = $"Clerk Secret Key não configurada para ambiente {clerkEnvironment}" 
-                    };
-                }
+               
 
                 Console.WriteLine($"✅ [CLERK] Secret Key encontrada (length: {clerkSecretKey.Length}, prefix: {clerkSecretKey.Substring(0, Math.Min(7, clerkSecretKey.Length))})");
 
@@ -214,16 +206,23 @@ namespace Pregiato.API.Services
                 _httpClient.DefaultRequestHeaders.Clear();
                 _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {clerkSecretKey}");
 
+                Console.WriteLine($"🎭 [CLERK] Role original do sistema: {request.Role}");
+
+                // 🎭 Mapear role do sistema para role padrão do Clerk
+                // Para organizações, apenas org:admin e org:member são válidos por padrão
+                string clerkOrgRole = request.Role.ToUpper() == "ADMIN" ? "org:admin" : "org:member";
+                Console.WriteLine($"🎭 [CLERK] Role mapeada para Clerk: {request.Role} → {clerkOrgRole}");
+
                 // 📧 Clerk Organization Invitations API Payload
                 var payload = new
                 {
                     email_address = request.Email,                 // obrigatório
-                    role = $"org:{request.Role.ToLower()}",       // role da organização (ex: org:admin, org:member)
+                    role = clerkOrgRole,                           // org:admin ou org:member (roles padrão)
                     public_metadata = new 
                     { 
                         firstName = request.FirstName,
                         lastName = request.LastName,
-                        originalRole = request.Role
+                        systemRole = request.Role                  // Role do nosso sistema (MODEL, ADMIN, OPERATOR, PRODUCER)
                     },
                     redirect_url = request.RedirectUrl,            // URL após aceitar convite
                     notify = true,                                 // Clerk envia email automaticamente

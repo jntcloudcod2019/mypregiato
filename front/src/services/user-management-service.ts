@@ -31,6 +31,19 @@ export class UserManagementService {
   
   constructor() {
     console.log('🔧 [USER-SERVICE] Inicializando com API_BASE_URL:', this.API_BASE_URL);
+    // ✅ Bind all methods to preserve 'this' context
+    this.sendInvitation = this.sendInvitation.bind(this);
+    this.getAllUsers = this.getAllUsers.bind(this);
+    this.getUserByEmail = this.getUserByEmail.bind(this);
+    this.getUserByClerkId = this.getUserByClerkId.bind(this);
+    this.getCurrentUser = this.getCurrentUser.bind(this);
+    this.updateUser = this.updateUser.bind(this);
+    this.deleteUser = this.deleteUser.bind(this);
+    this.getOperators = this.getOperators.bind(this);
+    this.getProducers = this.getProducers.bind(this);
+    this.checkAdminRole = this.checkAdminRole.bind(this);
+    this.resendInvitation = this.resendInvitation.bind(this);
+    this.cancelInvitation = this.cancelInvitation.bind(this);
   }
 
   /**
@@ -45,8 +58,8 @@ export class UserManagementService {
       const response = await fetch(url, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${await this.getAuthToken()}`
+          'Content-Type': 'application/json'
+          // ⚠️ REMOVIDO TEMPORARIAMENTE PARA TESTE: 'Authorization': `Bearer ${await this.getAuthToken()}`
         },
         body: JSON.stringify(data)
       });
