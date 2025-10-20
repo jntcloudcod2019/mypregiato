@@ -1,7 +1,7 @@
 # ---------------------------------------
-# Etapa 1: Build com Bun (MUITO MAIS RÁPIDO!)
+# Etapa 1: Build com Node + npm
 # ---------------------------------------
-FROM oven/bun:1-alpine AS build
+FROM node:18-alpine AS build
 
 # Instalar dependências do sistema
 RUN apk add --no-cache libc6-compat
@@ -11,20 +11,19 @@ WORKDIR /app
 
 # Copiar arquivos de dependências
 COPY package*.json ./
-COPY bun.lock* ./
 COPY prisma ./prisma/
 
-# Instalar dependências com Bun (10-20x mais rápido que npm)
-RUN bun install --frozen-lockfile
+# Instalar dependências com npm
+RUN npm ci
 
 # Gerar cliente Prisma
-RUN bunx prisma generate
+RUN npx prisma generate
 
 # Copiar código fonte
 COPY . .
 
-# Build da aplicação com Bun
-RUN bun run build
+# Build da aplicação
+RUN npm run build
 
 # ---------------------------------------
 # Etapa 2: Production - Servidor Node
