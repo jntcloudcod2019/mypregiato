@@ -25,11 +25,12 @@ namespace Pregiato.Infrastructure.Repositories
 
         public async Task<TrainingEnrollment?> GetByUserAndCourseAsync(string userId, Guid courseId)
         {
+
             return await _context.TrainingEnrollments
                 .Include(e => e.Course)
                 .Include(e => e.LessonProgress)
                 .Include(e => e.Certificates)
-                .FirstOrDefaultAsync(e => e.UserId == userId && e.CourseId == courseId);
+                .FirstOrDefaultAsync(e => e.UserId == userId || e.CourseId == courseId);
         }
 
         public async Task<IEnumerable<TrainingEnrollment>> GetByUserIdAsync(string userId)
@@ -115,34 +116,40 @@ namespace Pregiato.Infrastructure.Repositories
 
         public async Task UpdateProgressAsync(Guid enrollmentId, decimal progressPercentage, int completedLessons)
         {
-            var enrollment = await _context.TrainingEnrollments
-                .FirstOrDefaultAsync(e => e.Id == enrollmentId);
+            // ✅ Usar ExecuteUpdateAsync para evitar conflito de concorrência
+            // Atualiza diretamente no banco sem carregar a entidade no contexto
+            var now = DateTime.UtcNow;
+            
+            await _context.TrainingEnrollments
+                .Where(e => e.Id == enrollmentId)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(e => e.ProgressPercentage, progressPercentage)
+                    .SetProperty(e => e.CompletedLessons, completedLessons)
+                    .SetProperty(e => e.LastAccessedAt, now)
+                );
 
-            if (enrollment == null) return;
-
-            enrollment.ProgressPercentage = progressPercentage;
-            enrollment.CompletedLessons = completedLessons;
-            enrollment.LastAccessedAt = DateTime.UtcNow;
-
-            if (progressPercentage >= 100 && !enrollment.CompletedAt.HasValue)
+            // Marcar como completo se atingiu 100%
+            if (progressPercentage >= 100)
             {
-                enrollment.CompletedAt = DateTime.UtcNow;
+                await _context.TrainingEnrollments
+                    .Where(e => e.Id == enrollmentId && !e.CompletedAt.HasValue)
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(e => e.CompletedAt, now)
+                    );
             }
-
-            await _context.SaveChangesAsync();
         }
 
         public async Task MarkAsCompletedAsync(Guid enrollmentId)
         {
-            var enrollment = await _context.TrainingEnrollments
-                .FirstOrDefaultAsync(e => e.Id == enrollmentId);
-
-            if (enrollment == null) return;
-
-            enrollment.CompletedAt = DateTime.UtcNow;
-            enrollment.ProgressPercentage = 100;
-
-            await _context.SaveChangesAsync();
+            // ✅ Usar ExecuteUpdateAsync para evitar conflito de concorrência
+            var now = DateTime.UtcNow;
+            
+            await _context.TrainingEnrollments
+                .Where(e => e.Id == enrollmentId)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(e => e.CompletedAt, now)
+                    .SetProperty(e => e.ProgressPercentage, 100m)
+                );
         }
 
         public async Task<decimal> GetAverageProgressByCourseAsync(Guid courseId)
