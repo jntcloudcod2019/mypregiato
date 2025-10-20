@@ -56,8 +56,8 @@ export default function Usuarios() {
       setIsInviteDialogOpen(false)
       resetForm()
     },
-    onError: (error: any) => {
-      const errorMessage = error.response?.data || error.message || 'Erro ao enviar convite'
+    onError: (error: Error) => {
+      const errorMessage = error.message || 'Erro ao enviar convite'
       toast.error(`Erro: ${errorMessage}`)
     }
   })
@@ -69,8 +69,8 @@ export default function Usuarios() {
       queryClient.invalidateQueries({ queryKey: ['users'] })
       toast.success(`✅ Convite reenviado para ${response.email}!`)
     },
-    onError: (error: any) => {
-      toast.error(`Erro ao reenviar: ${error.response?.data || error.message}`)
+    onError: (error: Error) => {
+      toast.error(`Erro ao reenviar: ${error.message}`)
     }
   })
 
@@ -81,8 +81,8 @@ export default function Usuarios() {
       queryClient.invalidateQueries({ queryKey: ['users'] })
       toast.success(`✅ Convite cancelado para ${response.email}`)
     },
-    onError: (error: any) => {
-      toast.error(`Erro ao cancelar: ${error.response?.data || error.message}`)
+    onError: (error: Error) => {
+      toast.error(`Erro ao cancelar: ${error.message}`)
     }
   })
 
@@ -96,8 +96,8 @@ export default function Usuarios() {
       setIsEditDialogOpen(false)
       setSelectedUser(null)
     },
-    onError: (error: any) => {
-      toast.error(`Erro ao atualizar: ${error.response?.data || error.message}`)
+    onError: (error: Error) => {
+      toast.error(`Erro ao atualizar: ${error.message}`)
     }
   })
 
@@ -110,8 +110,8 @@ export default function Usuarios() {
       setIsDeleteDialogOpen(false)
       setSelectedUser(null)
     },
-    onError: (error: any) => {
-      toast.error(`Erro ao deletar: ${error.response?.data || error.message}`)
+    onError: (error: Error) => {
+      toast.error(`Erro ao deletar: ${error.message}`)
     }
   })
 
@@ -137,7 +137,7 @@ export default function Usuarios() {
     setEditData({
       firstName: user.firstName,
       lastName: user.lastName,
-      role: user.role as any
+      role: user.role as 'ADMIN' | 'MODEL' | 'PRODUCER' | 'OPERATOR'
     })
     setIsEditDialogOpen(true)
   }
@@ -151,7 +151,7 @@ export default function Usuarios() {
 
     updateUserMutation.mutate({ 
       id: selectedUser.id, 
-      data: editData as any 
+      data: editData as Partial<CreateUserRequest>
     })
   }
 
