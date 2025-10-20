@@ -206,22 +206,28 @@ namespace Pregiato.API.Services
 
                 Console.WriteLine($"✅ [CLERK] Secret Key encontrada (length: {clerkSecretKey.Length}, prefix: {clerkSecretKey.Substring(0, Math.Min(7, clerkSecretKey.Length))})");
 
+                // ✅ ID da Organização Pregiato
+                const string ORGANIZATION_ID = "org_30i5ExFclW4l6UNqp8F9ZzOfQ4D";
+                Console.WriteLine($"🏢 [CLERK] Organization ID: {ORGANIZATION_ID}");
+
                 // Configurar HttpClient com autenticação
                 _httpClient.DefaultRequestHeaders.Clear();
                 _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {clerkSecretKey}");
 
-                // 📧 Clerk Invitations API Payload
+                // 📧 Clerk Organization Invitations API Payload
                 var payload = new
                 {
-                    email_address = request.Email,
+                    email_address = request.Email,                 // obrigatório
+                    role = $"org:{request.Role.ToLower()}",       // role da organização (ex: org:admin, org:member)
                     public_metadata = new 
                     { 
-                        role = request.Role,
                         firstName = request.FirstName,
-                        lastName = request.LastName
+                        lastName = request.LastName,
+                        originalRole = request.Role
                     },
-                    redirect_url = request.RedirectUrl, // URL após aceitar convite
-                    notify = true // ✅ Clerk envia email automaticamente!
+                    redirect_url = request.RedirectUrl,            // URL após aceitar convite
+                    notify = true,                                 // Clerk envia email automaticamente
+                    ignore_existing = false                        // Não ignorar se já existir
                 };
 
                 var jsonContent = JsonSerializer.Serialize(payload);
@@ -229,9 +235,10 @@ namespace Pregiato.API.Services
 
                 var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
 
-                // ✅ Clerk Invitations API (não Users)
-                Console.WriteLine($"🌐 [CLERK] Enviando request para: https://api.clerk.com/v1/invitations");
-                var response = await _httpClient.PostAsync("https://api.clerk.com/v1/invitations", content);
+                // ✅ Clerk Organization Invitations API
+                var apiUrl = $"https://api.clerk.com/v1/organizations/{ORGANIZATION_ID}/invitations";
+                Console.WriteLine($"🌐 [CLERK] Enviando request para: {apiUrl}");
+                var response = await _httpClient.PostAsync(apiUrl, content);
                 
                 Console.WriteLine($"📊 [CLERK] Status Code: {(int)response.StatusCode} ({response.StatusCode})");
 

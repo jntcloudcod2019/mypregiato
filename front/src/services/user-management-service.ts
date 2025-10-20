@@ -1,5 +1,3 @@
-import { API_URL } from '@/config/api';
-
 export interface CreateUserRequest {
   email: string;
   firstName: string;
@@ -28,10 +26,11 @@ export interface InvitationResponse {
 }
 
 export class UserManagementService {
-  private readonly baseUrl = '/users';
+  // ✅ URL base explícita - pode ser sobrescrita via env ou deixar como está
+  private readonly API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://pregiato-api-production.up.railway.app';
   
   constructor() {
-    console.log('🔧 [USER-SERVICE] Inicializando com baseUrl:', this.baseUrl);
+    console.log('🔧 [USER-SERVICE] Inicializando com API_BASE_URL:', this.API_BASE_URL);
   }
 
   /**
@@ -39,8 +38,9 @@ export class UserManagementService {
    */
   async sendInvitation(data: CreateUserRequest): Promise<InvitationResponse> {
     try {
-      const url = `${API_URL}${this.baseUrl}/send-invitation`;
-      console.log('📤 [USER-SERVICE] Enviando convite para:', url, data);
+      const url = `${this.API_BASE_URL}/api/users/send-invitation`;
+      console.log('📤 [USER-SERVICE] URL completa:', url);
+      console.log('📤 [USER-SERVICE] Enviando convite para:', data);
       
       const response = await fetch(url, {
         method: 'POST',
@@ -84,7 +84,7 @@ export class UserManagementService {
   async getAllUsers(role?: string): Promise<UserResponse[]> {
     try {
       const params = role ? `?role=${role}` : '';
-      const url = `${API_URL}${this.baseUrl}${params}`;
+      const url = `${this.API_BASE_URL}/api/users${params}`;
       
       const response = await fetch(url, {
         headers: {
@@ -108,7 +108,7 @@ export class UserManagementService {
    */
   async getUserByEmail(email: string): Promise<UserResponse> {
     try {
-      const url = `${API_URL}${this.baseUrl}/by-email/${encodeURIComponent(email)}`;
+      const url = `${this.API_BASE_URL}/api/users/by-email/${encodeURIComponent(email)}`;
       
       const response = await fetch(url, {
         headers: {
@@ -132,7 +132,7 @@ export class UserManagementService {
    */
   async getUserByClerkId(clerkId: string): Promise<UserResponse> {
     try {
-      const url = `${API_URL}${this.baseUrl}/by-clerk-id/${clerkId}`;
+      const url = `${this.API_BASE_URL}/api/users/by-clerk-id/${clerkId}`;
       
       const response = await fetch(url, {
         headers: {
@@ -156,7 +156,7 @@ export class UserManagementService {
    */
   async getCurrentUser(): Promise<UserResponse> {
     try {
-      const url = `${API_URL}${this.baseUrl}/me`;
+      const url = `${this.API_BASE_URL}/api/users/me`;
       
       const response = await fetch(url, {
         headers: {
@@ -180,7 +180,7 @@ export class UserManagementService {
    */
   async updateUser(id: string, data: Partial<CreateUserRequest>): Promise<UserResponse> {
     try {
-      const url = `${API_URL}${this.baseUrl}/${id}`;
+      const url = `${this.API_BASE_URL}/api/users/${id}`;
       
       const response = await fetch(url, {
         method: 'PUT',
@@ -207,7 +207,7 @@ export class UserManagementService {
    */
   async deleteUser(id: string): Promise<void> {
     try {
-      const url = `${API_URL}${this.baseUrl}/${id}`;
+      const url = `${this.API_BASE_URL}/api/users/${id}`;
       
       const response = await fetch(url, {
         method: 'DELETE',
@@ -230,7 +230,7 @@ export class UserManagementService {
    */
   async getOperators(): Promise<UserResponse[]> {
     try {
-      const url = `${API_URL}${this.baseUrl}/operators`;
+      const url = `${this.API_BASE_URL}/api/users/operators`;
       
       const response = await fetch(url, {
         headers: {
@@ -254,7 +254,7 @@ export class UserManagementService {
    */
   async getProducers(): Promise<UserResponse[]> {
     try {
-      const url = `${API_URL}${this.baseUrl}/producers`;
+      const url = `${this.API_BASE_URL}/api/users/producers`;
       
       const response = await fetch(url, {
         headers: {
@@ -278,7 +278,7 @@ export class UserManagementService {
    */
   async checkAdminRole(email: string): Promise<boolean> {
     try {
-      const url = `${API_URL}${this.baseUrl}/check-admin/${encodeURIComponent(email)}`;
+      const url = `${this.API_BASE_URL}/api/users/check-admin/${encodeURIComponent(email)}`;
       
       const response = await fetch(url, {
         headers: {
@@ -302,7 +302,7 @@ export class UserManagementService {
    */
   async resendInvitation(userId: string): Promise<{ message: string; invitationId: string; email: string }> {
     try {
-      const url = `${API_URL}${this.baseUrl}/resend-invitation/${userId}`;
+      const url = `${this.API_BASE_URL}/api/users/resend-invitation/${userId}`;
       
       const response = await fetch(url, {
         method: 'POST',
@@ -329,7 +329,7 @@ export class UserManagementService {
    */
   async cancelInvitation(userId: string): Promise<{ message: string; email: string }> {
     try {
-      const url = `${API_URL}${this.baseUrl}/cancel-invitation/${userId}`;
+      const url = `${this.API_BASE_URL}/api/users/cancel-invitation/${userId}`;
       
       const response = await fetch(url, {
         method: 'POST',
