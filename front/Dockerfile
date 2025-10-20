@@ -1,7 +1,7 @@
 # ---------------------------------------
 # Etapa 1: Build com Node + npm
 # ---------------------------------------
-FROM node:18-alpine AS build
+FROM mirror.gcr.io/library/node:18-alpine AS build
 
 # Instalar dependências do sistema
 RUN apk add --no-cache libc6-compat
@@ -28,7 +28,7 @@ RUN npm run build
 # ---------------------------------------
 # Etapa 2: Production - Servidor Node
 # ---------------------------------------
-FROM node:18-alpine AS production
+FROM mirror.gcr.io/library/node:18-alpine AS production
 
 # Instalar dependências do sistema
 RUN apk add --no-cache libc6-compat
