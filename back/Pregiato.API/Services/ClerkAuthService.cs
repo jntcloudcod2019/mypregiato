@@ -172,24 +172,39 @@ namespace Pregiato.API.Services
         {
             try
             {
-                Console.WriteLine($"\n🔐 [CLERK] ==================== SEND INVITATION ====================");
-                Console.WriteLine($"📧 [CLERK] Email: {request.Email}");
-                Console.WriteLine($"👤 [CLERK] Nome: {request.FirstName} {request.LastName}");
-                Console.WriteLine($"🎭 [CLERK] Role: {request.Role}");
-                Console.WriteLine($"🔗 [CLERK] RedirectUrl: {request.RedirectUrl}");
+                // ✅ Verificar qual ambiente usar (Test ou Production)
+                var clerkEnvironment = _configuration["Clerk:Environment"] ?? "Test";
+                Console.WriteLine($"🔧 [CLERK] Ambiente configurado: {clerkEnvironment}");
 
-                var clerkSecretKey = _configuration["Clerk:SecretKey"];
+                string clerkSecretKey;
+                string clerkPublishableKey;
+
+                if (clerkEnvironment.Equals("Production", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Usar chaves de produção
+                    clerkSecretKey = _configuration["Clerk:ProductionSecretKey"];
+                    clerkPublishableKey = _configuration["Clerk:ProductionPublishableKey"];
+                    Console.WriteLine($"🔐 [CLERK] Usando chaves de PRODUÇÃO");
+                }
+                else
+                {
+                    // Usar chaves de teste
+                    clerkSecretKey = _configuration["Clerk:SecretKey"];
+                    clerkPublishableKey = _configuration["Clerk:PublishableKey"];
+                    Console.WriteLine($"🔐 [CLERK] Usando chaves de TESTE");
+                }
+
                 if (string.IsNullOrEmpty(clerkSecretKey))
                 {
-                    Console.WriteLine($"❌ [CLERK] Clerk Secret Key não configurada!");
+                    Console.WriteLine($"❌ [CLERK] Clerk Secret Key não configurada para ambiente {clerkEnvironment}!");
                     return new ClerkInvitationResult 
                     { 
                         Success = false, 
-                        ErrorMessage = "Clerk Secret Key não configurada" 
+                        ErrorMessage = $"Clerk Secret Key não configurada para ambiente {clerkEnvironment}" 
                     };
                 }
 
-                Console.WriteLine($"✅ [CLERK] Secret Key encontrada (length: {clerkSecretKey.Length})");
+                Console.WriteLine($"✅ [CLERK] Secret Key encontrada (length: {clerkSecretKey.Length}, prefix: {clerkSecretKey.Substring(0, Math.Min(7, clerkSecretKey.Length))})");
 
                 // Configurar HttpClient com autenticação
                 _httpClient.DefaultRequestHeaders.Clear();

@@ -97,16 +97,18 @@ namespace Pregiato.Infrastructure.Repositories
             Console.WriteLine($"💾 [REPOSITORY] Adicionando curso ao contexto - ID: {course.Id}, Título: {course.Title}");
             Console.WriteLine($"💾 [REPOSITORY] Aulas a serem salvas: {course.Lessons?.Count ?? 0}");
             
+            // ✅ PASSO 1: Adicionar o curso primeiro
             _context.TrainingCourses.Add(course);
             
-            // ✅ ADICIONAR AULAS EXPLICITAMENTE AO CONTEXTO
+            // ✅ PASSO 2: Adicionar as aulas explicitamente (necessário para garantir que sejam salvas)
             if (course.Lessons?.Any() == true)
             {
                 Console.WriteLine($"📚 [REPOSITORY] Adicionando {course.Lessons.Count} aulas ao contexto");
                 foreach (var lesson in course.Lessons)
                 {
                     Console.WriteLine($"📝 [REPOSITORY] Adicionando aula - ID: {lesson.Id}, Título: {lesson.Title}, CourseId: {lesson.CourseId}");
-                    _context.TrainingLessons.Add(lesson);
+                    // ✅ Marcar explicitamente como Added para garantir que seja inserida
+                    _context.Entry(lesson).State = EntityState.Added;
                 }
             }
             
