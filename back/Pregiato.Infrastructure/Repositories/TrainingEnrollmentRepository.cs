@@ -222,7 +222,7 @@ namespace Pregiato.Infrastructure.Repositories
         /// </summary>
         public async Task AddOrUpdateLessonProgressAsync(TrainingLessonProgress lessonProgress)
         {
-            var existing = await _context.TrainingLessonProgress
+            var existing = await _context.TrainingLessonProgresses
                 .FirstOrDefaultAsync(lp => 
                     lp.EnrollmentId == lessonProgress.EnrollmentId && 
                     lp.LessonId == lessonProgress.LessonId);
@@ -230,7 +230,7 @@ namespace Pregiato.Infrastructure.Repositories
             if (existing == null)
             {
                 // Adicionar novo progresso
-                _context.TrainingLessonProgress.Add(lessonProgress);
+                _context.TrainingLessonProgresses.Add(lessonProgress);
             }
             else
             {
