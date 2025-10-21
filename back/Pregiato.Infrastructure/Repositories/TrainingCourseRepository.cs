@@ -202,22 +202,26 @@ namespace Pregiato.Infrastructure.Repositories
         }
 
         // ✅ Salvar like/dislike direto na tabela TrainingRatings (SEM tocar no TrainingCourse)
+        // Cada usuário pode ter APENAS 1 rating por curso (pode mudar de LIKE → DISLIKE → STAR_RATING)
         public async Task AddOrUpdateRatingAsync(Guid courseId, string userId, string ratingType, int stars, string? comment)
         {
-            // Buscar se usuário já avaliou este curso com este tipo
+            // ✅ CORREÇÃO: Buscar rating por CourseId E UserId (não apenas CourseId)
             var rating = await _context.TrainingRatings
-                .FirstOrDefaultAsync(r => r.CourseId == courseId && r.UserId == userId && r.RatingType == ratingType);
+                .FirstOrDefaultAsync(r => r.CourseId == courseId && r.UserId == userId);
 
             if (rating != null)
             {
-                // Atualizar existente
+                // Atualizar existente (usuário mudou de LIKE → DISLIKE, ou vice-versa)
+                Console.WriteLine($"🔄 [RATING] Atualizando rating existente: {rating.RatingType} → {ratingType}");
+                rating.RatingType = ratingType;
                 rating.Stars = stars;
                 rating.Comment = comment;
                 rating.UpdatedAt = DateTime.UtcNow;
             }
             else
             {
-                // Criar novo
+                // Criar novo rating para este usuário
+                Console.WriteLine($"🆕 [RATING] Criando novo rating: {ratingType}");
                 _context.TrainingRatings.Add(new TrainingRating
                 {
                     Id = Guid.NewGuid(),

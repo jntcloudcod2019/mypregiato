@@ -206,8 +206,11 @@ export class TrainingService {
     return await apiClient.post<TrainingEnrollment>(`${this.baseUrl}/TrainingEnrollments`, enrollment);
   }
 
+  /**
+   * Atualizar progresso de uma aula específica (calcula progressPercentage automaticamente)
+   */
   async updateProgress(enrollmentId: string, progress: UpdateTrainingProgressDto): Promise<TrainingEnrollment> {
-    return await apiClient.put<TrainingEnrollment>(`${this.baseUrl}/TrainingEnrollments/${enrollmentId}/progress`, progress);
+    return await apiClient.post<TrainingEnrollment>(`${this.baseUrl}/TrainingEnrollments/${enrollmentId}/lesson-progress`, progress);
   }
 
   async markAsCompleted(enrollmentId: string): Promise<void> {
