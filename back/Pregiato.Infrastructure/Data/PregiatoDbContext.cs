@@ -1188,7 +1188,8 @@ public class PregiatoDbContext : DbContext
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
             
             entity.Property(e => e.StartedAt)
-                .HasColumnType("datetime");
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
             
             entity.Property(e => e.CompletedAt)
                 .HasColumnType("datetime");
