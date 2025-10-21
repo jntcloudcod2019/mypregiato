@@ -698,7 +698,7 @@ const CursoPage = () => {
                 Obrigado pelo feedback!
               </h3>
               <p className="text-gray-600 dark:text-gray-300 mb-4">
-                Sua opinião é muito importante para nós. Obrigado por contribuir com o curso!
+                Sua opinião é muito importante para nossa melhora continua!
               </p>
               <Button 
                 onClick={() => setShowFeedbackDialog(false)}

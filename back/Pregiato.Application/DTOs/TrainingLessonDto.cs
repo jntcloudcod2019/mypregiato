@@ -19,6 +19,7 @@ namespace Pregiato.Application.DTOs
         public string? VideoObjectName { get; set; }
         public long? VideoSize { get; set; }
         public int? VideoDurationSeconds { get; set; }
+        public int? VideoDurationMinutes { get; set; } // Campo para entrada em minutos
         public string? VideoMimeType { get; set; }
         public string? AttachmentsJson { get; set; }
         public bool IsActive { get; set; } = true;
@@ -46,6 +47,7 @@ namespace Pregiato.Application.DTOs
         public string? VideoObjectName { get; set; }
         public long? VideoSize { get; set; }
         public int? VideoDurationSeconds { get; set; }
+        public int? VideoDurationMinutes { get; set; } // Campo para entrada em minutos
         public string? VideoMimeType { get; set; }
         public string? AttachmentsJson { get; set; }
         public bool IsActive { get; set; } = true;
@@ -69,6 +71,7 @@ namespace Pregiato.Application.DTOs
         public string? VideoObjectName { get; set; }
         public long? VideoSize { get; set; }
         public int? VideoDurationSeconds { get; set; }
+        public int? VideoDurationMinutes { get; set; } // Campo para entrada em minutos
         public string? VideoMimeType { get; set; }
         public string? AttachmentsJson { get; set; }
         public bool IsActive { get; set; }

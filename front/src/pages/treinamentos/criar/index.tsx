@@ -21,6 +21,7 @@ interface LessonWithBase64 extends CreateTrainingLessonDto {
   videoFileName?: string;
   videoFileSize?: number;
   durationSeconds?: number; // Alias para videoDurationSeconds
+  durationMinutes?: number; // Campo para entrada em minutos
 }
 
 const CriarTreinamentoPage = () => {
@@ -43,6 +44,7 @@ const CriarTreinamentoPage = () => {
     description: '',
     orderIndex: 1,
     videoDurationSeconds: 0,
+    durationMinutes: 0,
     videoUrl: '',
     videoObjectName: '',
     videoBase64Data: '',
@@ -98,7 +100,7 @@ const CriarTreinamentoPage = () => {
       return;
     }
 
-    if (!currentLesson.durationSeconds || currentLesson.durationSeconds <= 0) {
+    if (!currentLesson.durationMinutes || currentLesson.durationMinutes <= 0) {
       toast({
         title: "Campo obrigatório",
         description: "A duração do vídeo é obrigatória.",
@@ -157,9 +159,9 @@ const CriarTreinamentoPage = () => {
       description: '',
       orderIndex: lessons.length + 2,
       durationSeconds: 0,
+      durationMinutes: 0,
       videoUrl: '',
       videoObjectName: '',
-      // ✅ LIMPAR CAMPOS BASE64
       videoBase64Data: '',
       videoFileName: '',
       videoFileSize: 0,
@@ -252,6 +254,7 @@ const CriarTreinamentoPage = () => {
                 videoObjectName: uploadResult.objectName,
                 videoSize: uploadResult.fileSize,
                 videoDurationSeconds: lesson.videoDurationSeconds || 0,
+                videoDurationMinutes: lesson.durationMinutes || 0,
                 videoMimeType: uploadResult.mimeType,
                 isActive: true
               });
@@ -334,7 +337,7 @@ const CriarTreinamentoPage = () => {
   const categories = [
 
     'Marketing',
-    'Socil Media',
+    'Social Media',
     'Desenvolvimento Pessoal',
     'Maquiagem',
     'Outros'
@@ -532,14 +535,18 @@ const CriarTreinamentoPage = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="lessonDuration">Duração do Vídeo (segundos) *</Label>
+                  <Label htmlFor="lessonDuration">Duração do Vídeo (minutos) *</Label>
                 <Input
                     id="lessonDuration"
                     type="number"
                     min="1"
-                    placeholder="Ex: 1800 (30 minutos)"
-                    value={currentLesson.durationSeconds || ''}
-                    onChange={(e) => setCurrentLesson(prev => ({ ...prev, durationSeconds: parseInt(e.target.value) || 0 }))}
+                    placeholder="Ex: 30 (30 minutos)"
+                    value={currentLesson.durationMinutes || ''}
+                    onChange={(e) => setCurrentLesson(prev => ({ 
+                      ...prev, 
+                      durationMinutes: parseInt(e.target.value) || 0,
+                      durationSeconds: (parseInt(e.target.value) || 0) * 60 // Converter para segundos
+                    }))}
                   />
                 </div>
                 
@@ -644,7 +651,7 @@ const CriarTreinamentoPage = () => {
                           <div className="text-xs text-blue-600 mt-1">
                             📊 Base64: {Math.round(currentLesson.videoBase64Data.length / 1024)}KB | 
                             Tipo: {currentLesson.videoMimeType} | 
-                            Duração: {currentLesson.durationSeconds}s
+                            Duração: {currentLesson.durationMinutes}min
                           </div>
                         )}
                       </div>
@@ -679,7 +686,8 @@ const CriarTreinamentoPage = () => {
                                   videoFileName: '',
                                   videoFileSize: 0,
                                   videoMimeType: '',
-                                  durationSeconds: 0
+                                  durationSeconds: 0,
+                                  durationMinutes: 0
                                 }));
                                 // Limpar input
                                 const fileInput = document.getElementById('video-upload') as HTMLInputElement;
@@ -734,7 +742,7 @@ const CriarTreinamentoPage = () => {
                           )}
                           <div className="flex items-center gap-4 mt-1">
                             <span className="text-xs text-muted-foreground">
-                              Duração: {lesson.durationSeconds ? `${Math.floor(lesson.durationSeconds / 60)}min ${lesson.durationSeconds % 60}s` : 'Não definida'}
+                              Duração: {lesson.durationMinutes ? `${lesson.durationMinutes}min` : 'Não definida'}
                             </span>
                             {lesson.videoBase64Data? (
                               <span className="text-xs text-green-600 font-medium">✓ Vídeo pronto</span>
