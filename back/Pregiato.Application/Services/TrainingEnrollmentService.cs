@@ -202,7 +202,7 @@ namespace Pregiato.Application.Services
             if (course != null)
             {
                 // Recarregar progresso atualizado
-                var allProgress = await _context.TrainingLessonProgress
+                var allProgress = await _context.TrainingLessonProgresses
                     .Where(lp => lp.EnrollmentId == enrollmentId)
                     .ToListAsync();
                 
