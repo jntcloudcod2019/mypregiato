@@ -254,7 +254,7 @@ const CriarTreinamentoPage = () => {
                 videoObjectName: uploadResult.objectName,
                 videoSize: uploadResult.fileSize,
                 videoDurationSeconds: lesson.videoDurationSeconds || 0,
-                videoDurationMinutes: lesson.durationMinutes || 0,
+                videoDurationMinutes: lesson.videoDurationMinutes || 0,
                 videoMimeType: uploadResult.mimeType,
                 isActive: true
               });
