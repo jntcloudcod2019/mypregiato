@@ -164,7 +164,7 @@ export interface CreateTrainingEnrollmentDto {
 }
 
 export interface UpdateTrainingProgressDto {
-  lessonId: string;
+  lessonId: string; // Backend espera LessonId (Guid)
   watchedSeconds: number;
   lastPositionSeconds: number;
   isCompleted: boolean;
