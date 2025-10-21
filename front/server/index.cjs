@@ -9,6 +9,33 @@ const PORT = process.env.PORT || 8080;
 
 // Middleware
 app.use(cors());
+
+// ✅ CORREÇÃO: Headers de segurança para CSP
+app.use((req, res, next) => {
+  // Content Security Policy com unsafe-eval para desenvolvimento
+  res.setHeader('Content-Security-Policy', 
+    "default-src 'self'; " +
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: https://fonts.googleapis.com https://clerk.com https://*.clerk.accounts.dev; " +
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+    "font-src 'self' data: blob: https://fonts.gstatic.com; " +
+    "img-src 'self' data: blob: https:; " +
+    "media-src 'self' data: blob: https: https://bucket-production-1aef.up.railway.app; " +
+    "connect-src 'self' https://clerk.com https://*.clerk.accounts.dev https://clerk-telemetry.com https://pregiato-api-production.up.railway.app https://bucket-production-1aef.up.railway.app https://viacep.com.br wss:; " +
+    "frame-src 'self' https://clerk.com https://*.clerk.accounts.dev; " +
+    "worker-src 'self' blob:; " +
+    "child-src 'self' blob:; " +
+    "object-src 'none'; " +
+    "base-uri 'self';"
+  );
+  
+  // Outros headers de segurança
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  
+  next();
+});
+
 app.use(express.json());
 
 // ✅ CORREÇÃO: Serve os arquivos estáticos da pasta 'dist' (React SPA)
