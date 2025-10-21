@@ -50,6 +50,7 @@ const CursoPage = () => {
   const [userRating, setUserRating] = useState<'like' | 'dislike' | null>(null);
   const [feedback, setFeedback] = useState('');
   const [showCertificatePrompt, setShowCertificatePrompt] = useState(false);
+  const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
   const [currentVideoTime, setCurrentVideoTime] = useState(0);
   const [totalWatchedTime, setTotalWatchedTime] = useState(0);
   const [dbUserId, setDbUserId] = useState<string | null>(null); // ID do banco MySQL
@@ -365,6 +366,14 @@ const CursoPage = () => {
     }
   }, [user, id, toast]);
 
+  // ✅ FEEDBACK FAKE: Enviar feedback (não salva, apenas mostra dialog)
+  const handleSendFeedback = useCallback(() => {
+    if (feedback.trim()) {
+      setShowFeedbackDialog(true);
+      setFeedback(''); // Limpar campo automaticamente
+    }
+  }, [feedback]);
+
   // Gerar certificado
   const handleGenerateCertificate = useCallback(async () => {
     if (!user || !enrollment) return;
@@ -487,13 +496,23 @@ const CursoPage = () => {
               </div>
               
               <div className="space-y-3">
-                <Textarea
-                  placeholder="Deixe seu feedback sobre o curso..."
-                  value={feedback}
-                  onChange={(e) => setFeedback(e.target.value)}
-                  rows={3}
-                  className="bg-white dark:bg-gray-900"
-                />
+                <div className="space-y-2">
+                  <Textarea
+                    placeholder="Deixe seu feedback sobre o curso..."
+                    value={feedback}
+                    onChange={(e) => setFeedback(e.target.value)}
+                    rows={3}
+                    className="bg-white dark:bg-gray-900"
+                  />
+                  <Button 
+                    onClick={handleSendFeedback}
+                    disabled={!feedback.trim()}
+                    size="sm"
+                    variant="outline"
+                  >
+                    Enviar Feedback
+                  </Button>
+                </div>
                 
                 <div className="flex items-center gap-3 flex-wrap">
                     <Button
@@ -666,6 +685,31 @@ const CursoPage = () => {
           )}
         </div>
       </div>
+
+      {/* ✅ DIALOG DE AGRADECIMENTO PELO FEEDBACK */}
+      {showFeedbackDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-900 rounded-lg p-6 max-w-md mx-4">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="h-8 w-8 text-green-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                Obrigado pelo feedback!
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300 mb-4">
+                Sua opinião é muito importante para nós. Obrigado por contribuir com o curso!
+              </p>
+              <Button 
+                onClick={() => setShowFeedbackDialog(false)}
+                className="w-full"
+              >
+                Fechar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
