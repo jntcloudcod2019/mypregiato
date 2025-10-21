@@ -260,8 +260,9 @@ export class TrainingService {
 
   // === CERTIFICATES ===
   async generateCertificate(request: { userEmail: string; courseId: string; completionDate: Date }): Promise<Blob> {
-    // Endpoint retorna PDF diretamente como arquivo
-    const response = await fetch(`${window.location.origin}${this.baseUrl}/TrainingCertificates`, {
+    // ✅ CORREÇÃO: Usar API_BASE_URL ao invés de window.location.origin
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://pregiato-api-production.up.railway.app';
+    const response = await fetch(`${API_BASE_URL}/api/TrainingCertificates`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

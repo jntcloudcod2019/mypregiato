@@ -20,6 +20,14 @@ export const ProgressSteps: React.FC<ProgressStepsProps> = ({
     const isActive = currentLessonId === lessonId;
     const isCompleted = progress?.isCompleted || false;
 
+    // Debug log
+    console.log(`🔍 [ProgressSteps] Lesson ${lessonId}:`, {
+      progress,
+      isActive,
+      isCompleted,
+      totalProgress: lessonProgress.length
+    });
+
     return { isActive, isCompleted, progress };
   };
 
@@ -78,7 +86,12 @@ export const ProgressSteps: React.FC<ProgressStepsProps> = ({
                   <span className="text-xs text-muted-foreground font-medium">
                     Aula {index + 1}
                   </span>
-                  {isActive && (
+                  {isCompleted && (
+                    <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">
+                      Concluído
+                    </span>
+                  )}
+                  {isActive && !isCompleted && (
                     <span className="text-xs px-2 py-0.5 bg-primary/10 text-primary rounded-full font-medium">
                       Em Andamento
                     </span>
