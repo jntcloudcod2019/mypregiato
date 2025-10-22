@@ -141,6 +141,11 @@
             Obtém um talento por ID
             </summary>
         </member>
+        <member name="M:Pregiato.API.Controllers.TalentsController.GetTalentByEmail(System.String)">
+            <summary>
+            Obtém um talento por email
+            </summary>
+        </member>
         <member name="M:Pregiato.API.Controllers.TalentsController.CreateTalent(Pregiato.Application.DTOs.CreateTalentDto)">
             <summary>
             Cria um novo talento
