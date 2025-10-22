@@ -20,6 +20,7 @@ public class TrainingCertificateService : ITrainingCertificateService
     private readonly IMediaStoragePort _mediaStorage;
     private readonly IMapper _mapper;
     private readonly ILogger<TrainingCertificateService> _logger;
+    private readonly IBrowserService _browserService;
 
     public TrainingCertificateService(
         ITrainingCertificateRepository certificateRepository,
@@ -27,7 +28,8 @@ public class TrainingCertificateService : ITrainingCertificateService
         ITrainingCourseRepository courseRepository,
         IMediaStoragePort mediaStorage,
         IMapper mapper,
-        ILogger<TrainingCertificateService> logger)
+        ILogger<TrainingCertificateService> logger,
+        IBrowserService browserService)
     {
         _certificateRepository = certificateRepository;
         _enrollmentRepository = enrollmentRepository;
@@ -35,14 +37,22 @@ public class TrainingCertificateService : ITrainingCertificateService
         _mediaStorage = mediaStorage;
         _mapper = mapper;
         _logger = logger;
+        _browserService = browserService;
     }
 
     public async Task<(TrainingCertificateDto certificate, byte[] pdfBytes)> GenerateCertificateAsync(string userId, string userFullName, string courseName, DateTime completionDate)
     {
         try
         {
+            Console.WriteLine($"[CERTIFICATE] 🎓 Iniciando geração de certificado");
+            Console.WriteLine($"[CERTIFICATE] 👤 Usuário: {userId}");
+            Console.WriteLine($"[CERTIFICATE] 📚 Curso: {courseName}");
+            Console.WriteLine($"[CERTIFICATE] 📅 Data: {completionDate:dd/MM/yyyy}");
+            
             _logger.LogInformation("Gerando certificado para usuário {UserId} no curso {CourseName}", userId, courseName);
 
+            Console.WriteLine($"[CERTIFICATE] 🔧 Criando objeto de certificado...");
+            
             // Gerar dados do certificado diretamente
             var certificate = new TrainingCertificate
             {
@@ -60,23 +70,35 @@ public class TrainingCertificateService : ITrainingCertificateService
                 IssuedAt = DateTime.UtcNow
             };
 
+            Console.WriteLine($"[CERTIFICATE] ✅ Certificado criado: {certificate.CertificateNumber}");
+            Console.WriteLine($"[CERTIFICATE] 🔍 Código de validação: {certificate.ValidationCode}");
+
+            Console.WriteLine($"[CERTIFICATE] 🎨 Gerando HTML do certificado...");
             // Gerar HTML do certificado
             certificate.HtmlContent = await GenerateCertificateHtmlAsync(certificate);
+            Console.WriteLine($"[CERTIFICATE] ✅ HTML gerado com sucesso (tamanho: {certificate.HtmlContent?.Length ?? 0} caracteres)");
 
+            Console.WriteLine($"[CERTIFICATE] 📄 Iniciando geração do PDF...");
             // Gerar PDF (sem upload para MinIO)
             var pdfBytes = await GeneratePdfFromHtmlAsync(certificate.HtmlContent);
+            Console.WriteLine($"[CERTIFICATE] ✅ PDF gerado com sucesso (tamanho: {pdfBytes?.Length ?? 0} bytes)");
             
+            Console.WriteLine($"[CERTIFICATE] 💾 Salvando certificado no banco de dados...");
             // Salvar no banco
             var savedCertificate = await _certificateRepository.CreateAsync(certificate);
+            Console.WriteLine($"[CERTIFICATE] ✅ Certificado salvo no banco: {savedCertificate.Id}");
 
             _logger.LogInformation("Certificado gerado com sucesso: {CertificateId}", savedCertificate.Id);
 
             var certificateDto = _mapper.Map<TrainingCertificateDto>(savedCertificate);
+            Console.WriteLine($"[CERTIFICATE] 🎉 Processo concluído com sucesso!");
             
             return (certificateDto, pdfBytes);
         }
         catch (Exception ex)
         {
+            Console.WriteLine($"[CERTIFICATE] ❌ Erro ao gerar certificado: {ex.Message}");
+            Console.WriteLine($"[CERTIFICATE] 📋 Stack trace: {ex.StackTrace}");
             _logger.LogError(ex, "Erro ao gerar certificado para usuário {UserId}", userId);
             throw;
         }
@@ -234,15 +256,37 @@ public class TrainingCertificateService : ITrainingCertificateService
     {
         try
         {
+            Console.WriteLine($"[HTML_GENERATION] 🎨 Iniciando geração de HTML");
+            Console.WriteLine($"[HTML_GENERATION] 👤 Nome: {certificate.UserFullName}");
+            Console.WriteLine($"[HTML_GENERATION] 📚 Curso: {certificate.CourseName}");
+            Console.WriteLine($"[HTML_GENERATION] 📅 Data: {certificate.CompletionDate:dd/MM/yyyy}");
+            Console.WriteLine($"[HTML_GENERATION] 🔍 Código: {certificate.ValidationCode}");
+            
             var templatePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "certificates", "template.html");
+            Console.WriteLine($"[HTML_GENERATION] 📁 Caminho do template: {templatePath}");
+            Console.WriteLine($"[HTML_GENERATION] 📂 Diretório atual: {Directory.GetCurrentDirectory()}");
             
             if (!File.Exists(templatePath))
             {
+                Console.WriteLine($"[HTML_GENERATION] ❌ Template não encontrado: {templatePath}");
+                Console.WriteLine($"[HTML_GENERATION] 📂 Verificando diretório wwwroot...");
+                var wwwrootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                Console.WriteLine($"[HTML_GENERATION] 📂 wwwroot existe: {Directory.Exists(wwwrootPath)}");
+                
+                if (Directory.Exists(wwwrootPath))
+                {
+                    var wwwrootContents = Directory.GetDirectories(wwwrootPath);
+                    Console.WriteLine($"[HTML_GENERATION] 📂 Conteúdo do wwwroot: {string.Join(", ", wwwrootContents)}");
+                }
+                
                 throw new FileNotFoundException($"Template não encontrado: {templatePath}");
             }
 
+            Console.WriteLine($"[HTML_GENERATION] ✅ Template encontrado, lendo arquivo...");
             var template = await File.ReadAllTextAsync(templatePath, Encoding.UTF8);
+            Console.WriteLine($"[HTML_GENERATION] ✅ Template lido: {template.Length} caracteres");
 
+            Console.WriteLine($"[HTML_GENERATION] 🔄 Substituindo placeholders...");
             // Substituir placeholders
             var html = template
                 .Replace("{{STUDENT_NAME}}", certificate.UserFullName)
@@ -250,10 +294,12 @@ public class TrainingCertificateService : ITrainingCertificateService
                 .Replace("{{COMPLETION_DATE}}", certificate.CompletionDate.ToString("dd/MM/yyyy"))
                 .Replace("{{VALIDATION_CODE}}", certificate.ValidationCode);
 
+            Console.WriteLine($"[HTML_GENERATION] ✅ HTML gerado: {html.Length} caracteres");
             return html;
         }
         catch (Exception ex)
         {
+            Console.WriteLine($"[HTML_GENERATION] ❌ Erro ao gerar HTML: {ex.Message}");
             _logger.LogError(ex, "Erro ao gerar HTML do certificado");
             throw;
         }
@@ -263,29 +309,47 @@ public class TrainingCertificateService : ITrainingCertificateService
     {
         try
         {
-            // Baixar Chromium se necessário
-            await new BrowserFetcher().DownloadAsync();
+            Console.WriteLine($"[PDF_GENERATION] 🚀 Iniciando geração de PDF");
+            Console.WriteLine($"[PDF_GENERATION] 📏 Tamanho do HTML: {htmlContent?.Length ?? 0} caracteres");
             
-            using var browser = await Puppeteer.LaunchAsync(new LaunchOptions
-            {
-                Headless = true,
-                Args = new[] { "--no-sandbox", "--disable-setuid-sandbox" }
-            });
+            Console.WriteLine($"[PDF_GENERATION] 🌐 Obtendo navegador do BrowserService...");
+            var browser = await _browserService.GetBrowserAsync();
+            Console.WriteLine($"[PDF_GENERATION] ✅ Navegador obtido com sucesso");
 
+            Console.WriteLine($"[PDF_GENERATION] 📄 Criando nova página...");
             using var page = await browser.NewPageAsync();
+            Console.WriteLine($"[PDF_GENERATION] ✅ Página criada");
             
-            await page.SetContentAsync(htmlContent);
+            Console.WriteLine($"[PDF_GENERATION] 📝 Definindo conteúdo HTML...");
+            await page.SetContentAsync(htmlContent, new NavigationOptions
+            {
+                WaitUntil = new[] { WaitUntilNavigation.Networkidle0 }
+            });
+            Console.WriteLine($"[PDF_GENERATION] ✅ Conteúdo HTML definido");
             
-            // Gerar PDF usando caminho temporário
-            var tempPath = Path.GetTempFileName() + ".pdf";
-            await page.PdfAsync(tempPath);
-            var pdfBytes = await File.ReadAllBytesAsync(tempPath);
-            File.Delete(tempPath); // Limpar arquivo temporário
+            Console.WriteLine($"[PDF_GENERATION] 🖨️ Gerando PDF em bytes...");
+            var pdfBytes = await page.PdfDataAsync(new PdfOptions
+            {
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+                Landscape = true,
+                PrintBackground = true,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "0",
+                    Right = "0",
+                    Bottom = "0",
+                    Left = "0"
+                }
+            });
+            Console.WriteLine($"[PDF_GENERATION] ✅ PDF gerado: {pdfBytes.Length} bytes");
 
+            Console.WriteLine($"[PDF_GENERATION] 🎉 PDF gerado com sucesso!");
             return pdfBytes;
         }
         catch (Exception ex)
         {
+            Console.WriteLine($"[PDF_GENERATION] ❌ Erro ao gerar PDF: {ex.Message}");
+            Console.WriteLine($"[PDF_GENERATION] 📋 Stack trace: {ex.StackTrace}");
             _logger.LogError(ex, "Erro ao gerar PDF do certificado");
             throw;
         }

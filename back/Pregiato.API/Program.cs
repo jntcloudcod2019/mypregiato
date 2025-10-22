@@ -152,6 +152,7 @@ builder.Services.AddScoped<Pregiato.Application.Interfaces.IMetaWebhookProcessor
 builder.Services.AddScoped<ITalentService, TalentService>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IWhatsAppService, WhatsAppService>();
+builder.Services.AddSingleton<Pregiato.Application.Interfaces.IBrowserService, Pregiato.Application.Services.BrowserService>();
 builder.Services.AddScoped<ILeadService, LeadService>();
 builder.Services.AddScoped<ILeadRepository, LeadRepository>();
 builder.Services.AddScoped<IOperatorLeadsService, Pregiato.Application.Services.OperatorLeadsService>();
