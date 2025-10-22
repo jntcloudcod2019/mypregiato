@@ -93,7 +93,7 @@ export function AppSidebar() {
                       <NavLink 
                         to={item.url} 
                         className={({ isActive }) => 
-                          `flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-foreground hover:text-foreground ${getNavCls({ isActive })}`
+                          `flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-foreground hover:text-foreground no-underline ${getNavCls({ isActive })}`
                         }
                       >
                         <item.icon className="h-5 w-5 flex-shrink-0" />
