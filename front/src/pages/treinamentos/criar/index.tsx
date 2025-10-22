@@ -14,7 +14,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { useTrainingCourses } from '@/hooks/use-training-courses';
 import { CreateTrainingCourseDto, CreateTrainingLessonDto } from '@/types/training';
 import { trainingService } from '@/services/training-service';
-import { uploadVideosInParallel, ParallelUploadOptions } from '@/services/parallel-upload-service';
+// ✅ REMOVIDO: Upload paralelo substituído por processamento sequencial
 
 // ✅ Tipo temporário para estado local (com Base64)
 interface LessonWithBase64 extends CreateTrainingLessonDto {
@@ -62,13 +62,20 @@ const CriarTreinamentoPage = () => {
   // ✅ NOVO: Rastrear blob URLs de todas as aulas para limpeza
   const [lessonBlobUrls, setLessonBlobUrls] = useState<Map<string, string>>(new Map());
   
-  // ✅ Estados para upload paralelo
+  // ✅ Estados para upload sequencial com progresso individual
   const [uploadProgress, setUploadProgress] = useState({
     completed: 0,
     total: 0,
     currentUpload: '',
     isUploading: false
   });
+  
+  // ✅ NOVO: Progresso individual de cada vídeo
+  const [videoProgress, setVideoProgress] = useState<Map<string, {
+    status: 'pending' | 'uploading' | 'completed' | 'error';
+    progress: number; // 0-100
+    message: string;
+  }>>(new Map());
 
   // ✅ FUNÇÃO PARA CONVERTER ARQUIVO PARA BASE64
   const convertFileToBase64 = (file: File): Promise<string> => {
@@ -250,27 +257,95 @@ const CriarTreinamentoPage = () => {
         }));
 
       if (uploadTasks.length > 0) {
-        console.log(`🚀 [CRIAR-CURSO] Iniciando ${uploadTasks.length} uploads paralelos`);
+        console.log(`🚀 [CRIAR-CURSO] Iniciando ${uploadTasks.length} uploads SEQUENCIAIS (um por vez)`);
         
-        // Configurar opções de upload paralelo
-        const uploadOptions: ParallelUploadOptions = {
-          maxConcurrentUploads: 1, // Apenas 1 upload por vez para evitar sobrecarga
-          onProgress: (completed, total, currentUpload) => {
-            setUploadProgress({
-              completed,
-              total,
-              currentUpload: currentUpload || '',
-              isUploading: true
-            });
-            console.log(`📊 [UPLOAD-PROGRESS] ${completed}/${total} - Atual: ${currentUpload}`);
-          },
-          onError: (error, uploadIndex) => {
-            console.error(`❌ [UPLOAD-ERROR] Erro no upload ${uploadIndex + 1}:`, error);
+        // ✅ PROCESSAMENTO SEQUENCIAL: Um vídeo por vez
+        const uploadResults: { success: boolean; videoUrl?: string; objectName?: string; errorMessage?: string }[] = [];
+        
+        for (let i = 0; i < uploadTasks.length; i++) {
+          const task = uploadTasks[i];
+          const currentUpload = task.data.lessonTitle;
+          
+          console.log(`📤 [SEQUENTIAL-UPLOAD] Processando ${i + 1}/${uploadTasks.length}: ${currentUpload}`);
+          
+          // ✅ INICIALIZAR PROGRESSO DO VÍDEO
+          setVideoProgress(prev => new Map(prev.set(currentUpload, {
+            status: 'uploading',
+            progress: 0,
+            message: 'Preparando upload...'
+          })));
+          
+          // Atualizar progresso geral
+          setUploadProgress({
+            completed: i,
+            total: uploadTasks.length,
+            currentUpload: currentUpload,
+            isUploading: true
+          });
+          
+          try {
+            // ✅ CONVERTER BASE64 → UPLOAD → PRÓXIMO
+            console.log(`🔄 [SEQUENTIAL-UPLOAD] Convertendo Base64 para ${currentUpload}...`);
+            
+            // ✅ ATUALIZAR PROGRESSO: Preparando
+            setVideoProgress(prev => new Map(prev.set(currentUpload, {
+              status: 'uploading',
+              progress: 10,
+              message: 'Enviando vídeo...'
+            })));
+            
+            // ✅ SIMULAR PROGRESSO DURANTE UPLOAD
+            const progressInterval = setInterval(() => {
+              setVideoProgress(prev => {
+                const current = prev.get(currentUpload);
+                if (current && current.status === 'uploading' && current.progress < 90) {
+                  const newProgress = Math.min(current.progress + Math.random() * 20, 90);
+                  return new Map(prev.set(currentUpload, {
+                    ...current,
+                    progress: newProgress,
+                    message: `Enviando vídeo... ${Math.round(newProgress)}%`
+                  }));
+                }
+                return prev;
+              });
+            }, 1000);
+            
+            const result = await trainingService.uploadVideo(task.data);
+            
+            // ✅ PARAR SIMULAÇÃO DE PROGRESSO
+            clearInterval(progressInterval);
+            
+            // ✅ ATUALIZAR PROGRESSO: Concluído
+            setVideoProgress(prev => new Map(prev.set(currentUpload, {
+              status: 'completed',
+              progress: 100,
+              message: 'Video Enviado'
+            })));
+            
+            console.log(`✅ [SEQUENTIAL-UPLOAD] Upload concluído: ${currentUpload}`);
+            uploadResults.push(result);
+            
+            // ✅ OTIMIZAÇÃO: Liberar Base64 da memória imediatamente
+            const lesson = lessons.find(l => l.title === currentUpload);
+            if (lesson?.videoBase64Data) {
+              const base64Size = Math.round(lesson.videoBase64Data.length / 1024 / 1024);
+              console.log(`🧹 [CLEANUP] Liberando Base64 de "${currentUpload}" (~${base64Size}MB)`);
+              delete lesson.videoBase64Data;
+            }
+            
+          } catch (error) {
+            console.error(`❌ [SEQUENTIAL-UPLOAD] Erro no upload ${i + 1}:`, error);
+            
+            // ✅ ATUALIZAR PROGRESSO: Erro
+            setVideoProgress(prev => new Map(prev.set(currentUpload, {
+              status: 'error',
+              progress: 0,
+              message: 'Erro no upload'
+            })));
+            
+            throw new Error(`Falha no upload do vídeo "${currentUpload}": ${error}`);
           }
-        };
-
-        // Executar uploads paralelos
-        const uploadResults = await uploadVideosInParallel(uploadTasks, uploadOptions);
+        }
         
         // Mapear resultados de volta para as aulas
         const uploadResultsMap = new Map();
@@ -371,10 +446,13 @@ const CriarTreinamentoPage = () => {
         isUploading: false
       });
       
+      // ✅ LIMPAR PROGRESSO INDIVIDUAL DOS VÍDEOS
+      setVideoProgress(new Map());
+      
       // ✅ PASSO 2: CRIAR CURSO COM AS URLs DOS VÍDEOS
       console.log('💾 [CRIAR-CURSO] Passo 2: Criando curso no banco');
-      const courseData: CreateTrainingCourseDto = {
-        ...formData,
+    const courseData: CreateTrainingCourseDto = {
+      ...formData,
         createdBy: newId,
         lessons: lessonsWithUrls
       };
@@ -455,7 +533,7 @@ const CriarTreinamentoPage = () => {
       
       // Pequeno delay para garantir limpeza antes de navegar
       setTimeout(() => {
-        navigate('/treinamentos');
+      navigate('/treinamentos');
       }, 100);
     } catch (error) {
       console.error('Erro ao criar curso:', error);
@@ -873,25 +951,65 @@ const CriarTreinamentoPage = () => {
             </CardHeader>
             <CardContent>
                 <div className="space-y-3">
-                  {lessons.map((lesson, index) => (
+                  {lessons.map((lesson, index) => {
+                    const progress = videoProgress.get(lesson.title);
+                    return (
                     <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center space-x-3">
+                        <div className="flex items-center space-x-3 flex-1">
                         <Badge variant="outline">{lesson.orderIndex}</Badge>
-                        <div>
+                          <div className="flex-1">
                           <h4 className="font-medium">{lesson.title}</h4>
                           {lesson.description && (
                             <p className="text-sm text-muted-foreground">{lesson.description}</p>
                           )}
                           <div className="flex items-center gap-4 mt-1">
                             <span className="text-xs text-muted-foreground">
-                              Duração: {lesson.durationMinutes ? `${lesson.durationMinutes}min` : 'Não definida'}
+                                Duração: {lesson.durationMinutes ? `${lesson.durationMinutes}min` : 'Não definida'}
                             </span>
-                            {lesson.videoBase64Data? (
+                              {lesson.videoBase64Data? (
                               <span className="text-xs text-green-600 font-medium">✓ Vídeo pronto</span>
                             ) : (
                               <span className="text-xs text-orange-600 font-medium">⚠ Vídeo pendente</span>
                             )}
                           </div>
+                            
+                            {/* ✅ BARRA DE PROGRESSO INDIVIDUAL */}
+                            {progress && (
+                              <div className="mt-3">
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-xs font-medium text-blue-600">
+                                    {progress.message}
+                                  </span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {progress.progress}%
+                                  </span>
+                                </div>
+                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                  <div 
+                                    className={`h-2 rounded-full transition-all duration-300 ${
+                                      progress.status === 'completed' ? 'bg-green-500' :
+                                      progress.status === 'error' ? 'bg-red-500' :
+                                      'bg-blue-500'
+                                    }`}
+                                    style={{ width: `${progress.progress}%` }}
+                                  />
+                                </div>
+                                {progress.status === 'completed' && (
+                                  <div className="flex items-center mt-1">
+                                    <span className="text-xs text-green-600 font-medium">
+                                      ✅ Video Enviado
+                                    </span>
+                                  </div>
+                                )}
+                                {progress.status === 'error' && (
+                                  <div className="flex items-center mt-1">
+                                    <span className="text-xs text-red-600 font-medium">
+                                      ❌ Erro no upload
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            )}
                       </div>
                       </div>
                       <div className="flex items-center space-x-2">
@@ -904,7 +1022,8 @@ const CriarTreinamentoPage = () => {
                       </Button>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
             </CardContent>
           </Card>

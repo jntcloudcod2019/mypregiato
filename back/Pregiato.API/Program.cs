@@ -113,9 +113,11 @@ builder.Services.AddScoped<RuntimePregiatoDbContextFactory>(provider =>
 
  builder.WebHost.ConfigureKestrel(serverOptions =>
 {
-   serverOptions.Limits.MaxRequestBodySize = 1073741824L; // 1 GB para vídeos grandes
-   serverOptions.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(15); // 15 minutos para uploads grandes
-   serverOptions.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(5); // 5 minutos para headers
+   serverOptions.Limits.MaxRequestBodySize = 2147483648L; // 2 GB para vídeos muito grandes
+   serverOptions.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(30); // 30 minutos para uploads grandes
+   serverOptions.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(10); // 10 minutos para headers
+   serverOptions.Limits.MaxRequestBufferSize = 2147483648L; // 2 GB buffer
+   serverOptions.Limits.MaxRequestLineSize = 16384; // 16KB para headers grandes
 });
 
 // HttpClient
