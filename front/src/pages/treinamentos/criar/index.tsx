@@ -59,6 +59,9 @@ const CriarTreinamentoPage = () => {
   const [isCreatingCourse, setIsCreatingCourse] = useState(false);
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
   
+  // ✅ NOVO: Rastrear blob URLs de todas as aulas para limpeza
+  const [lessonBlobUrls, setLessonBlobUrls] = useState<Map<string, string>>(new Map());
+  
   // ✅ Estados para upload paralelo
   const [uploadProgress, setUploadProgress] = useState({
     completed: 0,
@@ -251,7 +254,7 @@ const CriarTreinamentoPage = () => {
         
         // Configurar opções de upload paralelo
         const uploadOptions: ParallelUploadOptions = {
-          maxConcurrentUploads: 2, // Máximo 2 uploads simultâneos
+          maxConcurrentUploads: 1, // Apenas 1 upload por vez para evitar sobrecarga
           onProgress: (completed, total, currentUpload) => {
             setUploadProgress({
               completed,
@@ -298,6 +301,36 @@ const CriarTreinamentoPage = () => {
                 videoMimeType: uploadResult.mimeType,
                 isActive: true
               });
+              
+              // ✅ OTIMIZAÇÃO #1: Liberar Base64 da memória imediatamente
+              const base64Size = Math.round((lesson.videoBase64Data?.length || 0) / 1024 / 1024);
+              if (base64Size > 0) {
+                console.log(`🧹 [CLEANUP] Liberando Base64 da aula "${lesson.title}" (~${base64Size}MB)`);
+                delete lesson.videoBase64Data;
+              }
+              
+              // ✅ OTIMIZAÇÃO #2: Revogar blob URL se existir
+              const blobUrl = lessonBlobUrls.get(lesson.title);
+              if (blobUrl && blobUrl.startsWith('blob:')) {
+                URL.revokeObjectURL(blobUrl);
+                console.log(`🧹 [CLEANUP] Blob URL revogada para "${lesson.title}"`);
+                setLessonBlobUrls(prev => {
+                  const newMap = new Map(prev);
+                  newMap.delete(lesson.title);
+                  return newMap;
+                });
+              }
+              
+              // ✅ Sugerir garbage collection ao browser (se disponível)
+              if ('gc' in window && typeof (window as Window & { gc?: () => void }).gc === 'function') {
+                try {
+                  (window as Window & { gc: () => void }).gc();
+                  console.log(`🧹 [CLEANUP] Garbage collection sugerido ao browser`);
+                } catch (e) {
+                  // Ignorar se não disponível
+                }
+              }
+              
             } else {
               throw new Error(`Falha no upload do vídeo da aula "${lesson.title}"`);
             }
@@ -379,7 +412,51 @@ const CriarTreinamentoPage = () => {
         });
       }
       
-      navigate('/treinamentos');
+      console.log('✅ [CRIAR-CURSO] Curso criado com sucesso!');
+      
+      // ✅ OTIMIZAÇÃO #4: Limpeza completa de recursos antes de navegar
+      console.log(`🧹 [CLEANUP] Iniciando limpeza completa de recursos...`);
+      
+      // Revogar todas as blob URLs restantes
+      let blobUrlsRevoked = 0;
+      lessonBlobUrls.forEach((blobUrl, lessonTitle) => {
+        if (blobUrl.startsWith('blob:')) {
+          URL.revokeObjectURL(blobUrl);
+          blobUrlsRevoked++;
+          console.log(`🧹 [CLEANUP] Blob URL revogada: ${lessonTitle}`);
+        }
+      });
+      
+      // Limpar blob URL de preview se existir
+      if (videoPreviewUrl && videoPreviewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(videoPreviewUrl);
+        console.log(`🧹 [CLEANUP] Preview URL revogada`);
+      }
+      
+      // Limpar todos os estados
+      setLessons([]);
+      setLessonBlobUrls(new Map());
+      setVideoPreviewUrl(null);
+      setCurrentLesson({
+        title: '',
+        description: '',
+        orderIndex: 1,
+        videoDurationSeconds: 0,
+        durationMinutes: 0,
+        videoUrl: '',
+        videoObjectName: '',
+        videoBase64Data: '',
+        videoFileName: '',
+        videoFileSize: 0,
+        videoMimeType: ''
+      });
+      
+      console.log(`✅ [CLEANUP] Limpeza completa realizada (${blobUrlsRevoked} blob URLs revogadas)`);
+      
+      // Pequeno delay para garantir limpeza antes de navegar
+      setTimeout(() => {
+        navigate('/treinamentos');
+      }, 100);
     } catch (error) {
       console.error('Erro ao criar curso:', error);
       toast({
@@ -645,6 +722,13 @@ const CriarTreinamentoPage = () => {
                         const videoPreviewUrl = URL.createObjectURL(file);
                         setVideoPreviewUrl(videoPreviewUrl);
                         console.log('🎬 [Debug] URL de preview criada:', videoPreviewUrl);
+                        
+                        // ✅ Registrar blob URL para limpeza posterior
+                        setLessonBlobUrls(prev => {
+                          const newMap = new Map(prev);
+                          newMap.set(currentLesson.title || `lesson-${Date.now()}`, videoPreviewUrl);
+                          return newMap;
+                        });
                         
                         // Converter para Base64
                         console.log('🔄 [Debug] Iniciando conversão para Base64:', file.name, file.size, 'bytes');

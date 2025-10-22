@@ -138,22 +138,30 @@ export class TrainingService {
   }
 
   // === VIDEO UPLOAD ===
-  async uploadVideo(uploadData: TrainingVideoUploadDto): Promise<VideoUploadResultDto> {
+  async uploadVideo(uploadData: TrainingVideoUploadDto, retryCount = 0): Promise<VideoUploadResultDto> {
     console.log('📤 [TRAINING-SERVICE] Iniciando upload de vídeo:', {
       fileName: uploadData.fileName,
       fileSize: uploadData.fileSize,
       courseTitle: uploadData.courseTitle,
-      lessonTitle: uploadData.lessonTitle
+      lessonTitle: uploadData.lessonTitle,
+      retry: retryCount
     });
 
+    const maxRetries = 3;
+    const retryDelay = Math.min(1000 * Math.pow(2, retryCount), 10000); // Exponential backoff, max 10s
+
     try {
-      // ✅ AUMENTAR TIMEOUT PARA 10 MINUTOS (vídeos grandes podem demorar)
+      // ✅ AUMENTAR TIMEOUT PARA 15 MINUTOS (vídeos grandes podem demorar)
       const axiosInstance = apiClient.getAxiosInstance();
       const response = await axiosInstance.post<VideoUploadResultDto>(
         `${this.baseUrl}/TrainingVideos/upload`,
         uploadData,
         {
-          timeout: 600000 // 10 minutos
+          timeout: 900000, // 15 minutos
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
         }
       );
 
@@ -163,8 +171,39 @@ export class TrainingService {
       });
 
       return response.data;
-    } catch (error) {
-      console.error('❌ [TRAINING-SERVICE] Erro no upload de vídeo:', error);
+    } catch (error: unknown) {
+      console.error(`❌ [TRAINING-SERVICE] Erro no upload de vídeo (tentativa ${retryCount + 1}):`, error);
+      
+      // Verificar se é um erro que vale a pena tentar novamente
+      interface AxiosErrorType {
+        code?: string;
+        message?: string;
+        response?: { status?: number };
+      }
+      
+      const isAxiosError = error && typeof error === 'object' && 'code' in error;
+      const axiosError = isAxiosError ? (error as AxiosErrorType) : null;
+      
+      const isNetworkError = axiosError?.code === 'ERR_NETWORK';
+      const isTimeoutError = axiosError?.code === 'ERR_TIMEOUT';
+      const isServerError = axiosError?.response && axiosError.response.status ? axiosError.response.status >= 500 : false;
+      const errorMessage = axiosError?.message ?? String(error);
+      
+      const shouldRetry = (
+        isNetworkError ||
+        isTimeoutError ||
+        isServerError ||
+        errorMessage?.includes('502') ||
+        errorMessage?.includes('Bad Gateway') ||
+        errorMessage?.includes('Connection closed')
+      );
+
+      if (shouldRetry && retryCount < maxRetries) {
+        console.log(`🔄 [TRAINING-SERVICE] Tentando novamente em ${retryDelay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, retryDelay));
+        return this.uploadVideo(uploadData, retryCount + 1);
+      }
+      
       throw error;
     }
   }
