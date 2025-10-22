@@ -53,6 +53,8 @@ builder.Services.AddControllers(options =>
 builder.Services.AddSignalR(options =>
 {
     options.EnableDetailedErrors = true;
+    options.
+
 });
 
 // CORS
@@ -60,21 +62,13 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins(
-                // Desenvolvimento
-                "http://localhost:8080", 
-                "http://localhost:3000", 
-                "http://localhost:5173", 
-                "http://127.0.0.1:5173",
-                // Produção Railway - URLs específicas (wildcards não funcionam com AllowCredentials)
-                "https://my-pregiato-production.up.railway.app",
-                "https://pregiato-api-production.up.railway.app"
-              )
-              .AllowAnyMethod()
-              .AllowAnyHeader()
-              .AllowCredentials()
-              .SetIsOriginAllowedToAllowWildcardSubdomains()
-              .SetPreflightMaxAge(TimeSpan.FromMinutes(10)); // Cache preflight por 10 minutos
+        // ✅ Ecoa qualquer origem válida e permite credenciais
+        policy
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .SetIsOriginAllowed(_ => true) // ecoa a origem do request
+            .AllowCredentials()
+            .SetPreflightMaxAge(TimeSpan.FromMinutes(10)); // Cache preflight por 10 minutos
     });
 });
 
