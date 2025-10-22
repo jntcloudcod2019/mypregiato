@@ -202,7 +202,7 @@ export class UserManagementService {
    */
   async updateUser(id: string, data: UpdateUserRequest): Promise<UserResponse> {
     try {
-      const url = `${this.API_BASE_URL}/api/users/${id}`;
+      const url = `${this.API_BASE_URL}/api/users/update-user/${id}`;
       
       const response = await fetch(url, {
         method: 'PUT',
