@@ -267,6 +267,7 @@ const CriarTreinamentoPage = () => {
           const currentUpload = task.data.lessonTitle;
           
           console.log(`📤 [SEQUENTIAL-UPLOAD] Processando ${i + 1}/${uploadTasks.length}: ${currentUpload}`);
+          console.log(`⏳ [SEQUENTIAL-UPLOAD] Aguardando upload ${i + 1} antes de prosseguir...`);
           
           // ✅ INICIALIZAR PROGRESSO DO VÍDEO
           setVideoProgress(prev => new Map(prev.set(currentUpload, {
@@ -294,26 +295,8 @@ const CriarTreinamentoPage = () => {
               message: 'Enviando vídeo...'
             })));
             
-            // ✅ SIMULAR PROGRESSO DURANTE UPLOAD
-            const progressInterval = setInterval(() => {
-              setVideoProgress(prev => {
-                const current = prev.get(currentUpload);
-                if (current && current.status === 'uploading' && current.progress < 90) {
-                  const newProgress = Math.min(current.progress + Math.random() * 20, 90);
-                  return new Map(prev.set(currentUpload, {
-                    ...current,
-                    progress: newProgress,
-                    message: `Enviando vídeo... ${Math.round(newProgress)}%`
-                  }));
-                }
-                return prev;
-              });
-            }, 1000);
-            
+            // ✅ UPLOAD REAL SEM SIMULAÇÃO (para evitar sobrecarga)
             const result = await trainingService.uploadVideo(task.data);
-            
-            // ✅ PARAR SIMULAÇÃO DE PROGRESSO
-            clearInterval(progressInterval);
             
             // ✅ ATUALIZAR PROGRESSO: Concluído
             setVideoProgress(prev => new Map(prev.set(currentUpload, {
@@ -323,6 +306,7 @@ const CriarTreinamentoPage = () => {
             })));
             
             console.log(`✅ [SEQUENTIAL-UPLOAD] Upload concluído: ${currentUpload}`);
+            console.log(`✅ [SEQUENTIAL-UPLOAD] Upload ${i + 1}/${uploadTasks.length} FINALIZADO - prosseguindo para próximo...`);
             uploadResults.push(result);
             
             // ✅ OTIMIZAÇÃO: Liberar Base64 da memória imediatamente
@@ -346,6 +330,8 @@ const CriarTreinamentoPage = () => {
             throw new Error(`Falha no upload do vídeo "${currentUpload}": ${error}`);
           }
         }
+        
+        console.log(`🎯 [SEQUENTIAL-UPLOAD] TODOS OS ${uploadTasks.length} UPLOADS CONCLUÍDOS - iniciando criação do curso...`);
         
         // Mapear resultados de volta para as aulas
         const uploadResultsMap = new Map();
