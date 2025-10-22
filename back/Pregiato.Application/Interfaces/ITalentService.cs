@@ -6,6 +6,7 @@ public interface ITalentService
 {
     Task<PaginatedResponseDto<TalentDto>> GetAllPaginatedAsync(int page, int pageSize, string? search = null, string? sortBy = null, bool sortDescending = false);
     Task<TalentDto?> GetByIdAsync(Guid id);
+    Task<TalentDto?> GetByEmailAsync(string email);
     Task<TalentDto> CreateAsync(CreateTalentDto dto);
     Task<TalentDto?> UpdateAsync(Guid id, UpdateTalentDto dto);
     Task<bool> DeleteAsync(Guid id);

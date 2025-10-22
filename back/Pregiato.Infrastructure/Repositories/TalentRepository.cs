@@ -26,6 +26,12 @@ public class TalentRepository : ITalentRepository
         return await _context.Talent.FindAsync(id);
     }
 
+    public async Task<Talent?> GetByEmailAsync(string email)
+    {
+        return await _context.Talent
+            .FirstOrDefaultAsync(t => t.Email == email);
+    }
+
     public async Task<Talent> CreateAsync(Talent talent)
     {
         _context.Talent.Add(talent);

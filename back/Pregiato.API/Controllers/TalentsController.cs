@@ -74,6 +74,27 @@ public class TalentsController : ControllerBase
     }
 
     /// <summary>
+    /// Obtém um talento por email
+    /// </summary>
+    [HttpGet("by-email/{email}")]
+    public async Task<ActionResult<TalentDto>> GetTalentByEmail(string email)
+    {
+        try
+        {
+            var talent = await _talentService.GetByEmailAsync(email);
+            if (talent == null)
+                return NotFound(new { error = "Talento não encontrado" });
+
+            return Ok(talent);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao buscar talento por email: {Email}", email);
+            return StatusCode(500, new { error = "Erro interno do servidor" });
+        }
+    }
+
+    /// <summary>
     /// Cria um novo talento
     /// </summary>
     [HttpPost]
