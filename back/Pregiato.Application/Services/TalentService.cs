@@ -136,6 +136,32 @@ public class TalentService : ITalentService
         }
     }
 
+    public async Task<TalentDto?> GetByEmailAsync(string email)
+    {
+        try
+        {
+            _logger.LogInformation("Buscando talento por email: {Email}", email);
+            
+            var talent = await _talentRepository.GetByEmailAsync(email);
+            
+            if (talent == null)
+            {
+                _logger.LogWarning("Talento não encontrado com email: {Email}", email);
+                return null;
+            }
+            
+            var dto = _mapper.Map<TalentDto>(talent);
+            _logger.LogInformation("Talento encontrado por email: {Name} ({Email})", talent.FullName, email);
+            
+            return dto;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao buscar talento por email: {Email}", email);
+            throw;
+        }
+    }
+
     public async Task<TalentDto> CreateAsync(CreateTalentDto dto)
     {
         try
