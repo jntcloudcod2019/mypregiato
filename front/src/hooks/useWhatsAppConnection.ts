@@ -105,8 +105,17 @@ export const useWhatsAppConnection = () => {
     checkInitialStatus();
   }, []);
 
+  // ✅ NOVO: Estado para controlar se SignalR deve ser ativo
+  const [shouldConnectSignalR, setShouldConnectSignalR] = useState(false);
+
   // Listener para atualizações de status via SignalR
   useEffect(() => {
+    // ✅ NÃO CONECTAR SignalR AUTOMATICAMENTE
+    if (!shouldConnectSignalR) {
+      console.log('⏸️ [useWhatsAppConnection] SignalR desabilitado - pulando listeners');
+      return;
+    }
+
     const handleStatusUpdate = (statusData: BotStatusUpdate) => {
       console.log('📡 [useWhatsAppConnection] Status recebido via SignalR:', statusData);
       
@@ -256,7 +265,7 @@ export const useWhatsAppConnection = () => {
       qrCodeQueueService.removeListener('session.authenticated', handleSessionAuthenticated);
       qrCodeQueueService.removeListener('service.status', handleServiceStatus);
     };
-  }, []);
+  }, [shouldConnectSignalR]);
 
   const getQRCode = useCallback(async () => {
     try {
@@ -386,6 +395,12 @@ export const useWhatsAppConnection = () => {
     };
   }, []);
 
+  // ✅ NOVO: Método para ativar SignalR explicitamente
+  const enableSignalR = useCallback(() => {
+    console.log('🔌 [useWhatsAppConnection] Ativando SignalR...');
+    setShouldConnectSignalR(true);
+  }, []);
+
   return { 
     ...connectionState, 
     isConnecting, 
@@ -394,6 +409,7 @@ export const useWhatsAppConnection = () => {
     disconnect, 
     generateQR, 
     getQRCode, 
+    enableSignalR, // ✅ NOVO: Expor método para ativar SignalR
     // ✅ REMOVIDO: checkStatus não é mais necessário
     // Exportar novas propriedades para uso nos componentes
     connectedUserName: connectionState.connectedUserName,

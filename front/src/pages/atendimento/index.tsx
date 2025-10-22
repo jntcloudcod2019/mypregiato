@@ -1308,8 +1308,19 @@ export default function AtendimentoPage() {
       console.log('🧹 [ATENDIMENTO] Limpando conexões SignalR...');
       processedInboundIdsRef.current.clear();
       lastMessageKeyByChatRef.current = {};
-      connRef.current?.stop().catch(() => {});
-      connRef.current = null;
+      
+      // ✅ GARANTIR QUE A CONEXÃO SEJA PARADA ANTES DE LIMPAR
+      if (connRef.current) {
+        console.log('🔌 [ATENDIMENTO] Parando conexão SignalR...');
+        connRef.current.stop()
+          .then(() => {
+            console.log('✅ [ATENDIMENTO] Conexão SignalR parada com sucesso');
+          })
+          .catch((error) => {
+            console.error('❌ [ATENDIMENTO] Erro ao parar conexão SignalR:', error);
+          });
+        connRef.current = null;
+      }
       
       // ✅ Parar o qrCodeQueueService ao sair da página
       qrCodeQueueService.stopQRCodeConsumer().catch((error) => {
