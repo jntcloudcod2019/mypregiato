@@ -132,6 +132,9 @@ export function CompositeTemplates({ talent, photos }: CompositeTemplatesProps) 
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>Pregiato Composite</title>
           <style>
+              /* Importar fonte Bebas Neue */
+              @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+              
               /* Reset Básico */
               * {
                   margin: 0;
@@ -155,30 +158,28 @@ export function CompositeTemplates({ talent, photos }: CompositeTemplatesProps) 
                   background-color: #000000; /* Fundo preto */
                   color: #ffffff;
                   display: flex;
-                  flex-direction: row; /* Layout horizontal */
+                  flex-direction: column; /* Layout vertical com header */
                   min-height: 100vh;
               }
 
-              /* Logo vertical na lateral esquerda */
-              .logo-section {
-                  width: 120px;
+              /* Header com logo centralizado */
+              .header-section {
+                  width: 100%;
                   background-color: #000000;
                   display: flex;
-                  flex-direction: column;
                   justify-content: center;
                   align-items: center;
                   padding: 20px;
-                  border-right: 2px solid #333;
+                  border-bottom: 2px solid #333;
               }
 
-              .logo-vertical {
-                  width: 60px;
-                  height: 200px;
+              .logo-header {
+                  width: 200px;
+                  height: 60px;
                   background-image: url('data:image/svg+xml;base64,${getLogoBase64()}');
                   background-size: contain;
                   background-repeat: no-repeat;
                   background-position: center;
-                  transform: rotate(0deg);
               }
 
               /* Seção principal com fotos */
@@ -218,10 +219,13 @@ export function CompositeTemplates({ talent, photos }: CompositeTemplatesProps) 
               }
 
               .model-name {
-                  font-size: 24px;
-                  font-weight: bold;
+                  font-family: 'Bebas Neue', Arial, sans-serif;
+                  font-size: 32px;
+                  font-weight: 400;
                   margin-bottom: 10px;
                   color: #ffffff;
+                  letter-spacing: 2px;
+                  text-transform: uppercase;
               }
 
               .model-details {
@@ -240,24 +244,34 @@ export function CompositeTemplates({ talent, photos }: CompositeTemplatesProps) 
                       flex-direction: column;
                   }
                   
-                  .logo-section {
-                      width: 100%;
-                      height: 80px;
-                      flex-direction: row;
+                  .header-section {
+                      padding: 15px;
                   }
                   
-                  .logo-vertical {
-                      width: 200px;
-                      height: 40px;
+                  .logo-header {
+                      width: 150px;
+                      height: 45px;
+                  }
+                  
+                  .photos-section {
+                      padding: 20px;
+                  }
+                  
+                  .photos-grid {
+                      gap: 15px;
+                  }
+                  
+                  .model-name {
+                      font-size: 24px;
                   }
               }
           </style>
       </head>
       <body>
           <div class="composite-container">
-              <!-- Logo vertical na lateral esquerda -->
-              <div class="logo-section">
-                  <div class="logo-vertical"></div>
+              <!-- Header com logo centralizado -->
+              <div class="header-section">
+                  <div class="logo-header"></div>
               </div>
 
               <!-- Seção principal com fotos -->
@@ -339,18 +353,22 @@ export function CompositeTemplates({ talent, photos }: CompositeTemplatesProps) 
   return (
     <div className="space-y-6">
       {showPreview && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
           <div className="bg-background p-6 rounded-lg max-w-6xl max-h-[90vh] overflow-auto relative">
             <Button
-              variant="ghost"
+              variant="destructive"
               size="icon"
               onClick={() => setShowPreview(false)}
-              className="absolute top-4 right-4 z-10"
+              className="absolute top-4 right-4 z-10 bg-red-600 hover:bg-red-700 text-white"
             >
               <X className="h-4 w-4" />
             </Button>
+            <div className="mb-4 text-center">
+              <h3 className="text-lg font-semibold">Preview do Composite</h3>
+              <p className="text-sm text-muted-foreground">Clique no X para fechar</p>
+            </div>
             <div 
-              className="w-[800px] h-[1000px] bg-black text-white"
+              className="w-[800px] h-[1000px] bg-black text-white border border-gray-600 rounded-lg overflow-hidden"
               dangerouslySetInnerHTML={{ __html: getCompositeHTML() }}
             />
           </div>
