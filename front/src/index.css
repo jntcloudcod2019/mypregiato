@@ -220,6 +220,21 @@
     overflow-x: hidden;
   }
 
+  /* ✅ REMOVER SUBLINHADO DE TODOS OS LINKS E ELEMENTOS DE NAVEGAÇÃO */
+  a, a:visited, a:hover, a:active {
+    text-decoration: none !important;
+  }
+  
+  /* Remover sublinhado de elementos de navegação */
+  nav a, .nav-link, [role="link"] {
+    text-decoration: none !important;
+  }
+  
+  /* Remover sublinhado de links dentro de cards */
+  .card a, [class*="card"] a {
+    text-decoration: none !important;
+  }
+
   /* Modern scrollbar */
   ::-webkit-scrollbar {
     width: 8px;

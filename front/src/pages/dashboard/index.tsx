@@ -22,7 +22,7 @@ export default function Dashboard() {
       {/* Apps */}
       <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
         {modules.map(m => (
-          <Link key={m.slug} to={m.slug==='crm' ? '/crm' : `/apps/${m.slug}`}>
+          <Link key={m.slug} to={m.slug==='crm' ? '/crm' : `/apps/${m.slug}`} className="no-underline">
             <Card className="hover:shadow-md transition-shadow">
               <CardHeader className="items-center text-center pb-2">
                 <CardTitle className="text-sm font-semibold">{m.title}</CardTitle>

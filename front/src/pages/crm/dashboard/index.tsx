@@ -46,10 +46,10 @@ export default function CRMDashboard() {
             {selected.features.map((f, i) => (<li key={i}>{f}</li>))}
           </ul>
           <div className="mt-4 flex flex-wrap gap-2 text-sm">
-            <Link to="/crm/leads"><span className="underline cursor-pointer">Leads (lista)</span></Link>
-            <Link to="/crm/leads/kanban"><span className="underline cursor-pointer">Leads (Kanban)</span></Link>
-            <Link to="/crm/leads/novo"><span className="underline cursor-pointer">Novo Lead</span></Link>
-            <Link to="/crm/eventos"><span className="underline cursor-pointer">Eventos/Seletivas</span></Link>
+            <Link to="/crm/leads"><span className="cursor-pointer">Leads (lista)</span></Link>
+            <Link to="/crm/leads/kanban"><span className="cursor-pointer">Leads (Kanban)</span></Link>
+            <Link to="/crm/leads/novo"><span className="cursor-pointer">Novo Lead</span></Link>
+            <Link to="/crm/eventos"><span className="cursor-pointer">Eventos/Seletivas</span></Link>
           </div>
         </CardContent>
       </Card>
