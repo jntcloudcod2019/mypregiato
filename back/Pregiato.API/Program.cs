@@ -68,7 +68,8 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials()
-              .SetIsOriginAllowedToAllowWildcardSubdomains();
+              .SetIsOriginAllowedToAllowWildcardSubdomains()
+              .SetPreflightMaxAge(TimeSpan.FromMinutes(10)); // Cache preflight por 10 minutos
     });
 });
 
@@ -112,7 +113,9 @@ builder.Services.AddScoped<RuntimePregiatoDbContextFactory>(provider =>
 
  builder.WebHost.ConfigureKestrel(serverOptions =>
 {
-   serverOptions.Limits.MaxRequestBodySize = 2147483648L; // 100 MB, por exemp
+   serverOptions.Limits.MaxRequestBodySize = 1073741824L; // 1 GB para vídeos grandes
+   serverOptions.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(15); // 15 minutos para uploads grandes
+   serverOptions.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(5); // 5 minutos para headers
 });
 
 // HttpClient

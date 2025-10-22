@@ -251,7 +251,7 @@ const CriarTreinamentoPage = () => {
         
         // Configurar opções de upload paralelo
         const uploadOptions: ParallelUploadOptions = {
-          maxConcurrentUploads: 2, // Máximo 2 uploads simultâneos
+          maxConcurrentUploads: 1, // Apenas 1 upload por vez para evitar sobrecarga
           onProgress: (completed, total, currentUpload) => {
             setUploadProgress({
               completed,

@@ -19,6 +19,8 @@ export class ParallelUploadService {
   private uploadQueue: UploadTask[] = [];
   private isProcessing = false;
   private options: ParallelUploadOptions;
+  private totalUploads = 0;
+  private completedUploads = 0;
 
   constructor(options: ParallelUploadOptions) {
     this.options = options;
@@ -28,6 +30,8 @@ export class ParallelUploadService {
    * Adiciona um upload à fila
    */
   async addUpload(index: number, uploadData: TrainingVideoUploadDto): Promise<VideoUploadResultDto> {
+    this.totalUploads++;
+    
     return new Promise((resolve, reject) => {
       this.uploadQueue.push({
         index,
@@ -82,12 +86,13 @@ export class ParallelUploadService {
       const result = await trainingService.uploadVideo(data);
       
       console.log(`✅ [PARALLEL-UPLOAD] Upload ${index + 1} concluído`);
+      this.completedUploads++;
       resolve(result);
       
       // Notifica progresso
       this.options.onProgress?.(
-        this.getCompletedCount(), 
-        this.getTotalCount(), 
+        this.completedUploads, 
+        this.totalUploads, 
         data.lessonTitle
       );
       
@@ -104,14 +109,14 @@ export class ParallelUploadService {
    * Retorna o número de uploads completados
    */
   private getCompletedCount(): number {
-    return this.getTotalCount() - this.uploadQueue.length - this.activeUploads.size;
+    return this.completedUploads;
   }
 
   /**
    * Retorna o total de uploads
    */
   private getTotalCount(): number {
-    return this.uploadQueue.length + this.activeUploads.size + this.getCompletedCount();
+    return this.totalUploads;
   }
 
   /**
@@ -121,6 +126,8 @@ export class ParallelUploadService {
     this.uploadQueue = [];
     this.activeUploads.clear();
     this.isProcessing = false;
+    this.totalUploads = 0;
+    this.completedUploads = 0;
   }
 
   /**
