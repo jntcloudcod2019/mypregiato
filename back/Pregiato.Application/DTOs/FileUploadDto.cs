@@ -24,7 +24,7 @@ namespace Pregiato.Application.DTOs
         public string FileName { get; set; } = string.Empty;
         
         [Required]
-        public string FilePath { get; set; } = string.Empty;
+        public string Base64Data { get; set; } = string.Empty;
         
         [Required]
         public string ContentType { get; set; } = string.Empty;
