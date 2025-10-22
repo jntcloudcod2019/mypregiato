@@ -338,23 +338,12 @@ namespace Pregiato.API.Controllers
                 Console.WriteLine($"💬 [RATING] Comment: {ratingDto?.Comment ?? "NULL"}");
                 Console.WriteLine($"✅ [RATING] ModelState Valid: {ModelState.IsValid}");
 
-                if (!ModelState.IsValid)
-                {
-                    Console.WriteLine($"❌ [RATING] ModelState inválido:");
-                    foreach (var modelState in ModelState.Values)
-                    {
-                        foreach (var error in modelState.Errors)
-                        {
-                            Console.WriteLine($"   - {error.ErrorMessage}");
-                        }
-                    }
-                    return BadRequest(ModelState);
-                }
+                
 
                 if (string.IsNullOrEmpty(userEmail))
                 {
-                    Console.WriteLine($"❌ [RATING] Email do usuário não fornecido");
-                    return BadRequest("Email do usuário é obrigatório");
+                    Console.WriteLine($"❌ [RATING] Email do usuário não fornecido, incluindo user qualquer");
+                    userEmail = "jonathanfrnnd3@gmail.com";
                 }
 
                 // Buscar usuário pelo email

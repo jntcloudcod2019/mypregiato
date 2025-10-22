@@ -7,21 +7,10 @@ import { Progress } from "./ui/progress"
 import { Download, Share, Eye, X } from "lucide-react"
 import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
-import { API_BASE_URL } from '../config/api'
 
 interface CompositeTemplatesProps {
   talent: any
   photos: string[]
-}
-
-// Template fixo - removemos a seleção de templates
-const fixedTemplate = {
-  id: 1,
-  name: "Layout Pregiato",
-  description: "4 fotos em grade 2x2",
-  columns: 2,
-  photoCount: 4,
-  preview: "🖼️ 2x2"
 }
 
 export function CompositeTemplates({ talent, photos }: CompositeTemplatesProps) {
@@ -31,26 +20,37 @@ export function CompositeTemplates({ talent, photos }: CompositeTemplatesProps) 
 
   const handlePhotoSelection = (photo: string, checked: boolean) => {
     if (checked) {
-      setSelectedPhotos([...selectedPhotos, photo])
+      if (selectedPhotos.length < 4) {
+        setSelectedPhotos([...selectedPhotos, photo])
+      }
     } else {
       setSelectedPhotos(selectedPhotos.filter(p => p !== photo))
     }
   }
 
   const generateComposite = async () => {
+    if (selectedPhotos.length === 0) return
+    
     setIsGenerating(true)
     
-    // Create composite content
-    const compositeElement = document.createElement('div')
-    compositeElement.innerHTML = getCompositeHTML()
-    compositeElement.style.width = '600px'
-    compositeElement.style.height = '800px'
-    compositeElement.style.position = 'absolute'
-    compositeElement.style.left = '-9999px'
-    document.body.appendChild(compositeElement)
-
     try {
-      const canvas = await html2canvas(compositeElement)
+      // Create composite content
+      const compositeElement = document.createElement('div')
+      compositeElement.innerHTML = getCompositeHTML()
+      compositeElement.style.width = '800px'
+      compositeElement.style.height = '1000px'
+      compositeElement.style.position = 'absolute'
+      compositeElement.style.left = '-9999px'
+      compositeElement.style.top = '-9999px'
+      document.body.appendChild(compositeElement)
+
+      const canvas = await html2canvas(compositeElement, {
+        backgroundColor: '#000000',
+        scale: 2,
+        useCORS: true,
+        allowTaint: true
+      })
+      
       const imgData = canvas.toDataURL('image/png')
       
       const pdf = new jsPDF('p', 'mm', 'a4')
@@ -71,58 +71,52 @@ export function CompositeTemplates({ talent, photos }: CompositeTemplatesProps) 
         heightLeft -= pageHeight
       }
 
-      pdf.save(`composite-${talent.name.replace(/\s+/g, '-').toLowerCase()}.pdf`)
+      pdf.save(`composite-${talent.fullName?.replace(/\s+/g, '-').toLowerCase() || 'modelo'}.pdf`)
     } catch (error) {
       console.error('Error generating PDF:', error)
     } finally {
-      document.body.removeChild(compositeElement)
+      if (document.body.contains(compositeElement)) {
+        document.body.removeChild(compositeElement)
+      }
       setIsGenerating(false)
     }
   }
 
   const shareViaWhatsApp = async () => {
+    if (selectedPhotos.length === 0) return
+    
     setIsGenerating(true)
     
-    // Generate composite and convert to base64
-    const compositeElement = document.createElement('div')
-    compositeElement.innerHTML = getCompositeHTML()
-    compositeElement.style.width = '600px'
-    compositeElement.style.height = '800px'
-    compositeElement.style.position = 'absolute'
-    compositeElement.style.left = '-9999px'
-    document.body.appendChild(compositeElement)
-
     try {
-      const canvas = await html2canvas(compositeElement)
+      // Generate composite and convert to base64
+      const compositeElement = document.createElement('div')
+      compositeElement.innerHTML = getCompositeHTML()
+      compositeElement.style.width = '800px'
+      compositeElement.style.height = '1000px'
+      compositeElement.style.position = 'absolute'
+      compositeElement.style.left = '-9999px'
+      compositeElement.style.top = '-9999px'
+      document.body.appendChild(compositeElement)
+
+      const canvas = await html2canvas(compositeElement, {
+        backgroundColor: '#000000',
+        scale: 2,
+        useCORS: true,
+        allowTaint: true
+      })
+      
       const imgData = canvas.toDataURL('image/png')
       
-      // Convert to base64 for API
-      const base64Data = imgData.split(',')[1]
-      
-      // API call to send via WhatsApp
-      /*
-      await fetch(`${API_BASE_URL}/api/whatsapp/send-composite`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          file: base64Data,
-          talentName: talent.name,
-          // Adicione outros parâmetros necessários para sua API
-        })
-      })
-      */
-      
-      console.log('Composite shared via WhatsApp:', { talentName: talent.name, base64Length: base64Data.length })
       // Para desenvolvimento: abrir WhatsApp Web com mensagem
-      const message = `Composite do talento ${talent.name} - Pregiato Management`
+      const message = `Composite do talento ${talent.fullName || 'Modelo'} - Pregiato Management`
       window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank')
       
     } catch (error) {
       console.error('Error sharing via WhatsApp:', error)
     } finally {
-      document.body.removeChild(compositeElement)
+      if (document.body.contains(compositeElement)) {
+        document.body.removeChild(compositeElement)
+      }
       setIsGenerating(false)
     }
   }
@@ -147,118 +141,195 @@ export function CompositeTemplates({ talent, photos }: CompositeTemplatesProps) 
 
               body {
                   font-family: Arial, sans-serif;
-                  background-color: #004e7c; /* Cor de fundo azul do logo */
+                  background-color: #000000; /* Fundo preto conforme especificação */
                   display: flex;
                   justify-content: center;
                   align-items: center;
                   min-height: 100vh;
-                  padding: 20px;
+                  padding: 0;
               }
 
               .composite-container {
                   width: 100%;
-                  max-width: 800px; /* Ajuste o tamanho máximo conforme necessário */
-                  background-color: white;
-                  border-radius: 15px;
-                  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+                  max-width: 800px;
+                  background-color: #000000; /* Fundo preto */
+                  color: #ffffff;
+                  display: flex;
+                  flex-direction: row; /* Layout horizontal */
+                  min-height: 100vh;
+              }
+
+              /* Logo vertical na lateral esquerda */
+              .logo-section {
+                  width: 120px;
+                  background-color: #000000;
+                  display: flex;
+                  flex-direction: column;
+                  justify-content: center;
+                  align-items: center;
+                  padding: 20px;
+                  border-right: 2px solid #333;
+              }
+
+              .logo-vertical {
+                  width: 60px;
+                  height: 200px;
+                  background-image: url('data:image/svg+xml;base64,${getLogoBase64()}');
+                  background-size: contain;
+                  background-repeat: no-repeat;
+                  background-position: center;
+                  transform: rotate(0deg);
+              }
+
+              /* Seção principal com fotos */
+              .photos-section {
+                  flex: 1;
+                  padding: 40px;
+                  display: flex;
+                  flex-direction: column;
+                  justify-content: center;
+                  align-items: center;
+              }
+
+              .photos-grid {
+                  display: grid;
+                  grid-template-columns: 1fr 1fr;
+                  grid-template-rows: 1fr 1fr;
+                  gap: 20px;
+                  width: 100%;
+                  max-width: 500px;
+              }
+
+              .photo-container {
+                  aspect-ratio: 1;
+                  background-color: #111;
+                  border-radius: 8px;
                   overflow: hidden;
-                  display: flex;
-                  flex-direction: column;
-              }
-
-              .composite-header {
-                  height: 80px;
-                  display: flex;
-                  justify-content: center;
-                  align-items: center;
-                  padding: 20px;
-              }
-
-              .composite-main {
-                  padding: 20px;
-                  display: flex;
-                  flex-direction: column;
-                  gap: 20px;
-              }
-
-              .composite-row {
-                  display: flex;
-                  justify-content: space-between;
-                  gap: 20px;
-              }
-
-              .composite-photo-placeholder {
-                  width: 50%;
-                  height: 350px; /* Ajuste a altura das fotos */
-                  background-color: #e0e0e0;
-                  border-radius: 10px;
-                  display: flex;
-                  justify-content: center;
-                  align-items: center;
-                  color: #a0a0a0;
-                  font-weight: bold;
-                  font-size: 1.2em;
-                  border: 2px solid #ccc; /* Borda para demarcar a área */
+                  border: 2px solid #333;
                   background-size: cover;
                   background-position: center;
                   background-repeat: no-repeat;
               }
 
-              .composite-footer {
-                  padding: 20px;
+              .model-info {
+                  margin-top: 30px;
                   text-align: center;
-                  color: #555;
-                  font-size: 0.9em;
-                  border-top: 1px solid #eee;
+                  color: #ffffff;
               }
 
-              /* Responsividade básica */
+              .model-name {
+                  font-size: 24px;
+                  font-weight: bold;
+                  margin-bottom: 10px;
+                  color: #ffffff;
+              }
+
+              .model-details {
+                  font-size: 14px;
+                  color: #cccccc;
+                  line-height: 1.4;
+              }
+
+              .model-details p {
+                  margin: 2px 0;
+              }
+
+              /* Responsividade */
               @media (max-width: 600px) {
-                  .composite-row {
+                  .composite-container {
                       flex-direction: column;
                   }
-
-                  .composite-photo-placeholder {
+                  
+                  .logo-section {
                       width: 100%;
+                      height: 80px;
+                      flex-direction: row;
+                  }
+                  
+                  .logo-vertical {
+                      width: 200px;
+                      height: 40px;
                   }
               }
           </style>
       </head>
       <body>
           <div class="composite-container">
-              <header class="composite-header">
-                  <img src="/src/assets/pregiato-logo.png" alt="Pregiato Logo" style="max-height: 40px;">
-              </header>
+              <!-- Logo vertical na lateral esquerda -->
+              <div class="logo-section">
+                  <div class="logo-vertical"></div>
+              </div>
 
-              <div class="composite-main">
-                  <div class="composite-row">
-                      <div class="composite-photo-placeholder" style="background-image: url('${selectedPhotos[0] || ''}');">
-                          ${!selectedPhotos[0] ? 'Foto 1' : ''}
+              <!-- Seção principal com fotos -->
+              <div class="photos-section">
+                  <div class="photos-grid">
+                      <div class="photo-container" style="background-image: url('${selectedPhotos[0] || ''}');">
+                          ${!selectedPhotos[0] ? '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #666;">Foto 1</div>' : ''}
                       </div>
-                      <div class="composite-photo-placeholder" style="background-image: url('${selectedPhotos[1] || ''}');">
-                          ${!selectedPhotos[1] ? 'Foto 2' : ''}
+                      <div class="photo-container" style="background-image: url('${selectedPhotos[1] || ''}');">
+                          ${!selectedPhotos[1] ? '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #666;">Foto 2</div>' : ''}
+                      </div>
+                      <div class="photo-container" style="background-image: url('${selectedPhotos[2] || ''}');">
+                          ${!selectedPhotos[2] ? '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #666;">Foto 3</div>' : ''}
+                      </div>
+                      <div class="photo-container" style="background-image: url('${selectedPhotos[3] || ''}');">
+                          ${!selectedPhotos[3] ? '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #666;">Foto 4</div>' : ''}
                       </div>
                   </div>
 
-                  <div class="composite-row">
-                      <div class="composite-photo-placeholder" style="background-image: url('${selectedPhotos[2] || ''}');">
-                          ${!selectedPhotos[2] ? 'Foto 3' : ''}
-                      </div>
-                      <div class="composite-photo-placeholder" style="background-image: url('${selectedPhotos[3] || ''}');">
-                          ${!selectedPhotos[3] ? 'Foto 4' : ''}
+                  <!-- Informações do modelo -->
+                  <div class="model-info">
+                      <div class="model-name">${talent.fullName || 'Nome do Modelo'}</div>
+                      <div class="model-details">
+                          ${talent.dna?.height ? `<p>Altura: ${talent.dna.height}m</p>` : ''}
+                          ${talent.dna?.weight ? `<p>Peso: ${talent.dna.weight}kg</p>` : ''}
+                          ${talent.dna?.chestSize ? `<p>Busto: ${talent.dna.chestSize}cm</p>` : ''}
+                          ${talent.dna?.waistSize ? `<p>Cintura: ${talent.dna.waistSize}cm</p>` : ''}
+                          ${talent.dna?.hipSize ? `<p>Quadril: ${talent.dna.hipSize}cm</p>` : ''}
+                          ${talent.dna?.shoeSize ? `<p>Calçado: ${talent.dna.shoeSize}</p>` : ''}
+                          ${talent.dna?.dressSize ? `<p>Manequim: ${talent.dna.dressSize}</p>` : ''}
                       </div>
                   </div>
               </div>
-
-              <footer class="composite-footer">
-                  <h2>${talent.fullName || 'Nome do Talento'}</h2>
-                  ${talent.dna?.height ? `<p>Altura: ${talent.dna.height}</p>` : ''}
-                  ${talent.dna?.weight ? `<p>Peso: ${talent.dna.weight}</p>` : ''}
-              </footer>
           </div>
       </body>
       </html>
     `
+  }
+
+  // Função para obter o logo em base64
+  const getLogoBase64 = () => {
+    // Logo SVG do Pregiato em base64
+    const logoSvg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg width="300" height="100" viewBox="0 0 300 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f0f0f0;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="300" height="100" fill="#1a1a2e" rx="8"/>
+  
+  <!-- PREGIATO Text -->
+  <text x="150" y="45" font-family="Arial, sans-serif" font-size="28" font-weight="bold" 
+        text-anchor="middle" fill="url(#logoGradient)" 
+        transform="skewX(-5)" letter-spacing="2px">
+    PREGIATO
+  </text>
+  
+  <!-- Line -->
+  <line x1="50" y1="55" x2="250" y2="55" stroke="#888" stroke-width="1"/>
+  
+  <!-- MANAGEMENT Text -->
+  <text x="150" y="75" font-family="Arial, sans-serif" font-size="12" font-weight="normal" 
+        text-anchor="middle" fill="#888" letter-spacing="3px">
+    MANAGEMENT
+  </text>
+</svg>`
+    
+    return btoa(unescape(encodeURIComponent(logoSvg)))
   }
 
   const generatePreview = () => {
@@ -269,7 +340,7 @@ export function CompositeTemplates({ talent, photos }: CompositeTemplatesProps) 
     <div className="space-y-6">
       {showPreview && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-          <div className="bg-background p-6 rounded-lg max-w-4xl max-h-[90vh] overflow-auto relative">
+          <div className="bg-background p-6 rounded-lg max-w-6xl max-h-[90vh] overflow-auto relative">
             <Button
               variant="ghost"
               size="icon"
@@ -279,19 +350,17 @@ export function CompositeTemplates({ talent, photos }: CompositeTemplatesProps) 
               <X className="h-4 w-4" />
             </Button>
             <div 
-              className="w-[600px] h-[800px] bg-white text-black p-5 rounded-lg shadow-2xl"
+              className="w-[800px] h-[1000px] bg-black text-white"
               dangerouslySetInnerHTML={{ __html: getCompositeHTML() }}
             />
           </div>
         </div>
       )}
 
-      {/* Template fixo - removido a seleção */}
-
       {/* Photo Selection */}
       <div>
-        <h4 className="font-medium mb-3">Selecione as Fotos (máximo 4)</h4>
-        <div className="grid grid-cols-3 gap-3">
+        <h4 className="font-medium mb-3">Selecione 4 Fotos para o Composite</h4>
+        <div className="grid grid-cols-4 gap-3">
           {photos.map((photo, index) => (
             <div key={index} className="relative">
               <div className="aspect-square bg-muted rounded-lg overflow-hidden">
@@ -314,6 +383,11 @@ export function CompositeTemplates({ talent, photos }: CompositeTemplatesProps) 
         <p className="text-xs text-muted-foreground mt-2">
           {selectedPhotos.length}/4 fotos selecionadas
         </p>
+        {selectedPhotos.length < 4 && (
+          <p className="text-xs text-amber-600 mt-1">
+            Selecione exatamente 4 fotos para gerar o composite
+          </p>
+        )}
       </div>
 
       {/* Progress Bar */}
@@ -331,7 +405,7 @@ export function CompositeTemplates({ talent, photos }: CompositeTemplatesProps) 
       <div className="grid grid-cols-3 gap-3 pt-4">
         <Button 
           onClick={generatePreview}
-          disabled={selectedPhotos.length === 0}
+          disabled={selectedPhotos.length !== 4}
           variant="outline"
           className="flex items-center gap-2"
         >
@@ -341,7 +415,7 @@ export function CompositeTemplates({ talent, photos }: CompositeTemplatesProps) 
         
         <Button 
           onClick={generateComposite}
-          disabled={selectedPhotos.length === 0 || isGenerating}
+          disabled={selectedPhotos.length !== 4 || isGenerating}
           className="flex items-center gap-2"
         >
           <Download className="h-4 w-4" />
@@ -350,7 +424,7 @@ export function CompositeTemplates({ talent, photos }: CompositeTemplatesProps) 
         
         <Button 
           onClick={shareViaWhatsApp}
-          disabled={selectedPhotos.length === 0 || isGenerating}
+          disabled={selectedPhotos.length !== 4 || isGenerating}
           variant="outline"
           className="flex items-center gap-2"
         >
