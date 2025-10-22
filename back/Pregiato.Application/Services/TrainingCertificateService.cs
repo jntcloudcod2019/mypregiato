@@ -6,7 +6,6 @@ using Pregiato.Core.Entities;
 using Pregiato.Core.Interfaces;
 using System.Text;
 using PuppeteerSharp;
-using Pregiato.API.Interfaces;
 
 namespace Pregiato.Application.Services;
 
@@ -331,10 +330,10 @@ public class TrainingCertificateService : ITrainingCertificateService
             Console.WriteLine($"[PDF_GENERATION] 🖨️ Gerando PDF em bytes...");
             var pdfBytes = await page.PdfDataAsync(new PdfOptions
             {
-                Format = PaperFormat.A4,
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
                 Landscape = true,
                 PrintBackground = true,
-                MarginOptions = new MarginOptions
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
                 {
                     Top = "0",
                     Right = "0",

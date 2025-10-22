@@ -1,6 +1,6 @@
 using PuppeteerSharp;
 
-namespace Pregiato.API.Interfaces
+namespace Pregiato.Application.Interfaces
 {
     public interface IBrowserService : IAsyncDisposable
     {
