@@ -91,6 +91,8 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
     const file = event.target.files?.[0];
     if (!file) return;
 
+    console.log(`📁 [File] Arquivo selecionado: ${file.name}, ${formatFileSize(file.size)}`);
+
     const validationError = validateFile(file);
     if (validationError) {
       setUploadError(validationError);
@@ -100,6 +102,11 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
         variant: 'destructive',
       });
       return;
+    }
+
+    // Verificar se o arquivo é muito grande para o navegador
+    if (file.size > 1024 * 1024 * 1024) { // 1GB
+      console.log(`⚠️ [File] Arquivo muito grande (${formatFileSize(file.size)}), forçando upload em chunks`);
     }
 
     setSelectedFile(file);
@@ -119,6 +126,7 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
         type: file.type,
       });
       URL.revokeObjectURL(videoUrl);
+      console.log(`📊 [File] Metadados: ${video.duration}s, ${file.type}`);
     };
     video.src = videoUrl;
   }, [validateFile, toast]);
@@ -142,8 +150,19 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
       // Converter chunk para base64
       const base64Chunk = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
+        
+        // Timeout para chunks
+        const timeout = setTimeout(() => {
+          reader.abort();
+          reject(new Error(`Timeout ao ler chunk ${i + 1}`));
+        }, 10000); // 10 segundos por chunk
+        
         reader.onload = () => {
+          clearTimeout(timeout);
           const result = reader.result;
+          
+          console.log(`🔍 [Chunk ${i + 1}] FileReader resultado: ${typeof result}, tamanho: ${result?.toString().length || 0}`);
+          
           if (!result || typeof result !== 'string') {
             reject(new Error(`Resultado inválido no chunk ${i + 1}`));
             return;
@@ -160,13 +179,22 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
             return;
           }
           
+          console.log(`✅ [Chunk ${i + 1}] Base64 gerado: ${base64.length} caracteres`);
           resolve(base64);
         };
         
         reader.onerror = () => {
-          reject(new Error(`Erro ao ler chunk ${i + 1}: ${reader.error?.message}`));
+          clearTimeout(timeout);
+          console.error(`❌ [Chunk ${i + 1}] FileReader error:`, reader.error);
+          reject(new Error(`Erro ao ler chunk ${i + 1}: ${reader.error?.message || 'Erro desconhecido'}`));
         };
         
+        reader.onabort = () => {
+          clearTimeout(timeout);
+          reject(new Error(`Leitura do chunk ${i + 1} foi cancelada`));
+        };
+        
+        console.log(`📖 [Chunk ${i + 1}] Iniciando leitura do chunk...`);
         reader.readAsDataURL(chunk);
       });
       
@@ -202,11 +230,30 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
 
   // ✅ UPLOAD DIRETO REFATORADO: Usar novo endpoint
   const uploadDirect = useCallback(async (file: File): Promise<VideoUploadResultDto> => {
+    console.log(`🎬 [Upload] Iniciando upload direto: ${formatFileSize(file.size)}`);
+    
+    // Para arquivos muito grandes (> 500MB), forçar upload em chunks
+    if (file.size > 500 * 1024 * 1024) {
+      console.log(`⚠️ [Upload] Arquivo muito grande (${formatFileSize(file.size)}), usando upload em chunks`);
+      return await uploadInChunks(file);
+    }
+    
     // Converter arquivo para base64
     const base64Data = await new Promise<string>((resolve, reject) => {
       const reader = new FileReader();
+      
+      // Timeout para arquivos grandes
+      const timeout = setTimeout(() => {
+        reader.abort();
+        reject(new Error('Timeout ao ler arquivo - arquivo muito grande'));
+      }, 60000); // 30 segundos
+      
       reader.onload = () => {
+        clearTimeout(timeout);
         const result = reader.result;
+        
+        console.log(`🔍 [Upload] FileReader resultado: ${typeof result}, tamanho: ${result?.toString().length || 0}`);
+        
         if (!result || typeof result !== 'string') {
           reject(new Error('Resultado do FileReader inválido'));
           return;
@@ -229,9 +276,17 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
       };
       
       reader.onerror = () => {
-        reject(new Error('Erro ao ler arquivo: ' + reader.error?.message));
+        clearTimeout(timeout);
+        console.error(`❌ [Upload] FileReader error:`, reader.error);
+        reject(new Error('Erro ao ler arquivo: ' + (reader.error?.message || 'Erro desconhecido')));
       };
       
+      reader.onabort = () => {
+        clearTimeout(timeout);
+        reject(new Error('Leitura do arquivo foi cancelada'));
+      };
+      
+      console.log(`📖 [Upload] Iniciando leitura do arquivo...`);
       reader.readAsDataURL(file);
     });
     
@@ -247,7 +302,7 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
     };
     
     return await trainingService.uploadVideo(uploadDto);
-  }, [courseId, lessonId, videoMetadata.duration]);
+  }, [courseId, lessonId, videoMetadata.duration, uploadInChunks]);
 
   // Iniciar upload
   const handleUpload = useCallback(async () => {
@@ -302,7 +357,7 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
   // Formatar tamanho de arquivo
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes';
-    const k = 1024;
+    const k = 3024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
