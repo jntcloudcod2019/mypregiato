@@ -144,23 +144,40 @@ export class TrainingService {
       fileSize: uploadData.fileSize,
       courseTitle: uploadData.courseTitle,
       lessonTitle: uploadData.lessonTitle,
-      retry: retryCount
+      retry: retryCount,
+      base64Length: uploadData.base64Data?.length || 0
     });
 
     const maxRetries = 3;
     const retryDelay = Math.min(1000 * Math.pow(2, retryCount), 10000); // Exponential backoff, max 10s
+    
+    // ✅ LIMITE DE TAMANHO: Se Base64 > 50MB, avisar para usar chunks
+    const base64SizeInBytes = uploadData.base64Data ? (uploadData.base64Data.length * 3) / 4 : 0;
+    const base64SizeInMB = base64SizeInBytes / 1024 / 1024;
+    
+    if (base64SizeInMB > 50) {
+      console.warn(`⚠️ [TRAINING-SERVICE] Base64 muito grande (${base64SizeInMB.toFixed(2)}MB) - pode causar timeout`);
+    }
 
     try {
-      // ✅ AUMENTAR TIMEOUT PARA 15 MINUTOS (vídeos grandes podem demorar)
+      // ✅ AUMENTAR TIMEOUT PARA 20 MINUTOS (vídeos grandes podem demorar)
       const axiosInstance = apiClient.getAxiosInstance();
       const response = await axiosInstance.post<VideoUploadResultDto>(
         `${this.baseUrl}/TrainingVideos/upload`,
         uploadData,
         {
-          timeout: 900000, // 15 minutos
+          timeout: 1200000, // 20 minutos
+          maxContentLength: Infinity,
+          maxBodyLength: Infinity,
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json'
+          },
+          onUploadProgress: (progressEvent) => {
+            if (progressEvent.total) {
+              const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+              console.log(`📊 [UPLOAD-PROGRESS] ${uploadData.lessonTitle}: ${percentCompleted}%`);
+            }
           }
         }
       );
