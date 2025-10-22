@@ -396,7 +396,7 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
         {!selectedFile && (
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
             <Upload className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-            <Label htmlFor="video-upload" className="cursor-pointer">
+            <Label htmlFor="video-upload" className="cursor-pointer block">
               <span className="text-lg font-medium text-gray-700">
                 Clique para selecionar um vídeo
               </span>
@@ -404,15 +404,17 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
               <span className="text-sm text-gray-500">
                 ou arraste e solte aqui
               </span>
+              <Input
+                ref={fileInputRef}
+                id="video-upload"
+                name="video-upload"
+                type="file"
+                accept="video/*"
+                onChange={handleFileSelect}
+                className="hidden"
+                aria-label="Selecionar arquivo de vídeo"
+              />
             </Label>
-            <Input
-              ref={fileInputRef}
-              id="video-upload"
-              type="file"
-              accept="video/*"
-              onChange={handleFileSelect}
-              className="hidden"
-            />
           </div>
         )}
 

@@ -14,6 +14,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { useTrainingCourses } from '@/hooks/use-training-courses';
 import { CreateTrainingCourseDto, CreateTrainingLessonDto } from '@/types/training';
 import { trainingService } from '@/services/training-service';
+import { uploadVideosInParallel, ParallelUploadOptions } from '@/services/parallel-upload-service';
 
 // ✅ Tipo temporário para estado local (com Base64)
 interface LessonWithBase64 extends CreateTrainingLessonDto {
@@ -57,6 +58,14 @@ const CriarTreinamentoPage = () => {
   const [showPreview, setShowPreview] = useState(true);
   const [isCreatingCourse, setIsCreatingCourse] = useState(false);
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
+  
+  // ✅ Estados para upload paralelo
+  const [uploadProgress, setUploadProgress] = useState({
+    completed: 0,
+    total: 0,
+    currentUpload: '',
+    isUploading: false
+  });
 
   // ✅ FUNÇÃO PARA CONVERTER ARQUIVO PARA BASE64
   const convertFileToBase64 = (file: File): Promise<string> => {
@@ -218,34 +227,65 @@ const CriarTreinamentoPage = () => {
     setIsCreatingCourse(true);
 
     try {
-      // ✅ PASSO 1: FAZER UPLOAD DE TODOS OS VÍDEOS PRIMEIRO
-      console.log('📤 [CRIAR-CURSO] Passo 1: Upload de vídeos');
+      // ✅ PASSO 1: UPLOAD PARALELO DE VÍDEOS COM CONTROLE DE CONCORRÊNCIA
+      console.log('📤 [CRIAR-CURSO] Passo 1: Upload paralelo de vídeos');
       const lessonsWithUrls: CreateTrainingLessonDto[] = [];
       
-      for (let i = 0; i < lessons.length; i++) {
-        const lesson = lessons[i];
-        console.log(`\n🎬 [CRIAR-CURSO] === UPLOAD AULA ${i + 1}/${lessons.length} ===`);
-        console.log(`   📝 Título: ${lesson.title}`);
-        
-        // Verificar se tem vídeo para fazer upload
-        if (lesson.videoBase64Data) {
-          console.log(`   ✅ Vídeo detectado - Fazendo upload...`);
-          
-          try {
-            const uploadResult = await trainingService.uploadVideo({
-              courseTitle: formData.title,
-              lessonTitle: lesson.title,
-              fileName: lesson.videoFileName || `${lesson.title}.mp4`,
-              mimeType: lesson.videoMimeType || 'video/mp4',
-              fileSize: lesson.videoFileSize || 0,
-              base64Data: lesson.videoBase64Data || ''
-            });
+      // Preparar dados de upload
+      const uploadTasks = lessons
+        .filter(lesson => lesson.videoBase64Data) // Apenas aulas com vídeo
+        .map((lesson, index) => ({
+          index,
+          data: {
+            courseTitle: formData.title,
+            lessonTitle: lesson.title,
+            fileName: lesson.videoFileName || `${lesson.title}.mp4`,
+            mimeType: lesson.videoMimeType || 'video/mp4',
+            fileSize: lesson.videoFileSize || 0,
+            base64Data: lesson.videoBase64Data || ''
+          }
+        }));
 
-            if (uploadResult.success) {
-              console.log(`   ✅ Upload concluído!`);
-              console.log(`   📹 URL: ${uploadResult.videoUrl}`);
+      if (uploadTasks.length > 0) {
+        console.log(`🚀 [CRIAR-CURSO] Iniciando ${uploadTasks.length} uploads paralelos`);
+        
+        // Configurar opções de upload paralelo
+        const uploadOptions: ParallelUploadOptions = {
+          maxConcurrentUploads: 2, // Máximo 2 uploads simultâneos
+          onProgress: (completed, total, currentUpload) => {
+            setUploadProgress({
+              completed,
+              total,
+              currentUpload: currentUpload || '',
+              isUploading: true
+            });
+            console.log(`📊 [UPLOAD-PROGRESS] ${completed}/${total} - Atual: ${currentUpload}`);
+          },
+          onError: (error, uploadIndex) => {
+            console.error(`❌ [UPLOAD-ERROR] Erro no upload ${uploadIndex + 1}:`, error);
+          }
+        };
+
+        // Executar uploads paralelos
+        const uploadResults = await uploadVideosInParallel(uploadTasks, uploadOptions);
+        
+        // Mapear resultados de volta para as aulas
+        const uploadResultsMap = new Map();
+        uploadResults.forEach((result, index) => {
+          const task = uploadTasks[index];
+          uploadResultsMap.set(task.data.lessonTitle, result);
+        });
+
+        // Processar todas as aulas (com e sem vídeo)
+        for (let i = 0; i < lessons.length; i++) {
+          const lesson = lessons[i];
+          
+          if (lesson.videoBase64Data) {
+            const uploadResult = uploadResultsMap.get(lesson.title);
+            
+            if (uploadResult && uploadResult.success) {
+              console.log(`✅ [CRIAR-CURSO] Upload da aula "${lesson.title}" concluído`);
               
-              // Adicionar aula com URLs do vídeo
               lessonsWithUrls.push({
                 title: lesson.title,
                 description: lesson.description,
@@ -259,14 +299,24 @@ const CriarTreinamentoPage = () => {
                 isActive: true
               });
             } else {
-              throw new Error(uploadResult.errorMessage || 'Erro no upload');
+              throw new Error(`Falha no upload do vídeo da aula "${lesson.title}"`);
             }
-          } catch (uploadError) {
-            console.error(`❌ [CRIAR-CURSO] Erro no upload da aula ${lesson.title}:`, uploadError);
-            throw new Error(`Falha no upload do vídeo da aula "${lesson.title}"`);
+          } else {
+            console.log(`⚠️ [CRIAR-CURSO] Aula "${lesson.title}" sem vídeo - adicionando sem URL`);
+            lessonsWithUrls.push({
+              title: lesson.title,
+              description: lesson.description,
+              orderIndex: lesson.orderIndex,
+              videoUrl: '',
+              videoObjectName: '',
+              isActive: true
+            });
           }
-        } else {
-          console.log(`   ⚠️ Aula sem vídeo - adicionando sem URL`);
+        }
+      } else {
+        console.log(`⚠️ [CRIAR-CURSO] Nenhum vídeo para upload - apenas aulas sem vídeo`);
+        // Processar apenas aulas sem vídeo
+        lessons.forEach(lesson => {
           lessonsWithUrls.push({
             title: lesson.title,
             description: lesson.description,
@@ -275,10 +325,18 @@ const CriarTreinamentoPage = () => {
             videoObjectName: '',
             isActive: true
           });
-        }
+        });
       }
 
       console.log(`\n✅ [CRIAR-CURSO] Todos os vídeos foram enviados (${lessonsWithUrls.length}/${lessons.length})`);
+      
+      // Resetar progresso de upload
+      setUploadProgress({
+        completed: 0,
+        total: 0,
+        currentUpload: '',
+        isUploading: false
+      });
       
       // ✅ PASSO 2: CRIAR CURSO COM AS URLs DOS VÍDEOS
       console.log('💾 [CRIAR-CURSO] Passo 2: Criando curso no banco');
@@ -830,15 +888,42 @@ const CriarTreinamentoPage = () => {
               <ChevronLeft className="h-4 w-4 mr-2" />
               Voltar para Aulas
             </Button>
+            {/* ✅ Progresso de Upload Paralelo */}
+            {uploadProgress.isUploading && (
+              <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-sm font-medium text-blue-900">
+                    Upload de Vídeos em Andamento
+                  </h4>
+                  <span className="text-sm text-blue-700">
+                    {uploadProgress.completed}/{uploadProgress.total}
+                  </span>
+                </div>
+                <div className="w-full bg-blue-200 rounded-full h-2 mb-2">
+                  <div 
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                    style={{ 
+                      width: `${uploadProgress.total > 0 ? (uploadProgress.completed / uploadProgress.total) * 100 : 0}%` 
+                    }}
+                  />
+                </div>
+                {uploadProgress.currentUpload && (
+                  <p className="text-xs text-blue-600">
+                    Enviando: {uploadProgress.currentUpload}
+                  </p>
+                )}
+              </div>
+            )}
+
             <Button
               onClick={handleCreateCourse} 
-              disabled={isCreatingCourse}
+              disabled={isCreatingCourse || uploadProgress.isUploading}
               className="bg-green-600 hover:bg-green-700"
             >
               {isCreatingCourse ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Criando Curso... (Pode levar alguns minutos)
+                  {uploadProgress.isUploading ? 'Enviando Vídeos...' : 'Criando Curso... (Pode levar alguns minutos)'}
                 </>
               ) : (
                 <>
