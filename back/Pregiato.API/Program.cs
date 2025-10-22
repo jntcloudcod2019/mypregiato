@@ -53,7 +53,6 @@ builder.Services.AddControllers(options =>
 builder.Services.AddSignalR(options =>
 {
     options.EnableDetailedErrors = true;
-    options.
 
 });
 
