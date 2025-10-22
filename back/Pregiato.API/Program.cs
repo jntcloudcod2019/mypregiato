@@ -67,7 +67,8 @@ builder.Services.AddCors(options =>
               )
               .AllowAnyMethod()
               .AllowAnyHeader()
-              .AllowCredentials();
+              .AllowCredentials()
+              .SetIsOriginAllowedToAllowWildcardSubdomains();
     });
 });
 
@@ -111,7 +112,7 @@ builder.Services.AddScoped<RuntimePregiatoDbContextFactory>(provider =>
 
  builder.WebHost.ConfigureKestrel(serverOptions =>
 {
-   serverOptions.Limits.MaxRequestBodySize = 314572800L; // 100 MB, por exemp
+   serverOptions.Limits.MaxRequestBodySize = 2147483648L; // 100 MB, por exemp
 });
 
 // HttpClient
