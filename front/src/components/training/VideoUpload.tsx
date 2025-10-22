@@ -140,12 +140,33 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
       const chunk = file.slice(start, end);
       
       // Converter chunk para base64
-      const base64Chunk = await new Promise<string>((resolve) => {
+      const base64Chunk = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => {
-          const result = reader.result as string;
-          resolve(result.split(',')[1]); // Remove data:video/mp4;base64,
+          const result = reader.result;
+          if (!result || typeof result !== 'string') {
+            reject(new Error(`Resultado inválido no chunk ${i + 1}`));
+            return;
+          }
+          
+          if (!result.includes(',')) {
+            reject(new Error(`Formato Base64 inválido no chunk ${i + 1}`));
+            return;
+          }
+          
+          const base64 = result.split(',')[1];
+          if (!base64) {
+            reject(new Error(`Base64 vazio no chunk ${i + 1}`));
+            return;
+          }
+          
+          resolve(base64);
         };
+        
+        reader.onerror = () => {
+          reject(new Error(`Erro ao ler chunk ${i + 1}: ${reader.error?.message}`));
+        };
+        
         reader.readAsDataURL(chunk);
       });
       
@@ -182,12 +203,35 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
   // ✅ UPLOAD DIRETO REFATORADO: Usar novo endpoint
   const uploadDirect = useCallback(async (file: File): Promise<VideoUploadResultDto> => {
     // Converter arquivo para base64
-    const base64Data = await new Promise<string>((resolve) => {
+    const base64Data = await new Promise<string>((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => {
-        const result = reader.result as string;
-        resolve(result.split(',')[1]); // Remove data:video/mp4;base64,
+        const result = reader.result;
+        if (!result || typeof result !== 'string') {
+          reject(new Error('Resultado do FileReader inválido'));
+          return;
+        }
+        
+        // Verificar se tem o prefixo data:
+        if (!result.includes(',')) {
+          reject(new Error('Formato Base64 inválido - sem vírgula separadora'));
+          return;
+        }
+        
+        const base64 = result.split(',')[1];
+        if (!base64 || base64.trim() === '') {
+          reject(new Error('Base64 vazio após conversão'));
+          return;
+        }
+        
+        console.log(`✅ [Upload] Base64 gerado: ${base64.length} caracteres`);
+        resolve(base64);
       };
+      
+      reader.onerror = () => {
+        reject(new Error('Erro ao ler arquivo: ' + reader.error?.message));
+      };
+      
       reader.readAsDataURL(file);
     });
     
