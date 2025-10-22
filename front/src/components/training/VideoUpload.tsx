@@ -105,7 +105,7 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
     }
 
     // Verificar se o arquivo é muito grande para o navegador
-    if (file.size > 1024 * 1024 * 1024) { // 1GB
+    if (file.size > 100 * 1024 * 1024) { // 100MB
       console.log(`⚠️ [File] Arquivo muito grande (${formatFileSize(file.size)}), forçando upload em chunks`);
     }
 
@@ -232,8 +232,8 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
   const uploadDirect = useCallback(async (file: File): Promise<VideoUploadResultDto> => {
     console.log(`🎬 [Upload] Iniciando upload direto: ${formatFileSize(file.size)}`);
     
-    // Para arquivos muito grandes (> 500MB), forçar upload em chunks
-    if (file.size > 500 * 1024 * 1024) {
+    // Para arquivos muito grandes (> 100MB), forçar upload em chunks
+    if (file.size > 100 * 1024 * 1024) {
       console.log(`⚠️ [Upload] Arquivo muito grande (${formatFileSize(file.size)}), usando upload em chunks`);
       return await uploadInChunks(file);
     }
@@ -246,7 +246,7 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
       const timeout = setTimeout(() => {
         reader.abort();
         reject(new Error('Timeout ao ler arquivo - arquivo muito grande'));
-      }, 60000); // 30 segundos
+      }, 30000); // 30 segundos
       
       reader.onload = () => {
         clearTimeout(timeout);
@@ -357,7 +357,7 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
   // Formatar tamanho de arquivo
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes';
-    const k = 3024;
+    const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
