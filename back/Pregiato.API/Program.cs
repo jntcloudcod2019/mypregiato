@@ -31,7 +31,7 @@ builder.Host.UseSerilog();
 // Add services to the container.
 builder.Services.AddControllers(options =>
 {
-    options.MaxModelBindingCollectionSize = 15;
+    options.MaxModelBindingCollectionSize = 128;
 })
 // ✅ CONFIGURAR JSON SERIALIZER PARA IGNORAR REFERÊNCIAS CIRCULARES
 .AddJsonOptions(options =>
@@ -47,16 +47,6 @@ builder.Services.AddControllers(options =>
     options.JsonSerializerOptions.MaxDepth = 64; // Aumentar profundidade máxima
     options.JsonSerializerOptions.AllowTrailingCommas = true; // Permitir vírgulas finais
     options.JsonSerializerOptions.ReadCommentHandling = System.Text.Json.JsonCommentHandling.Skip; // Pular comentários
-})
-// ✅ CONFIGURAR INPUT FORMATTER PARA DADOS GRANDES
-.Configure<Microsoft.AspNetCore.Mvc.MvcOptions>(options =>
-{
-    // Configurar SystemTextJsonInputFormatter para dados grandes
-    var jsonInputFormatter = options.InputFormatters.OfType<Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonInputFormatter>().FirstOrDefault();
-    if (jsonInputFormatter != null)
-    {
-        jsonInputFormatter.SupportedMediaTypes.Add("application/json");
-    }
 });
 
 // SignalR
