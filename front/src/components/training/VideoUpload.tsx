@@ -215,12 +215,10 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
     onUploadStart?.();
     
     try {
-      let result: VideoUploadResultDto;
-      
       // ✅ DECISÃO SIMPLIFICADA: Usar upload direto para todos os arquivos
       // O novo endpoint UploadVideo já lida com arquivos grandes internamente
       console.log(`🔄 [Upload] Usando upload direto (arquivo: ${formatFileSize(selectedFile.size)})`);
-      result = await uploadDirect(selectedFile);
+      const result = await uploadDirect(selectedFile);
       
       if (result.success) {
         toast({
