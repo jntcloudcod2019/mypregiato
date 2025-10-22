@@ -39,37 +39,54 @@ public class TrainingCertificatesController : ControllerBase
     {
         try
         {
+            Console.WriteLine($"[CONTROLLER] 🎓 Iniciando geração de certificado via API");
+            Console.WriteLine($"[CONTROLLER] 📧 Email recebido: {request.UserEmail}");
+            Console.WriteLine($"[CONTROLLER] 🆔 Course ID: {request.CourseId}");
+            Console.WriteLine($"[CONTROLLER] 📅 Data de conclusão: {request.CompletionDate:dd/MM/yyyy}");
+            
             // Decodificar o email da URL
             var decodedEmail = Uri.UnescapeDataString(request.UserEmail);
+            Console.WriteLine($"[CONTROLLER] 📧 Email decodificado: {decodedEmail}");
+            
             _logger.LogInformation("Gerando certificado para email: {Email} e curso ID: {CourseId}", 
                 decodedEmail, request.CourseId);
 
+            Console.WriteLine($"[CONTROLLER] 🔍 Buscando usuário no banco de dados...");
             // Buscar dados do usuário
             var user = await _context.Users
                 .FirstOrDefaultAsync(u => u.Email.ToLower() == decodedEmail.ToLower());
 
             if (user == null)
             {
+                Console.WriteLine($"[CONTROLLER] ❌ Usuário não encontrado: {decodedEmail}");
                 _logger.LogWarning("Usuário com email {Email} não encontrado", decodedEmail);
                 return NotFound(new { message = $"Usuário com email {decodedEmail} não encontrado" });
             }
 
+            Console.WriteLine($"[CONTROLLER] ✅ Usuário encontrado: {user.FirstName} {user.LastName} (ID: {user.Id})");
+
+            Console.WriteLine($"[CONTROLLER] 🔍 Buscando curso no banco de dados...");
             // Buscar dados do curso
             var course = await _context.TrainingCourses
                 .FirstOrDefaultAsync(c => c.Id == request.CourseId);
 
             if (course == null)
             {
+                Console.WriteLine($"[CONTROLLER] ❌ Curso não encontrado: {request.CourseId}");
                 _logger.LogWarning("Curso com ID {CourseId} não encontrado", request.CourseId);
                 return NotFound(new { message = $"Curso com ID {request.CourseId} não encontrado" });
             }
 
+            Console.WriteLine($"[CONTROLLER] ✅ Curso encontrado: {course.Title}");
+
             // Montar nome completo do usuário
             var userFullName = $"{user.FirstName} {user.LastName}".Trim();
+            Console.WriteLine($"[CONTROLLER] 👤 Nome completo: {userFullName}");
             
             _logger.LogInformation("Usuário encontrado: {UserFullName} (ID: {UserId}) - Curso: {CourseName}", 
                 userFullName, user.Id, course.Title);
 
+            Console.WriteLine($"[CONTROLLER] 🚀 Chamando serviço de geração de certificado...");
             // Gerar certificado com os dados do usuário e curso
             var result = await _certificateService.GenerateCertificateAsync(
                 user.Id, 
@@ -77,17 +94,27 @@ public class TrainingCertificatesController : ControllerBase
                 course.Title, 
                 request.CompletionDate);
 
+            Console.WriteLine($"[CONTROLLER] ✅ Certificado gerado com sucesso!");
+            Console.WriteLine($"[CONTROLLER] 📄 Tamanho do PDF: {result.pdfBytes.Length} bytes");
+            Console.WriteLine($"[CONTROLLER] 🆔 Número do certificado: {result.certificate.CertificateNumber}");
+
             // Retornar PDF como arquivo para download
             var fileName = $"Certificado_{result.certificate.CertificateNumber}_{userFullName.Replace(" ", "_")}.pdf";
+            Console.WriteLine($"[CONTROLLER] 📁 Nome do arquivo: {fileName}");
+            Console.WriteLine($"[CONTROLLER] 🎉 Retornando PDF para download...");
+            
             return File(result.pdfBytes, "application/pdf", fileName);
         }
         catch (ArgumentException ex)
         {
+            Console.WriteLine($"[CONTROLLER] ❌ Erro de validação: {ex.Message}");
             _logger.LogWarning(ex, "Erro de validação ao gerar certificado");
             return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
+            Console.WriteLine($"[CONTROLLER] ❌ Erro interno: {ex.Message}");
+            Console.WriteLine($"[CONTROLLER] 📋 Stack trace: {ex.StackTrace}");
             _logger.LogError(ex, "Erro interno ao gerar certificado");
             return StatusCode(500, new { message = "Erro interno do servidor" });
         }
