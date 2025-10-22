@@ -41,7 +41,6 @@ const LoginPage: React.FC = () => {
           console.log("⚠️ [Login] ClerkId vazio detectado, atualizando...");
           try {
             await userManagementService.updateUser(dbUser.id, {
-              ...dbUser,
               clerkId: user.id
             });
             console.log("✅ [Login] ClerkId atualizado com sucesso:", user.id);
@@ -89,10 +88,7 @@ const LoginPage: React.FC = () => {
       sessionStorage.setItem('lastRoute', fromPath);
     }
     
-    console.log("🔐 [Login] fromPath:", fromPath);
-    console.log("🔐 [Login] return_to:", returnTo);
-    console.log("🔐 [Login] lastRoute:", lastRoute);
-    console.log("🔐 [Login] redirectTo final:", redirectTo);
+
   }, [fromPath, returnTo, lastRoute, redirectTo]);
 
   return (
