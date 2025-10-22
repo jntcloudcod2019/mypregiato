@@ -14,6 +14,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { useTrainingCourses } from '@/hooks/use-training-courses';
 import { CreateTrainingCourseDto, CreateTrainingLessonDto } from '@/types/training';
 import { trainingService } from '@/services/training-service';
+import ProgressBar from 'react-bootstrap/ProgressBar';
+import 'bootstrap/dist/css/bootstrap.min.css';
 // ✅ REMOVIDO: Upload paralelo substituído por processamento sequencial
 
 // ✅ Tipo temporário para estado local (com Base64)
@@ -939,75 +941,72 @@ const CriarTreinamentoPage = () => {
                 <div className="space-y-3">
                   {lessons.map((lesson, index) => {
                     const progress = videoProgress.get(lesson.title);
+                    const progressValue = progress?.progress || 0;
+                    const progressStatus = progress?.status || 'pending';
+                    
                     return (
-                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
                         <div className="flex items-center space-x-3 flex-1">
-                        <Badge variant="outline">{lesson.orderIndex}</Badge>
+                          <Badge variant="outline">{lesson.orderIndex}</Badge>
                           <div className="flex-1">
-                          <h4 className="font-medium">{lesson.title}</h4>
-                          {lesson.description && (
-                            <p className="text-sm text-muted-foreground">{lesson.description}</p>
-                          )}
-                          <div className="flex items-center gap-4 mt-1">
-                            <span className="text-xs text-muted-foreground">
-                                Duração: {lesson.durationMinutes ? `${lesson.durationMinutes}min` : 'Não definida'}
-                            </span>
-                              {lesson.videoBase64Data? (
-                              <span className="text-xs text-green-600 font-medium">✓ Vídeo pronto</span>
-                            ) : (
-                              <span className="text-xs text-orange-600 font-medium">⚠ Vídeo pendente</span>
+                            <h4 className="font-medium">{lesson.title}</h4>
+                            {lesson.description && (
+                              <p className="text-sm text-muted-foreground">{lesson.description}</p>
                             )}
-                          </div>
+                            <div className="flex items-center gap-4 mt-1">
+                              <span className="text-xs text-muted-foreground">
+                                Duração: {lesson.durationMinutes ? `${lesson.durationMinutes}min` : 'Não definida'}
+                              </span>
+                              {lesson.videoBase64Data? (
+                                <span className="text-xs text-green-600 font-medium">✓ Vídeo pronto</span>
+                              ) : (
+                                <span className="text-xs text-orange-600 font-medium">⚠ Vídeo pendente</span>
+                              )}
+                            </div>
                             
-                            {/* ✅ BARRA DE PROGRESSO INDIVIDUAL */}
-                            {progress && (
-                              <div className="mt-3">
-                                <div className="flex items-center justify-between mb-1">
+                            {/* ✅ BARRA DE PROGRESSO BOOTSTRAP INDIVIDUAL */}
+                            <div className="mt-3">
+                              <ProgressBar 
+                                now={progressValue} 
+                                label={`${progressValue}%`}
+                                variant={
+                                  progressStatus === 'completed' ? 'success' :
+                                  progressStatus === 'error' ? 'danger' :
+                                  progressStatus === 'uploading' ? 'info' :
+                                  'secondary'
+                                }
+                                style={{ height: '8px' }}
+                              />
+                              {progress && (
+                                <div className="mt-1">
                                   <span className="text-xs font-medium text-blue-600">
                                     {progress.message}
                                   </span>
-                                  <span className="text-xs text-muted-foreground">
-                                    {progress.progress}%
-                                  </span>
-                                </div>
-                                <div className="w-full bg-gray-200 rounded-full h-2">
-                                  <div 
-                                    className={`h-2 rounded-full transition-all duration-300 ${
-                                      progress.status === 'completed' ? 'bg-green-500' :
-                                      progress.status === 'error' ? 'bg-red-500' :
-                                      'bg-blue-500'
-                                    }`}
-                                    style={{ width: `${progress.progress}%` }}
-                                  />
-                                </div>
-                                {progress.status === 'completed' && (
-                                  <div className="flex items-center mt-1">
-                                    <span className="text-xs text-green-600 font-medium">
+                                  {progressStatus === 'completed' && (
+                                    <span className="text-xs text-green-600 font-medium ml-2">
                                       ✅ Video Enviado
                                     </span>
-                                  </div>
-                                )}
-                                {progress.status === 'error' && (
-                                  <div className="flex items-center mt-1">
-                                    <span className="text-xs text-red-600 font-medium">
+                                  )}
+                                  {progressStatus === 'error' && (
+                                    <span className="text-xs text-red-600 font-medium ml-2">
                                       ❌ Erro no upload
                                     </span>
-                                  </div>
-                                )}
-                              </div>
-                            )}
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => removeLesson(index)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                      <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => removeLesson(index)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                      </div>
-                    </div>
                     );
                   })}
                 </div>
