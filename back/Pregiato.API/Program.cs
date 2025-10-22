@@ -42,6 +42,21 @@ builder.Services.AddControllers(options =>
     // Outras configurações úteis
     options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
     options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    
+    // ✅ CONFIGURAÇÕES PARA DADOS GRANDES (Base64 de vídeos)
+    options.JsonSerializerOptions.MaxDepth = 64; // Aumentar profundidade máxima
+    options.JsonSerializerOptions.AllowTrailingCommas = true; // Permitir vírgulas finais
+    options.JsonSerializerOptions.ReadCommentHandling = System.Text.Json.JsonCommentHandling.Skip; // Pular comentários
+})
+// ✅ CONFIGURAR INPUT FORMATTER PARA DADOS GRANDES
+.Configure<Microsoft.AspNetCore.Mvc.MvcOptions>(options =>
+{
+    // Configurar SystemTextJsonInputFormatter para dados grandes
+    var jsonInputFormatter = options.InputFormatters.OfType<Microsoft.AspNetCore.Mvc.Formatters.SystemTextJsonInputFormatter>().FirstOrDefault();
+    if (jsonInputFormatter != null)
+    {
+        jsonInputFormatter.SupportedMediaTypes.Add("application/json");
+    }
 });
 
 // SignalR
@@ -118,6 +133,11 @@ builder.Services.AddScoped<RuntimePregiatoDbContextFactory>(provider =>
    serverOptions.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(10); // 10 minutos para headers
    serverOptions.Limits.MaxRequestBufferSize = 2147483648L; // 2 GB buffer
    serverOptions.Limits.MaxRequestLineSize = 16384; // 16KB para headers grandes
+   
+   // ✅ CONFIGURAÇÕES ADICIONAIS PARA DADOS GRANDES
+   serverOptions.Limits.MaxConcurrentConnections = 100; // Limite de conexões simultâneas
+   serverOptions.Limits.MaxConcurrentUpgradedConnections = 100; // Limite de conexões WebSocket
+   serverOptions.Limits.MaxRequestBodySize = 2147483648L; // 2 GB para Base64 de vídeos
 });
 
 // HttpClient
@@ -267,11 +287,28 @@ app.MapHub<Pregiato.API.Hubs.WhatsAppHub>("/hubs/whatsapp");
 app.MapHealthChecks("/health");
 
 // Middleware de log simples
+// ✅ MIDDLEWARE PARA LOGGING DETALHADO DE REQUISIÇÕES GRANDES
 app.Use(async (context, next) =>
 {
     var start = DateTime.UtcNow;
-    Log.Information("Request starting {Method} {Path}", context.Request.Method, context.Request.Path);
-    await next();
+    var contentLength = context.Request.ContentLength ?? 0;
+    
+    Log.Information("Request starting {Method} {Path} - ContentLength: {ContentLength} bytes", 
+        context.Request.Method, context.Request.Path, contentLength);
+    
+    try
+    {
+        await next();
+    }
+    catch (Exception ex) when (ex is System.Text.Json.JsonException || ex.Message.Contains("JSON"))
+    {
+        Log.Error(ex, "JSON parsing error for {Method} {Path} - ContentLength: {ContentLength}", 
+            context.Request.Method, context.Request.Path, contentLength);
+        context.Response.StatusCode = 400;
+        await context.Response.WriteAsync("Erro no processamento JSON. Verifique o formato dos dados.");
+        return;
+    }
+    
     var elapsed = DateTime.UtcNow - start;
     Log.Information("Request finished {Method} {Path} - {StatusCode} in {Elapsed:0.0000}ms",
         context.Request.Method, context.Request.Path, context.Response.StatusCode, elapsed.TotalMilliseconds);

@@ -154,7 +154,7 @@ export function CompositeTemplates({ talent, photos }: CompositeTemplatesProps) 
 
               .composite-container {
                   width: 100%;
-                  max-width: 800px;
+                  max-width: 900px;
                   background-color: #000000; /* Fundo preto */
                   color: #ffffff;
                   display: flex;
@@ -174,9 +174,9 @@ export function CompositeTemplates({ talent, photos }: CompositeTemplatesProps) 
               }
 
               .logo-header {
-                  width: 200px;
-                  height: 60px;
-                  background-image: url('data:image/svg+xml;base64,${getLogoBase64()}');
+                  width: 250px;
+                  height: 80px;
+                  background-image: url('data:image/png;base64,${getLogoPngBase64()}');
                   background-size: contain;
                   background-repeat: no-repeat;
                   background-position: center;
@@ -198,7 +198,7 @@ export function CompositeTemplates({ talent, photos }: CompositeTemplatesProps) 
                   grid-template-rows: 1fr 1fr;
                   gap: 20px;
                   width: 100%;
-                  max-width: 500px;
+                  max-width: 700px;
               }
 
               .photo-container {
@@ -311,7 +311,16 @@ export function CompositeTemplates({ talent, photos }: CompositeTemplatesProps) 
     `
   }
 
-  // Função para obter o logo em base64
+  // Função para obter o logo PNG em base64
+  const getLogoPngBase64 = () => {
+    // Logo PNG do Pregiato em base64 (branco)
+    // Este é um placeholder - em produção, você deve carregar o arquivo PNG real
+    const logoPng = `iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==`
+    
+    return logoPng
+  }
+
+  // Função para obter o logo SVG em base64 (mantida para compatibilidade)
   const getLogoBase64 = () => {
     // Logo SVG do Pregiato em base64
     const logoSvg = `<?xml version="1.0" encoding="UTF-8"?>
@@ -363,12 +372,8 @@ export function CompositeTemplates({ talent, photos }: CompositeTemplatesProps) 
             >
               <X className="h-4 w-4" />
             </Button>
-            <div className="mb-4 text-center">
-              <h3 className="text-lg font-semibold">Preview do Composite</h3>
-              <p className="text-sm text-muted-foreground">Clique no X para fechar</p>
-            </div>
             <div 
-              className="w-[800px] h-[1000px] bg-black text-white border border-gray-600 rounded-lg overflow-hidden"
+              className="w-[900px] h-[1100px] bg-black text-white border border-gray-600 rounded-lg overflow-hidden"
               dangerouslySetInnerHTML={{ __html: getCompositeHTML() }}
             />
           </div>
