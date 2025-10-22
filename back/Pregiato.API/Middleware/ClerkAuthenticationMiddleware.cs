@@ -29,6 +29,13 @@ namespace Pregiato.API.Middleware
 
         public async Task InvokeAsync(HttpContext context)
         {
+            // ✅ Liberar imediatamente requisições de preflight CORS
+            if (HttpMethods.IsOptions(context.Request.Method))
+            {
+                context.Response.StatusCode = StatusCodes.Status204NoContent;
+                return;
+            }
+
             try
             {
                 var token = ExtractTokenFromHeader(context.Request);
