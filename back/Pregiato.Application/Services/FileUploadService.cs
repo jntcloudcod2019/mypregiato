@@ -9,12 +9,17 @@ namespace Pregiato.Application.Services
     public class FileUploadService : IFileUploadService
     {
         private readonly IFileUploadRepository _fileUploadRepository;
+        private readonly IMediaStoragePort _mediaStorage;
         private readonly IMapper _mapper;
 
 
-        public FileUploadService(IFileUploadRepository fileUploadRepository, IMapper mapper)
+        public FileUploadService(
+            IFileUploadRepository fileUploadRepository, 
+            IMediaStoragePort mediaStorage,
+            IMapper mapper)
         {
             _fileUploadRepository = fileUploadRepository;
+            _mediaStorage = mediaStorage;
             _mapper = mapper;
         }
 
@@ -32,11 +37,39 @@ namespace Pregiato.Application.Services
 
         public async Task<FileUploadDto> CreateAsync(CreateFileUploadDto createDto)
         {
-            var fileUpload = _mapper.Map<FileUpload>(createDto);
-            fileUpload.Id = Guid.NewGuid();
-            fileUpload.UploadedAt = DateTime.UtcNow;
+            Console.WriteLine($"📤 [FILE-UPLOAD-SERVICE] Iniciando upload: {createDto.FileName}");
+            
+            // ✅ Fazer upload do Base64 para MinIO
+            var mediaResult = await _mediaStorage.StoreMediaAsync(
+                createDto.Base64Data,
+                createDto.ContentType,
+                createDto.TalentId?.ToString() ?? "general",
+                createDto.FileName
+            );
+            
+            Console.WriteLine($"✅ [FILE-UPLOAD-SERVICE] Upload para MinIO concluído: {mediaResult.MediaUrl}");
+            
+            // Criar entity com FilePath do MinIO
+            var fileUpload = new FileUpload
+            {
+                Id = Guid.NewGuid(),
+                FileName = createDto.FileName,
+                FilePath = mediaResult.MediaUrl,
+                ContentType = createDto.ContentType,
+                FileSize = createDto.FileSize,
+                OriginalFileName = createDto.OriginalFileName,
+                Description = createDto.Description,
+                Tags = createDto.Tags,
+                TalentId = createDto.TalentId,
+                ContractId = createDto.ContractId,
+                UploadedAt = DateTime.UtcNow,
+                UploadedBy = createDto.UploadedBy
+            };
             
             var createdFileUpload = await _fileUploadRepository.AddAsync(fileUpload);
+            
+            Console.WriteLine($"✅ [FILE-UPLOAD-SERVICE] Registro criado no banco: {createdFileUpload.Id}");
+            
             return _mapper.Map<FileUploadDto>(createdFileUpload);
         }
 

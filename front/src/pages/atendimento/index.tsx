@@ -163,6 +163,7 @@ import { chatsApi, ChatListItem } from '@/services/chat-service';
 import axios from 'axios';
 import { HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
 import { useChatStore } from '@/store/chat-store';
+import { qrCodeQueueService } from '@/services/qr-code-queue-service';
 import { BotStatusCard } from '@/components/whatsapp/bot-status-card';
 import { OperatorStatusCard } from '@/components/whatsapp/operator-status-card';
 import { Minus, X, Check, UserPlus, PhoneCall, Phone, Clock3, MoreVertical, Trash2, Mic, Square, Paperclip, CheckCheck } from 'lucide-react';
@@ -1304,10 +1305,17 @@ export default function AtendimentoPage() {
     }
 
     return () => {
+      console.log('🧹 [ATENDIMENTO] Limpando conexões SignalR...');
       processedInboundIdsRef.current.clear();
       lastMessageKeyByChatRef.current = {};
       connRef.current?.stop().catch(() => {});
       connRef.current = null;
+      
+      // ✅ Parar o qrCodeQueueService ao sair da página
+      qrCodeQueueService.stopQRCodeConsumer().catch((error) => {
+        console.error('❌ Erro ao parar qrCodeQueueService:', error);
+      });
+      console.log('✅ [ATENDIMENTO] Conexões SignalR encerradas');
     };
   }, [queueChatPatch, refreshChats, setLastReadAt, setTyping, chats, currentOperator?.email, isPhoneAuthorized]);
 

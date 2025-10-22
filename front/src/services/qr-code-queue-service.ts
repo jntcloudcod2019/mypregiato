@@ -170,21 +170,32 @@ class QRCodeQueueService {
   async stopQRCodeConsumer() {
     if (this.connection) {
       try {
+        console.log('🛑 [SIGNALR] Parando conexão WhatsApp Hub...');
+        
         // Remover handler específico
         if (this.qrUpdateHandler) {
           this.connection.off('qr.update', this.qrUpdateHandler);
           this.qrUpdateHandler = null;
         }
         
-        await this.connection.invoke('LeaveWhatsAppGroup');
+        // Sair do grupo antes de fechar conexão
+        try {
+          await this.connection.invoke('LeaveWhatsAppGroup');
+          console.log('🚪 [SIGNALR] Saiu do grupo WhatsApp');
+        } catch (e) {
+          // Ignorar erro se já desconectado
+        }
+        
+        // Parar conexão
         await this.connection.stop();
-        console.log('🛑 Conexão SignalR parada');
+        console.log('✅ [SIGNALR] Conexão WhatsApp Hub encerrada');
       } catch (error) {
-        console.error('Erro ao parar conexão SignalR:', error);
+        console.error('❌ [SIGNALR] Erro ao parar conexão:', error);
+      } finally {
+        this.connection = null;
+        this.isConnected = false;
       }
-      this.connection = null;
     }
-    this.isConnected = false;
   }
 
   // Limpar todos os handlers
