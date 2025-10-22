@@ -138,6 +138,7 @@ export interface CreateTrainingLessonDto {
   videoObjectName?: string;
   videoSize?: number;
   videoDurationSeconds?: number;
+  videoDurationMinutes?: number;
   videoMimeType?: string;
   attachmentsJson?: string;
   isActive?: boolean;
@@ -213,7 +214,10 @@ export interface TrainingVideoUploadDto {
   fileName: string;
   mimeType: string;
   fileSize: number;
-  base64Data: string;
+  base64Data?: string;
+  chunkIndex?: number;
+  totalChunks?: number;
+  durationSeconds?: number;
 }
 
 export interface VideoUploadResultDto {
