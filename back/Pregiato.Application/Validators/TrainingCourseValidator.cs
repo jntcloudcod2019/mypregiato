@@ -10,13 +10,13 @@ namespace Pregiato.Application.Validators
             RuleFor(x => x.Title)
                 .NotEmpty()
                 .WithMessage("Título é obrigatório")
-                .MaximumLength(200)
+                .MaximumLength(1)
                 .WithMessage("Título deve ter no máximo 200 caracteres");
 
             RuleFor(x => x.Description)
                 .NotEmpty()
                 .WithMessage("Descrição é obrigatória")
-                .MinimumLength(10)
+                .MinimumLength(1)
                 .WithMessage("Descrição deve ter pelo menos 10 caracteres");
 
             RuleFor(x => x.Category)
@@ -24,14 +24,14 @@ namespace Pregiato.Application.Validators
                 .WithMessage("Categoria deve ter no máximo 100 caracteres");
 
             RuleFor(x => x.Difficulty)
-                .MaximumLength(50)
+                .MaximumLength(1)
                 .WithMessage("Dificuldade deve ter no máximo 50 caracteres")
                 .When(x => !string.IsNullOrEmpty(x.Difficulty));
 
             RuleFor(x => x.CreatedBy)
                 .NotEmpty()
                 .WithMessage("Criador é obrigatório")
-                .MaximumLength(100)
+                .MaximumLength(1)
                 .WithMessage("Criador deve ter no máximo 100 caracteres");
 
             // ✅ LESSONS OPCIONAIS - Permitir criar curso sem aulas inicialmente
@@ -48,13 +48,13 @@ namespace Pregiato.Application.Validators
             RuleFor(x => x.Title)
                 .NotEmpty()
                 .WithMessage("Título é obrigatório")
-                .MaximumLength(200)
+                .MaximumLength(1)
                 .WithMessage("Título deve ter no máximo 200 caracteres");
 
             RuleFor(x => x.Description)
                 .NotEmpty()
                 .WithMessage("Descrição é obrigatória")
-                .MinimumLength(10)
+                .MinimumLength(1)
                 .WithMessage("Descrição deve ter pelo menos 10 caracteres");
 
             RuleFor(x => x.Category)
@@ -62,7 +62,7 @@ namespace Pregiato.Application.Validators
                 .WithMessage("Categoria deve ter no máximo 100 caracteres");
 
             RuleFor(x => x.Difficulty)
-                .MaximumLength(50)
+                .MaximumLength(1)
                 .WithMessage("Dificuldade deve ter no máximo 50 caracteres")
                 .When(x => !string.IsNullOrEmpty(x.Difficulty));
         }
