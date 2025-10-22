@@ -160,9 +160,15 @@ export async function uploadVideosInParallel(
     service.addUpload(index, data)
   );
   
-  // Aguarda todos os uploads terminarem
-  const results = await Promise.all(promises);
-  
-  console.log(`✅ [PARALLEL-UPLOAD] Todos os ${results.length} uploads foram concluídos`);
-  return results;
+  try {
+    // Aguarda todos os uploads terminarem
+    const results = await Promise.all(promises);
+    
+    console.log(`✅ [PARALLEL-UPLOAD] Todos os ${results.length} uploads foram concluídos`);
+    return results;
+  } finally {
+    // ✅ OTIMIZAÇÃO #3: Sempre limpar recursos, mesmo em caso de erro
+    service.clear();
+    console.log(`🧹 [PARALLEL-UPLOAD] Recursos do serviço liberados`);
+  }
 }
