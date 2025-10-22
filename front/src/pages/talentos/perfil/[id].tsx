@@ -765,7 +765,7 @@ export default function TalentProfile() {
                 <CardContent>
                   <CompositeTemplates 
                     talent={talent} 
-                    photos={talent.files?.filter(file => file.tags === 'PHOTO').map(file => file.filePath) || []} 
+                    photos={talentPhotos.map(photo => photo.filePath)} 
                   />
                 </CardContent>
               </Card>
