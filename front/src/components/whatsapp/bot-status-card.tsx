@@ -31,8 +31,15 @@ export const BotStatusCard = () => {
     isFullyValidated,
     connect,
     disconnect,
-    generateQR
+    generateQR,
+    enableSignalR
   } = useWhatsAppConnection();
+
+  // ✅ ATIVAR SignalR quando o componente montar
+  useEffect(() => {
+    console.log('🔌 [BotStatusCard] Ativando SignalR para página de atendimento');
+    enableSignalR();
+  }, [enableSignalR]);
 
   // Buscar dados do usuário para verificar role
   useEffect(() => {
