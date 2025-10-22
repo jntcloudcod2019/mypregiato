@@ -5,6 +5,15 @@ export interface CreateUserRequest {
   role: 'ADMIN' | 'MODEL' | 'PRODUCER' | 'OPERATOR';
 }
 
+export interface UpdateUserRequest {
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  role?: 'ADMIN' | 'MODEL' | 'PRODUCER' | 'OPERATOR';
+  clerkId?: string;
+  imageUrl?: string;
+}
+
 export interface UserResponse {
   id: string;
   clerkId: string;
@@ -191,9 +200,9 @@ export class UserManagementService {
   /**
    * Atualizar usuário
    */
-  async updateUser(id: string, data: Partial<CreateUserRequest>): Promise<UserResponse> {
+  async updateUser(id: string, data: UpdateUserRequest): Promise<UserResponse> {
     try {
-      const url = `${this.API_BASE_URL}/api/users/${id}`;
+      const url = `${this.API_BASE_URL}/api/users/update-user/${id}`;
       
       const response = await fetch(url, {
         method: 'PUT',

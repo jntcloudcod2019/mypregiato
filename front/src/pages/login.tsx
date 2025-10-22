@@ -23,17 +23,37 @@ const LoginPage: React.FC = () => {
   // ✅ Verificar role do usuário e definir redirecionamento
   useEffect(() => {
     const checkUserRoleAndRedirect = async () => {
-      if (!user?.primaryEmailAddress?.emailAddress) {
+      if (!user?.primaryEmailAddress?.emailAddress || !user?.id) {
         setIsCheckingUser(false);
         return;
       }
 
       try {
         console.log("🔐 [Login] Buscando dados do usuário:", user.primaryEmailAddress.emailAddress);
+        console.log("🆔 [Login] Clerk User ID:", user.id);
         
         // Buscar dados do usuário no banco
         const dbUser = await userManagementService.getUserByEmail(user.primaryEmailAddress.emailAddress);
-        console.log("👤 [Login] Usuário encontrado:", dbUser);
+        console.log("👤 [Login] Usuário encontrado no banco:", dbUser);
+        
+        // ✅ FALLBACK: Se ClerkId estiver vazio, atualizar automaticamente
+        if (!dbUser.clerkId || dbUser.clerkId.trim() === '') {
+          console.log("⚠️ [Login] ClerkId vazio detectado, atualizando...");
+          try {
+            await userManagementService.updateUser(dbUser.id, {
+              clerkId: user.id
+            });
+            console.log("✅ [Login] ClerkId atualizado com sucesso:", user.id);
+            
+            // Atualizar o objeto dbUser localmente
+            dbUser.clerkId = user.id;
+          } catch (updateError) {
+            console.error("❌ [Login] Erro ao atualizar ClerkId:", updateError);
+            // Continuar mesmo se falhar a atualização
+          }
+        } else {
+          console.log("✅ [Login] ClerkId já existe:", dbUser.clerkId);
+        }
         
         // Se for MODEL, redirecionar para o perfil
         if (dbUser.role === 'MODEL') {
@@ -68,10 +88,7 @@ const LoginPage: React.FC = () => {
       sessionStorage.setItem('lastRoute', fromPath);
     }
     
-    console.log("🔐 [Login] fromPath:", fromPath);
-    console.log("🔐 [Login] return_to:", returnTo);
-    console.log("🔐 [Login] lastRoute:", lastRoute);
-    console.log("🔐 [Login] redirectTo final:", redirectTo);
+
   }, [fromPath, returnTo, lastRoute, redirectTo]);
 
   return (
