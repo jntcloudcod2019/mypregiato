@@ -43,6 +43,7 @@ import EditarTreinamentoPage from "./pages/treinamentos/editar/[id]";
 import CursoPage from "./pages/treinamentos/curso/[id]";
 import PontoEletronicoPage from "./pages/ponto";
 import PerfilPage from "./pages/perfil";
+import StudioPage from "./pages/studio";
 import NotFound from "./pages/NotFound";
 import ModulePage from "./pages/modules/slug";
 import FichaDigitalPage from "./pages/events/ficha/token";
@@ -270,6 +271,15 @@ const App = () => (
           <ProtectedRoute>
             <MainLayout>
               <PerfilPage />
+            </MainLayout>
+          </ProtectedRoute>
+        } />
+        
+        {/* Rota de Studio para usuários MODEL */}
+        <Route path="/studio" element={
+          <ProtectedRoute>
+            <MainLayout>
+              <StudioPage />
             </MainLayout>
           </ProtectedRoute>
         } />
