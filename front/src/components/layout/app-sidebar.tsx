@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { FileText, Home, Users, Settings, ChevronDown, Star, DollarSign, BarChart3, Headphones, BookOpen, Clock, User } from "lucide-react"
+import { FileText, Home, Users, Settings, ChevronDown, Star, DollarSign, BarChart3, Headphones, BookOpen, Clock, User, Camera } from "lucide-react"
 import { NavLink, useLocation } from "react-router-dom"
 import { ThemeToggle } from "../../components/theme-toggle"
 import { AuroraText } from "../../components/magicui/aurora-text"
@@ -37,6 +37,7 @@ const menuItems = [
 const modelMenuItems = [
   { title: "Treinamentos", url: "/treinamentos", icon: BookOpen, permission: Permission.VIEW_TRAININGS },
   { title: "Perfil", url: "/perfil", icon: User, permission: Permission.VIEW_PROFILE },
+  { title: "Studio", url: "/studio", icon: Camera, permission: Permission.VIEW_PROFILE },
 ]
 
 export function AppSidebar() {
