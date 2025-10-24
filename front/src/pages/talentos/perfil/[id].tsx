@@ -46,6 +46,7 @@ export default function TalentProfile() {
   const [savingDNA, setSavingDNA] = useState(false)
   const [talentPhotos, setTalentPhotos] = useState<TalentPhotoDto[]>([])
   const [selectedProfilePhoto, setSelectedProfilePhoto] = useState<string | null>(null)
+  const [showPhotoSelector, setShowPhotoSelector] = useState(false)
 
   // Fetch talent data on component mount
   useEffect(() => {
@@ -426,10 +427,7 @@ export default function TalentProfile() {
                       variant="contained" 
                       size="sm"
                       className="text-xs"
-                      onClick={() => {
-                        // Funcionalidade para alterar foto
-                        console.log('Alterar foto do perfil')
-                      }}
+                      onClick={() => setShowPhotoSelector(true)}
                     >
                       <Camera className="h-3 w-3 mr-1" />
                       Alterar
@@ -1034,6 +1032,92 @@ export default function TalentProfile() {
           </Tabs>
         </div>
       </div>
+
+      {/* Dialog para seleção de foto de perfil */}
+      <Dialog open={showPhotoSelector} onOpenChange={setShowPhotoSelector}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Selecionar Foto de Perfil</DialogTitle>
+            <p className="text-sm text-muted-foreground">
+              Escolha uma foto da galeria para usar como foto de perfil
+            </p>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {loadingPhotos ? (
+              <div className="flex items-center justify-center h-32">
+                <Loader2 className="h-6 w-6 animate-spin" />
+                <span className="ml-2">Carregando fotos...</span>
+              </div>
+            ) : talentPhotos.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-32 text-center">
+                <Camera className="h-8 w-8 text-muted-foreground/50 mb-2" />
+                <p className="text-sm text-muted-foreground">Nenhuma foto encontrada</p>
+                <p className="text-xs text-muted-foreground">Adicione fotos na galeria primeiro</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {talentPhotos.map((photo, index) => (
+                  <div 
+                    key={photo.id} 
+                    className={`relative group cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
+                      selectedProfilePhoto === photo.filePath 
+                        ? 'border-primary shadow-lg' 
+                        : 'border-transparent hover:border-primary/50'
+                    }`}
+                    onClick={() => setSelectedProfilePhoto(photo.filePath)}
+                  >
+                    <div className="aspect-square">
+                      <img
+                        src={photo.filePath}
+                        alt={`Foto ${index + 1}`}
+                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                      />
+                    </div>
+                    {selectedProfilePhoto === photo.filePath && (
+                      <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
+                        <CheckCircle className="h-8 w-8 text-primary" />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <Button
+                        size="sm"
+                        variant="default"
+                        className="text-xs"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setSelectedProfilePhoto(photo.filePath)
+                        }}
+                      >
+                        <User className="h-3 w-3 mr-1" />
+                        Selecionar
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button variant="outline" onClick={() => setShowPhotoSelector(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={() => {
+                setShowPhotoSelector(false)
+                toast({
+                  title: "Sucesso",
+                  description: "Foto de perfil atualizada com sucesso",
+                })
+              }}
+              disabled={!selectedProfilePhoto}
+            >
+              Confirmar Seleção
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
