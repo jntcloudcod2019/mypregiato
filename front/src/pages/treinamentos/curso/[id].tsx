@@ -455,7 +455,8 @@ const CursoPage = () => {
           <h1 className="text-2xl font-bold">{curso.title}</h1>
           <p className="text-muted-foreground">{curso.description}</p>
         </div>
-        <div className="flex items-center gap-4">
+        {/* Botão de porcentagem oculto conforme solicitado */}
+        {/* <div className="flex items-center gap-4">
           {progresso && (
             <Badge variant={progresso.isCompleted ? "default" : "secondary"}>
               {progresso.isCompleted 
@@ -463,7 +464,7 @@ const CursoPage = () => {
                 : `${Math.round(progresso.progressPercentage)}% Completo`}
           </Badge>
           )}
-        </div>
+        </div> */}
       </div>
 
       {/* Progresso */}
@@ -483,7 +484,6 @@ const CursoPage = () => {
       {/* Prompt de conclusão e certificado */}
       {showCertificatePrompt && progresso?.isCompleted && (
         <Alert className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
-          <Star className="h-4 w-4 text-green-600" />
           <AlertDescription>
             <div className="space-y-4">
               <div>
@@ -594,12 +594,13 @@ const CursoPage = () => {
                     <div className="flex-1">
                       <h2 className="text-xl font-semibold">{aulaAtivaDados.title}</h2>
                       <p className="text-muted-foreground mt-1">{aulaAtivaDados.description}</p>
-                      {aulaAtivaDados.videoDurationSeconds && (
+                      {/* Duração removida conforme solicitado */}
+                      {/* {aulaAtivaDados.videoDurationSeconds && (
                         <p className="text-sm text-muted-foreground mt-2">
                           <Clock className="h-4 w-4 inline mr-1" />
                           Duração: {Math.floor(aulaAtivaDados.videoDurationSeconds / 60)} minutos
                         </p>
-                      )}
+                      )} */}
                     </div>
                     {lessonProgress?.isCompleted && (
                       <Badge variant="secondary" className="ml-4">
