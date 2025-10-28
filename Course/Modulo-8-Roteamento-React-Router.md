@@ -1429,3 +1429,4 @@ Agora que você domina roteamento, está pronto para:
 **🎓 Parabéns! Você completou o Módulo 8!**
 
 **Continue para o [Módulo 9: Sistema de UI (Shadcn/Radix)](Modulo-9-Sistema-UI-Shadcn.md)**
+

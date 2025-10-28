@@ -47,6 +47,7 @@ export default function TalentProfile() {
   const [talentPhotos, setTalentPhotos] = useState<TalentPhotoDto[]>([])
   const [selectedProfilePhoto, setSelectedProfilePhoto] = useState<string | null>(null)
   const [showPhotoSelector, setShowPhotoSelector] = useState(false)
+  const [profilePhotoId, setProfilePhotoId] = useState<string | null>(null)
 
   // Fetch talent data on component mount
   useEffect(() => {
@@ -116,6 +117,25 @@ export default function TalentProfile() {
         const photos = await talentPhotosService.getTalentPhotos(id)
         setTalentPhotos(photos)
         console.log('✅ [PERFIL] Fotos carregadas:', photos.length)
+        
+        // Carregar foto de perfil salva do localStorage
+        if (id) {
+          const savedProfilePhotoId = localStorage.getItem(`profilePhoto_${id}`)
+          if (savedProfilePhotoId) {
+            const savedPhoto = photos.find(photo => photo.id === savedProfilePhotoId)
+            if (savedPhoto) {
+              setProfilePhotoId(savedPhoto.id)
+              setSelectedProfilePhoto(savedPhoto.filePath)
+              console.log('📸 [PERFIL] Foto de perfil carregada do localStorage:', savedPhoto.id)
+            }
+          } else if (photos.length > 0) {
+            // Definir primeira foto como foto de perfil se não houver uma definida
+            const firstPhoto = photos[0]
+            setProfilePhotoId(firstPhoto.id)
+            setSelectedProfilePhoto(firstPhoto.filePath)
+            console.log('📸 [PERFIL] Primeira foto definida como perfil:', firstPhoto.id)
+          }
+        }
       } catch (error) {
         console.error('❌ [PERFIL] Erro ao carregar fotos:', error)
         toast({
@@ -243,6 +263,15 @@ export default function TalentProfile() {
       const photos = await talentPhotosService.getTalentPhotos(id)
       setTalentPhotos(photos)
       console.log('✅ [Upload] Fotos recarregadas:', photos.length)
+      
+      // Se não há foto de perfil definida e há fotos, definir a primeira como perfil
+      if (!profilePhotoId && photos.length > 0) {
+        const firstPhoto = photos[0]
+        setProfilePhotoId(firstPhoto.id)
+        setSelectedProfilePhoto(firstPhoto.filePath)
+        localStorage.setItem(`profilePhoto_${id}`, firstPhoto.id)
+        console.log('📸 [Upload] Primeira foto definida como perfil automaticamente:', firstPhoto.id)
+      }
       
       // Refresh talent data to show new photos
       console.log('🔄 [Upload] Atualizando dados do talento...')
@@ -715,22 +744,29 @@ export default function TalentProfile() {
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                       {talentPhotos.map((photo, index) => (
                         <div key={photo.id} className="relative group">
-                          <div className="aspect-square rounded-lg overflow-hidden bg-muted shadow-md">
+                          <div className={`aspect-square rounded-lg overflow-hidden bg-muted shadow-md border-2 ${
+                            profilePhotoId === photo.id ? 'border-primary' : 'border-transparent'
+                          }`}>
                             <img
                               src={photo.filePath}
                               alt={`Foto ${index + 1}`}
                               className="w-full h-full object-cover transition-transform group-hover:scale-105"
                             />
                           </div>
+                          {profilePhotoId === photo.id && (
+                            <div className="absolute top-2 right-2 bg-primary text-primary-foreground rounded-full p-1">
+                              <User className="h-3 w-3" />
+                            </div>
+                          )}
                           <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
                             <Button
                               size="sm"
-                              variant="default"
+                              variant={profilePhotoId === photo.id ? "secondary" : "default"}
                               className="text-xs"
                               onClick={() => setSelectedProfilePhoto(photo.filePath)}
                             >
                               <User className="h-3 w-3 mr-1" />
-                              Perfil
+                              {profilePhotoId === photo.id ? 'Perfil Atual' : 'Definir Perfil'}
                             </Button>
                             <Button
                               size="sm"
@@ -1074,6 +1110,11 @@ export default function TalentProfile() {
                         className="w-full h-full object-cover transition-transform group-hover:scale-105"
                       />
                     </div>
+                    {profilePhotoId === photo.id && (
+                      <div className="absolute top-2 right-2 bg-primary text-primary-foreground rounded-full p-1">
+                        <User className="h-3 w-3" />
+                      </div>
+                    )}
                     {selectedProfilePhoto === photo.filePath && (
                       <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
                         <CheckCircle className="h-8 w-8 text-primary" />
@@ -1090,7 +1131,7 @@ export default function TalentProfile() {
                         }}
                       >
                         <User className="h-3 w-3 mr-1" />
-                        Selecionar
+                        {profilePhotoId === photo.id ? 'Perfil Atual' : 'Selecionar'}
                       </Button>
                     </div>
                   </div>
@@ -1105,11 +1146,39 @@ export default function TalentProfile() {
             </Button>
             <Button 
               onClick={() => {
-                setShowPhotoSelector(false)
-                toast({
-                  title: "Sucesso",
-                  description: "Foto de perfil atualizada com sucesso",
-                })
+                if (!selectedProfilePhoto || !id) return
+                
+                try {
+                  // Encontrar o ID da foto selecionada
+                  const selectedPhoto = talentPhotos.find(photo => photo.filePath === selectedProfilePhoto)
+                  if (!selectedPhoto) {
+                    toast({
+                      title: "Erro",
+                      description: "Foto selecionada não encontrada",
+                      variant: "destructive"
+                    })
+                    return
+                  }
+
+                  // Salvar no localStorage para persistir após refresh
+                  localStorage.setItem(`profilePhoto_${id}`, selectedPhoto.id)
+                  
+                  // Atualizar estado local
+                  setProfilePhotoId(selectedPhoto.id)
+                  
+                  setShowPhotoSelector(false)
+                  toast({
+                    title: "Sucesso",
+                    description: "Foto de perfil atualizada com sucesso",
+                  })
+                } catch (error) {
+                  console.error('Erro ao atualizar foto de perfil:', error)
+                  toast({
+                    title: "Erro",
+                    description: "Erro ao atualizar foto de perfil",
+                    variant: "destructive"
+                  })
+                }
               }}
               disabled={!selectedProfilePhoto}
             >

@@ -1776,3 +1776,4 @@ Agora que você domina componentes avançados, está pronto para:
 **🎓 Parabéns! Você completou o Módulo 5!**
 
 **Continue para o [Módulo 6: Hooks Avançados do React](Modulo-6-Hooks-React.md)**
+

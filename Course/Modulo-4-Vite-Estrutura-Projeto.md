@@ -1214,3 +1214,4 @@ Agora que você domina Vite e estrutura de projeto, está pronto para:
 **🎓 Parabéns! Você completou o Módulo 4!**
 
 **Continue para o [Módulo 5: Componentes React Avançados](Modulo-5-Componentes-React.md)**
+

@@ -1214,3 +1214,4 @@ Agora que você domina TypeScript, está pronto para:
 **🎓 Parabéns! Você completou o Módulo 3!**
 
 **Continue para o [Módulo 4: Vite e Estrutura de Projeto](Modulo-4-Vite-Estrutura-Projeto.md)**
+

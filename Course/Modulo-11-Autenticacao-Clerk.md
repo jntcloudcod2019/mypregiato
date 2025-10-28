@@ -1385,3 +1385,4 @@ Agora que você domina autenticação, está pronto para:
 **🎓 Parabéns! Você completou o Módulo 11!**
 
 **Continue para o [Módulo 12: Consumo de APIs](Modulo-12-Consumo-API.md)**
+

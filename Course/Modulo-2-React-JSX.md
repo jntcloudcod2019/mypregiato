@@ -1236,3 +1236,4 @@ Agora que você conhece React e JSX, está pronto para:
 **🎓 Parabéns! Você completou o Módulo 2!**
 
 **Continue para o [Módulo 3: TypeScript](Modulo-3-TypeScript.md)**
+

@@ -81,12 +81,8 @@ export function AppSidebar() {
         </div>
 
         <SidebarGroup className="px-4 md:px-6 py-4">
-          <SidebarGroupLabel className={collapsed ? "sr-only" : "text-sm font-medium text-muted-foreground mb-3"}>
-            Menu Principal
-          </SidebarGroupLabel>
-
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-1">
               {itemsToShow.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <ProtectedFeature permission={item.permission} hideWhenDenied>
@@ -94,7 +90,7 @@ export function AppSidebar() {
                       <NavLink 
                         to={item.url} 
                         className={({ isActive }) => 
-                          `flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-foreground hover:text-foreground no-underline ${getNavCls({ isActive })}`
+                          `flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-foreground hover:text-foreground no-underline w-full ${getNavCls({ isActive })}`
                         }
                       >
                         <item.icon className="h-5 w-5 flex-shrink-0" />
