@@ -202,38 +202,22 @@ namespace Pregiato.Infrastructure.Repositories
         }
 
         // ✅ Salvar like/dislike direto na tabela TrainingRatings (SEM tocar no TrainingCourse)
-        // Cada usuário pode ter APENAS 1 rating por curso (pode mudar de LIKE → DISLIKE → STAR_RATING)
+        // ✅ MODIFICADO: Permitir likes ilimitados - cada clique cria um novo rating
         public async Task AddOrUpdateRatingAsync(Guid courseId, string userId, string ratingType, int stars, string? comment)
         {
-            // ✅ CORREÇÃO: Buscar rating por CourseId E UserId (não apenas CourseId)
-            var rating = await _context.TrainingRatings
-                .FirstOrDefaultAsync(r => r.CourseId == courseId && r.UserId == userId);
-
-            if (rating != null)
+            // ✅ SEMPRE criar novo rating para permitir likes ilimitados
+            Console.WriteLine($"🆕 [RATING] Criando novo rating: {ratingType} (likes ilimitados habilitados)");
+            _context.TrainingRatings.Add(new TrainingRating
             {
-                // Atualizar existente (usuário mudou de LIKE → DISLIKE, ou vice-versa)
-                Console.WriteLine($"🔄 [RATING] Atualizando rating existente: {rating.RatingType} → {ratingType}");
-                rating.RatingType = ratingType;
-                rating.Stars = stars;
-                rating.Comment = comment;
-                rating.UpdatedAt = DateTime.UtcNow;
-            }
-            else
-            {
-                // Criar novo rating para este usuário
-                Console.WriteLine($"🆕 [RATING] Criando novo rating: {ratingType}");
-                _context.TrainingRatings.Add(new TrainingRating
-                {
-                    Id = Guid.NewGuid(),
-                    CourseId = courseId,
-                    UserId = userId,
-                    RatingType = ratingType,
-                    Stars = stars,
-                    Comment = comment,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                });
-            }
+                Id = Guid.NewGuid(),
+                CourseId = courseId,
+                UserId = userId,
+                RatingType = ratingType,
+                Stars = stars,
+                Comment = comment,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            });
 
             await _context.SaveChangesAsync();
         }

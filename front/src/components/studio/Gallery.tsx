@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ImageIcon, Eye, Download, Share2, Heart, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ImageIcon, Eye, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { talentService, TalentPhotoDto } from '@/services/talent-service';
 import { useUser } from '@clerk/clerk-react';
 import { useToast } from '@/hooks/use-toast';
@@ -76,25 +76,13 @@ const PhotoViewer: React.FC<PhotoViewerProps> = ({ photos, currentIndex, isOpen,
           className="max-w-full max-h-full object-contain rounded-lg"
         />
         
-        {/* Informações da foto */}
+        {/* Informações da foto - apenas nome e tamanho */}
         <div className="absolute bottom-4 left-4 right-4 bg-black/50 text-white p-4 rounded-lg">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">{currentPhoto.fileName}</p>
-              <p className="text-sm text-gray-300">
-                {Math.round(currentPhoto.fileSize / 1024)} KB
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <Button size="sm" variant="secondary">
-                <Download className="h-4 w-4 mr-2" />
-                Download
-              </Button>
-              <Button size="sm" variant="secondary">
-                <Share2 className="h-4 w-4 mr-2" />
-                Compartilhar
-              </Button>
-            </div>
+          <div className="text-center">
+            <p className="font-medium">{currentPhoto.fileName}</p>
+            <p className="text-sm text-gray-300">
+              {Math.round(currentPhoto.fileSize / 1024)} KB
+            </p>
           </div>
         </div>
       </div>

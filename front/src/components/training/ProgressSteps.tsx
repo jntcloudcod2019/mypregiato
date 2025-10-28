@@ -87,9 +87,9 @@ export const ProgressSteps: React.FC<ProgressStepsProps> = ({
                     Aula {index + 1}
                   </span>
                   {isCompleted && (
-                    <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">
-                      Concluído
-                    </span>
+                    <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                      <CheckCircle className="h-3 w-3 text-white" />
+                    </div>
                   )}
                   {isActive && !isCompleted && (
                     <span className="text-xs px-2 py-0.5 bg-primary/10 text-primary rounded-full font-medium">
@@ -109,11 +109,12 @@ export const ProgressSteps: React.FC<ProgressStepsProps> = ({
                     {lesson.description}
                   </p>
                 )}
-                {lesson.videoDurationSeconds && (
+                {/* Duração removida conforme solicitado */}
+                {/* {lesson.videoDurationSeconds && (
                   <p className="text-xs text-muted-foreground mt-1">
                     {Math.floor(lesson.videoDurationSeconds / 60)} min
                   </p>
-                )}
+                )} */}
               </div>
             </div>
           </div>

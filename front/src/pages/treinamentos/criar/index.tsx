@@ -16,7 +16,7 @@ import { CreateTrainingCourseDto, CreateTrainingLessonDto } from '@/types/traini
 import { trainingService } from '@/services/training-service';
 import ProgressBar from 'react-bootstrap/ProgressBar';
 import 'bootstrap/dist/css/bootstrap.min.css';
-// ✅ REMOVIDO: Upload paralelo substituído por processamento sequencial
+
 
 // ✅ Tipo temporário para estado local (com Base64)
 interface LessonWithBase64 extends CreateTrainingLessonDto {
@@ -340,6 +340,7 @@ const CriarTreinamentoPage = () => {
         uploadResults.forEach((result, index) => {
           const task = uploadTasks[index];
           uploadResultsMap.set(task.data.lessonTitle, result);
+          console.log(`🗺️ [MAP] Mapeando resultado: "${task.data.lessonTitle}" -> ${result.success ? 'SUCCESS' : 'FAILED'}`);
         });
 
         // Processar todas as aulas (com e sem vídeo)
@@ -347,7 +348,9 @@ const CriarTreinamentoPage = () => {
           const lesson = lessons[i];
           
           if (lesson.videoBase64Data) {
-            const uploadResult = uploadResultsMap.get(lesson.title);
+          console.log(`🔍 [MAP] Buscando resultado para aula: "${lesson.title}"`);
+          const uploadResult = uploadResultsMap.get(lesson.title);
+          console.log(`🔍 [MAP] Resultado encontrado:`, uploadResult ? `${uploadResult.success ? 'SUCCESS' : 'FAILED'}` : 'NOT_FOUND');
             
             if (uploadResult && uploadResult.success) {
               console.log(`✅ [CRIAR-CURSO] Upload da aula "${lesson.title}" concluído`);
@@ -365,21 +368,15 @@ const CriarTreinamentoPage = () => {
                 isActive: true
               });
               
-              // ✅ OTIMIZAÇÃO #1: Liberar Base64 da memória imediatamente
-              const base64Size = Math.round((lesson.videoBase64Data?.length || 0) / 1024 / 1024);
-              if (base64Size > 0) {
-                console.log(`🧹 [CLEANUP] Liberando Base64 da aula "${lesson.title}" (~${base64Size}MB)`);
-                delete lesson.videoBase64Data;
-              }
               
               // ✅ OTIMIZAÇÃO #2: Revogar blob URL se existir
-              const blobUrl = lessonBlobUrls.get(lesson.title);
+              const blobUrl = lessonBlobUrls.get(lesson.videoUrl);
               if (blobUrl && blobUrl.startsWith('blob:')) {
                 URL.revokeObjectURL(blobUrl);
-                console.log(`🧹 [CLEANUP] Blob URL revogada para "${lesson.title}"`);
+                console.log(`🧹 [CLEANUP] Blob URL revogada para "${lesson.videoUrl}"`);
                 setLessonBlobUrls(prev => {
                   const newMap = new Map(prev);
-                  newMap.delete(lesson.title);
+                  newMap.delete(lesson.videoUrl);
                   return newMap;
                 });
               }
@@ -468,13 +465,13 @@ const CriarTreinamentoPage = () => {
     toast({
       title: "Curso criado com sucesso!",
           description: `ID do Curso: ${response.id || 'N/A'}`,
-          duration: 7000,
+          duration:  courseData.lessons?.reduce((acc, lesson) => acc + (lesson.videoDurationSeconds || 0), 0) || 0,
         });
       } else {
         toast({
           title: "Curso criado!",
           description: "O curso foi criado com sucesso.",
-          duration: 7000,
+          duration: courseData.lessons?.reduce((acc, lesson) => acc + (lesson.videoDurationSeconds || 0), 0) || 0,
         });
       }
       
