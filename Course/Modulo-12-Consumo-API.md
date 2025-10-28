@@ -1516,3 +1516,4 @@ Agora que você domina consumo de APIs, está pronto para:
 **🎓 Parabéns! Você completou o Módulo 12!**
 
 **Continue para o [Módulo 13: Padrões de Design e Boas Práticas](Modulo-13-Padroes-Design.md)**
+

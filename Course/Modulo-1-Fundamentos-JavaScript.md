@@ -752,3 +752,4 @@ Agora que você conhece os fundamentos do JavaScript, está pronto para:
 **🎓 Parabéns! Você completou o Módulo 1!**
 
 **Continue para o [Módulo 2: React e JSX](Modulo-2-React-JSX.md)**
+
