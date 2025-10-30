@@ -1606,3 +1606,5 @@ Agora que você domina hooks, está pronto para:
 
 **Continue para o [Módulo 7: Gerenciamento de Estado](Modulo-7-Gerenciamento-Estado.md)**
 
+
+

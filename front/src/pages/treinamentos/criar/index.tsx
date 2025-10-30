@@ -25,6 +25,7 @@ interface LessonWithBase64 extends CreateTrainingLessonDto {
   videoFileSize?: number;
   durationSeconds?: number; // Alias para videoDurationSeconds
   durationMinutes?: number; // Campo para entrada em minutos
+  uploaded?: boolean; // Flag para indicar que o upload foi concluído
 }
 
 const CriarTreinamentoPage = () => {
@@ -53,7 +54,8 @@ const CriarTreinamentoPage = () => {
     videoBase64Data: '',
     videoFileName: '',
     videoFileSize: 0,
-    videoMimeType: ''
+    videoMimeType: '',
+    uploaded: false
   });
   
   const [activeStep, setActiveStep] = useState<'course' | 'lessons' | 'videos' | 'preview'>('course');
@@ -161,7 +163,8 @@ const CriarTreinamentoPage = () => {
       videoBase64Data: currentLesson.videoBase64Data,
       videoFileName: currentLesson.videoFileName,
       videoFileSize: currentLesson.videoFileSize,
-      durationSeconds: currentLesson.durationSeconds
+      durationSeconds: currentLesson.durationSeconds,
+      uploaded: false
     };
 
     // ✅ DEBUG: Log dos dados do vídeo
@@ -186,7 +189,8 @@ const CriarTreinamentoPage = () => {
       videoBase64Data: '',
       videoFileName: '',
       videoFileSize: 0,
-      videoMimeType: ''
+      videoMimeType: '',
+      uploaded: false
     });
     
     toast({
@@ -310,6 +314,12 @@ const CriarTreinamentoPage = () => {
             console.log(`✅ [SEQUENTIAL-UPLOAD] Upload concluído: ${currentUpload}`);
             console.log(`✅ [SEQUENTIAL-UPLOAD] Upload ${i + 1}/${uploadTasks.length} FINALIZADO - prosseguindo para próximo...`);
             uploadResults.push(result);
+
+          // ✅ Marcar aula como enviada (uploaded = true)
+          const uploadedLesson = lessons.find(l => l.title === currentUpload);
+          if (uploadedLesson) {
+            uploadedLesson.uploaded = true;
+          }
             
             // ✅ OTIMIZAÇÃO: Liberar Base64 da memória imediatamente
             const lesson = lessons.find(l => l.title === currentUpload);
@@ -346,79 +356,67 @@ const CriarTreinamentoPage = () => {
         // Processar todas as aulas (com e sem vídeo)
         for (let i = 0; i < lessons.length; i++) {
           const lesson = lessons[i];
-          
-          if (lesson.videoBase64Data) {
-          console.log(`🔍 [MAP] Buscando resultado para aula: "${lesson.title}"`);
+
+          // ✅ Usar flag 'uploaded' para decidir se deve mapear URLs do upload
           const uploadResult = uploadResultsMap.get(lesson.title);
+          console.log(`🔍 [MAP] Buscando resultado para aula: "${lesson.title}"`);
           console.log(`🔍 [MAP] Resultado encontrado:`, uploadResult ? `${uploadResult.success ? 'SUCCESS' : 'FAILED'}` : 'NOT_FOUND');
-            
-            if (uploadResult && uploadResult.success) {
-              console.log(`✅ [CRIAR-CURSO] Upload da aula "${lesson.title}" concluído`);
-              
-              lessonsWithUrls.push({
-                title: lesson.title,
-                description: lesson.description,
-                orderIndex: lesson.orderIndex,
-                videoUrl: uploadResult.videoUrl,
-                videoObjectName: uploadResult.objectName,
-                videoSize: uploadResult.fileSize,
-                videoDurationSeconds: lesson.videoDurationSeconds || 0,
-                videoDurationMinutes: lesson.videoDurationMinutes || 0,
-                videoMimeType: uploadResult.mimeType,
-                isActive: true
+
+          if (lesson.uploaded && uploadResult && uploadResult.success) {
+            console.log(`✅ [CRIAR-CURSO] Upload da aula "${lesson.title}" concluído`);
+
+            lessonsWithUrls.push({
+              title: lesson.title,
+              description: lesson.description,
+              orderIndex: lesson.orderIndex,
+              videoUrl: uploadResult.videoUrl,
+              videoObjectName: uploadResult.objectName,
+              videoSize: uploadResult.fileSize,
+              videoDurationSeconds: lesson.videoDurationSeconds || 0,
+              videoDurationMinutes: lesson.videoDurationMinutes || 0,
+              videoMimeType: uploadResult.mimeType,
+              isActive: true
+            });
+
+            // ✅ OTIMIZAÇÃO #2: Revogar blob URL se existir
+            const blobUrl = lessonBlobUrls.get(lesson.videoUrl);
+            if (blobUrl && blobUrl.startsWith('blob:')) {
+              URL.revokeObjectURL(blobUrl);
+              console.log(`🧹 [CLEANUP] Blob URL revogada para "${lesson.videoUrl}"`);
+              setLessonBlobUrls(prev => {
+                const newMap = new Map(prev);
+                newMap.delete(lesson.videoUrl);
+                return newMap;
               });
-              
-              
-              // ✅ OTIMIZAÇÃO #2: Revogar blob URL se existir
-              const blobUrl = lessonBlobUrls.get(lesson.videoUrl);
-              if (blobUrl && blobUrl.startsWith('blob:')) {
-                URL.revokeObjectURL(blobUrl);
-                console.log(`🧹 [CLEANUP] Blob URL revogada para "${lesson.videoUrl}"`);
-                setLessonBlobUrls(prev => {
-                  const newMap = new Map(prev);
-                  newMap.delete(lesson.videoUrl);
-                  return newMap;
-                });
-              }
-              
-              // ✅ Sugerir garbage collection ao browser (se disponível)
-              if ('gc' in window && typeof (window as Window & { gc?: () => void }).gc === 'function') {
-                try {
-                  (window as Window & { gc: () => void }).gc();
-                  console.log(`🧹 [CLEANUP] Garbage collection sugerido ao browser`);
-                } catch (e) {
-                  // Ignorar se não disponível
-                }
-              }
-              
-            } else {
-              throw new Error(`Falha no upload do vídeo da aula "${lesson.title}"`);
             }
-          } else {
+
+            // ✅ Sugerir garbage collection ao browser (se disponível)
+            if ('gc' in window && typeof (window as Window & { gc?: () => void }).gc === 'function') {
+              try {
+                (window as Window & { gc: () => void }).gc();
+                console.log(`🧹 [CLEANUP] Garbage collection sugerido ao browser`);
+              } catch (e) {
+                // Ignorar se não disponível
+              }
+            }
+          } else if (!lesson.uploaded) {
             console.log(`⚠️ [CRIAR-CURSO] Aula "${lesson.title}" sem vídeo - adicionando sem URL`);
             lessonsWithUrls.push({
               title: lesson.title,
               description: lesson.description,
               orderIndex: lesson.orderIndex,
-              videoUrl: '',
-              videoObjectName: '',
+              videoUrl: lesson.videoUrl,
+              videoObjectName: lesson.videoObjectName,
               isActive: true
             });
+          } else {
+            // Caso uploaded=true mas sem resultado válido (falha inesperada)
+            throw new Error(`Falha no upload do vídeo da aula "${lesson.title}"`);
           }
         }
       } else {
         console.log(`⚠️ [CRIAR-CURSO] Nenhum vídeo para upload - apenas aulas sem vídeo`);
-        // Processar apenas aulas sem vídeo
-        lessons.forEach(lesson => {
-          lessonsWithUrls.push({
-            title: lesson.title,
-            description: lesson.description,
-            orderIndex: lesson.orderIndex,
-            videoUrl: '',
-            videoObjectName: '',
-            isActive: true
-          });
-        });
+        // Etapa removida: não adicionar aulas sem vídeo ao payload
       }
 
       console.log(`\n✅ [CRIAR-CURSO] Todos os vídeos foram enviados (${lessonsWithUrls.length}/${lessons.length})`);
@@ -942,24 +940,24 @@ const CriarTreinamentoPage = () => {
                     const progressStatus = progress?.status || 'pending';
                     
                     return (
-                      <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
                         <div className="flex items-center space-x-3 flex-1">
-                          <Badge variant="outline">{lesson.orderIndex}</Badge>
+                        <Badge variant="outline">{lesson.orderIndex}</Badge>
                           <div className="flex-1">
-                            <h4 className="font-medium">{lesson.title}</h4>
-                            {lesson.description && (
-                              <p className="text-sm text-muted-foreground">{lesson.description}</p>
-                            )}
-                            <div className="flex items-center gap-4 mt-1">
-                              <span className="text-xs text-muted-foreground">
+                          <h4 className="font-medium">{lesson.title}</h4>
+                          {lesson.description && (
+                            <p className="text-sm text-muted-foreground">{lesson.description}</p>
+                          )}
+                          <div className="flex items-center gap-4 mt-1">
+                            <span className="text-xs text-muted-foreground">
                                 Duração: {lesson.durationMinutes ? `${lesson.durationMinutes}min` : 'Não definida'}
-                              </span>
+                            </span>
                               {lesson.videoBase64Data? (
-                                <span className="text-xs text-green-600 font-medium">✓ Vídeo pronto</span>
-                              ) : (
-                                <span className="text-xs text-orange-600 font-medium">⚠ Vídeo pendente</span>
-                              )}
-                            </div>
+                              <span className="text-xs text-green-600 font-medium">✓ Vídeo pronto</span>
+                            ) : (
+                              <span className="text-xs text-orange-600 font-medium">⚠ Vídeo pendente</span>
+                            )}
+                          </div>
                             
                             {/* ✅ BARRA DE PROGRESSO BOOTSTRAP INDIVIDUAL */}
                             <div className="mt-3">
@@ -992,18 +990,18 @@ const CriarTreinamentoPage = () => {
                                 </div>
                               )}
                             </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => removeLesson(index)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
                       </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                      <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => removeLesson(index)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                      </div>
+                    </div>
                     );
                   })}
                 </div>

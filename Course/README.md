@@ -218,3 +218,5 @@ Cada módulo está em um arquivo README separado para facilitar a navegação:
 
 **🎓 Vamos começar? Vá para o [Módulo 1](Modulo-1-Fundamentos-JavaScript.md) para começar sua jornada no mundo JavaScript!**
 
+
+

@@ -332,14 +332,8 @@ public class TrainingCertificateService : ITrainingCertificateService
             {
                 Format = PuppeteerSharp.Media.PaperFormat.A4,
                 Landscape = true,
-                PrintBackground = true,
-                MarginOptions = new PuppeteerSharp.Media.MarginOptions
-                {
-                    Top = "0",
-                    Right = "0",
-                    Bottom = "0",
-                    Left = "0"
-                }
+                PrintBackground = true
+                // Removido MarginOptions para evitar incompatibilidade de versão (MissingMethodException)
             });
             Console.WriteLine($"[PDF_GENERATION] ✅ PDF gerado: {pdfBytes.Length} bytes");
 
