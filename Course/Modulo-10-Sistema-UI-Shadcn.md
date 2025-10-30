@@ -1922,3 +1922,5 @@ Agora que você domina sistema de UI, está pronto para:
 
 **Continue para o [Módulo 11: Autenticação com Clerk](Modulo-11-Autenticacao-Clerk.md)**
 
+
+

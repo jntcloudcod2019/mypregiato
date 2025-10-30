@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { Button } from "./ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
 import { Checkbox } from "./ui/checkbox"
@@ -17,6 +17,8 @@ export function CompositeTemplates({ talent, photos }: CompositeTemplatesProps) 
   const [selectedPhotos, setSelectedPhotos] = useState<string[]>([])
   const [isGenerating, setIsGenerating] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
+  const [logoBase64, setLogoBase64] = useState<string | null>(null)
+  const isLoadingLogoRef = useRef(false)
 
   const handlePhotoSelection = (photo: string, checked: boolean) => {
     if (checked) {
@@ -28,15 +30,48 @@ export function CompositeTemplates({ talent, photos }: CompositeTemplatesProps) 
     }
   }
 
+  const ensureLogoLoaded = async (): Promise<string> => {
+    if (logoBase64) return logoBase64
+    if (isLoadingLogoRef.current) return new Promise(resolve => {
+      const iv = setInterval(() => {
+        if (logoBase64) { clearInterval(iv); resolve(logoBase64) }
+      }, 50)
+    })
+    try {
+      isLoadingLogoRef.current = true
+      // Tenta carregar do backend (wwwroot/certificates/assets)
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://pregiato-api-production.up.railway.app'
+      const logoUrl = `${API_BASE_URL}/certificates/assets/thumbnail_logo%20pregiato%20branco.png`
+      const res = await fetch(logoUrl, { mode: 'cors' })
+      const blob = await res.blob()
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(String(reader.result).split(',')[1] || '')
+        reader.onerror = (e) => reject(e)
+        reader.readAsDataURL(blob)
+      })
+      setLogoBase64(base64)
+      return base64
+    } catch (e) {
+      console.warn('⚠️ Falha ao carregar logo do backend, usando placeholder', e)
+      const fallback = getLogoPngBase64()
+      setLogoBase64(fallback)
+      return fallback
+    } finally {
+      isLoadingLogoRef.current = false
+    }
+  }
+
   const generateComposite = async () => {
     if (selectedPhotos.length === 0) return
     
     setIsGenerating(true)
     
     try {
+      const logo = await ensureLogoLoaded()
       // Create composite content
       const compositeElement = document.createElement('div')
-      compositeElement.innerHTML = getCompositeHTML()
+      compositeElement.innerHTML = getCompositeHTML(logo)
       compositeElement.style.width = '800px'
       compositeElement.style.height = '1000px'
       compositeElement.style.position = 'absolute'
@@ -88,9 +123,10 @@ export function CompositeTemplates({ talent, photos }: CompositeTemplatesProps) 
     setIsGenerating(true)
     
     try {
+      const logo = await ensureLogoLoaded()
       // Generate composite and convert to base64
       const compositeElement = document.createElement('div')
-      compositeElement.innerHTML = getCompositeHTML()
+      compositeElement.innerHTML = getCompositeHTML(logo)
       compositeElement.style.width = '800px'
       compositeElement.style.height = '1000px'
       compositeElement.style.position = 'absolute'
@@ -121,7 +157,7 @@ export function CompositeTemplates({ talent, photos }: CompositeTemplatesProps) 
     }
   }
 
-  const getCompositeHTML = () => {
+  const getCompositeHTML = (logo: string) => {
     if (selectedPhotos.length === 0) return ''
     
     return `
@@ -132,7 +168,9 @@ export function CompositeTemplates({ talent, photos }: CompositeTemplatesProps) 
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>Pregiato Composite</title>
           <style>
-              /* Importar fonte Bebas Neue */
+              /* Importar fonte Coves */
+              @import url('https://fonts.cdnfonts.com/css/coves');
+              /* fallback */
               @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
               
               /* Reset Básico */
@@ -174,10 +212,10 @@ export function CompositeTemplates({ talent, photos }: CompositeTemplatesProps) 
               }
 
               .logo-header {
-                  width: 250px;
-                  height: 80px;
-                  background-image: url('data:image/png;base64,${getLogoPngBase64()}');
-                  background-size: contain;
+                  width: clamp(140px, 35vw, 320px);
+                  height: clamp(40px, 10vw, 120px);
+                  background-image: url('data:image/png;base64,${logo}');
+                  background-size: contain; /* auto ajusta ao container */
                   background-repeat: no-repeat;
                   background-position: center;
               }
@@ -219,7 +257,7 @@ export function CompositeTemplates({ talent, photos }: CompositeTemplatesProps) 
               }
 
               .model-name {
-                  font-family: 'Bebas Neue', Arial, sans-serif;
+                  font-family: 'Coves', 'Bebas Neue', Arial, sans-serif;
                   font-size: 32px;
                   font-weight: 400;
                   margin-bottom: 10px;

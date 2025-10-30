@@ -1215,3 +1215,5 @@ Agora que você domina TypeScript, está pronto para:
 
 **Continue para o [Módulo 4: Vite e Estrutura de Projeto](Modulo-4-Vite-Estrutura-Projeto.md)**
 
+
+

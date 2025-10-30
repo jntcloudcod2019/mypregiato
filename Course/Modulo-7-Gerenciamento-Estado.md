@@ -1701,3 +1701,5 @@ Agora que você domina gerenciamento de estado, está pronto para:
 
 **Continue para o [Módulo 8: Roteamento com React Router](Modulo-8-Roteamento-React-Router.md)**
 
+
+

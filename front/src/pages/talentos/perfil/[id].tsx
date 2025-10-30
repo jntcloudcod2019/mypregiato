@@ -477,8 +477,8 @@ export default function TalentProfile() {
               </div>
 
               {/* Basic Information Grid */}
-              <div className="grid grid-cols-1 gap-4">
-                <div className="flex items-center space-x-3 p-3 bg-muted/30 rounded-lg">
+              <div className="grid grid-cols-1 gap-4 shadow-lg">
+                <div className="flex items-center space-x-3 p-3 bg-muted/30 rounded-lg" style={{ boxShadow: '0 0 8px 1px #000003f' }}>
                   <User className="h-4 w-4 text-muted-foreground" />
                   <div className="flex-1 min-w-0">
                     <Label className="text-xs text-muted-foreground">Nome Completo</Label>
@@ -494,7 +494,7 @@ export default function TalentProfile() {
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-3 p-3 bg-muted/30 rounded-lg">
+                <div className="flex items-center space-x-3 p-3 bg-muted/30 rounded-lg" style={{ boxShadow: '0 0 8px 1px #000003f' }}>
                   <CreditCard className="h-4 w-4 text-muted-foreground" />
                   <div className="flex-1 min-w-0">
                     <Label className="text-xs text-muted-foreground">CPF/CNPJ</Label>
@@ -510,7 +510,7 @@ export default function TalentProfile() {
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-3 p-3 bg-muted/30 rounded-lg">
+                <div className="flex items-center space-x-3 p-3 bg-muted/30 rounded-lg" style={{ boxShadow: '0 0 8px 1px #000003f' }}>
                   <Mail className="h-4 w-4 text-muted-foreground" />
                   <div className="flex-1 min-w-0">
                     <Label className="text-xs text-muted-foreground">Email</Label>
@@ -544,7 +544,7 @@ export default function TalentProfile() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="flex items-center space-x-2 p-3 bg-muted/30 rounded-lg">
+                  <div className="flex items-center space-x-2 p-3 bg-muted/30 rounded-lg" style={{ boxShadow: '0 0 8px 1px #000003f' }}>
                     <CalendarIcon className="h-4 w-4 text-muted-foreground" />
                     <div className="flex-1 min-w-0">
                       <Label className="text-xs text-muted-foreground">Nascimento</Label>
@@ -573,7 +573,7 @@ export default function TalentProfile() {
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-2 p-3 bg-muted/30 rounded-lg">
+                  <div className="flex items-center space-x-2 p-3 bg-muted/30 rounded-lg" style={{ boxShadow: '0 0 8px 1px #000003f' }}>
                     <Users className="h-4 w-4 text-muted-foreground" />
                     <div className="flex-1 min-w-0">
                       <Label className="text-xs text-muted-foreground">Gênero</Label>
@@ -599,7 +599,7 @@ export default function TalentProfile() {
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-3 p-3 bg-muted/30 rounded-lg">
+                <div className="flex items-center space-x-3 p-3 bg-muted/30 rounded-lg" style={{ boxShadow: '0 0 8px 1px #000003f' }}>
                   <MapPin className="h-4 w-4 text-muted-foreground" />
                   <div className="flex-1 min-w-0">
                     <Label className="text-xs text-muted-foreground">CEP</Label>
@@ -616,7 +616,7 @@ export default function TalentProfile() {
                   </div>
                 </div>
 
-                <div className="flex items-start space-x-3 p-3 bg-muted/30 rounded-lg">
+                <div className="flex items-start space-x-3 p-3 bg-muted/30 rounded-lg" style={{ boxShadow: '0 0 8px 1px #000003f' }}>
                   <Home className="h-4 w-4 text-muted-foreground mt-1" />
                   <div className="flex-1 min-w-0">
                     <Label className="text-xs text-muted-foreground">Endereço</Label>
@@ -669,7 +669,7 @@ export default function TalentProfile() {
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-3 p-3 bg-muted/30 rounded-lg">
+                <div className="flex items-center space-x-3 p-3 bg-muted/30 rounded-lg" style={{ boxShadow: '0 0 8px 1px #000003f' }}>
                   <Plane className="h-4 w-4 text-muted-foreground" />
                   <div className="flex-1">
                     <Label className="text-xs text-muted-foreground">Disponível para viagem</Label>

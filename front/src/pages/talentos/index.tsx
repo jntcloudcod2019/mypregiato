@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useNavigate, type NavigateFunction } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -17,16 +17,16 @@ import { MoreVertical, Plus, Search, Filter } from 'lucide-react'
 
 interface TalentCardProps {
   talent: TalentData
-  navigate: any
+  navigate: NavigateFunction
 }
 
 function TalentCard({ talent, navigate }: TalentCardProps) {
   return (
     <Card className="relative overflow-hidden transition-all duration-200 hover:shadow-lg cursor-pointer" onClick={() => navigate(`/talentos/perfil/${talent.id}`)}>
       <div className="aspect-[3/4] relative overflow-hidden bg-muted">
-        {talent.files?.[0]?.url ? (
+        {talent.files?.[0]?.filePath ? (
           <img 
-            src={talent.files[0].url} 
+            src={talent.files[0].filePath} 
             alt={talent.fullName}
             className="absolute inset-0 w-full h-full object-cover"
           />
@@ -115,7 +115,18 @@ export default function TalentosPage() {
   const [searchSuggestions, setSearchSuggestions] = useState<string[]>([])
   const [statusFilter, setStatusFilter] = useState<string>('')
   const [dnaFilter, setDnaFilter] = useState<string>('')
-  const [advancedFilters, setAdvancedFilters] = useState<any>({})
+  interface AgeRange { min: number; max: number }
+  interface AdvancedFiltersType {
+    ageRange?: AgeRange
+    gender?: string
+    location?: string
+    travelAvailability?: boolean
+    bodyType?: string
+    hairColor?: string
+    eyeColor?: string
+    disabilities?: string[]
+  }
+  const [advancedFilters, setAdvancedFilters] = useState<AdvancedFiltersType>({})
   
   // Paginação
   const [currentPage, setCurrentPage] = useState(1)
@@ -124,11 +135,7 @@ export default function TalentosPage() {
   const [totalPages, setTotalPages] = useState(0)
   const [executionTime, setExecutionTime] = useState<number>(0)
 
-  useEffect(() => {
-    loadTalents()
-  }, [currentPage, pageSize, searchTerm])
-
-  const loadTalents = async () => {
+  const loadTalents = useCallback(async () => {
     try {
       setLoading(true)
       const data: PaginatedTalentsResponse = await getTalentsPaginated(
@@ -147,7 +154,11 @@ export default function TalentosPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [currentPage, pageSize, searchTerm])
+
+  useEffect(() => {
+    loadTalents()
+  }, [loadTalents])
 
   // Memoized filtered talents
   const filteredTalents = useMemo(() => {
@@ -167,32 +178,33 @@ export default function TalentosPage() {
       
       // Advanced filters
       const matchesAdvanced = Object.keys(advancedFilters).length === 0 || 
-        Object.entries(advancedFilters).every(([key, value]) => {
+        (Object.entries(advancedFilters) as [keyof AdvancedFiltersType, AdvancedFiltersType[keyof AdvancedFiltersType]][]).every(([key, value]) => {
           if (!value) return true
           
-          if (key === 'ageRange' && typeof value === 'object' && value !== null && 'min' in value && 'max' in value) {
-            return talent.age >= (value as any).min && talent.age <= (value as any).max
+          if (key === 'ageRange' && typeof value === 'object' && value !== null) {
+            const ar = value as AgeRange
+            return talent.age >= ar.min && talent.age <= ar.max
           }
           
           if (key === 'gender') {
-            return talent.gender === value
+            return talent.gender === (value as string)
           }
           
           if (key === 'location' && typeof value === 'string') {
-            return talent.city?.toLowerCase().includes(value.toLowerCase())
+            return talent.city?.toLowerCase().includes((value as string).toLowerCase())
           }
           
           if (key === 'travelAvailability') {
-            return talent.dna?.travelAvailability === value
+            return talent.dna?.travelAvailability === (value as boolean)
           }
           
           // DNA specific filters
           if (talent.dna) {
-            if (key === 'bodyType') return talent.dna.bodyType === value
-            if (key === 'hairColor') return talent.dna.hairColor === value
-            if (key === 'eyeColor') return talent.dna.eyeColor === value
-            if (key === 'disabilities' && Array.isArray(value) && value.length > 0) {
-              return value.some(disability => 
+            if (key === 'bodyType') return talent.dna.bodyType === (value as string)
+            if (key === 'hairColor') return talent.dna.hairColor === (value as string)
+            if (key === 'eyeColor') return talent.dna.eyeColor === (value as string)
+            if (key === 'disabilities' && Array.isArray(value) && (value as string[]).length > 0) {
+              return (value as string[]).some(disability => 
                 talent.dna?.intellectualDisability?.includes(disability) ||
                 talent.dna?.physicalDisability?.includes(disability) ||
                 talent.dna?.visualDisability?.includes(disability)
