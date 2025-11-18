@@ -988,8 +988,8 @@ const CriarTreinamentoPage = () => {
                                     </span>
                                   )}
                                 </div>
-                              )}
-                            </div>
+                            )}
+                          </div>
                       </div>
                       </div>
                       <div className="flex items-center space-x-2">

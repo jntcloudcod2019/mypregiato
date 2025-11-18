@@ -129,10 +129,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
                 className="text-muted-foreground hover:text-foreground h-8 w-8 p-0"
               >
                 <RotateCcw className="h-4 w-4" />
-              </Button>
-              
-              {/* ⚠️ Notificações de Cursos - Componente removido temporariamente */}
-              {/* {isSignedIn && <NotificationBell />} */}//
+              </Button>        
               
               <Button
                 variant="ghost"

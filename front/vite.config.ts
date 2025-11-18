@@ -51,5 +51,7 @@ export default defineConfig({
     'import.meta.env.VITE_API_BASE_URL': JSON.stringify(process.env.VITE_API_BASE_URL),
     'import.meta.env.VITE_SIGNALR_URL': JSON.stringify(process.env.VITE_SIGNALR_URL),
     'import.meta.env.VITE_CLERK_PUBLISHABLE_KEY': JSON.stringify(process.env.VITE_CLERK_PUBLISHABLE_KEY),
+    'import.meta.env.VITE_ENABLE_CLERK': JSON.stringify(process.env.VITE_ENABLE_CLERK ?? 'true'),
+    'import.meta.env.VITE_DEV_MODE': JSON.stringify(process.env.VITE_DEV_MODE ?? 'false'),
   },
 });

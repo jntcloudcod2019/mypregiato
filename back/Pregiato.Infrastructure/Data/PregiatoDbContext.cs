@@ -1275,7 +1275,7 @@ public class PregiatoDbContext : DbContext
             
             entity.HasIndex(e => e.CourseId);
             entity.HasIndex(e => e.UserId);
-            entity.HasIndex(e => new { e.UserId, e.CourseId }).IsUnique();
+            // Removido índice composto (UserId, CourseId) para simplificar inserções de likes
         });
         
         // TrainingCertificate

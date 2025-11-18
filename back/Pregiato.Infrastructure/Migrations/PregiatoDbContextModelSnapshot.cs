@@ -16,6 +16,7 @@ namespace Pregiato.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
+                .HasDefaultSchema("railway")
                 .HasAnnotation("ProductVersion", "8.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
@@ -89,7 +90,7 @@ namespace Pregiato.Infrastructure.Migrations
 
                     b.HasIndex("Status");
 
-                    b.ToTable("AttendanceTickets");
+                    b.ToTable("AttendanceTickets", "railway");
                 });
 
             modelBuilder.Entity("Pregiato.Core.Entities.Campaign", b =>
@@ -203,7 +204,7 @@ namespace Pregiato.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Campaigns");
+                    b.ToTable("Campaigns", "railway");
                 });
 
             modelBuilder.Entity("Pregiato.Core.Entities.ChatLog", b =>
@@ -284,7 +285,7 @@ namespace Pregiato.Infrastructure.Migrations
                     b.HasIndex("ContactPhoneE164")
                         .IsUnique();
 
-                    b.ToTable("ChatLogs");
+                    b.ToTable("ChatLogs", "railway");
                 });
 
             modelBuilder.Entity("Pregiato.Core.Entities.ChatSession", b =>
@@ -316,7 +317,7 @@ namespace Pregiato.Infrastructure.Migrations
 
                     b.HasIndex("ConversationId", "OpenedAt");
 
-                    b.ToTable("ChatSessions", (string)null);
+                    b.ToTable("ChatSessions", "railway");
                 });
 
             modelBuilder.Entity("Pregiato.Core.Entities.Contact", b =>
@@ -369,7 +370,7 @@ namespace Pregiato.Infrastructure.Migrations
                     b.HasIndex("Phone")
                         .IsUnique();
 
-                    b.ToTable("Contacts");
+                    b.ToTable("Contacts", "railway");
                 });
 
             modelBuilder.Entity("Pregiato.Core.Entities.Contract", b =>
@@ -472,7 +473,7 @@ namespace Pregiato.Infrastructure.Migrations
 
                     b.HasIndex("LeadId");
 
-                    b.ToTable("Contracts");
+                    b.ToTable("Contracts", "railway");
                 });
 
             modelBuilder.Entity("Pregiato.Core.Entities.ContractTemplate", b =>
@@ -518,7 +519,7 @@ namespace Pregiato.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ContractTemplate");
+                    b.ToTable("ContractTemplate", "railway");
                 });
 
             modelBuilder.Entity("Pregiato.Core.Entities.Conversation", b =>
@@ -604,7 +605,7 @@ namespace Pregiato.Infrastructure.Migrations
                         .IsUnique()
                         .HasFilter("[InstanceId] IS NOT NULL AND [PeerE164] IS NOT NULL");
 
-                    b.ToTable("Conversations", (string)null);
+                    b.ToTable("Conversations", "railway");
                 });
 
             modelBuilder.Entity("Pregiato.Core.Entities.CrmTask", b =>
@@ -686,7 +687,7 @@ namespace Pregiato.Infrastructure.Migrations
 
                     b.HasIndex("LeadId");
 
-                    b.ToTable("Tasks");
+                    b.ToTable("Tasks", "railway");
                 });
 
             modelBuilder.Entity("Pregiato.Core.Entities.FileUpload", b =>
@@ -742,7 +743,7 @@ namespace Pregiato.Infrastructure.Migrations
 
                     b.HasIndex("TalentId");
 
-                    b.ToTable("FileUploads");
+                    b.ToTable("FileUploads", "railway");
                 });
 
             modelBuilder.Entity("Pregiato.Core.Entities.ImportedFile", b =>
@@ -785,7 +786,7 @@ namespace Pregiato.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ImportedFiles");
+                    b.ToTable("ImportedFiles", "railway");
                 });
 
             modelBuilder.Entity("Pregiato.Core.Entities.Lead", b =>
@@ -896,7 +897,7 @@ namespace Pregiato.Infrastructure.Migrations
 
                     b.HasIndex("MetaLeadId");
 
-                    b.ToTable("Leads");
+                    b.ToTable("Leads", "railway");
                 });
 
             modelBuilder.Entity("Pregiato.Core.Entities.LeadInteraction", b =>
@@ -962,7 +963,7 @@ namespace Pregiato.Infrastructure.Migrations
 
                     b.HasIndex("LeadId");
 
-                    b.ToTable("LeadInteractions");
+                    b.ToTable("LeadInteractions", "railway");
                 });
 
             modelBuilder.Entity("Pregiato.Core.Entities.Message", b =>
@@ -1113,7 +1114,7 @@ namespace Pregiato.Infrastructure.Migrations
                     b.HasIndex("Type", "CreatedAt")
                         .HasDatabaseName("IX_Messages_Type_CreatedAt");
 
-                    b.ToTable("Messages");
+                    b.ToTable("Messages", "railway");
                 });
 
             modelBuilder.Entity("Pregiato.Core.Entities.MetaIntegration", b =>
@@ -1194,7 +1195,7 @@ namespace Pregiato.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("MetaIntegrations");
+                    b.ToTable("MetaIntegrations", "railway");
                 });
 
             modelBuilder.Entity("Pregiato.Core.Entities.ModuleRecord", b =>
@@ -1243,7 +1244,7 @@ namespace Pregiato.Infrastructure.Migrations
 
                     b.HasIndex("ModuleSlug");
 
-                    b.ToTable("ModuleRecords");
+                    b.ToTable("ModuleRecords", "railway");
                 });
 
             modelBuilder.Entity("Pregiato.Core.Entities.Operator", b =>
@@ -1297,7 +1298,7 @@ namespace Pregiato.Infrastructure.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Operators", (string)null);
+                    b.ToTable("Operators", "railway");
                 });
 
             modelBuilder.Entity("Pregiato.Core.Entities.OperatorLeads", b =>
@@ -1365,7 +1366,7 @@ namespace Pregiato.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("OperatorLeads");
+                    b.ToTable("OperatorLeads", "railway");
                 });
 
             modelBuilder.Entity("Pregiato.Core.Entities.QueueEvent", b =>
@@ -1402,7 +1403,7 @@ namespace Pregiato.Infrastructure.Migrations
 
                     b.HasIndex("ConversationId");
 
-                    b.ToTable("QueueEvents", (string)null);
+                    b.ToTable("QueueEvents", "railway");
                 });
 
             modelBuilder.Entity("Pregiato.Core.Entities.Talent", b =>
@@ -1514,7 +1515,7 @@ namespace Pregiato.Infrastructure.Migrations
                         .IsUnique()
                         .HasFilter("\"Email\" IS NOT NULL");
 
-                    b.ToTable("Talent");
+                    b.ToTable("Talent", "railway");
                 });
 
             modelBuilder.Entity("Pregiato.Core.Entities.TalentDNA", b =>
@@ -1646,7 +1647,7 @@ namespace Pregiato.Infrastructure.Migrations
                     b.HasIndex("TalentId")
                         .IsUnique();
 
-                    b.ToTable("TalentDNA");
+                    b.ToTable("TalentDNA", "railway");
                 });
 
             modelBuilder.Entity("Pregiato.Core.Entities.TrainingCertificate", b =>
@@ -1729,7 +1730,7 @@ namespace Pregiato.Infrastructure.Migrations
                     b.HasIndex("ValidationCode")
                         .IsUnique();
 
-                    b.ToTable("TrainingCertificates");
+                    b.ToTable("TrainingCertificates", "railway");
                 });
 
             modelBuilder.Entity("Pregiato.Core.Entities.TrainingCourse", b =>
@@ -1796,7 +1797,7 @@ namespace Pregiato.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
+                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
 
@@ -1808,7 +1809,7 @@ namespace Pregiato.Infrastructure.Migrations
 
                     b.HasIndex("IsActive");
 
-                    b.ToTable("TrainingCourses");
+                    b.ToTable("TrainingCourses", "railway");
                 });
 
             modelBuilder.Entity("Pregiato.Core.Entities.TrainingEnrollment", b =>
@@ -1853,7 +1854,9 @@ namespace Pregiato.Infrastructure.Migrations
                         .HasColumnType("decimal(5,2)");
 
                     b.Property<DateTime?>("StartedAt")
-                        .HasColumnType("datetime");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<int>("TotalTimeWatchedMinutes")
                         .HasColumnType("int");
@@ -1872,15 +1875,14 @@ namespace Pregiato.Infrastructure.Migrations
                     b.HasIndex("UserId", "CourseId")
                         .IsUnique();
 
-                    b.ToTable("TrainingEnrollments");
+                    b.ToTable("TrainingEnrollments", "railway");
                 });
 
             modelBuilder.Entity("Pregiato.Core.Entities.TrainingLesson", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)")
-                        .HasDefaultValueSql("(UUID())");
+                        .HasColumnType("char(36)");
 
                     b.Property<string>("AttachmentsJson")
                         .HasColumnType("LONGTEXT");
@@ -1939,7 +1941,7 @@ namespace Pregiato.Infrastructure.Migrations
 
                     b.HasIndex("OrderIndex");
 
-                    b.ToTable("TrainingLessons");
+                    b.ToTable("TrainingLessons", "railway");
                 });
 
             modelBuilder.Entity("Pregiato.Core.Entities.TrainingLessonProgress", b =>
@@ -1985,7 +1987,7 @@ namespace Pregiato.Infrastructure.Migrations
                     b.HasIndex("EnrollmentId", "LessonId")
                         .IsUnique();
 
-                    b.ToTable("TrainingLessonProgress");
+                    b.ToTable("TrainingLessonProgress", "railway");
                 });
 
             modelBuilder.Entity("Pregiato.Core.Entities.TrainingRating", b =>
@@ -2030,10 +2032,7 @@ namespace Pregiato.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.HasIndex("UserId", "CourseId")
-                        .IsUnique();
-
-                    b.ToTable("TrainingRatings");
+                    b.ToTable("TrainingRatings", "railway");
                 });
 
             modelBuilder.Entity("Pregiato.Core.Entities.User", b =>
@@ -2089,7 +2088,7 @@ namespace Pregiato.Infrastructure.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users", "railway");
                 });
 
             modelBuilder.Entity("Pregiato.Core.Entities.AttendanceTicket", b =>
