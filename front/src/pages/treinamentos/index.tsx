@@ -261,7 +261,7 @@ const TreinamentosPage = () => {
                         </Badge>
                       )}
                       {curso.difficulty && (
-                        <Badge variant="secondary" className="text-xs">
+                        <Badge variant="outline" className="text-xs">
                           {curso.difficulty}
                         </Badge>
                       )}

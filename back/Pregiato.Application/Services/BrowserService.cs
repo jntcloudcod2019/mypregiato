@@ -16,6 +16,7 @@ namespace Pregiato.Application.Services
         private const int MaxRetries = 3;
         private const int TimeoutSeconds = 60;
         private readonly ILogger<BrowserService> _logger;
+        private static BrowserFetcher? _browserFetcher;
 
         public BrowserService(ILogger<BrowserService> logger)
         {
@@ -31,13 +32,26 @@ namespace Pregiato.Application.Services
                 Directory.CreateDirectory(fullPath);
             }
             
+            // Inicializa o BrowserFetcher apontando para o diretório de cache local
+            try
+            {
+                _browserFetcher = new BrowserFetcher(new BrowserFetcherOptions
+                {
+                    Path = fullPath
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[BROWSER_SERVICE] ⚠️ Falha ao inicializar BrowserFetcher com opções: {ex.Message}. Tentando construtor padrão.");
+                _browserFetcher = new BrowserFetcher();
+            }
+
             Console.WriteLine("[BROWSER_SERVICE] ✅ BrowserService inicializado");
         }
 
         public async Task<IBrowser> GetBrowserAsync()
         {
             Console.WriteLine("[BROWSER_SERVICE] 🔍 Verificando conexão do navegador...");
-            
             if (_browser != null && _browser.IsConnected)
             {
                 Console.WriteLine("[BROWSER_SERVICE] ✅ Navegador já conectado, reutilizando instância");
@@ -49,68 +63,84 @@ namespace Pregiato.Application.Services
             {
                 Console.WriteLine("[BROWSER_SERVICE] 🔒 Semáforo adquirido, iniciando processo de conexão");
                 int retryCount = 0;
-
                 while (retryCount < MaxRetries)
                 {
                     try
                     {
                         Console.WriteLine($"[BROWSER_SERVICE] 🔄 Tentativa {retryCount + 1} de {MaxRetries}");
-                        
-                        if (_browser == null || !_browser.IsConnected)
+
+                        // Garantir que temos um executável local de Chromium
+                        if (_browserFetcher == null)
                         {
-                            Console.WriteLine("[BROWSER_SERVICE] 📥 Baixando/verificando Chromium...");
-                            
-                            var browserFetcher = new BrowserFetcher(new BrowserFetcherOptions
-                            {
-                                Path = Path.Combine(Directory.GetCurrentDirectory(), BrowserCachePath)
-                            });
-                            
-                            await browserFetcher.DownloadAsync();
-                            Console.WriteLine("[BROWSER_SERVICE] ✅ Chromium pronto");
-
-                            Console.WriteLine($"[BROWSER_SERVICE] 🚀 Lançando navegador...");
-                            _browser = await Puppeteer.LaunchAsync(new LaunchOptions
-                            {
-                                Headless = true,
-                                Args = new[] { 
-                                    "--no-sandbox", 
-                                    "--disable-setuid-sandbox",
-                                    "--disable-dev-shm-usage",
-                                    "--disable-gpu",
-                                    "--no-first-run",
-                                    "--disable-extensions",
-                                    "--disable-default-apps"
-                                }
-                            });
-
-                            _browser.Disconnected += (_, _) => {
-                                Console.WriteLine("[BROWSER_SERVICE] ⚠️ Navegador desconectado");
-                                CleanupBrowser();
-                            };
-
-                            Console.WriteLine("[BROWSER_SERVICE] ✅ Navegador lançado com sucesso");
-                            return _browser;
+                            throw new InvalidOperationException("BrowserFetcher não inicializado.");
                         }
+
+                        RevisionInfo revisionInfo;
+                        try
+                        {
+                            revisionInfo = await _browserFetcher.GetRevisionInfoAsync(BrowserFetcher.DefaultChromiumRevision);
+                        }
+                        catch
+                        {
+                            // Algumas versões exigem chamada sem parâmetro
+                            revisionInfo = await _browserFetcher.GetRevisionInfoAsync();
+                        }
+
+                        if (!revisionInfo.Local)
+                        {
+                            Console.WriteLine("[BROWSER_SERVICE] ⬇️ Baixando Chromium...");
+                            try
+                            {
+                                await _browserFetcher.DownloadAsync(BrowserFetcher.DefaultChromiumRevision);
+                            }
+                            catch
+                            {
+                                await _browserFetcher.DownloadAsync();
+                            }
+                            revisionInfo = await _browserFetcher.GetRevisionInfoAsync(BrowserFetcher.DefaultChromiumRevision);
+                        }
+
+                        if (string.IsNullOrWhiteSpace(revisionInfo.ExecutablePath))
+                        {
+                            throw new InvalidOperationException("Caminho do executável do Chromium não encontrado.");
+                        }
+
+                        Console.WriteLine($"[BROWSER_SERVICE] 🚀 Lançando navegador em: {revisionInfo.ExecutablePath}");
+                        _browser = await Puppeteer.LaunchAsync(new LaunchOptions
+                        {
+                            Headless = true,
+                            ExecutablePath = revisionInfo.ExecutablePath,
+                            Args = new[]
+                            {
+                                "--no-sandbox",
+                                "--disable-setuid-sandbox",
+                                "--disable-dev-shm-usage",
+                                "--disable-gpu",
+                                "--no-first-run",
+                                "--disable-extensions",
+                                "--disable-default-apps"
+                            }
+                        });
+
+                        _browser.Disconnected += (_, _) =>
+                        {
+                            Console.WriteLine("[BROWSER_SERVICE] ⚠️ Navegador desconectado");
+                            CleanupBrowser();
+                        };
+
+                        Console.WriteLine("[BROWSER_SERVICE] ✅ Navegador lançado com sucesso");
+                        return _browser;
                     }
                     catch (Exception ex)
                     {
                         Console.WriteLine($"[BROWSER_SERVICE] ❌ Erro na tentativa {retryCount + 1}: {ex.Message}");
+                        _logger.LogError(ex, "Falha ao processar a inicialização do navegador (tentativa {Attempt})", retryCount + 1);
+                        CleanupBrowser();
                         retryCount++;
-                        
-                        if (retryCount >= MaxRetries)
-                        {
-                            CleanupBrowser();
-                            Console.WriteLine($"[BROWSER_SERVICE] ❌ Falha após {MaxRetries} tentativas");
-                            _logger.LogError(ex, "Falha ao processar a inicialização do navegador");
-                            throw new ApplicationException("Falha ao processar a inicialização do navegador", ex);
-                        }
-                        
-                        Console.WriteLine($"[BROWSER_SERVICE] ⏳ Aguardando antes da próxima tentativa...");
-                        await Task.Delay(1000 * retryCount); // Backoff exponencial
+                        await Task.Delay(TimeSpan.FromSeconds(Math.Min(5, retryCount)));
                     }
                 }
 
-                Console.WriteLine($"[BROWSER_SERVICE] ❌ Timeout após {MaxRetries} tentativas");
                 throw new TimeoutException($"Falha após {MaxRetries} tentativas de conexão.");
             }
             finally
