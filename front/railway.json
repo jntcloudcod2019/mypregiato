@@ -14,9 +14,11 @@
       "variables": {
         "NODE_ENV": "production",
         "PORT": "3000",
-        "VITE_API_BASE_URL": "https://pregiato-api-production.up.railway.app",
-        "VITE_SIGNALR_URL": "https://pregiato-api-production.up.railway.app/hubs/whatsapp",
-        "VITE_CLERK_PUBLISHABLE_KEY": "${{CLERK_PUBLISHABLE_KEY}}",
+        "VITE_API_BASE_URL": "https://clerk.mypregiato-667d986e.railway.internal",
+        "VITE_SIGNALR_URL": "https://clerk.mypregiato-667d986e.railway.internal/hubs/whatsapp",
+        "VITE_CLERK_PUBLISHABLE_KEY": "pk_live_Y2xlcmsubXlwcmVnaWF0by02NjdkOTg2ZS5yYWlsd2F5LmludGVybmFsJA",
+        "VITE_DEV_MODE": "false",
+        "VITE_ENABLE_CLERK": "true",
         "DATABASE_URL": "${{DATABASE_URL}}"
       }
     }

@@ -71,19 +71,70 @@ export const AuthPermissionsProvider: React.FC<AuthPermissionsProviderProps> = (
         return;
       }
 
-      // Buscar usuário no banco de dados
-      const response = await apiClient.get<UserData>(`/api/Users/by-email/${encodeURIComponent(email)}`);
+      // 1️⃣ TENTAR buscar usuário no banco de dados
+      try {
+        const response = await apiClient.get<UserData>(`/api/Users/by-email/${encodeURIComponent(email)}`);
+        setUser(response);
+        setError(null);
+        console.log('✅ [AuthPermissions] Usuário encontrado no banco:', response);
+        return; // Sucesso!
+      } catch (err) {
+        const error = err as { response?: { status?: number }; message?: string };
+        
+        // 2️⃣ Se NÃO existir (404), criar automaticamente
+        if (error.response?.status === 404) {
+          console.log('🔧 [AuthPermissions] Usuário não existe no banco, criando automaticamente...');
+          
+          try {
+            // Extrair dados do Clerk
+            const firstName = clerkUser.firstName || clerkUser.fullName?.split(' ')[0] || 'Usuário';
+            const lastName = clerkUser.lastName || clerkUser.fullName?.split(' ').slice(1).join(' ') || 'Modelo';
+            
+            // Buscar role do public_metadata do Clerk
+            const clerkMetadata = clerkUser.publicMetadata as { systemRole?: string } | undefined;
+            const role = clerkMetadata?.systemRole || 'MODEL'; // Default MODEL para migrados
+            
+            console.log('📝 [AuthPermissions] Criando usuário:', {
+              email,
+              firstName,
+              lastName,
+              role,
+              clerkId: clerkUser.id
+            });
+            
+            // 3️⃣ CRIAR usuário no banco via API
+            const newUser = await apiClient.post<UserData>('/api/Users', {
+              email,
+              firstName,
+              lastName,
+              role,
+              clerkId: clerkUser.id,
+              imageUrl: clerkUser.imageUrl || null
+            });
+            
+            console.log('✅ [AuthPermissions] Usuário criado com sucesso no banco:', newUser);
+            setUser(newUser);
+            setError(null);
+            
+          } catch (createError) {
+            console.error('❌ [AuthPermissions] Erro ao criar usuário no banco:', createError);
+            // Permitir acesso mesmo se falhar (modo degradado)
+            setUser(null);
+            setError(null);
+          }
+          
+        } else {
+          // Outro erro que não é 404
+          console.error('[AuthPermissions] Erro ao buscar usuário:', error);
+          setUser(null);
+          setError(null);
+        }
+      }
       
-      setUser(response);
-      setError(null); // Limpar qualquer erro anterior
     } catch (err) {
-      const error = err as { response?: { status?: number }; message?: string };
-      console.warn('[AuthPermissions] Usuário não encontrado no banco de dados, permitindo acesso em modo degradado:', error);
-      
-      // NÃO bloquear o acesso - apenas logar o aviso
-      // O usuário está autenticado no Clerk, então pode acessar
+      console.error('[AuthPermissions] Erro inesperado:', err);
       setUser(null);
-      setError(null); // NÃO definir erro para não acionar ErrorBoundary
+      setError(null);
     } finally {
       setIsLoading(false);
     }
