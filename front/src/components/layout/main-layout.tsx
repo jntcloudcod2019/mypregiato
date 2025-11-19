@@ -175,6 +175,9 @@ export default function MainLayout({ children }: MainLayoutProps) {
     return <LoadingFallback />;
   }
 
+
+
+  
   // Renderizar com autenticação do Clerk
   return (
     <SidebarProvider>
