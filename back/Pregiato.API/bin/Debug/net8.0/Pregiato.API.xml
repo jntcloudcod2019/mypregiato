@@ -1,0 +1,532 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Pregiato.API</name>
+    </assembly>
+    <members>
+        <member name="M:Pregiato.API.Controllers.ChatsController.NormalizePhoneE164Br(System.String,System.Boolean)">
+            <summary>
+            Normaliza um número de telefone ou ID de grupo para um formato padrão
+            CORRIGIDA para evitar duplicação de chats - conforme análise de engenharia reversa
+            </summary>
+            <param name="phone">Número de telefone ou ID de grupo</param>
+            <param name="isGroup">Se é um ID de grupo</param>
+            <returns>Número normalizado</returns>
+        </member>
+        <member name="M:Pregiato.API.Controllers.ChatsController.IsMediaType(System.String)">
+            <summary>
+            Verifica se o tipo da mensagem é um tipo de mídia
+            Usa a mesma lógica do RabbitBackgroundService.GetMessageType
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.ChatsController.IsAudio(System.String)">
+            <summary>
+            Verifica se o tipo da mensagem é áudio ou voice
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.ChatsController.BuildDataUrl(System.String,System.String)">
+            <summary>
+            Constrói um data URL completo a partir do MIME type e base64
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.FileUploadsController.GetByTalentId(System.Guid)">
+            <summary>
+            Obtém todas as fotos de um talento
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.FileUploadsController.GetById(System.Guid)">
+            <summary>
+            Obtém uma foto específica
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.FileUploadsController.Create(Pregiato.Application.DTOs.CreateFileUploadDto)">
+            <summary>
+            Cria um novo registro de upload
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.FileUploadsController.Update(System.Guid,Pregiato.Application.DTOs.CreateFileUploadDto)">
+            <summary>
+            Atualiza um registro de upload
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.FileUploadsController.Delete(System.Guid)">
+            <summary>
+            Deleta uma foto
+            </summary>
+        </member>
+        <member name="T:Pregiato.API.Controllers.HealthController">
+            <summary>
+            Controller para monitoramento de saúde dos serviços
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.HealthController.GetHealth">
+            <summary>
+            Verifica o status de saúde geral da API
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.HealthController.GetDetailedHealth">
+            <summary>
+            Verifica o status detalhado de todos os serviços
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.HealthController.ForceHealthCheck">
+            <summary>
+            Força a verificação de saúde de todos os serviços
+            </summary>
+        </member>
+        <member name="T:Pregiato.API.Controllers.MetaWebhookController">
+            <summary>
+            Controller para receber webhooks da Meta Cloud API (WhatsApp Business)
+            Endpoint configurado no Meta Business Manager
+            Documentação: https://developers.facebook.com/docs/whatsapp/cloud-api/webhooks
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.MetaWebhookController.VerifyWebhook(System.String,System.String,System.String)">
+            <summary>
+            GET endpoint para verificação do webhook pela Meta
+            A Meta faz esta chamada quando você configura o webhook no Business Manager
+            </summary>
+            <param name="mode">Deve ser "subscribe"</param>
+            <param name="verifyToken">Token de verificação configurado</param>
+            <param name="challenge">Challenge string enviado pela Meta</param>
+            <returns>Echo do challenge se token válido, 403 caso contrário</returns>
+        </member>
+        <member name="M:Pregiato.API.Controllers.MetaWebhookController.ReceiveWebhook(Pregiato.Application.DTOs.Meta.MetaWebhookPayload)">
+            <summary>
+            POST endpoint para receber webhooks da Meta
+            A Meta envia mensagens, status updates, etc via este endpoint
+            </summary>
+            <param name="payload">Payload do webhook</param>
+            <returns>200 OK sempre (Meta exige resposta rápida)</returns>
+        </member>
+        <member name="M:Pregiato.API.Controllers.MetaWebhookController.TestWebhook(System.Object)">
+            <summary>
+            Endpoint de teste para simular webhook (desenvolvimento)
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.OperatorLeadsController.GetKanbanData(System.String)">
+            <summary>
+            Gets Kanban board data for scheduling page
+            Returns leads grouped by status: new, scheduled, pending (descending order)
+            </summary>
+            <param name="emailOperator">Operator email for data filtering</param>
+        </member>
+        <member name="M:Pregiato.API.Controllers.OperatorLeadsController.GetDashboard(System.String)">
+            <summary>
+            Gets dashboard metrics for scheduling page
+            Returns scheduled and pending counts by period (day, week, month)
+            </summary>
+            <param name="emailOperator">Operator email for metrics calculation</param>
+        </member>
+        <member name="M:Pregiato.API.Controllers.OperatorLeadsController.GetPaginatedKanbanData(System.String,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Gets paginated Kanban board data for scheduling page
+            Supports independent pagination for each column
+            </summary>
+            <param name="emailOperator">Operator email for data filtering</param>
+            <param name="newPage">Page number for 'new' column (default: 1)</param>
+            <param name="newPageSize">Page size for 'new' column (default: 20)</param>
+            <param name="scheduledPage">Page number for 'scheduled' column (default: 1)</param>
+            <param name="scheduledPageSize">Page size for 'scheduled' column (default: 20)</param>
+            <param name="pendingPage">Page number for 'pending' column (default: 1)</param>
+            <param name="pendingPageSize">Page size for 'pending' column (default: 20)</param>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TalentsController.GetTalents(System.Int32,System.Int32,System.String,System.String,System.Boolean)">
+            <summary>
+            Obtém todos os talentos com paginação
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TalentsController.GetTalent(System.Guid)">
+            <summary>
+            Obtém um talento por ID
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TalentsController.GetTalentByEmail(System.String)">
+            <summary>
+            Obtém um talento por email
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TalentsController.CreateTalent(Pregiato.Application.DTOs.CreateTalentDto)">
+            <summary>
+            Cria um novo talento
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TalentsController.UpdateTalent(System.Guid,Pregiato.Application.DTOs.UpdateTalentDto)">
+            <summary>
+            Atualiza um talento
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TalentsController.DeleteTalent(System.Guid)">
+            <summary>
+            Remove um talento
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TalentsController.CheckTalentExists(System.String,System.String)">
+            <summary>
+            Verifica se um talento existe por email ou documento
+            </summary>
+        </member>
+        <member name="T:Pregiato.API.Controllers.TrainingCertificatesController">
+            <summary>
+            Controller para gerenciamento de certificados de treinamento
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TrainingCertificatesController.GenerateCertificate(Pregiato.API.Controllers.GenerateCertificateRequest)">
+            <summary>
+            Gerar certificado para um usuário e curso e retornar PDF para download
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TrainingCertificatesController.GetById(System.Guid)">
+            <summary>
+            Buscar certificado por ID
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TrainingCertificatesController.ValidateCertificate(Pregiato.API.Controllers.ValidateCertificateRequest)">
+            <summary>
+            Validar certificado por código
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TrainingCertificatesController.GetMyCertificates">
+            <summary>
+            Buscar certificados do usuário atual
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TrainingCertificatesController.GetByCourse(System.Guid)">
+            <summary>
+            Buscar certificados de um curso
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TrainingCertificatesController.DownloadCertificate(System.Guid)">
+            <summary>
+            Download direto do certificado em PDF
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TrainingCertificatesController.RegenerateCertificate(System.Guid)">
+            <summary>
+            Regenerar certificado
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TrainingCertificatesController.CheckCertificateExists(System.Guid)">
+            <summary>
+            Verificar se certificado existe para uma matrícula
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TrainingCertificatesController.GetStats">
+            <summary>
+            Obter estatísticas de certificados
+            </summary>
+        </member>
+        <member name="T:Pregiato.API.Controllers.GenerateCertificateRequest">
+            <summary>
+            Request para gerar certificado
+            </summary>
+        </member>
+        <member name="T:Pregiato.API.Controllers.ValidateCertificateRequest">
+            <summary>
+            Request para validar certificado
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TrainingEnrollmentsController.GetOrCreateEnrollment(System.String,System.Guid)">
+            <summary>
+            Buscar ou criar enrollment automaticamente
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.TrainingEnrollmentsController.UpdateLessonProgress(System.Guid,Pregiato.Application.DTOs.UpdateLessonProgressDto)">
+            <summary>
+            Atualizar progresso de uma aula específica
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.UsersController.SendUserInvitation(Pregiato.Application.DTOs.SendUserInvitationDto)">
+            <summary>
+            Envia convite para novo usuário via Clerk
+            Clerk envia o email automaticamente com link de ativação
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.UsersController.ResendUserInvitation(System.String)">
+            <summary>
+            Reenviar convite para usuário (cancela o antigo e cria novo)
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.UsersController.CancelUserInvitation(System.String)">
+            <summary>
+            Cancelar convite pendente
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.WebhooksController.ClerkWebhook">
+            <summary>
+            Webhook do Clerk para sincronizar dados de usuários
+            Documentação: https://clerk.com/docs/integrations/webhooks/overview
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Controllers.WhatsAppController.BroadcastStatus(Pregiato.API.Controllers.WhatsAppController.BotStatusBroadcastRequest)">
+            <summary>
+            Endpoint para broadcast de status em tempo real via SignalR
+            </summary>
+        </member>
+        <member name="T:Pregiato.API.Middleware.ErrorResponse">
+            <summary>
+            Classe para padronizar respostas de erro
+            </summary>
+        </member>
+        <member name="T:Pregiato.API.Middleware.ResilienceMiddleware">
+            <summary>
+            Middleware que intercepta exceções e aplica resiliência automática
+            </summary>
+        </member>
+        <member name="T:Pregiato.API.Middleware.ResilienceMiddlewareExtensions">
+            <summary>
+            Extensão para registrar o middleware de resiliência
+            </summary>
+        </member>
+        <member name="T:Pregiato.API.Services.ChatHelper">
+            <summary>
+            Classe auxiliar para operações de chat
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatHelper.NormalizePhoneE164Br(System.String,System.Boolean)">
+            <summary>
+            Normaliza um número de telefone ou ID de grupo para um formato padrão
+            </summary>
+            <param name="phone">Número de telefone ou ID de grupo</param>
+            <param name="isGroup">Se é um ID de grupo</param>
+            <returns>Número normalizado</returns>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatHelper.ConsolidateDuplicateChats(Pregiato.Core.Entities.ChatLog,System.Collections.Generic.List{Pregiato.Core.Entities.ChatLog},Pregiato.Infrastructure.Data.PregiatoDbContext,Microsoft.Extensions.DependencyInjection.IServiceScope,Microsoft.Extensions.Logging.ILogger)">
+            <summary>
+            Consolida chats duplicados em um chat principal
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatLogService.ListByOperatorAsync(System.String,System.String,System.Int32,System.Int32)">
+            <summary>
+            Lista chats filtrados por operador com base nos leads alocados
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatLogService.GetShortContentType(System.String)">
+            <summary>
+            Converte tipos de conteúdo longos para versões curtas que cabem no banco
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatLogService.FindExistingChatByPhoneAsync(System.String)">
+            <summary>
+            Busca chat existente para um número, prevenindo duplicação
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatLogService.RemoveChatFromCache(System.String)">
+            <summary>
+            Remove chat duplicado do cache quando consolidado
+            </summary>
+        </member>
+        <member name="T:Pregiato.API.Services.ChatMappingService">
+            <summary>
+            Serviço resiliente para mapeamento de chats com múltiplas estratégias de fallback
+            e cache automático para otimização de performance
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatMappingService.GetConversationIdAsync(System.String,System.String)">
+            <summary>
+            Obtém ou cria o ConversationId para um chat com múltiplas estratégias resilientes
+            </summary>
+            <param name="chatId">ID do chat enviado pelo Zap Bot</param>
+            <param name="phoneNumber">Número de telefone normalizado</param>
+            <returns>Guid da conversa</returns>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatMappingService.TryMultipleMappingStrategies(System.String,System.String)">
+            <summary>
+            Tenta múltiplas estratégias de mapeamento em ordem de prioridade
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatMappingService.TryParseGuidFromChatId(System.String)">
+            <summary>
+            Estratégia 1: Tenta extrair GUID diretamente do chatId
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatMappingService.FindConversationByPhone(System.String)">
+            <summary>
+            Estratégia 2: Busca conversa existente pelo número de telefone
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatMappingService.FindConversationByPeerE164(System.String)">
+            <summary>
+            Estratégia 3: Busca conversa existente pelo PeerE164
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatMappingService.CreateNewConversation(System.String,System.String)">
+            <summary>
+            Estratégia 4: Cria uma nova conversa
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatMappingService.EmergencyRecovery(System.String,System.String,System.Exception)">
+            <summary>
+            Recuperação de emergência quando todas as estratégias falham
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatMappingService.GenerateDeterministicGuid(System.String)">
+            <summary>
+            Gera um GUID determinístico baseado no número de telefone
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatMappingService.ClearCache">
+            <summary>
+            Limpa o cache (útil para testes ou manutenção)
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ChatMappingService.GetCacheStats">
+            <summary>
+            Obtém estatísticas do cache
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.IClerkAuthService.SendInvitationAsync(Pregiato.API.Services.SendClerkInvitationRequest)">
+            <summary>
+            Envia convite via Clerk (Clerk envia email automaticamente)
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.IClerkAuthService.RevokeInvitationAsync(System.String)">
+            <summary>
+            Revoga (cancela) um convite pendente
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.IClerkAuthService.GetInvitationsByEmailAsync(System.String)">
+            <summary>
+            Lista convites pendentes de um email
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ConversationService.GetOrCreateConversationAsync(System.String,System.String,System.Boolean,System.String)">
+            <summary>
+            Obtém ou cria uma conversa para um número específico (implementação da interface)
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ConversationService.UpdateLastMessageAsync(System.Guid,System.DateTime)">
+            <summary>
+            Atualiza a última mensagem de uma conversa
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ConversationService.GetOrCreateWhatsAppConversationAsync(System.String,System.String,System.Boolean,System.String)">
+            <summary>
+            Obtém ou cria uma conversa para um número específico (WhatsApp)
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ConversationService.ListConversationsAsync(System.String,System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Lista conversas com paginação (suporta tanto conversas originais quanto WhatsApp)
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ConversationService.AddMessageAsync(System.Guid,System.String,System.String,System.String,System.Boolean,System.String)">
+            <summary>
+            Adiciona uma mensagem a uma conversa
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.RabbitBackgroundService.TestConnectionAsync">
+            <summary>
+            Testa a conectividade do RabbitMQ para o serviço de resiliência
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.RabbitBackgroundService.ReconnectAsync">
+            <summary>
+            Reconecta ao RabbitMQ para o serviço de resiliência
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.RabbitBackgroundService.CreateCompleteMessageInfo(Pregiato.API.Services.WhatsAppMessage,System.String)">
+            <summary>
+            Cria MessageInfo COMPLETO conforme estrutura do exemplo JSON
+            Garante que todos os campos sejam populados corretamente
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.RabbitBackgroundService.GetFileExtensionFromMimeType(System.String)">
+            <summary>
+            Obtém extensão de arquivo baseada no MIME type
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.RabbitBackgroundService.EstimateAudioDuration(System.Int64)">
+            <summary>
+            Estima duração de áudio baseada no tamanho do arquivo
+            Heurística: ~8KB por segundo para MP3 de qualidade média
+            </summary>
+        </member>
+        <member name="T:Pregiato.API.Services.WhatsAppMessage">
+            <summary>
+            Classe unificada para receber payloads do Zap-Blaster
+            Compatível com WhatsAppIncomingMessageDto do Application layer
+            </summary>
+        </member>
+        <member name="T:Pregiato.API.Services.WhatsAppAttachment">
+            <summary>
+            Classe unificada para attachments
+            </summary>
+        </member>
+        <member name="T:Pregiato.API.Services.WhatsAppLocation">
+            <summary>
+            Classe para dados de localização
+            </summary>
+        </member>
+        <member name="T:Pregiato.API.Services.WhatsAppContact">
+            <summary>
+            Classe para dados de contato
+            </summary>
+        </member>
+        <member name="T:Pregiato.API.Services.ContentTypeHelper">
+            <summary>
+            Converte tipos de conteúdo longos para versões curtas que cabem no banco
+            </summary>
+        </member>
+        <member name="T:Pregiato.API.Services.ResilienceService">
+            <summary>
+            Serviço de resiliência que monitora e recupera automaticamente falhas de infraestrutura
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ResilienceService.PerformHealthChecks">
+            <summary>
+            Executa verificações de saúde de todos os serviços críticos
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ResilienceService.CheckDatabaseHealth">
+            <summary>
+            Verifica a saúde do banco de dados
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ResilienceService.CheckRabbitMQHealth">
+            <summary>
+            Verifica a saúde do RabbitMQ
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ResilienceService.RecoverDatabaseConnection">
+            <summary>
+            Recupera a conexão do banco de dados
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ResilienceService.RecoverRabbitMQConnection">
+            <summary>
+            Recupera a conexão do RabbitMQ
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ResilienceService.ExecuteWithResilienceAsync``1(System.Func{System.Threading.Tasks.Task{``0}},System.String,System.Threading.CancellationToken)">
+            <summary>
+            Executa uma operação com resiliência automática
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ResilienceService.ExecuteWithResilienceAsync(System.Func{System.Threading.Tasks.Task},System.String,System.Threading.CancellationToken)">
+            <summary>
+            Executa uma operação sem retorno com resiliência automática
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ResilienceService.IsRecoverableException(System.Exception)">
+            <summary>
+            Verifica se uma exceção é recuperável
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ResilienceService.IsDatabaseException(System.Exception)">
+            <summary>
+            Verifica se é uma exceção de banco de dados
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ResilienceService.IsRabbitMQException(System.Exception)">
+            <summary>
+            Verifica se é uma exceção do RabbitMQ
+            </summary>
+        </member>
+        <member name="M:Pregiato.API.Services.ResilienceService.GetHealthStatus">
+            <summary>
+            Obtém o status de saúde dos serviços
+            </summary>
+        </member>
+    </members>
+</doc>
