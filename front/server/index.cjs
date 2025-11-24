@@ -15,12 +15,12 @@ app.use((req, res, next) => {
   // Content Security Policy (unsafe-eval removido temporariamente)
   res.setHeader('Content-Security-Policy', 
     "default-src 'self'; " +
-    "script-src 'self' 'unsafe-inline' blob: data: https://fonts.googleapis.com https://clerk.com https://*.clerk.accounts.dev https://clerk.mypregiato-667d986e.railway.internal; " +
+    "script-src 'self' 'unsafe-inline' blob: data: https://fonts.googleapis.com https://clerk.com https://*.clerk.accounts.dev https://clerk.mypregiato-667d986e.railway.internal https://*.railway.app; " +
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
     "font-src 'self' data: blob: https://fonts.gstatic.com; " +
     "img-src 'self' data: blob: https:; " +
     "media-src 'self' data: blob: https: https://bucket-production-1aef.up.railway.app; " +
-    "connect-src 'self' http://localhost:5656 https://clerk.com https://*.clerk.accounts.dev https://clerk-telemetry.com https://clerk.mypregiato-667d986e.railway.internal https://pregiato-api-production.up.railway.app https://bucket-production-1aef.up.railway.app https://viacep.com.br wss:; " +
+    "connect-src 'self' http://localhost:5656 https://clerk.com https://*.clerk.accounts.dev https://clerk-telemetry.com https://clerk.mypregiato-667d986e.railway.internal https://pregiato-api-production.up.railway.app https://bucket-production-1aef.up.railway.app https://*.railway.app https://viacep.com.br wss:; " +
     "frame-src 'self' https://clerk.com https://*.clerk.accounts.dev; " +
     "worker-src 'self' blob:; " +
     "child-src 'self' blob:; " +
