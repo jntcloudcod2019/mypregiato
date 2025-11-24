@@ -75,41 +75,14 @@ namespace Pregiato.Application.Services
                             throw new InvalidOperationException("BrowserFetcher não inicializado.");
                         }
 
-                        RevisionInfo revisionInfo;
-                        try
-                        {
-                            revisionInfo = await _browserFetcher.GetRevisionInfoAsync(BrowserFetcher.DefaultChromiumRevision);
-                        }
-                        catch
-                        {
-                            // Algumas versões exigem chamada sem parâmetro
-                            revisionInfo = await _browserFetcher.GetRevisionInfoAsync();
-                        }
+                        // Versão mais recente do PuppeteerSharp usa DownloadAsync() sem parâmetros
+                        Console.WriteLine("[BROWSER_SERVICE] ⬇️ Verificando/Baixando Chromium...");
+                        await _browserFetcher.DownloadAsync();
 
-                        if (!revisionInfo.Local)
-                        {
-                            Console.WriteLine("[BROWSER_SERVICE] ⬇️ Baixando Chromium...");
-                            try
-                            {
-                                await _browserFetcher.DownloadAsync(BrowserFetcher.DefaultChromiumRevision);
-                            }
-                            catch
-                            {
-                                await _browserFetcher.DownloadAsync();
-                            }
-                            revisionInfo = await _browserFetcher.GetRevisionInfoAsync(BrowserFetcher.DefaultChromiumRevision);
-                        }
-
-                        if (string.IsNullOrWhiteSpace(revisionInfo.ExecutablePath))
-                        {
-                            throw new InvalidOperationException("Caminho do executável do Chromium não encontrado.");
-                        }
-
-                        Console.WriteLine($"[BROWSER_SERVICE] 🚀 Lançando navegador em: {revisionInfo.ExecutablePath}");
+                        Console.WriteLine($"[BROWSER_SERVICE] 🚀 Lançando navegador...");
                         _browser = await Puppeteer.LaunchAsync(new LaunchOptions
                         {
                             Headless = true,
-                            ExecutablePath = revisionInfo.ExecutablePath,
                             Args = new[]
                             {
                                 "--no-sandbox",
