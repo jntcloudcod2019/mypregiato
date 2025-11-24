@@ -147,12 +147,24 @@ export const Gallery: React.FC<GalleryProps> = ({ className }) => {
         console.log(`✅ [GALLERY] ${talentPhotos.length} fotos carregadas`);
       } catch (error) {
         console.error('❌ [GALLERY] Erro ao carregar galeria:', error);
-        setError('Erro ao carregar galeria de fotos');
-        toast({
-          title: 'Erro',
-          description: 'Não foi possível carregar suas fotos. Verifique se você tem um perfil de talento cadastrado.',
-          variant: 'destructive',
-        });
+        
+        // Verificar se é erro 404 (perfil não existe)
+        const isAxiosError = error && typeof error === 'object' && 'response' in error;
+        const errorMessage = error instanceof Error ? error.message : '';
+        
+        if ((isAxiosError && (error as { response?: { status?: number } }).response?.status === 404) || 
+            errorMessage.includes('não encontrado') || 
+            errorMessage.includes('not found')) {
+          console.log('ℹ️ [GALLERY] Perfil de talento não encontrado');
+          setError('no_profile'); // Flag especial para perfil não existir
+        } else {
+          setError('Erro ao carregar galeria de fotos');
+          toast({
+            title: 'Erro',
+            description: 'Não foi possível carregar suas fotos. Tente novamente mais tarde.',
+            variant: 'destructive',
+          });
+        }
       } finally {
         setIsLoading(false);
       }
@@ -196,6 +208,35 @@ export const Gallery: React.FC<GalleryProps> = ({ className }) => {
   }
 
   if (error) {
+    // Caso especial: perfil não existe
+    if (error === 'no_profile') {
+      return (
+        <Card className={className}>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ImageIcon className="h-5 w-5" />
+              Galeria de Fotos
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-12">
+              <ImageIcon className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
+              <p className="text-lg font-medium text-foreground mb-2">
+                Crie o seu perfil para habilitar esta função
+              </p>
+              <p className="text-sm text-muted-foreground mb-6">
+                Você precisa ter um perfil de talento cadastrado para fazer upload de fotos
+              </p>
+              <Button onClick={() => window.location.href = '/perfil'}>
+                Criar Perfil
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+    
+    // Outros erros
     return (
       <Card className={className}>
         <CardHeader>

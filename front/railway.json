@@ -17,9 +17,8 @@
         "VITE_API_BASE_URL": "https://clerk.mypregiato-667d986e.railway.internal",
         "VITE_SIGNALR_URL": "https://clerk.mypregiato-667d986e.railway.internal/hubs/whatsapp",
         "VITE_CLERK_PUBLISHABLE_KEY": "pk_live_Y2xlcmsubXlwcmVnaWF0by02NjdkOTg2ZS5yYWlsd2F5LmludGVybmFsJA",
-        "VITE_ENABLE_CLERK": "true",
         "VITE_DEV_MODE": "false",
-        "CLERK_SECRET_KEY": "sk_live_yhu3BQHiGHGqlljcLBhoMEUguD3he5V51IOqetmx17",
+        "VITE_ENABLE_CLERK": "true",
         "DATABASE_URL": "${{DATABASE_URL}}"
       }
     }

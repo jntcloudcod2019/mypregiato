@@ -20,7 +20,7 @@ app.use((req, res, next) => {
     "font-src 'self' data: blob: https://fonts.gstatic.com; " +
     "img-src 'self' data: blob: https:; " +
     "media-src 'self' data: blob: https: https://bucket-production-1aef.up.railway.app; " +
-    "connect-src 'self' https://clerk.com https://*.clerk.accounts.dev https://clerk-telemetry.com https://clerk.mypregiato-667d986e.railway.internal https://bucket-production-1aef.up.railway.app https://viacep.com.br wss:; " +
+    "connect-src 'self' http://localhost:5656 https://clerk.com https://*.clerk.accounts.dev https://clerk-telemetry.com https://clerk.mypregiato-667d986e.railway.internal https://pregiato-api-production.up.railway.app https://bucket-production-1aef.up.railway.app https://viacep.com.br wss:; " +
     "frame-src 'self' https://clerk.com https://*.clerk.accounts.dev; " +
     "worker-src 'self' blob:; " +
     "child-src 'self' blob:; " +
