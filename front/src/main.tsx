@@ -36,17 +36,14 @@ const shouldUseClerk = shouldEnableClerk() && detectClerkAvailability(true);
 // Obtém a chave publishable do Clerk
 const PUBLISHABLE_KEY = getClerkPublishableKey();
 
-// Configuração do Clerk Proxy
-const CLERK_PROXY_URL = import.meta.env.VITE_CLERK_PROXY_URL || 'https://my-pregiato-production.up.railway.app/__clerk';
-
 // Logs de debug para verificar configuração do Clerk
 console.log('🔍 [DEBUG] Configuração do Clerk:', {
   shouldUseClerk,
   publishableKey: PUBLISHABLE_KEY,
-  proxyUrl: CLERK_PROXY_URL,
   envKey: import.meta.env.VITE_CLERK_PUBLISHABLE_KEY,
   enableClerk: import.meta.env.VITE_ENABLE_CLERK,
-  clerkFailed: sessionStorage.getItem('clerk_failed')
+  clerkFailed: sessionStorage.getItem('clerk_failed'),
+  note: 'Proxy URL deve ser configurado no Clerk Dashboard, não no código'
 });
 
 // Renderiza a árvore de componentes
@@ -61,7 +58,6 @@ createRoot(document.getElementById('root')!).render(
         {shouldUseClerk ? (
           <ClerkProvider 
             publishableKey={PUBLISHABLE_KEY}
-            proxyUrl={CLERK_PROXY_URL}
             afterSignInUrl="/login"
             afterSignUpUrl="/login"
           >
