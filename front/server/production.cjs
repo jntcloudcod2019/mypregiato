@@ -26,6 +26,16 @@ console.log('🚀 [SERVER] Inicializando servidor de produção...');
 console.log('📡 [SERVER] Clerk Proxy URL:', CLERK_PROXY_URL);
 console.log('🔐 [SERVER] Clerk Secret Key:', CLERK_SECRET_KEY ? '✅ Configurada' : '❌ NÃO configurada');
 
+// CORS preflight para /__clerk (antes do proxy middleware)
+app.options('/__clerk/*', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type, Accept, X-Forwarded-For, Clerk-Proxy-Url, Clerk-Secret-Key');
+  res.setHeader('Access-Control-Max-Age', '86400'); // 24 horas
+  res.status(204).end();
+});
+
 // Clerk Proxy Middleware - DEVE vir ANTES de outros middlewares
 app.use('/__clerk', createClerkProxyMiddleware({
   proxyUrl: CLERK_PROXY_URL,
