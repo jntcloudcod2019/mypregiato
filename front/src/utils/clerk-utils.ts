@@ -69,15 +69,15 @@ export function getClerkPublishableKey(): string {
   const envKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
   if (envKey) return envKey;
   
-  // Fallback para chave de PRODUÇÃO hardcoded
-  // ✅ PRODUÇÃO: pk_live_
-  const fallbackKey = "pk_live_Y2xlcmsubXlwcmVnaWF0by02NjdkOTg2ZS5yYWlsd2F5LmludGVybmFsJA";
-  if (fallbackKey && fallbackKey.startsWith('pk_live_')) {
+  // Fallback para chave de DESENVOLVIMENTO hardcoded
+  // ✅ DESENVOLVIMENTO: pk_test_
+  const fallbackKey = "pk_test_c21pbGluZy1tYW1tb3RoLTYuY2xlcmsuYWNjb3VudHMuZGV2JA";
+  if (fallbackKey && fallbackKey.startsWith('pk_test_')) {
     return fallbackKey;
   }
   
   // Se a chave fallback não for válida, retornar erro
-  throw new Error('Clerk production key not configured. Please set VITE_CLERK_PUBLISHABLE_KEY environment variable.');
+  throw new Error('Clerk publishable key not configured. Please set VITE_CLERK_PUBLISHABLE_KEY environment variable.');
 }
 
 /**

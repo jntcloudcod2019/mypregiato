@@ -16,10 +16,7 @@
         "PORT": "3000",
         "VITE_API_BASE_URL": "https://pregiato-api-production.up.railway.app",
         "VITE_SIGNALR_URL": "https://pregiato-api-production.up.railway.app/hubs/whatsapp",
-        "VITE_CLERK_PUBLISHABLE_KEY": "pk_live_Y2xlcmsubXlwcmVnaWF0by02NjdkOTg2ZS5yYWlsd2F5LmludGVybmFsJA",
-        "VITE_CLERK_PROXY_URL": "https://my-pregiato-production.up.railway.app/__clerk",
-        "CLERK_PROXY_URL": "https://my-pregiato-production.up.railway.app/__clerk",
-        "CLERK_SECRET_KEY": "sk_live_yhu3BQHiGHGqlljcLBhoMEUguD3he5V51IOqetmx17",
+        "VITE_CLERK_PUBLISHABLE_KEY": "pk_test_c21pbGluZy1tYW1tb3RoLTYuY2xlcmsuYWNjb3VudHMuZGV2JA",
         "VITE_DEV_MODE": "false",
         "VITE_ENABLE_CLERK": "true",
         "DATABASE_URL": "${{DATABASE_URL}}"
