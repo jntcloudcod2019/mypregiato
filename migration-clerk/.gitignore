@@ -1,8 +1,0 @@
-node_modules/
-.env
-users-processed.json
-migration-success.json
-migration-errors.json
-process-errors.json
-*.log
-
